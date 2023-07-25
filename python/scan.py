@@ -179,15 +179,15 @@ vsrange = vsmax - vsmin
 vxrange = vxmax - vxmin
 
 # annealing rate
-thSrate = 0.85
-thXrate = 0.85
-tSXrate = 0.85
-vsrate = 0.85
-vxrate = 0.85
+thSrate = 0.9
+thXrate = 0.9
+tSXrate = 0.9
+vsrate = 0.9
+vxrate = 0.9
 
 # rate of reducing scan points
 # keep this larger than the volumetric annealing rate!
-pointrate = 0.9
+pointrate = 0.92
 
 # summary file
 summaryname = "scansummary.txt"
@@ -264,20 +264,20 @@ for iter in range(niter):
 
         # calculate point density from prescan
         volume = (thetahSmax - thetahSmin)
-        volume += (thetahXmax - thetahXmin)
-        volume += (thetaSXmax - thetaSXmin)
-        volume += (vsmax - vsmin)
-        volume += (vxmax - vxmin)
+        volume *= (thetahXmax - thetahXmin)
+        volume *= (thetaSXmax - thetaSXmin)
+        volume *= (vsmax - vsmin)
+        volume *= (vxmax - vxmin)
         density = num_prescan / volume
 
     else:
 
         # calculate point density from ranges
         volume = (thShigh - thSlow)
-        volume += (thXhigh - thXlow)
-        volume += (tSXhigh - tSXlow)
-        volume += (vshigh - vslow)
-        volume += (vxhigh - vxlow)
+        volume *= (thXhigh - thXlow)
+        volume *= (tSXhigh - tSXlow)
+        volume *= (vshigh - vslow)
+        volume *= (vxhigh - vxlow)
         density = npoints / volume
 
         filedata = templatedata
