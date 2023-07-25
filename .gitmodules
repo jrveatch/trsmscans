@@ -7,3 +7,6 @@
 [submodule "ScannerS"]
 	path = ScannerS
 	url = git@gitlab.com:jonaswittbrodt/ScannerS.git
+[submodule "higgstools"]
+	path = higgstools
+	url = git@gitlab.com:higgsbounds/higgstools.git
