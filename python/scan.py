@@ -81,7 +81,7 @@ prescan = home + "/output/prescan/X"+str(mH3)+"_S"+str(mH2)+"/"+base+"_prescan.t
 # if prescan output doesn't exist, complain and exit
 if not os.path.exists(prescan):
     print("Unable to find prescan output:",prescan)
-    print("Run a prescan before trying again")
+    print("Run a prescan with at least one point before trying again")
     quit()
 
 # get list of column numbers
@@ -101,43 +101,53 @@ if not os.path.exists(dir + "/files"):
 # go into the run directory
 os.chdir(dir)
 
-# check ranges of the prescan
-minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parse.getranges(prescan,cols)
+if useprescan:
 
-print("thetahS",f"{minthS:1.4f}",f"{maxthS:1.4f}")
-print("thetahX",f"{minthX:1.4f}",f"{maxthX:1.4f}")
-print("thetaSX",f"{mintSX:1.4f}",f"{maxtSX:1.4f}")
-print("vs",f"{minvs:1.4f}",f"{maxvs:1.4f}")
-print("vx",f"{minvx:1.4f}",f"{maxvx:1.4f}")
+    with open(prescan, "r") as f:
+        num_prescan = sum(1 for _ in f)
 
-# if the prescan ranges are more than 5% away from
-# the boundaries, change the boundaries to restrict
-# scan range and minimize scan points that are wasted
-tolerance = 0.05
+    if num_prescan < 0.5 * npoints:
+        print("Prescan doesn't have enough points to justify using.")
+        print("Run a prescan with more points or rerun scan with --useprescan=False")
+        quit()
 
-# thetas
-if minthS - (abs(minthS) * tolerance) > thetahSmin:
-    thetahSmin = minthS
-if minthX - (abs(minthX) * tolerance) > thetahXmin:
-    thetahXmin = minthX
-if mintSX - (abs(mintSX) * tolerance) > thetaSXmin:
-    thetaSXmin = mintSX
-if maxthS + (abs(maxthS) * tolerance) < thetahSmax:
-    thetahSmax = maxthS
-if maxthX + (abs(maxthX) * tolerance) < thetahXmax:
-    thetahXmax = maxthX
-if maxtSX + (abs(maxtSX) * tolerance) < thetaSXmax:
-    thetaSXmax = maxtSX
+    # check ranges of the prescan
+    minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parse.getranges(prescan,cols)
 
-# vevs
-if minvs - (abs(minvs) * tolerance) > vsmin:
-    vsmin = minvs
-if minvx - (abs(minvx) * tolerance) > vxmin:
-    vxmin = minvx
-if maxvs + (abs(maxvs) * tolerance) < vsmax:
-    vsmax = maxvs
-if maxvx + (abs(maxvx) * tolerance) < vxmax:
-    vxmax = maxvx
+    print("thetahS",f"{minthS:1.4f}",f"{maxthS:1.4f}")
+    print("thetahX",f"{minthX:1.4f}",f"{maxthX:1.4f}")
+    print("thetaSX",f"{mintSX:1.4f}",f"{maxtSX:1.4f}")
+    print("vs",f"{minvs:1.4f}",f"{maxvs:1.4f}")
+    print("vx",f"{minvx:1.4f}",f"{maxvx:1.4f}")
+
+    # if the prescan ranges are more than 5% away from
+    # the boundaries, change the boundaries to restrict
+    # scan range and minimize scan points that are wasted
+    tolerance = 0.05
+
+    # thetas
+    if minthS - (abs(minthS) * tolerance) > thetahSmin:
+        thetahSmin = minthS
+    if minthX - (abs(minthX) * tolerance) > thetahXmin:
+        thetahXmin = minthX
+    if mintSX - (abs(mintSX) * tolerance) > thetaSXmin:
+        thetaSXmin = mintSX
+    if maxthS + (abs(maxthS) * tolerance) < thetahSmax:
+        thetahSmax = maxthS
+    if maxthX + (abs(maxthX) * tolerance) < thetahXmax:
+        thetahXmax = maxthX
+    if maxtSX + (abs(maxtSX) * tolerance) < thetaSXmax:
+        thetaSXmax = maxtSX
+
+    # vevs
+    if minvs - (abs(minvs) * tolerance) > vsmin:
+        vsmin = minvs
+    if minvx - (abs(minvx) * tolerance) > vxmin:
+        vxmin = minvx
+    if maxvs + (abs(maxvs) * tolerance) < vsmax:
+        vsmax = maxvs
+    if maxvx + (abs(maxvx) * tolerance) < vxmax:
+        vxmax = maxvx
 
 # initialize theta means
 thSmean = (thetahSmax + thetahSmin) / 2
@@ -197,6 +207,9 @@ for iter in range(niter):
     ininame = outname + ".ini"
     tsvname = outname + "_RAW.tsv"
 
+    # scan point density
+    density = -999
+
     # set theta lows and highs
     thSlow = thSmean - thSrange / 2
     thShigh = thSmean + thSrange / 2
@@ -237,7 +250,25 @@ for iter in range(niter):
 
     if iter == 0 and useprescan:
         tsvname = prescan
+
+        # calculate point density from prescan
+        volume = (thetahSmax - thetahSmin)
+        volume += (thetahXmax - thetahXmin)
+        volume += (thetaSXmax - thetaSXmin)
+        volume += (vsmax - vsmin)
+        volume += (vxmax - vxmin)
+        density = num_prescan / volume
+
     else:
+
+        # calculate point density from ranges
+        volume = (thShigh - thSlow)
+        volume += (thXhigh - thXlow)
+        volume += (tSXhigh - tSXlow)
+        volume += (vshigh - vslow)
+        volume += (vxhigh - vxlow)
+        density = npoints / volume
+
         filedata = templatedata
         filedata = filedata.replace("MH1",str(mH1))
         filedata = filedata.replace("MH2",str(mH2))
@@ -356,6 +387,7 @@ for iter in range(niter):
         details.write(str(nbounds) + "/" + str(nwidth2) + " pass bounds check\n")
         details.write("Found max xsec*BR = " + str(maxxbNew) + "\n")
         details.write("Update = " + str(update) + "\n")
+    details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
     details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
     details.write("thetahS: mean = " + f"{thSmean:1.4f}" + "\n")
     details.write("         diff = " + f"{thSdiff:1.3f}" + "\n")
