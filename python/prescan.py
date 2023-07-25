@@ -9,7 +9,6 @@ import argparse
 import math
 
 # import tools
-import parse
 import bounds
 import width
 
