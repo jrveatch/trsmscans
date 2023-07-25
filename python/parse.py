@@ -18,7 +18,18 @@ def getmaxpoint(filename,cols,decay):
 
     # get branching ratio
     ##### TODO: Need to modify this to use decay mode options
-    xb_decay = np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
+
+    match decay:
+        case "H2bbH1tautau":
+            xb_decay = np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
+        case "H2tautauH1bb":
+            xb_decay = np.multiply(arr.b_H1_bb,arr.b_H2_tautau)
+        case "H2H1bbtautau":
+            xb_decay = np.multiply(arr.b_H1_bb,arr.b_H2_tautau) + np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
+        case _:
+            print("Unrecognized decay",decay)
+            print("This should not have happened")
+            quit()
 
     # get total xsec times BR
     xb = np.multiply(xb_prod,xb_decay)

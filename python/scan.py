@@ -45,6 +45,15 @@ mH3 = args["XMass"]
 # decay mode
 decay = args["decaymode"]
 
+# check to make sure decay mode is supported
+supported = False
+if decay == "H2bbH1tautau" or decay == "H2tautauH1bb" or decay == "H2H1bbtautau":
+    supported = True
+if not supported:
+    print("Unrecognized decay",decay)
+    print("Quiting...")
+    quit()
+
 # maximum allowed width
 maxwidth = args["widthmax"]
 
@@ -168,15 +177,15 @@ vsrange = vsmax - vsmin
 vxrange = vxmax - vxmin
 
 # annealing rate
-thSrate = 0.9
-thXrate = 0.9
-tSXrate = 0.9
-vsrate = 0.9
-vxrate = 0.9
+thSrate = 0.85
+thXrate = 0.85
+tSXrate = 0.85
+vsrate = 0.85
+vxrate = 0.85
 
 # rate of reducing scan points
-# keep this larger than the annealing rate!
-pointrate = 0.95
+# keep this larger than the volumetric annealing rate!
+pointrate = 0.9
 
 # summary file
 summaryname = "scansummary.txt"
