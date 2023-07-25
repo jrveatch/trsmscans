@@ -25,7 +25,17 @@ def getmaxpoint(filename,cols,decay):
         case "H2tautauH1bb":
             xb_decay = np.multiply(arr.b_H1_bb,arr.b_H2_tautau)
         case "H2H1bbtautau":
-            xb_decay = np.multiply(arr.b_H1_bb,arr.b_H2_tautau) + np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
+            arr1 = np.multiply(arr.b_H1_bb,arr.b_H2_tautau)
+            arr2 = np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
+            xb_decay = np.add(arr1,arr2)
+        case "H2VVH1tautau":
+            xb_decay = np.multiply(arr.b_H1_tautau,np.add(arr.b_H2_WW,arr.b_H2_ZZ))
+        case "H2tautauH1VV":
+            xb_decay = np.multiply(arr.b_H2_tautau,np.add(arr.b_H1_WW,arr.b_H1_ZZ))
+        case "H2H1VVtautau":
+            arr1 = np.multiply(arr.b_H2_tautau,np.add(arr.b_H1_WW,arr.b_H1_ZZ))
+            arr2 = np.multiply(arr.b_H1_tautau,np.add(arr.b_H2_WW,arr.b_H2_ZZ))
+            xb_decay = np.add(arr1,arr2)
         case _:
             print("Unrecognized decay",decay)
             print("This should not have happened")

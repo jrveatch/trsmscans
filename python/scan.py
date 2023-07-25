@@ -49,6 +49,8 @@ decay = args["decaymode"]
 supported = False
 if decay == "H2bbH1tautau" or decay == "H2tautauH1bb" or decay == "H2H1bbtautau":
     supported = True
+if decay == "H2VVH1tautau" or decay == "H2tautauH1VV" or decay == "H2H1VVtautau":
+    supported = True
 if not supported:
     print("Unrecognized decay",decay)
     print("Quiting...")
