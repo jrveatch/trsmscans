@@ -28,6 +28,22 @@ def getmaxpoint(filename,cols,decay):
             arr1 = np.multiply(arr.b_H1_bb,arr.b_H2_tautau)
             arr2 = np.multiply(arr.b_H1_tautau,arr.b_H2_bb)
             xb_decay = np.add(arr1,arr2)
+        case "H2WWH1tautau":
+            xb_decay = np.multiply(arr.b_H1_tautau,arr.b_H2_WW)
+        case "H2tautauH1WW":
+            xb_decay = np.multiply(arr.b_H2_tautau,arr.b_H1_WW)
+        case "H2H1WWtautau":
+            arr1 = np.multiply(arr.b_H2_tautau,arr.b_H1_WW)
+            arr2 = np.multiply(arr.b_H1_tautau,arr.b_H2_WW)
+            xb_decay = np.add(arr1,arr2)
+        case "H2ZZH1tautau":
+            xb_decay = np.multiply(arr.b_H1_tautau,arr.b_H2_ZZ)
+        case "H2tautauH1ZZ":
+            xb_decay = np.multiply(arr.b_H2_tautau,arr.b_H1_ZZ)
+        case "H2H1ZZtautau":
+            arr1 = np.multiply(arr.b_H2_tautau,arr.b_H1_ZZ)
+            arr2 = np.multiply(arr.b_H1_tautau,arr.b_H2_ZZ)
+            xb_decay = np.add(arr1,arr2)
         case "H2VVH1tautau":
             xb_decay = np.multiply(arr.b_H1_tautau,np.add(arr.b_H2_WW,arr.b_H2_ZZ))
         case "H2tautauH1VV":
