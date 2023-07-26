@@ -99,7 +99,7 @@ if not os.path.exists(prescan):
 cols = columns.Columns(prescan)
 
 # directory where we want to run
-dir = "output/"+decay+"/X"+str(mH3)+"_S"+str(mH2)
+dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)
 
 # check if directory exists, otherwise make it
 if not os.path.exists(dir):
@@ -386,6 +386,7 @@ for iter in range(niter):
     iterend = time.time()
     itertime = iterend - iterstart
 
+    # TODO: Add details about R11, R21, R31
     # write scan details to details file
     details = open(detailsname,"a")
     details.write("Iteration = " + str(identifier) + "\n")
