@@ -391,14 +391,15 @@ for iter in range(niter):
     details.write("Iteration = " + str(identifier) + "\n")
     if iter == 0 and useprescan:
         details.write("Checking prescan output\n")
+        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
     else:
         details.write("Using " + str(npoints) + " scan points\n")
+        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("It took " + f"{itertime:1.1f}" + " seconds\n")
         details.write(str(nwidth) + "/" + str(nraw) + " pass width cut of " + str(maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(nwidth2) + " pass bounds check\n")
         details.write("Found max xsec*BR = " + f"{Decimal(maxxbNew):.4E}" + "\n")
         details.write("Update = " + str(update) + "\n")
-    details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
     details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
     details.write("thetahS: mean = " + f"{thSmean:1.4f}" + "\n")
     details.write("         diff = " + f"{thSdiff:1.3f}" + "\n")
