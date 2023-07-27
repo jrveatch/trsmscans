@@ -11,6 +11,7 @@ import math
 # import tools
 import bounds
 import width
+import columns
 
 # get scan start time
 scanstart = time.time()
@@ -72,8 +73,9 @@ if os.path.exists(outname + "_RAW.tsv"):
     with open(outname + "_RAW.tsv", "r") as f:
         num_lines = sum(1 for _ in f)
 
-if num_lines > npoints:
-    print("Already found a prescan with",num_lines-1,"points. Exiting.")
+if num_lines > 1.1 * npoints:
+    print("Already found a prescan with",num_lines-1,"points.")
+    print("If you want to run again, use at least 10% more points. Exiting.")
     quit()
 
 ininame = outname + ".ini"
@@ -98,6 +100,16 @@ outfile = open(ininame,"w")
 outfile.write(filedata)
 outfile.close()
 
+if not os.path.exists(outname + "_COLS.tsv"):
+    print("No COLS file found, creating one")
+    process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n 1"]
+    print(process)
+    subprocess.run(process)
+    os.rename(base + ".tsv", base + "_COLS.tsv")
+
+# get list of column numbers
+cols = columns.Columns(outname + "_COLS.tsv")
+
 process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
 print(process)
 subprocess.run(process)
@@ -105,10 +117,10 @@ subprocess.run(process)
 os.rename(base + ".tsv", tsvname)
 
 # run width filter
-width.filterwidths(outname,maxwidth)
+width.filterwidths(outname,cols,maxwidth)
 
 # run bounds filter
-bounds.filterbounds(outname,maxwidth)
+bounds.filterbounds(outname,cols,maxwidth)
 
 # copy bounds file to a final file name
 shutil.copyfile(outname + "_RAW.tsv", outname + "_prescan.tsv")

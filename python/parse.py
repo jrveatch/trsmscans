@@ -2,10 +2,11 @@
 # import numpy library as np
 import numpy as np
 
-# import list of columns
+# import list of arrays
 import arrays
+import columns
 
-def getmaxpoint(filename,cols,decay):
+def getmaxpoint(filename,cols:columns.Columns,decay):
 
     # create arrays object
     arr = arrays.Arrays()

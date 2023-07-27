@@ -3,9 +3,9 @@
 import re
 
 # column indices
-import columns as col
+import columns
 
-def filterwidths(filename, maxwidth):
+def filterwidths(filename, cols:columns.Columns, maxwidth):
 
     infile = open(filename+"_RAW.tsv","r")
     outfile = open(filename+"_WIDTH.tsv","w")
@@ -29,9 +29,9 @@ def filterwidths(filename, maxwidth):
             data = [float(x) for x in line.split()]
 
             # calculate fractional widths
-            width1 = data[col.w_H1] / data[col.mH1]
-            width2 = data[col.w_H2] / data[col.mH2]
-            width3 = data[col.w_H3] / data[col.mH3]
+            width1 = data[cols.w_H1] / data[cols.mH1]
+            width2 = data[cols.w_H2] / data[cols.mH2]
+            width3 = data[cols.w_H3] / data[cols.mH3]
 
             # skip line if width is over max
             if width1 > maxwidth:

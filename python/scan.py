@@ -91,16 +91,29 @@ template = open(tempname,"r")
 templatedata = template.read()
 template.close()
 
-prescan = home + "/output/prescan/X"+str(mH3)+"_S"+str(mH2)+"/"+base+"_prescan.tsv"
+prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
+prescanbase = prescandir + base
+prescancols = prescanbase + "_COLS.tsv"
+prescan = prescanbase + "_prescan.tsv"
 
-# if prescan output doesn't exist, complain and exit
-if not os.path.exists(prescan):
-    print("Unable to find prescan output:",prescan)
-    print("Run a prescan with at least one point before trying again")
+if useprescan == True and not os.path.exists(prescan):
+    print("You are attempting to use a prescan that doesn't exist.")
+    print("Please run prescan.py before continuing.")
     quit()
 
+# if prescan output doesn't exist, complain and exit
+if not os.path.exists(prescandir):
+    os.makedirs(prescandir)
+
+if not os.path.exists(prescancols):
+    print("No COLS file found, creating one")
+    process = [home + "/../ScannerS/build/TRSMBroken", "--config", "TRSMBroken_baseline.ini", "scan", "-n 1"]
+    print(process)
+    subprocess.run(process)
+    os.rename(prescanbase + ".tsv", prescancols)
+
 # get list of column numbers
-cols = columns.Columns(prescan)
+cols = columns.Columns(prescancols)
 
 # directory where we want to run
 dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)
@@ -310,7 +323,7 @@ for iter in range(niter):
         os.rename(base + ".tsv", tsvname)
 
         # run width filter
-        nraw, nwidth = width.filterwidths(outname,maxwidth)
+        nraw, nwidth = width.filterwidths(outname,cols,maxwidth)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -321,7 +334,7 @@ for iter in range(niter):
             details.close()
             continue
 
-        nwidth2, nbounds = bounds.filterbounds(outname,maxwidth)
+        nwidth2, nbounds = bounds.filterbounds(outname,cols,maxwidth)
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:
