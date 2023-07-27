@@ -366,6 +366,8 @@ def filterbounds(filename,debug=False):
                 limits3 = [a for a in bounds(pred).appliedLimits if "h3" in a.contributingParticles()]
                 limits = [a for a in bounds(pred).appliedLimits if a.obsRatio() > 1.0]
 
+                # TODO: lim.limit().id() is the channel identifier
+                # we will want to ignore 13022 at least near 125 since it excludes SM
                 if debug is True:
                     for lim in limits1:
                         if lim.expRatio() > 1 and lim.obsRatio() > 1:
