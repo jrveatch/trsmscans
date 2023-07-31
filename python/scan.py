@@ -86,6 +86,7 @@ vxmin = 0.0
 vxmax = 1000.0
 
 base = "TRSMBroken"
+baselinename = base + "_baseline.ini"
 tempname = base + "_template.ini"
 
 template = open(tempname,"r")
@@ -108,9 +109,9 @@ if not os.path.exists(prescandir):
 
 if not os.path.exists(prescancols):
     print("No COLS file found, creating one")
-    shutil.copyfile("TRSMBroken_baseline.ini", prescandir+"/TRSMBroken_baseline.ini")
+    shutil.copyfile(baselinename, prescandir+"/"+baselinename)
     os.chdir(prescandir)
-    process = [home + "/../ScannerS/build/TRSMBroken", "--config", "TRSMBroken_baseline.ini", "scan", "-n 1"]
+    process = [home + "/../ScannerS/build/TRSMBroken", "--config", baselinename, "scan", "-n 1"]
     print(process)
     subprocess.run(process)
     os.rename(prescanbase + ".tsv", prescancols)
