@@ -1,5 +1,6 @@
 # import various modules to help with logistics
 import os
+import shutil
 import subprocess
 import time
 import argparse
@@ -31,7 +32,7 @@ parser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help=
 parser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
 parser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
 parser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-parser.add_argument("-p", "--useprescan", default=True, type=bool, help="Use prescan")
+parser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
 args = vars(parser.parse_args())
 
 # whether prescan should be used
@@ -107,6 +108,8 @@ if not os.path.exists(prescandir):
 
 if not os.path.exists(prescancols):
     print("No COLS file found, creating one")
+    shutil.copyfile("TRSMBroken_baseline.ini", prescandir+"/TRSMBroken_baseline.ini")
+    os.chdir(prescandir)
     process = [home + "/../ScannerS/build/TRSMBroken", "--config", "TRSMBroken_baseline.ini", "scan", "-n 1"]
     print(process)
     subprocess.run(process)
