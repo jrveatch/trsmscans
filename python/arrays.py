@@ -6,7 +6,7 @@ import columns
 
 class Arrays:
 
-    def getarrays(self,filename,cols:columns.Columns):
+    def __init__(self,filename,cols:columns.Columns):
 
         self.idx = np.loadtxt(filename,
                             delimiter="\t",

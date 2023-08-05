@@ -17,6 +17,7 @@ import width
 import bounds
 
 import columns
+import arrays
 
 # get scan start time
 scanstart = time.time()
@@ -143,8 +144,12 @@ if useprescan:
         print("Run a prescan with more points or rerun scan with --useprescan=False")
         quit()
 
+    # get prescan arrays
+    arr = arrays.Arrays(prescan,cols)
+
     # check ranges of the prescan
-    minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parse.getranges(prescan,cols)
+    #minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parse.getranges(prescan,cols)
+    minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parse.getranges(arr)
 
     print("thetahS",f"{minthS:1.4f}",f"{maxthS:1.4f}")
     print("thetahX",f"{minthX:1.4f}",f"{maxthX:1.4f}")
@@ -357,8 +362,11 @@ for iter in range(niter):
     vsmeanOld = vsmean
     vxmeanOld = vxmean
 
+    # get new arrays
+    arr = arrays.Arrays(tsvname,cols)
+
     # get new points
-    maxxbNew, indexNew, thSmeanNew, thXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = parse.getmaxpoint(tsvname,cols,decay)
+    maxxbNew, indexNew, thSmeanNew, thXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = parse.getmaxpoint(arr,decay)
 
     update = False
 

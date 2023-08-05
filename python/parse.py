@@ -4,15 +4,8 @@ import numpy as np
 
 # import list of arrays
 import arrays
-import columns
 
-def getmaxpoint(filename,cols:columns.Columns,decay):
-
-    # create arrays object
-    arr = arrays.Arrays()
-
-    # get arrays
-    arr.getarrays(filename,cols)
+def getmaxpoint(arr:arrays.Arrays,decay):
 
     # get production cross section
     xb_prod = np.multiply(arr.x_H3_gg,arr.b_H3_H1H2)
@@ -76,13 +69,7 @@ def getmaxpoint(filename,cols:columns.Columns,decay):
 
     return maxxb, maxidx, maxthS, maxthX, maxtSX, maxvs, maxvx
 
-def getranges(filename,cols):
-
-    # create arrays object
-    arr = arrays.Arrays()
-
-    # get arrays
-    arr.getarrays(filename,cols)
+def getranges(arr:arrays.Arrays):
 
     minthS = np.min(arr.thetahS)
     maxthS = np.max(arr.thetahS)
