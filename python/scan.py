@@ -25,15 +25,15 @@ scanstart = time.time()
 home = os.getcwd()
 
 # Parse command line arguments
-parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-parser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-parser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
-parser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
-parser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
-parser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-parser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
-args = vars(parser.parse_args())
+argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
+argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
+argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
+argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
+argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
+argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+argparser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
+args = vars(argparser.parse_args())
 
 # whether prescan should be used
 useprescan = args["useprescan"]
@@ -144,10 +144,10 @@ if useprescan:
         quit()
 
     # get parser from prescan
-    parser = parse.Parse(prescan,cols)
+    scanparser = parse.Parse(prescan,cols)
 
     # check ranges of the prescan
-    minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = parser.getranges()
+    minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getranges()
 
     print("thetahS",f"{minthS:1.4f}",f"{maxthS:1.4f}")
     print("thetahX",f"{minthX:1.4f}",f"{maxthX:1.4f}")
@@ -361,10 +361,13 @@ for iter in range(niter):
     vxmeanOld = vxmean
 
     # get parser with new arrays
-    parser.newArrays(tsvname)
+    if not useprescan and iter == 0:
+        scanparser = parse.Parse(tsvname,cols)
+    else:
+        scanparser.newArrays(tsvname)
 
     # get new points
-    maxxbNew, indexNew, thSmeanNew, thXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = parser.getmaxpoint(decay)
+    maxxbNew, indexNew, thSmeanNew, thXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
 
     update = False
 
