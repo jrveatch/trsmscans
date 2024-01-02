@@ -1,3 +1,7 @@
 __pycache__
 output
 STXS*.txt
+run/HS_analyses.txt
+run/HS_correlations.txt
+run/Key.dat
+run/TRSMBroken.tsv
