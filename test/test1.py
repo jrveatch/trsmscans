@@ -1,1 +1,0 @@
-# script to test computation time to read tsv files
