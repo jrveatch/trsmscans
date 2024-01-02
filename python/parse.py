@@ -115,3 +115,7 @@ class Parse:
         maxvx = np.max(self.arr.vx)
 
         return minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx
+    
+    def getvars(self):
+        
+        return self.arr.thetahS, self.arr.thetahX, self.arr.thetaSX, self.arr.vs, self.arr.vx
