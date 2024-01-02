@@ -6,7 +6,7 @@ if [ ! -d build ]; then
 fi
 cd build
 # currently hardcoded for JV's version of gcc
-CC=gcc-13 CXX=g++-13 cmake ..
+CC=gcc-13 CXX=g++-13 cmake -Wno-dev ..
 make
 cd ../..
 
@@ -16,7 +16,7 @@ if [ ! -d build ]; then
     mkdir build
 fi
 cd build
-cmake ..
+cmake -Wno-dev ..
 make
 cd ../..
 
