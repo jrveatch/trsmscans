@@ -2,10 +2,7 @@
 # search strings
 import re
 
-# column indices
-import columns
-
-def filterwidths(filename, cols:columns.Columns, maxwidth):
+def filterwidths(filename, headers, maxwidth):
 
     infile = open(filename+"_RAW.tsv","r")
     outfile = open(filename+"_WIDTH.tsv","w")
@@ -28,10 +25,19 @@ def filterwidths(filename, cols:columns.Columns, maxwidth):
             # parse line into numerical values
             data = [float(x) for x in line.split()]
 
+            # get indices of each data column
+            idx_w_H1 = headers.index('w_H1')
+            idx_w_H2 = headers.index('w_H2')
+            idx_w_H3 = headers.index('w_H3')
+
+            idx_mH1 = headers.index('mH1')
+            idx_mH2 = headers.index('mH2')
+            idx_mH3 = headers.index('mH3')
+
             # calculate fractional widths
-            width1 = data[cols.w_H1] / data[cols.mH1]
-            width2 = data[cols.w_H2] / data[cols.mH2]
-            width3 = data[cols.w_H3] / data[cols.mH3]
+            width1 = data[idx_w_H1] / data[idx_mH1]
+            width2 = data[idx_w_H2] / data[idx_mH2]
+            width3 = data[idx_w_H3] / data[idx_mH3]
 
             # skip line if width is over max
             if width1 > maxwidth:

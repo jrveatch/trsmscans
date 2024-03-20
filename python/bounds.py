@@ -2,7 +2,6 @@
 from twors_higgstools_setup import *
 from sympy.parsing.mathematica import mathematica
 import re
-import columns
 
 # SETUP STARTS HERE
 
@@ -121,7 +120,7 @@ def testpoint(mH,sintheta,tanb):
     # check this example point:
     print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mH, sintheta, l112, debug=True))
 
-def filterbounds(filename, cols:columns.Columns,debug=False):
+def filterbounds(filename, headers,debug=False):
     
     infile = open(filename+"_WIDTH.tsv","r")
     outfile = open(filename+"_BOUNDS.tsv","w")
@@ -147,78 +146,78 @@ def filterbounds(filename, cols:columns.Columns,debug=False):
             # count lines going into filter
             npoints += 1
             
-            idx = int(data[cols.idx])
+            idx = int(data[headers.index('idx')])
 
             # masses
-            mH1 = float(data[cols.mH1])
-            mH2 = float(data[cols.mH2])
-            mH3 = float(data[cols.mH3])
+            mH1 = float(data[headers.index('mH1')])
+            mH2 = float(data[headers.index('mH2')])
+            mH3 = float(data[headers.index('mH3')])
 
             # rescalings
-            R11 = float(data[cols.R11])
-            R21 = float(data[cols.R21])
-            R31 = float(data[cols.R31])
+            R11 = float(data[headers.index('R11')])
+            R21 = float(data[headers.index('R21')])
+            R31 = float(data[headers.index('R31')])
 
             if debug is True:
                 print('rescalings are ', R11,R21,R31)
 
             # mixing angles
-            thetahS = float(data[cols.thetahS])
-            thetahX = float(data[cols.thetahX])
-            thetaSX = float(data[cols.thetaSX])
+            thetahS = float(data[headers.index('thetahS')])
+            thetahX = float(data[headers.index('thetahX')])
+            thetaSX = float(data[headers.index('thetaSX')])
 
             # vevs
-            v = float(data[cols.v])
-            vs = float(data[cols.vs])
-            vx = float(data[cols.vx])
+            v = float(data[headers.index('v')])
+            vs = float(data[headers.index('vs')])
+            vx = float(data[headers.index('vx')])
 
             # H1 BRs
-            b_H1_WW = float(data[cols.b_H1_WW])
-            b_H1_ZZ = float(data[cols.b_H1_ZZ])
-            b_H1_Zgam = float(data[cols.b_H1_Zgam])
-            b_H1_bb = float(data[cols.b_H1_bb])
-            b_H1_cc = float(data[cols.b_H1_cc])
-            b_H1_gamgam = float(data[cols.b_H1_gamgam])
-            b_H1_gg = float(data[cols.b_H1_gg])
-            b_H1_mumu = float(data[cols.b_H1_mumu])
-            b_H1_ss = float(data[cols.b_H1_ss])
-            b_H1_tautau = float(data[cols.b_H1_tautau])
-            b_H1_tt = float(data[cols.b_H1_tt])
+            b_H1_WW = float(data[headers.index('b_H1_WW')])
+            b_H1_ZZ = float(data[headers.index('b_H1_ZZ')])
+            b_H1_Zgam = float(data[headers.index('b_H1_Zgam')])
+            b_H1_bb = float(data[headers.index('b_H1_bb')])
+            b_H1_cc = float(data[headers.index('b_H1_cc')])
+            b_H1_gamgam = float(data[headers.index('b_H1_gamgam')])
+            b_H1_gg = float(data[headers.index('b_H1_gg')])
+            b_H1_mumu = float(data[headers.index('b_H1_mumu')])
+            b_H1_ss = float(data[headers.index('b_H1_ss')])
+            b_H1_tautau = float(data[headers.index('b_H1_tautau')])
+            b_H1_tt = float(data[headers.index('b_H1_tt')])
 
             # H2 BRs
-            b_H2_H1H1 = float(data[cols.b_H2_H1H1])
-            b_H2_WW = float(data[cols.b_H2_WW])
-            b_H2_ZZ = float(data[cols.b_H2_ZZ])
-            b_H2_Zgam = float(data[cols.b_H2_Zgam])
-            b_H2_bb = float(data[cols.b_H2_bb])
-            b_H2_cc = float(data[cols.b_H2_cc])
-            b_H2_gamgam = float(data[cols.b_H2_gamgam])
-            b_H2_gg = float(data[cols.b_H2_gg])
-            b_H2_mumu = float(data[cols.b_H2_mumu])
-            b_H2_ss = float(data[cols.b_H2_ss])
-            b_H2_tautau = float(data[cols.b_H2_tautau])
-            b_H2_tt = float(data[cols.b_H2_tt])
+            b_H2_H1H1 = float(data[headers.index('b_H2_H1H1')])
+            b_H2_WW = float(data[headers.index('b_H2_WW')])
+            b_H2_ZZ = float(data[headers.index('b_H2_ZZ')])
+            b_H2_Zgam = float(data[headers.index('b_H2_Zgam')])
+            b_H2_bb = float(data[headers.index('b_H2_bb')])
+            b_H2_cc = float(data[headers.index('b_H2_cc')])
+            b_H2_gamgam = float(data[headers.index('b_H2_gamgam')])
+            b_H2_gg = float(data[headers.index('b_H2_gg')])
+            b_H2_mumu = float(data[headers.index('b_H2_mumu')])
+            b_H2_ss = float(data[headers.index('b_H2_ss')])
+            b_H2_tautau = float(data[headers.index('b_H2_tautau')])
+            b_H2_tt = float(data[headers.index('b_H2_tt')])
 
             # H3 BRs
-            b_H3_H1H1 = float(data[cols.b_H3_H1H1])
-            b_H3_H1H2 = float(data[cols.b_H3_H1H2])
-            b_H3_H2H2 = float(data[cols.b_H3_H2H2])
-            b_H3_WW = float(data[cols.b_H3_WW])
-            b_H3_ZZ = float(data[cols.b_H3_ZZ])
-            b_H3_Zgam = float(data[cols.b_H3_Zgam])
-            b_H3_bb = float(data[cols.b_H3_bb])
-            b_H3_cc = float(data[cols.b_H3_cc])
-            b_H3_gamgam = float(data[cols.b_H3_gamgam])
-            b_H3_gg = float(data[cols.b_H3_gg])
-            b_H3_mumu = float(data[cols.b_H3_mumu])
-            b_H3_ss = float(data[cols.b_H3_ss])
-            b_H3_tautau = float(data[cols.b_H3_tautau])
-            b_H3_tt = float(data[cols.b_H3_tt])
+            b_H3_H1H1 = float(data[headers.index('b_H3_H1H1')])
+            b_H3_H1H2 = float(data[headers.index('b_H3_H1H2')])
+            b_H3_H2H2 = float(data[headers.index('b_H3_H2H2')])
+            b_H3_WW = float(data[headers.index('b_H3_WW')])
+            b_H3_ZZ = float(data[headers.index('b_H3_ZZ')])
+            b_H3_Zgam = float(data[headers.index('b_H3_Zgam')])
+            b_H3_bb = float(data[headers.index('b_H3_bb')])
+            b_H3_cc = float(data[headers.index('b_H3_cc')])
+            b_H3_gamgam = float(data[headers.index('b_H3_gamgam')])
+            b_H3_gg = float(data[headers.index('b_H3_gg')])
+            b_H3_mumu = float(data[headers.index('b_H3_mumu')])
+            b_H3_ss = float(data[headers.index('b_H3_ss')])
+            b_H3_tautau = float(data[headers.index('b_H3_tautau')])
+            b_H3_tt = float(data[headers.index('b_H3_tt')])
 
             # Widths
-            w_H1 = float(data[cols.w_H1])
-            w_H2 = float(data[cols.w_H2])
-            w_H3 = float(data[cols.w_H3])
+            w_H1 = float(data[headers.index('w_H1')])
+            w_H2 = float(data[headers.index('w_H2')])
+            w_H3 = float(data[headers.index('w_H3')])
             
             # i do everything at once here
             h1.setMass(mH1)

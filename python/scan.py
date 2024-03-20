@@ -16,7 +16,7 @@ import parse
 import width
 import bounds
 
-import columns
+import arrays
 
 # get scan start time
 scanstart = time.time()
@@ -85,39 +85,27 @@ vsmax = 1000.0
 vxmin = 0.0
 vxmax = 1000.0
 
+# create empty list of headers
+headers = []
+
+# names of .ini files
 base = "TRSMBroken"
 baselinename = base + "_baseline.ini"
-tempname = base + "_template.ini"
+templatename = base + "_template.ini"
 
-template = open(tempname,"r")
+template = open(templatename,"r")
 templatedata = template.read()
 template.close()
 
 prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
 prescanbase = prescandir + base
-prescancols = prescanbase + "_COLS.tsv"
 prescan = prescanbase + "_prescan.tsv"
 
+# if prescan output doesn't exist, complain and exit
 if useprescan == True and not os.path.exists(prescan):
     print("You are attempting to use a prescan that doesn't exist.")
     print("Please run prescan.py before continuing.")
     quit()
-
-# if prescan output doesn't exist, complain and exit
-if not os.path.exists(prescandir):
-    os.makedirs(prescandir)
-
-if not os.path.exists(prescancols):
-    print("No COLS file found, creating one")
-    shutil.copyfile(baselinename, prescandir+"/"+baselinename)
-    os.chdir(prescandir)
-    process = [home + "/../ScannerS/build/TRSMBroken", "--config", baselinename, "scan", "-n 1"]
-    print(process)
-    subprocess.run(process)
-    os.rename(prescanbase + ".tsv", prescancols)
-
-# get list of column numbers
-cols = columns.Columns(prescancols)
 
 # directory where we want to run
 dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)
@@ -145,6 +133,7 @@ if useprescan:
 
     # get parser from prescan
     scanparser = parse.Parse(prescan)
+    headers = scanparser.arr.getHeaders()
 
     # check ranges of the prescan
     minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getranges()
@@ -329,8 +318,13 @@ for iter in range(niter):
 
         os.rename(base + ".tsv", tsvname)
 
+        # get headers if they don't already exist
+        if not headers:
+            temparr = arrays.Arrays(tsvname)
+            headers = temparr.getHeaders()
+
         # run width filter
-        nraw, nwidth = width.filterwidths(outname,cols,maxwidth)
+        nraw, nwidth = width.filterwidths(outname,headers,maxwidth)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -341,7 +335,7 @@ for iter in range(niter):
             details.close()
             continue
 
-        nwidth2, nbounds = bounds.filterbounds(outname,cols,maxwidth)
+        nwidth2, nbounds = bounds.filterbounds(outname,headers,maxwidth)
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:
@@ -361,6 +355,7 @@ for iter in range(niter):
     vxmeanOld = vxmean
 
     # get parser with new arrays
+    # TODO: check if scanparser already exists, if so, just call loadArrays
     scanparser = parse.Parse(tsvname)
 
     # get new points

@@ -9,8 +9,6 @@ class Arrays:
 
         self.loadHeaders(filename)
 
-        self.loadArrays(filename)
-
     def loadHeaders(self,filename):
 
         with open(filename,'r') as file:
@@ -18,6 +16,9 @@ class Arrays:
             self.headers = header_line.split('\t')
 
         self.headers.insert(0, 'idx')
+
+    def getHeaders(self):
+        return self.headers
 
     def loadArrays(self,filename):
 

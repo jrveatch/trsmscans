@@ -10,6 +10,11 @@ class Parse:
     # load new set of arrays
     def __init__(self,filename):
         self.arr = arrays.Arrays(filename)
+        self.loadArrays(filename)
+
+    # load new arrays
+    def loadArrays(self,filename):
+        self.arr.loadArrays(filename)
 
     def getmaxpoint(self,decay):
 
