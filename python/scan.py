@@ -361,10 +361,7 @@ for iter in range(niter):
     vxmeanOld = vxmean
 
     # get parser with new arrays
-    if not useprescan and iter == 0:
-        scanparser = parse.Parse(tsvname)
-    else:
-        scanparser.newArrays(tsvname)
+    scanparser = parse.Parse(tsvname)
 
     # get new points
     maxxbNew, indexNew, thSmeanNew, thXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)

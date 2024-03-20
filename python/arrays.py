@@ -5,13 +5,27 @@ class Arrays:
 
     def __init__(self,filename):
 
+        self.headers = []
+
+        self.loadHeaders(filename)
+
+        self.loadArrays(filename)
+
+    def loadHeaders(self,filename):
+
         with open(filename,'r') as file:
             header_line = file.readline().strip()
-            headers = header_line.split('\t')
+            self.headers = header_line.split('\t')
 
-        headers.insert(0, 'idx')
+        self.headers.insert(0, 'idx')
 
-        data = np.genfromtxt(filename, delimiter='\t', dtype=None, names=headers, encoding=None, skip_header=1)
+    def loadArrays(self,filename):
+
+        if not self.headers:
+            print("Headers were not loaded, loading now")
+            self.loadHeaders(filename)
+
+        data = np.genfromtxt(filename, delimiter='\t', dtype=None, names=self.headers, encoding=None, skip_header=1)
 
         self.idx = data['idx']
 

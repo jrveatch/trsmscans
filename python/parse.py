@@ -7,11 +7,8 @@ import arrays
 
 class Parse:
 
-    def __init__(self,filename):
-        self.arr = arrays.Arrays(filename)
-
     # load new set of arrays
-    def newArrays(self,filename):
+    def __init__(self,filename):
         self.arr = arrays.Arrays(filename)
 
     def getmaxpoint(self,decay):
