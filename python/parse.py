@@ -3,18 +3,16 @@
 import numpy as np
 
 # import list of arrays
-import columns
 import arrays
 
 class Parse:
 
-    def __init__(self,filename,cols:columns.Columns):
-        self.cols = cols
-        self.arr = arrays.Arrays(filename,self.cols)
+    def __init__(self,filename):
+        self.arr = arrays.Arrays(filename)
 
     # load new set of arrays
     def newArrays(self,filename):
-        self.arr = arrays.Arrays(filename,self.cols)
+        self.arr = arrays.Arrays(filename)
 
     def getmaxpoint(self,decay):
 

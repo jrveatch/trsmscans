@@ -144,7 +144,7 @@ if useprescan:
         quit()
 
     # get parser from prescan
-    scanparser = parse.Parse(prescan,cols)
+    scanparser = parse.Parse(prescan)
 
     # check ranges of the prescan
     minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getranges()
@@ -362,7 +362,7 @@ for iter in range(niter):
 
     # get parser with new arrays
     if not useprescan and iter == 0:
-        scanparser = parse.Parse(tsvname,cols)
+        scanparser = parse.Parse(tsvname)
     else:
         scanparser.newArrays(tsvname)
 
