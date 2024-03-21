@@ -1,3 +1,56 @@
-Code for performing TRSM scans
 
-More details to be added later
+## TRSMScans
+
+A complete set of tools to automate scanning the TRSM model
+using ScannerS to maximize the cross-section times branching
+for various final states.
+
+## Dependencies
+
+These tools use `ScannerS` and `HiggsTools`, both of which
+have several dependencies that need to be installed manually
+through your favorite package manager. Make sure you have the
+following installed:
+
+  - Working compilers for C++, C and Fortran. The C++ compiler must
+    support `c++17` (e.g., `gcc-9` or newer). On Mac, Apple Clang
+    should support `c++17`, but an argument needs to be passed to
+    `cmake` to specify this requirement, which is already in the
+    installation script. Apple Clang, unfortunately does not compile
+    Fortran, so you will need to install `gcc` (or another compiler)
+    manually.
+  - [CMake] >= 3.17, download it through your package manager, through
+    [`pip`][cmake_pip], or grab the latest [binary][cmake_bin].
+  - [GSL], can be installed through the package manager on most unix systems.
+    The package is called `libgsl-dev` on Ubuntu and `gsl` most everywhere else
+    (e.g. on OpenSUSE/CentOS or homebrew).
+  - [Eigen3] >= 3.3.0, can be installed through the package manager on most unix
+    systems. The package is called `libeigen3-dev` on Ubuntu, `eigen3` on
+    OpenSUSE/CentOS and `eigen` in homebrew.
+  - [clang] >= 5
+
+## Installation
+
+Most of the installation is done via scripts that are provided
+in the `scripts` directory. You can call `source first.sh` to
+automate the installation, assuming you have the dependencies
+installed. This will set up the `ScannerS` and `HiggTools` submodules,
+install both packages, create a python virtual environment and
+install the necessary python modules.
+
+## Every login
+
+The code needs to be run from a python virtual environment that
+needs to be set up everytime you start a new shell. The virtual
+environment can be set up with `source setup.sh`.
+
+## Running
+
+The tools are designed for you to run from the `run` directory.
+An example of how to run a scan is given in the `run/scan_example.sh`
+script. A scan will create output in the `output` directory based
+on the scan parameters. Within the corresponding directory in `output`,
+you will find all of the `.tsv` files under `files` as well as
+`scandetails.txt` and `scansummary.txt` that show the details of
+each scan iteration and show a summary of scans that find new
+maxima, respectively.
