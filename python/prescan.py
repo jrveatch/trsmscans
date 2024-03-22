@@ -11,7 +11,7 @@ import math
 # import tools
 import bounds
 import width
-import columns
+import arrays
 
 # get scan start time
 scanstart = time.time()
@@ -41,21 +41,25 @@ npoints = args["npoints"]
 # min and max theta values
 thetamin = -1 * math.pi / 2
 thetamax = math.pi / 2
-#thetamin = 0
-#thetamax = 2*math.pi
 
 # min and max vev values
 vmin = 0.0
 vmax = 1000.0
 
+# names of .ini and .tsv files
 base = "TRSMBroken"
-tempname = base + "_template.ini"
+templatename = base + "_template.ini"
+outbase = "./" + base
+ininame = outbase + ".ini"
+tsvname = outbase + "_RAW.tsv"
+finaltsvname = outbase + "_prescan.tsv"
 
-template = open(tempname,"r")
+# read in template .ini file
+template = open(templatename,"r")
 templatedata = template.read()
 template.close()
 
-# directory where we want to run
+# directory where we want the output to go
 dir = "output/prescan/X"+str(mH3)+"_S"+str(mH2)
 
 # check if directory exists, otherwise make it
@@ -65,22 +69,17 @@ if not os.path.exists(dir):
 # go into the run directory
 os.chdir(dir)
 
-outname = "./" + base
+# if a previous prescan exists, check the number of lines
+# only rerun if the new prescan is appreciably larger
+if os.path.exists(finaltsvname):
+    with open(finaltsvname, 'r') as fp:
+        num_lines = len(fp.readlines())
+        if num_lines < 2 * npoints:
+            print("Already found a prescan",finaltsvname,"with",num_lines-1,"points.")
+            print("If you want to run again, use at least 2x more points. Exiting.")
+            quit()
 
-num_lines = 0
-
-if os.path.exists(outname + "_RAW.tsv"):
-    with open(outname + "_RAW.tsv", "r") as f:
-        num_lines = sum(1 for _ in f)
-
-if num_lines > 1.1 * npoints:
-    print("Already found a prescan with",num_lines-1,"points.")
-    print("If you want to run again, use at least 10% more points. Exiting.")
-    quit()
-
-ininame = outname + ".ini"
-tsvname = outname + "_RAW.tsv"
-
+# replace template .ini information with values
 filedata = templatedata
 filedata = filedata.replace("MH1",str(mH1))
 filedata = filedata.replace("MH2",str(mH2))
@@ -96,34 +95,31 @@ filedata = filedata.replace("VSHIGH",str(vmax))
 filedata = filedata.replace("VXLOW",str(vmin))
 filedata = filedata.replace("VXHIGH",str(vmax))
 
+# write output .ini file
 outfile = open(ininame,"w")
 outfile.write(filedata)
 outfile.close()
 
-if not os.path.exists(outname + "_COLS.tsv"):
-    print("No COLS file found, creating one")
-    process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n 1"]
-    print(process)
-    subprocess.run(process)
-    os.rename(base + ".tsv", base + "_COLS.tsv")
-
-# get list of column numbers
-cols = columns.Columns(outname + "_COLS.tsv")
-
+# run scan
 process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
 print(process)
 subprocess.run(process)
 
+# rename output .tsv to use prescan name
 os.rename(base + ".tsv", tsvname)
 
+# get headers from .tsv file
+arrs = arrays.Arrays(tsvname)
+headers = arrs.getHeaders()
+
 # run width filter
-width.filterwidths(outname,cols,maxwidth)
+width.filterwidths(outbase,headers,maxwidth)
 
 # run bounds filter
-bounds.filterbounds(outname,cols,maxwidth)
+bounds.filterbounds(outbase,headers,maxwidth)
 
 # copy bounds file to a final file name
-shutil.copyfile(outname + "_RAW.tsv", outname + "_prescan.tsv")
+shutil.copyfile(tsvname, finaltsvname)
 
 scanend = time.time()
 
