@@ -74,7 +74,7 @@ os.chdir(dir)
 if os.path.exists(finaltsvname):
     with open(finaltsvname, 'r') as fp:
         num_lines = len(fp.readlines())
-        if num_lines < 2 * npoints:
+        if num_lines > npoints / 2:
             print("Already found a prescan",finaltsvname,"with",num_lines-1,"points.")
             print("If you want to run again, use at least 2x more points. Exiting.")
             quit()
