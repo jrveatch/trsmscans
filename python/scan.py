@@ -1,6 +1,5 @@
 # import various modules to help with logistics
 import os
-import shutil
 import subprocess
 import time
 import argparse
@@ -15,7 +14,6 @@ from decimal import Decimal
 import parse
 import width
 import bounds
-
 import arrays
 
 # get scan start time
@@ -93,10 +91,12 @@ base = "TRSMBroken"
 baselinename = base + "_baseline.ini"
 templatename = base + "_template.ini"
 
+# read in template .ini file
 template = open(templatename,"r")
 templatedata = template.read()
 template.close()
 
+# location of prescan outputs
 prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
 prescanbase = prescandir + base
 prescan = prescanbase + "_prescan.tsv"
@@ -107,7 +107,7 @@ if useprescan == True and not os.path.exists(prescan):
     print("Please run prescan.py before continuing.")
     quit()
 
-# directory where we want to run
+# directory where we want the output to go
 dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)
 
 # check if directory exists, otherwise make it
@@ -138,6 +138,7 @@ if useprescan:
     # check ranges of the prescan
     minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getranges()
 
+    # print the ranges to the screen
     print("thetahS",f"{minthS:1.4f}",f"{maxthS:1.4f}")
     print("thetahX",f"{minthX:1.4f}",f"{maxthX:1.4f}")
     print("thetaSX",f"{mintSX:1.4f}",f"{maxtSX:1.4f}")
