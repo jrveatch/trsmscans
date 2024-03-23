@@ -161,16 +161,6 @@ def filterbounds(filename, headers,debug=False):
             if debug is True:
                 print('rescalings are ', R11,R21,R31)
 
-            # mixing angles
-            thetahS = float(data[headers.index('thetahS')])
-            thetahX = float(data[headers.index('thetahX')])
-            thetaSX = float(data[headers.index('thetaSX')])
-
-            # vevs
-            v = float(data[headers.index('v')])
-            vs = float(data[headers.index('vs')])
-            vx = float(data[headers.index('vx')])
-
             # H1 BRs
             b_H1_WW = float(data[headers.index('b_H1_WW')])
             b_H1_ZZ = float(data[headers.index('b_H1_ZZ')])
