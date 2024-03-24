@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import time
+import datetime
 import argparse
 
 # import math
@@ -125,5 +126,4 @@ scanend = time.time()
 
 scantime = (scanend - scanstart)
 
-print("Prescan took",f"{scantime:1.1f}","seconds")
-
+print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
