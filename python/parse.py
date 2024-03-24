@@ -34,7 +34,7 @@ class Parse:
         maxvs = self.arr.vs[maxidx]
         maxvx = self.arr.vx[maxidx]
 
-        return maxxb, maxidx, maxthS, maxthX, maxtSX, maxvs, maxvx
+        return maxxb, maxthS, maxthX, maxtSX, maxvs, maxvx
 
     def getxb(self,decay):
 
@@ -100,7 +100,7 @@ class Parse:
 
         return xb_decay
 
-    def getranges(self):
+    def getparams(self):
 
         minthS = np.min(self.arr.thetahS)
         maxthS = np.max(self.arr.thetahS)
