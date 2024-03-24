@@ -6,9 +6,6 @@ import time
 import datetime
 import argparse
 
-# import math
-import math
-
 # import tools
 import bounds
 import width
