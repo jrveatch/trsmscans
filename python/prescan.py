@@ -9,7 +9,6 @@ import argparse
 # import tools
 import bounds
 import width
-import arrays
 import params
 import filterinit
 
