@@ -51,14 +51,6 @@ overwrite = args['force']
 # this automatically initializes the parameters
 pars = params.Params(mH1,mH2,mH3)
 
-# min and max theta values
-thetamin = -1 * math.pi / 2
-thetamax = math.pi / 2
-
-# min and max vev values
-vmin = 0.0
-vmax = 1000.0
-
 # names of .ini and .tsv files
 base = "TRSMBroken"
 initemplate = base + "_template.ini"
