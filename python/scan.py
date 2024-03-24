@@ -7,8 +7,8 @@ import time
 import datetime
 import argparse
 
-# import math
-import math
+# import numpy
+import numpy as np
 
 # import decimal
 from decimal import Decimal
@@ -19,6 +19,7 @@ import width
 import bounds
 import arrays
 import params
+import filterinit
 
 def main():
 
@@ -72,6 +73,10 @@ def main():
     npoints = args["npoints"]
     minpoints = 100
 
+    # make sure we use the minimum number of points
+    if npoints < minpoints:
+        npoints = minpoints
+
     # number of iterations
     niter = args["iterations"]
 
@@ -79,25 +84,11 @@ def main():
     # this automatically initializes the parameters
     pars = params.Params(mH1,mH2,mH3)
 
-    # create empty list of headers
-    headers = []
-
     # base name for all files
     base = "TRSMBroken"
 
     # name of template .ini file
     templateini = base + "_template.ini"
-
-    # location of prescan outputs
-    prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
-    prescanbase = prescandir + base
-    prescan = prescanbase + "_prescan.tsv"
-
-    # if prescan output doesn't exist, complain and exit
-    if useprescan == True and not os.path.exists(prescan):
-        print("You are attempting to use a prescan that doesn't exist.")
-        print("Please run prescan.py before continuing.")
-        quit()
 
     # directory where we want the output to go
     dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)+"/"
@@ -168,9 +159,24 @@ def main():
 
     if useprescan:
 
+        # TODO: Add the ability to reapply width and bounds filters to prescan
+
+        # location of prescan outputs
+        prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
+        prescanbase = prescandir + base
+        prescan = prescanbase + "_prescan.tsv"
+
+        # if prescan output doesn't exist, complain and exit
+        if not os.path.exists(prescan):
+            print("You are attempting to use a prescan that doesn't exist.")
+            print("Please run prescan.py before continuing.")
+            quit()
+
+        # count the number of prescan points available
         with open(prescan, "r") as f:
             nprescan = sum(1 for _ in f)
 
+        # if prescan doesn't have enough points, complain and exit
         if nprescan < 0.5 * npoints:
             print("Prescan doesn't have enough points to justify using.")
             print("Run a prescan with more points or rerun scan with --useprescan=False")
@@ -178,8 +184,6 @@ def main():
 
         # get parser from prescan
         scanparser = parse.Parse(prescan)
-        # TODO: remove this
-        headers = scanparser.arr.getHeaders()
 
         # check ranges of the prescan
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
@@ -276,7 +280,7 @@ def main():
         # set names of input .ini and output .tsv files
         outname = "./files/" + base + "_" + identifier
         ininame = outname + ".ini"
-        tsvname = outname + "_RAW.tsv"
+        tsvname = outname + ".tsv"
 
         # scan point density
         density = -999
@@ -302,9 +306,8 @@ def main():
         vxlow = pars.vxlow()
         vxhigh = pars.vxhigh()
 
-        volume = pars.volume()
-
         # calculate point density from ranges
+        volume = pars.volume()
         density = npoints / volume
 
         # write new .ini file from template and parameters
@@ -314,17 +317,12 @@ def main():
         print(process)
         subprocess.run(process)
 
-        os.rename(base + ".tsv", tsvname)
-
-        # get headers if they don't already exist
-        # TODO: is there any reason to not simply make a new parser?
-        # TODO: what if the headers are not the same as the prescan?
-        if not headers:
-            temparr = arrays.Arrays(tsvname)
-            headers = temparr.getHeaders()
+        # initialize filter columns
+        # this also renames the output .tsv
+        filterinit.init_filter_columns(base + ".tsv",tsvname)
 
         # run width filter
-        nraw, nwidth = width.filterwidths(outname,headers,maxwidth)
+        nwidth = width.filterwidths(tsvname,maxwidth)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -335,7 +333,8 @@ def main():
             details.close()
             continue
 
-        nwidth2, nbounds = bounds.filterbounds(outname,headers,maxwidth)
+        # run bounds filter
+        nbounds = bounds.filterbounds(tsvname,maxwidth)
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:
@@ -346,6 +345,21 @@ def main():
             details.close()
             continue
 
+        # get parser with new arrays
+        scanparser = parse.Parse(tsvname)
+
+        # get number of points that pass both filters
+        arrs = scanparser.getArrays()
+        filt_width = arrs.data['filt_width']
+        filt_bounds = arrs.data['filt_bounds']
+        filt_total = np.multiply(filt_width,filt_bounds)
+        npass = filt_total.sum()
+
+        # get new points
+        maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
+
+        update = False
+
         # store the previous points
         tHSmeanOld = tHSmean
         tHXmeanOld = tHXmean
@@ -353,16 +367,6 @@ def main():
 
         vsmeanOld = vsmean
         vxmeanOld = vxmean
-
-        # get parser with new arrays
-        # TODO: check if scanparser already exists, if so, just call loadArrays
-        # BUG!!!!! This should parse the tsv after bounds, not RAW
-        scanparser = parse.Parse(tsvname)
-
-        # get new points
-        maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
-
-        update = False
 
         if maxxbNew > maxxb:
             update = True
@@ -415,8 +419,9 @@ def main():
         details.write("Using " + str(npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("It took " + f"{itertime:1.1f}" + " seconds\n")
-        details.write(str(nwidth) + "/" + str(nraw) + " pass width cut of " + str(maxwidth) + "\n")
-        details.write(str(nbounds) + "/" + str(nwidth2) + " pass bounds check\n")
+        details.write(str(nwidth) + "/" + str(npoints) + " pass width cut of " + str(maxwidth) + "\n")
+        details.write(str(nbounds) + "/" + str(npoints) + " pass bounds check\n")
+        details.write(str(npass) + "/" + str(npoints) + " pass both checks\n")
         details.write("Found max xsec*BR = " + f"{Decimal(maxxbNew):.4E}" + "\n")
         details.write("Update = " + str(update) + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
@@ -462,10 +467,6 @@ def main():
 
         # step down npoints
         npoints = int(npoints * pointrate)
-
-        # make sure we use the minimum number of points
-        if npoints < minpoints:
-            npoints = minpoints
 
         ##### TODO: Add functionality to concatenate all outputs into a single large output
 

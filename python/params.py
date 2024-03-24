@@ -121,7 +121,7 @@ class Params:
     # function to get new low value
 
     def getNewLow(self,mean,range,min):
-        newLow = mean - range / 2
+        newLow = mean - range
         if newLow < min:
             newLow = min
         return newLow
@@ -129,7 +129,7 @@ class Params:
     # function to get new high value
 
     def getNewHigh(self,mean,range,max):
-        newHigh = mean + range / 2
+        newHigh = mean + range
         if newHigh > max:
             newHigh = max
         return newHigh
@@ -167,13 +167,18 @@ class Params:
         self._vxhigh = self.getNewHigh(mean,range,self._vxmax)
 
     # function to calculate volume
-    
     def volume(self):
-        volume = abs(self._tHShigh - self._tHSlow)
-        volume *= abs(self._tHXhigh - self._tHXlow)
-        volume *= abs(self._tSXhigh - self._tSXlow)
-        volume *= abs(self._vshigh - self._vslow)
-        volume *= abs(self._vxhigh - self._vxlow)
+        volume = 1.0
+        if abs(self._tHShigh - self._tHSlow) > 1e-13:
+            volume *= abs(self._tHShigh - self._tHSlow)
+        if abs(self._tHXhigh - self._tHXlow) > 1e-13:
+            volume *= abs(self._tHXhigh - self._tHXlow)
+        if abs(self._tSXhigh - self._tSXlow) > 1e-13:
+            volume *= abs(self._tSXhigh - self._tSXlow)
+        if abs(self._vshigh - self._vslow) > 1e-13:
+            volume *= abs(self._vshigh - self._vslow)
+        if abs(self._vxhigh - self._vxlow) > 1e-13:
+            volume *= abs(self._vxhigh - self._vxlow)
         return volume
 
     # functions to get min and max values
@@ -275,7 +280,6 @@ class Params:
         return self._vxrange
     
     # function to write .ini file with parameters
-
     def writeini(self,templateini,ininame):
 
         # read in template .ini file

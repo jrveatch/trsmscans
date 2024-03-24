@@ -13,6 +13,8 @@ import math
 import bounds
 import width
 import arrays
+import params
+import filterinit
 
 # get scan start time
 scanstart = time.time()
@@ -26,6 +28,7 @@ parser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy 
 parser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
 parser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
 parser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+parser.add_argument("-f", "--force", default=False, type=bool, help="Overwrite previous prescan")
 args = vars(parser.parse_args())
 
 # Masses
@@ -39,6 +42,15 @@ maxwidth = args["widthmax"]
 # number of scan points
 npoints = args["npoints"]
 
+# overwrite previous prescan
+overwrite = args['force']
+
+# TODO: Add check to make sure overwrite is wanted
+
+# make instance of params
+# this automatically initializes the parameters
+pars = params.Params(mH1,mH2,mH3)
+
 # min and max theta values
 thetamin = -1 * math.pi / 2
 thetamax = math.pi / 2
@@ -49,78 +61,55 @@ vmax = 1000.0
 
 # names of .ini and .tsv files
 base = "TRSMBroken"
-templatename = base + "_template.ini"
+initemplate = base + "_template.ini"
 outbase = "./" + base
 ininame = outbase + ".ini"
-tsvname = outbase + "_RAW.tsv"
-finaltsvname = outbase + "_prescan.tsv"
-
-# read in template .ini file
-template = open(templatename,"r")
-templatedata = template.read()
-template.close()
+tsvname = outbase + "_prescan.tsv"
 
 # directory where we want the output to go
 dir = "output/prescan/X"+str(mH3)+"_S"+str(mH2)
 
-# check if directory exists, otherwise make it
+# remove previous directory if set to overwrite
+if os.path.exists(dir) and overwrite:
+    shutil.rmtree(dir)
+
+# check if directory exists, if not make it
 if not os.path.exists(dir):
-   os.makedirs(dir)
+    os.makedirs(dir)
+
+# copy template .ini into dir
+shutil.copy(initemplate,dir)
 
 # go into the run directory
 os.chdir(dir)
 
 # if a previous prescan exists, check the number of lines
 # only rerun if the new prescan is appreciably larger
-if os.path.exists(finaltsvname):
-    with open(finaltsvname, 'r') as fp:
+if os.path.exists(tsvname):
+    with open(tsvname, 'r') as fp:
         num_lines = len(fp.readlines())
         if num_lines > npoints / 2:
-            print("Already found a prescan",finaltsvname,"with",num_lines-1,"points.")
+            print("Already found a prescan",tsvname,"with",num_lines-1,"points.")
             print("If you want to run again, use at least 2x more points. Exiting.")
             quit()
 
-# replace template .ini information with values
-filedata = templatedata
-filedata = filedata.replace("MH1",str(mH1))
-filedata = filedata.replace("MH2",str(mH2))
-filedata = filedata.replace("MH3",str(mH3))
-filedata = filedata.replace("T1LOW",str(thetamin))
-filedata = filedata.replace("T1HIGH",str(thetamax))
-filedata = filedata.replace("T2LOW",str(thetamin))
-filedata = filedata.replace("T2HIGH",str(thetamax))
-filedata = filedata.replace("T3LOW",str(thetamin))
-filedata = filedata.replace("T3HIGH",str(thetamax))
-filedata = filedata.replace("VSLOW",str(vmin))
-filedata = filedata.replace("VSHIGH",str(vmax))
-filedata = filedata.replace("VXLOW",str(vmin))
-filedata = filedata.replace("VXHIGH",str(vmax))
-
-# write output .ini file
-outfile = open(ininame,"w")
-outfile.write(filedata)
-outfile.close()
+# write .ini file from template
+pars.writeini(initemplate,ininame)
 
 # run scan
 process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
 print(process)
 subprocess.run(process)
 
-# rename output .tsv to use prescan name
-os.rename(base + ".tsv", tsvname)
-
-# get headers from .tsv file
-arrs = arrays.Arrays(tsvname)
-headers = arrs.getHeaders()
+# initialize filter columns
+# this also renames the output .tsv
+filterinit.init_filter_columns(base + ".tsv",tsvname)
 
 # run width filter
-width.filterwidths(outbase,headers,maxwidth)
+width.filterwidths(tsvname,maxwidth)
 
 # run bounds filter
-bounds.filterbounds(outbase,headers,maxwidth)
-
-# copy bounds file to a final file name
-shutil.copyfile(tsvname, finaltsvname)
+bounds.filterbounds(tsvname,maxwidth)
 
 scanend = time.time()
 

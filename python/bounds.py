@@ -3,6 +3,9 @@ from twors_higgstools_setup import *
 from sympy.parsing.mathematica import mathematica
 import re
 
+import arrays
+import filterinit
+
 # SETUP STARTS HERE
 
 # SM Higgs mass and VEV
@@ -97,7 +100,6 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     # return HiggsBounds (True/False) for Allowed/Disallowed and the chi-squared from HiggsSignals
     return resb.allowed, HS_allowed
 
-
 def tanb_to_lambda112(mh, mH, sintheta, v, tanb):
     costheta = math.sqrt(1-sintheta**2)
     x = v/tanb
@@ -120,306 +122,277 @@ def testpoint(mH,sintheta,tanb):
     # check this example point:
     print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mH, sintheta, l112, debug=True))
 
-def filterbounds(filename, headers,debug=False):
-    
-    infile = open(filename+"_WIDTH.tsv","r")
-    outfile = open(filename+"_BOUNDS.tsv","w")
+def filterbounds(filename,debug=False):
 
-    #num = 0
-    npoints = 0
-    npass = 0
+    # check whether filt_width column exists, if not initialize it
+    if not filterinit.column_exists(filename,"filt_bounds"):
+        filterinit(filename)
 
-    for line in infile:
+    # load in arrays from .tsv file
+    arrs = arrays.Arrays(filename)
+    arrs.loadArrays()
+
+    # get filt_bounds array
+    filt_bounds = arrs.data['filt_bounds']
+
+    for i in range(arrs.data['idx'].size):
+
+        idx = int(arrs.data['idx'][i])
+
+        # masses
+        mH1 = float(arrs.data['mH1'][i])
+        mH2 = float(arrs.data['mH2'][i])
+        mH3 = float(arrs.data['mH3'][i])
+
+        # rescalings
+        R11 = float(arrs.data['R11'][i])
+        R21 = float(arrs.data['R21'][i])
+        R31 = float(arrs.data['R31'][i])
+
+        if debug is True:
+            print('rescalings are ', R11,R21,R31)
+
+        # H1 BRs
+        b_H1_WW = float(arrs.data['b_H1_WW'][i])
+        b_H1_ZZ = float(arrs.data['b_H1_ZZ'][i])
+        b_H1_Zgam = float(arrs.data['b_H1_Zgam'][i])
+        b_H1_bb = float(arrs.data['b_H1_bb'][i])
+        b_H1_cc = float(arrs.data['b_H1_cc'][i])
+        b_H1_gamgam = float(arrs.data['b_H1_gamgam'][i])
+        b_H1_gg = float(arrs.data['b_H1_gg'][i])
+        b_H1_mumu = float(arrs.data['b_H1_mumu'][i])
+        b_H1_ss = float(arrs.data['b_H1_ss'][i])
+        b_H1_tautau = float(arrs.data['b_H1_tautau'][i])
+        b_H1_tt = float(arrs.data['b_H1_tt'][i])
+
+        # H2 BRs
+        b_H2_H1H1 = float(arrs.data['b_H2_H1H1'][i])
+        b_H2_WW = float(arrs.data['b_H2_WW'][i])
+        b_H2_ZZ = float(arrs.data['b_H2_ZZ'][i])
+        b_H2_Zgam = float(arrs.data['b_H2_Zgam'][i])
+        b_H2_bb = float(arrs.data['b_H2_bb'][i])
+        b_H2_cc = float(arrs.data['b_H2_cc'][i])
+        b_H2_gamgam = float(arrs.data['b_H2_gamgam'][i])
+        b_H2_gg = float(arrs.data['b_H2_gg'][i])
+        b_H2_mumu = float(arrs.data['b_H2_mumu'][i])
+        b_H2_ss = float(arrs.data['b_H2_ss'][i])
+        b_H2_tautau = float(arrs.data['b_H2_tautau'][i])
+        b_H2_tt = float(arrs.data['b_H2_tt'][i])
+
+        # H3 BRs
+        b_H3_H1H1 = float(arrs.data['b_H3_H1H1'][i])
+        b_H3_H1H2 = float(arrs.data['b_H3_H1H2'][i])
+        b_H3_H2H2 = float(arrs.data['b_H3_H2H2'][i])
+        b_H3_WW = float(arrs.data['b_H3_WW'][i])
+        b_H3_ZZ = float(arrs.data['b_H3_ZZ'][i])
+        b_H3_Zgam = float(arrs.data['b_H3_Zgam'][i])
+        b_H3_bb = float(arrs.data['b_H3_bb'][i])
+        b_H3_cc = float(arrs.data['b_H3_cc'][i])
+        b_H3_gamgam = float(arrs.data['b_H3_gamgam'][i])
+        b_H3_gg = float(arrs.data['b_H3_gg'][i])
+        b_H3_mumu = float(arrs.data['b_H3_mumu'][i])
+        b_H3_ss = float(arrs.data['b_H3_ss'][i])
+        b_H3_tautau = float(arrs.data['b_H3_tautau'][i])
+        b_H3_tt = float(arrs.data['b_H3_tt'][i])
+
+        # Widths
+        w_H1 = float(arrs.data['w_H1'][i])
+        w_H2 = float(arrs.data['w_H2'][i])
+        w_H3 = float(arrs.data['w_H3'][i])
         
-        # parse line
-        data = line.split()
+        # i do everything at once here
+        h1.setMass(mH1)
+        h2.setMass(mH2)
+        h3.setMass(mH3)
 
-        write = False
+        h1.setTotalWidth(w_H1)
+        h2.setTotalWidth(w_H2)
+        h3.setTotalWidth(w_H3)
 
-        # skip lines with letters other than "e"
-        if re.search('[a-df-zA-Z]', line):
-
-            write = True
-            #outfile.write(' ' + ' ' + ' '.join(data[1:]) + ' resAllowed resSM HSAllowed\n')
-
+        if mH1 < 150:
+            HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(R11),reference="SMHiggsEW")
         else:
-            # count lines going into filter
-            npoints += 1
-            
-            idx = int(data[headers.index('idx')])
+            HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(R11))
 
-            # masses
-            mH1 = float(data[headers.index('mH1')])
-            mH2 = float(data[headers.index('mH2')])
-            mH3 = float(data[headers.index('mH3')])
+        if mH2 < 150:
+            HP.effectiveCouplingInput(h2, HP.scaledSMlikeEffCouplings(R21),reference="SMHiggsEW")
+        else:
+            HP.effectiveCouplingInput(h2, HP.scaledSMlikeEffCouplings(R21))
 
-            # rescalings
-            R11 = float(data[headers.index('R11')])
-            R21 = float(data[headers.index('R21')])
-            R31 = float(data[headers.index('R31')])
+        if mH3 < 150:
+            HP.effectiveCouplingInput(h3, HP.scaledSMlikeEffCouplings(R31),reference="SMHiggsEW")
+        else:
+            HP.effectiveCouplingInput(h3, HP.scaledSMlikeEffCouplings(R31))
 
+        # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
+        # then set the BRs according to the calculation
+        # h1.setMass(mH1)
+        # h2.setMass(mH2)
+        # h3.setMass(mH3)
+
+        # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
+
+        h1.setTotalWidth(w_H1)
+        h2.setTotalWidth(w_H2)
+        h3.setTotalWidth(w_H3)
+
+        if debug is True:
+            print ("widths are ",w_H1,w_H2,w_H3)
+
+        if w_H1 > 1.e-13 :
+            h1.setBr('bb', 0.)
+            h1.setBr('tautau', 0.)
+            h1.setBr('mumu', 0.)
+            h1.setBr('cc', 0.)
+            h1.setBr('ss', 0.)
+            h1.setBr('tt', 0.)
+            h1.setBr('gg', 0.)
+            h1.setBr('gamgam', 0.)
+            h1.setBr('Zgam', 0.)
+            h1.setBr('WW', 0.)
+            h1.setBr('ZZ', 0.)
+
+            h1.setBr('bb',b_H1_bb)
+            h1.setBr('tautau',b_H1_tautau)
+            h1.setBr('mumu',b_H1_mumu)
+            h1.setBr('cc',b_H1_cc)
+            h1.setBr('ss',b_H1_ss)
+            h1.setBr('tt',b_H1_tt)
+            h1.setBr('gg',b_H1_gg)
+            h1.setBr('gamgam',b_H1_gamgam)
+            h1.setBr('Zgam',b_H1_Zgam)
+            h1.setBr('WW',b_H1_WW)
             if debug is True:
-                print('rescalings are ', R11,R21,R31)
+                print ('brs so far ', b_H1_bb, b_H1_tautau, b_H1_mumu, b_H1_cc, b_H1_ss, b_H1_tt, b_H1_gg, b_H1_gamgam, b_H1_Zgam, b_H1_WW, b_H1_ZZ)
+                print('sum before zz', b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW)
+                print('sum after zz',b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW+b_H1_ZZ)
+                print('width ',w_H1)
+            sum = b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW+b_H1_ZZ
 
-            # H1 BRs
-            b_H1_WW = float(data[headers.index('b_H1_WW')])
-            b_H1_ZZ = float(data[headers.index('b_H1_ZZ')])
-            b_H1_Zgam = float(data[headers.index('b_H1_Zgam')])
-            b_H1_bb = float(data[headers.index('b_H1_bb')])
-            b_H1_cc = float(data[headers.index('b_H1_cc')])
-            b_H1_gamgam = float(data[headers.index('b_H1_gamgam')])
-            b_H1_gg = float(data[headers.index('b_H1_gg')])
-            b_H1_mumu = float(data[headers.index('b_H1_mumu')])
-            b_H1_ss = float(data[headers.index('b_H1_ss')])
-            b_H1_tautau = float(data[headers.index('b_H1_tautau')])
-            b_H1_tt = float(data[headers.index('b_H1_tt')])
-
-            # H2 BRs
-            b_H2_H1H1 = float(data[headers.index('b_H2_H1H1')])
-            b_H2_WW = float(data[headers.index('b_H2_WW')])
-            b_H2_ZZ = float(data[headers.index('b_H2_ZZ')])
-            b_H2_Zgam = float(data[headers.index('b_H2_Zgam')])
-            b_H2_bb = float(data[headers.index('b_H2_bb')])
-            b_H2_cc = float(data[headers.index('b_H2_cc')])
-            b_H2_gamgam = float(data[headers.index('b_H2_gamgam')])
-            b_H2_gg = float(data[headers.index('b_H2_gg')])
-            b_H2_mumu = float(data[headers.index('b_H2_mumu')])
-            b_H2_ss = float(data[headers.index('b_H2_ss')])
-            b_H2_tautau = float(data[headers.index('b_H2_tautau')])
-            b_H2_tt = float(data[headers.index('b_H2_tt')])
-
-            # H3 BRs
-            b_H3_H1H1 = float(data[headers.index('b_H3_H1H1')])
-            b_H3_H1H2 = float(data[headers.index('b_H3_H1H2')])
-            b_H3_H2H2 = float(data[headers.index('b_H3_H2H2')])
-            b_H3_WW = float(data[headers.index('b_H3_WW')])
-            b_H3_ZZ = float(data[headers.index('b_H3_ZZ')])
-            b_H3_Zgam = float(data[headers.index('b_H3_Zgam')])
-            b_H3_bb = float(data[headers.index('b_H3_bb')])
-            b_H3_cc = float(data[headers.index('b_H3_cc')])
-            b_H3_gamgam = float(data[headers.index('b_H3_gamgam')])
-            b_H3_gg = float(data[headers.index('b_H3_gg')])
-            b_H3_mumu = float(data[headers.index('b_H3_mumu')])
-            b_H3_ss = float(data[headers.index('b_H3_ss')])
-            b_H3_tautau = float(data[headers.index('b_H3_tautau')])
-            b_H3_tt = float(data[headers.index('b_H3_tt')])
-
-            # Widths
-            w_H1 = float(data[headers.index('w_H1')])
-            w_H2 = float(data[headers.index('w_H2')])
-            w_H3 = float(data[headers.index('w_H3')])
-            
-            # i do everything at once here
-            h1.setMass(mH1)
-            h2.setMass(mH2)
-            h3.setMass(mH3)
-
-            h1.setTotalWidth(w_H1)
-            h2.setTotalWidth(w_H2)
-            h3.setTotalWidth(w_H3)
-
-            if mH1 < 150:
-                HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(R11),reference="SMHiggsEW")
-            else:
-                HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(R11))
-
-            if mH2 < 150:    
-                HP.effectiveCouplingInput(h2, HP.scaledSMlikeEffCouplings(R21),reference="SMHiggsEW")
-            else:
-                HP.effectiveCouplingInput(h2, HP.scaledSMlikeEffCouplings(R21))
-
-            if mH3 < 150:    
-                HP.effectiveCouplingInput(h3, HP.scaledSMlikeEffCouplings(R31),reference="SMHiggsEW")
-            else:
-                HP.effectiveCouplingInput(h3, HP.scaledSMlikeEffCouplings(R31))
-
-            # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)                                                                     
-            # then set the BRs according to the calculation                                                                                                                         
-            # h1.setMass(mH1)
-            # h2.setMass(mH2)
-            # h3.setMass(mH3)
-
-            # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
-
-            h1.setTotalWidth(w_H1)
-            h2.setTotalWidth(w_H2)
-            h3.setTotalWidth(w_H3)
-
-            if debug is True:
-                print ("widths are ",w_H1,w_H2,w_H3)
-            
-            if w_H1 > 1.e-13 :
-                h1.setBr('bb', 0.)
-                h1.setBr('tautau', 0.)
-                h1.setBr('mumu', 0.)
-                h1.setBr('cc', 0.)
-                h1.setBr('ss', 0.)
-                h1.setBr('tt', 0.)
-                h1.setBr('gg', 0.)
-                h1.setBr('gamgam', 0.)
-                h1.setBr('Zgam', 0.)
-                h1.setBr('WW', 0.)
-                h1.setBr('ZZ', 0.)
-                
-            
-                h1.setBr('bb',b_H1_bb)
-                h1.setBr('tautau',b_H1_tautau)
+            if sum > 1:
+                b_H1_ZZ=b_H1_ZZ-sum+1
                 if debug is True:
-                    print('tautau br is ',b_H1_tautau)
-                h1.setBr('mumu',b_H1_mumu)
-                h1.setBr('cc',b_H1_cc)
-                h1.setBr('ss',b_H1_ss)
-                h1.setBr('tt',b_H1_tt)
-                h1.setBr('gg',b_H1_gg)
-                h1.setBr('gamgam',b_H1_gamgam)
-                h1.setBr('Zgam',b_H1_Zgam)
-                h1.setBr('WW',b_H1_WW)
-                if debug is True:
-                    print ('brs so far ', b_H1_bb, b_H1_tautau, b_H1_mumu, b_H1_cc, b_H1_ss, b_H1_tt, b_H1_gg, b_H1_gamgam, b_H1_Zgam, b_H1_WW, b_H1_ZZ)
-                    print('sum before zz', b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW)
-                    print('sum after zz',b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW+b_H1_ZZ)
-                    print('width ',w_H1)
-                sum = b_H1_bb+ b_H1_tautau+ b_H1_mumu+ b_H1_cc+b_H1_ss+b_H1_tt+ b_H1_gg+b_H1_gamgam+ b_H1_Zgam+ b_H1_WW+b_H1_ZZ
+                    print ('adjusted last br by ',sum-1)
+                    print ('new zz', b_H1_ZZ)
 
-                if sum > 1:
-                    b_H1_ZZ=b_H1_ZZ-sum+1
-                    if debug is True:
-                        print ('adjusted last br by ',sum-1)
-                        print ('new zz', b_H1_ZZ)
+            h1.setBr('ZZ',b_H1_ZZ)
 
-                h1.setBr('ZZ',b_H1_ZZ)
+        if w_H2 != 0:
+            h2.setBr('bb', 0.)
+            h2.setBr('tautau', 0.)
+            h2.setBr('mumu', 0.)
+            h2.setBr('cc', 0.)
+            h2.setBr('ss', 0.)
+            h2.setBr('tt', 0.)
+            h2.setBr('gg', 0.)
+            h2.setBr('gamgam', 0.)
+            h2.setBr('Zgam', 0.)
+            h2.setBr('WW', 0.)
+            h2.setBr('ZZ', 0.)
 
-            if w_H2 != 0:
-                h2.setBr('bb', 0.)
-                h2.setBr('tautau', 0.)
-                h2.setBr('mumu', 0.)
-                h2.setBr('cc', 0.)
-                h2.setBr('ss', 0.)
-                h2.setBr('tt', 0.)
-                h2.setBr('gg', 0.)
-                h2.setBr('gamgam', 0.)
-                h2.setBr('Zgam', 0.)
-                h2.setBr('WW', 0.)
-                h2.setBr('ZZ', 0.)
+            h2.setBr('bb',b_H2_bb)
+            h2.setBr('tautau',b_H2_tautau)
+            h2.setBr('mumu',b_H2_mumu)
+            h2.setBr('cc',b_H2_cc)
+            h2.setBr('ss',b_H2_ss)
+            h2.setBr('tt',b_H2_tt)
+            h2.setBr('gg',b_H2_gg)
+            h2.setBr('gamgam',b_H2_gamgam)
+            h2.setBr('Zgam',b_H2_Zgam)
+            h2.setBr('WW',b_H2_WW)
+            h2.setBr('ZZ',b_H2_ZZ)
+            h2.setBr('h1', 'h1', b_H2_H1H1)
 
-                h2.setBr('bb',b_H2_bb)
-                h2.setBr('tautau',b_H2_tautau)
-                h2.setBr('mumu',b_H2_mumu)
-                h2.setBr('cc',b_H2_cc)
-                h2.setBr('ss',b_H2_ss)
-                h2.setBr('tt',b_H2_tt)
-                h2.setBr('gg',b_H2_gg)
-                h2.setBr('gamgam',b_H2_gamgam)
-                h2.setBr('Zgam',b_H2_Zgam)
-                h2.setBr('WW',b_H2_WW)
-                h2.setBr('ZZ',b_H2_ZZ)
-                h2.setBr('h1', 'h1', b_H2_H1H1)                                                                                                                          
+        if w_H3 != 0:
+            h3.setBr('bb', 0.)
+            h3.setBr('tautau', 0.)
+            h3.setBr('mumu', 0.)
+            h3.setBr('cc', 0.)
+            h3.setBr('ss', 0.)
+            h3.setBr('tt', 0.)
+            h3.setBr('gg', 0.)
+            h3.setBr('gamgam', 0.)
+            h3.setBr('Zgam', 0.)
+            h3.setBr('WW', 0.)
+            h3.setBr('ZZ', 0.)
 
-            if w_H3 != 0:
-                h3.setBr('bb', 0.)
-                h3.setBr('tautau', 0.)
-                h3.setBr('mumu', 0.)
-                h3.setBr('cc', 0.)
-                h3.setBr('ss', 0.)
-                h3.setBr('tt', 0.)
-                h3.setBr('gg', 0.)
-                h3.setBr('gamgam', 0.)
-                h3.setBr('Zgam', 0.)
-                h3.setBr('WW', 0.)
-                h3.setBr('ZZ', 0.)
+            h3.setBr('bb',b_H3_bb)
+            h3.setBr('tautau',b_H3_tautau)
+            h3.setBr('mumu',b_H3_mumu)
+            h3.setBr('cc',b_H3_cc)
+            h3.setBr('ss',b_H3_ss)
+            h3.setBr('tt',b_H3_tt)
+            h3.setBr('gg',b_H3_gg)
+            h3.setBr('gamgam',b_H3_gamgam)
+            h3.setBr('Zgam',b_H3_Zgam)
+            h3.setBr('WW',b_H3_WW)
+            h3.setBr('ZZ',b_H3_ZZ)
+            h3.setBr('h1', 'h1', b_H3_H1H1)
+            h3.setBr('h2', 'h2', b_H3_H2H2)
+            h3.setBr('h1', 'h2', b_H3_H1H2)
 
-                h3.setBr('bb',b_H3_bb)
-                h3.setBr('tautau',b_H3_tautau)
-                h3.setBr('mumu',b_H3_mumu)
-                h3.setBr('cc',b_H3_cc)
-                h3.setBr('ss',b_H3_ss)
-                h3.setBr('tt',b_H3_tt)
-                h3.setBr('gg',b_H3_gg)
-                h3.setBr('gamgam',b_H3_gamgam)
-                h3.setBr('Zgam',b_H3_Zgam)
-                h3.setBr('WW',b_H3_WW)
-                h3.setBr('ZZ',b_H3_ZZ)
-                h3.setBr('h1', 'h1', b_H3_H1H1)
-                h3.setBr('h2', 'h2', b_H3_H2H2)
-                h3.setBr('h1', 'h2', b_H3_H1H2)
+        resb = bounds(pred)
 
-            resb = bounds(pred)
+        if debug is True:
+            print(resb)
+            print(resb.allowed)
 
+        if resb.allowed == False:
+            limits1 = [a for a in bounds(pred).appliedLimits if "h1" in a.contributingParticles()]
+            limits2 = [a for a in bounds(pred).appliedLimits if "h2" in a.contributingParticles()]
+            limits3 = [a for a in bounds(pred).appliedLimits if "h3" in a.contributingParticles()]
+            limits = [a for a in bounds(pred).appliedLimits if a.obsRatio() > 1.0]
+
+            # TODO: lim.limit().id() is the channel identifier
+            # we will want to ignore 13022 at least near 125 since it excludes SM
             if debug is True:
-                print(resb)                                                                                                                                                        
-                print(resb.allowed)
+                for lim in limits1:
+                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                        print('\t hbexcl1 ', idx,'\t 1',  mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                for lim in limits2:
+                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                        print('\t hbexcl2 ', idx,'\t 2', mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                for lim in limits3:
+                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                        print('\t hbexcl3 ', idx,'\t 3', mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
 
-            if resb.allowed == False:
-                limits1 = [a for a in bounds(pred).appliedLimits if "h1" in a.contributingParticles()]
-                limits2 = [a for a in bounds(pred).appliedLimits if "h2" in a.contributingParticles()]
-                limits3 = [a for a in bounds(pred).appliedLimits if "h3" in a.contributingParticles()]
-                limits = [a for a in bounds(pred).appliedLimits if a.obsRatio() > 1.0]
+        # get and print the HiggsSignal result
+        ress = signals(pred)
+        if debug is True:
+            print(ress)
 
-                # TODO: lim.limit().id() is the channel identifier
-                # we will want to ignore 13022 at least near 125 since it excludes SM
-                if debug is True:
-                    for lim in limits1:
-                        if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                            print('\t hbexcl1 ', idx,'\t 1',  mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-                    for lim in limits2:
-                        if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                            print('\t hbexcl2 ', idx,'\t 2', mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-                    for lim in limits3:
-                        if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                            print('\t hbexcl3 ', idx,'\t 3', mH1, mH2, mH3, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-
-            # get and print the HiggsSignal result                                                                                                                            
-            ress = signals(pred)
-            if debug is True:
-                print(ress)
-            
-            # this is now specific for bp1
+        # this is now specific for bp1
+        HS_allowed = False
+        # bp1 and bp4 and low low
+        #if mH3-mH1-mH2< 0:
+        # bp2 and bp5 and high low
+        #if mH2-2*mH1 < 0:
+        if ress - ress_SM < 4.00:
+            HS_allowed = True
+        else:
             HS_allowed = False
-            # bp1 and bp4 and low low
-            #if mH3-mH1-mH2< 0: 
-            # bp2 and bp5 and high low
-            #if mH2-2*mH1 < 0:
-            if ress - ress_SM < 4.00:
-                HS_allowed = True
-            else:
-                HS_allowed = False
-            #else:
-            
-            #    if ress - ress_SM < 6.18007:
-            #        HS_allowed = True
-            #    else:
-            #        HS_allowed = False
-                    
 
+        if debug is True:
+            print(resb.allowed)
+            print(HS_allowed)
 
+        # check whether requirements are passed
+        pass_filt = False
+        if int(resb.allowed) and int(HS_allowed):
+            pass_filt = True
+        filt_bounds[i] = int(pass_filt)
 
-    #        if ress - ress_SM < 4.00:
-    #            HS_allowed = True
-    #        else:
-    #            HS_allowed = False
-            
-            if debug is True:
-                print(resb.allowed)
-                print(HS_allowed)
-
-            if int(resb.allowed) and int(HS_allowed):
-                npass += 1
-                write = True
-   
-            #outfile.write(str(num) + ' ' + ' '.join(data[1:]) + ' ' + str(int(resb.allowed)) + ' ' + str(ress-ress_SM) + '  ' + str(int(HS_allowed)) + '\n')    
-
-            #num = num + 1
-
-        if write:
-            outfile.write(line)
-
-    outfile.close()
+    # save array of results and write to output file
+    arrs.setArray('filt_bounds',filt_bounds)
+    arrs.writeFile(filename)
 
     if debug is True:
         print("Done!")
-        print('Total number of points =', npoints)
+        print('Total number of points =', i)
 
-    return npoints, npass
+    # number of entries that pass
+    npass = filt_bounds.sum()
+    return npass
 
 ################################
 # START LOOP OR TESTING HERE

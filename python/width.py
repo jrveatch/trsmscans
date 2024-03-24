@@ -2,61 +2,46 @@
 # search strings
 import re
 
-def filterwidths(filename, headers, maxwidth):
+import numpy as np
 
-    infile = open(filename+"_RAW.tsv","r")
-    outfile = open(filename+"_WIDTH.tsv","w")
+import arrays
 
-    npoints = 0
-    npass = 0
- 
-    for line in infile:
+import filterinit
 
-        write = False
+def filterwidths(filename, maxwidth):
 
-        # skip lines with letters other than "e"
-        if re.search('[a-df-zA-Z]', line):
-            write = True
+    # TODO: accept different widths for each H
 
-        else:
-            # count lines going into filter
-            npoints += 1
+    # check whether filt_width column exists, if not initialize it
+    if not filterinit.column_exists(filename,"filt_width"):
+        filterinit.init_filter_columns(filename)
 
-            # parse line into numerical values
-            data = [float(x) for x in line.split()]
+    # load in arrays from .tsv file
+    arrs = arrays.Arrays(filename)
+    arrs.loadArrays()
 
-            # get indices of each data column
-            idx_w_H1 = headers.index('w_H1')
-            idx_w_H2 = headers.index('w_H2')
-            idx_w_H3 = headers.index('w_H3')
+    # get arrays of widths
+    width_H1 = np.divide(arrs.getArray('w_H1'),arrs.getArray('mH1'))
+    width_H2 = np.divide(arrs.getArray('w_H2'),arrs.getArray('mH2'))
+    width_H3 = np.divide(arrs.getArray('w_H3'),arrs.getArray('mH3'))
 
-            idx_mH1 = headers.index('mH1')
-            idx_mH2 = headers.index('mH2')
-            idx_mH3 = headers.index('mH3')
+    # check whether each width is below the maxwidth
+    mask1 = width_H1 < maxwidth
+    mask2 = width_H2 < maxwidth
+    mask3 = width_H3 < maxwidth
 
-            # calculate fractional widths
-            width1 = data[idx_w_H1] / data[idx_mH1]
-            width2 = data[idx_w_H2] / data[idx_mH2]
-            width3 = data[idx_w_H3] / data[idx_mH3]
+    # create the product of the 3 masks
+    mask = mask1 & mask2 & mask3
 
-            # skip line if width is over max
-            if width1 > maxwidth:
-                continue
-            if width2 > maxwidth:
-                continue
-            if width3 > maxwidth:
-                continue
+    # create array of 0 and 1 based on mask
+    filt_width = mask.astype(int)
 
-            # count lines that pass
-            npass += 1
+    # overwrite filt_width array with new array
+    arrs.setArray('filt_width',filt_width)
 
-            write = True
+    # write new data to file
+    arrs.writeFile(filename)
 
-        # write line to output file
-        if write:
-            outfile.write(line)
-
-    infile.close()
-    outfile.close()
-
-    return npoints, npass
+    # number of entries that pass
+    npass = filt_width.sum()
+    return npass
