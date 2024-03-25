@@ -372,6 +372,8 @@ def main():
         vsdiff = 9e9
         vxdiff = 9e9
 
+        # TODO: Rethink how to show difference
+        # TODO: Probably should be difference w.r.t. previous best
         if abs(tHSmean) > 1e-3:
             tHSdiff = (tHSmeanOld - tHSmean) / tHSmean
         if abs(tHXmean) > 1e-3:
@@ -414,19 +416,19 @@ def main():
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
         details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tHSdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "] or " + str(tHSrange) + "\n")
+        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
         details.write("thetaHX: mean = " + f"{tHXmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tHXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "] or " + str(tHXrange) + "\n")
+        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
         details.write("thetaSX: mean = " + f"{tSXmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "] or " + str(tSXrange) + "\n")
+        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
         details.write("vs: mean = " + f"{vsmean:1.2f}" + "\n")
         details.write("    diff = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "] or " + str(vsrange) + "\n")
+        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "]\n")
         details.write("vx: mean = " + f"{vxmean:1.2f}" + "\n")
         details.write("    diff = " + f"{vxdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "] or " + str(vxrange) + "\n")
+        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "]\n")
         details.write("\n\n")
         details.close()
 
