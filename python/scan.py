@@ -26,8 +26,8 @@ def main():
     # get scan start time
     scanstart = time.time()
 
-    # get home directory
-    home = os.getcwd()
+    # get root directory
+    rootdir = os.getcwd()
 
     # Parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -159,7 +159,7 @@ def main():
         # TODO: Add the ability to reapply width and bounds filters to prescan
 
         # location of prescan outputs
-        prescandir = home + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
+        prescandir = rootdir + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
         prescanbase = prescandir + base
         prescan = prescanbase + "_prescan.tsv"
 
@@ -300,7 +300,7 @@ def main():
         # write new .ini file from template and parameters
         pars.writeini(templateini,ininame)
 
-        process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
+        process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
         print(process)
         subprocess.run(process)
 

@@ -1,12 +1,16 @@
 
 from twors_higgstools_setup import *
-from sympy.parsing.mathematica import mathematica
-import re
+import os
 
 import arrays
 import filterinit
 
 # SETUP STARTS HERE
+
+# get root directory
+rootdir = os.getcwd()
+
+print(rootdir)
 
 # SM Higgs mass and VEV
 mh = 125.09
@@ -34,6 +38,7 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(sintheta))
 
     # calculate and print the heavy H branching ratios, given MH, lambda_112 and sintheta
+    BR_interpolators_SM = get_BR_interpolators_SM(rootdir)
     heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MH, mh, l112, sintheta)
     heavyBRs = fix_heavy_BRs(heavyBRs)
     if debug is True:
@@ -75,6 +80,7 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
         print('gg > h cross section @ pp @ 13 TeV=', h.cxn('LHC13', "ggH"))
         print('gg > H cross section @ pp @ 13 TeV=', H.cxn('LHC13', "ggH"))
         # compare to independent calculations:
+        XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL(rootdir)
         xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MH),5)
         print('independent calculation of the cross section:')
         print('gg > H cross section @ pp @ 13 TeV (N^2LO+NNLL)=',  xs13_nnlonnll)

@@ -15,8 +15,8 @@ import filterinit
 # get scan start time
 scanstart = time.time()
 
-# get homedirectory
-home = os.getcwd()
+# get root directory
+rootdir = os.getcwd()
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -85,7 +85,7 @@ if os.path.exists(tsvname):
 pars.writeini(initemplate,ininame)
 
 # run scan
-process = [home + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
+process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
 print(process)
 subprocess.run(process)
 
