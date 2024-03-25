@@ -38,6 +38,8 @@ def main():
     argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
+    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-r", "--rangeshrink", default=0.05, type=float, help="Rate at which parameter range should shrink")
     args = vars(argparser.parse_args())
 
     # whether prescan should be used
@@ -79,6 +81,10 @@ def main():
 
     # number of iterations
     niter = args["iterations"]
+
+    # point density growth and parameter range shrink rates
+    density_growth_rate = args['densitygrowth']
+    range_shrink_rate = args['rangeshrink']
 
     # make instance of params
     # this automatically initializes the parameters
@@ -138,21 +144,12 @@ def main():
     vxrange = pars.vxrange()
 
     # annealing rate for each parameter
-    tHSrate = 0.98
-    tHXrate = 0.98
-    tSXrate = 0.98
-    vsrate = 0.98
-    vxrate = 0.98
-
-    # volumetric annealing rate
-    volrate = tHSrate * tHXrate * tSXrate * vsrate * vxrate
-
-    # rate of reducing scan points
-    # keep this larger than the volumetric annealing rate!
-    pointrate = 0.9
-    if pointrate <= volrate:
-        print("WARNING: point annealing rate is smaller than volumetric annealing rate")
-        print("This will result in the point density decreasing")
+    # TODO: make these independent of each other
+    tHSrate = (1.0 - range_shrink_rate)
+    tHXrate = (1.0 - range_shrink_rate)
+    tSXrate = (1.0 - range_shrink_rate)
+    vsrate = (1.0 - range_shrink_rate)
+    vxrate = (1.0 - range_shrink_rate)
 
     # initialize max xsec times BR
     maxxb = 0.0
@@ -282,17 +279,7 @@ def main():
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 
-        # scan point density
-        density = -999
-
-        # set low and high values
-        pars.set_tHSvals(tHSmean,tHSrange)
-        pars.set_tHXvals(tHXmean,tHXrange)
-        pars.set_tSXvals(tSXmean,tSXrange)
-        pars.set_vsvals(vsmean,vsrange)
-        pars.set_vxvals(vxmean,vxrange)
-
-        # set theta lows and highs
+        # get theta lows and highs
         tHSlow = pars.tHSlow()
         tHShigh = pars.tHShigh()
         tHXlow = pars.tHXlow()
@@ -300,7 +287,7 @@ def main():
         tSXlow = pars.tSXlow()
         tSXhigh = pars.tSXhigh()
 
-        # set vev lows and highs
+        # get vev lows and highs
         vslow = pars.vslow()
         vshigh = pars.vshigh()
         vxlow = pars.vxlow()
@@ -427,19 +414,19 @@ def main():
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
         details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tHSdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
+        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "] or " + str(tHSrange) + "\n")
         details.write("thetaHX: mean = " + f"{tHXmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tHXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
+        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "] or " + str(tHXrange) + "\n")
         details.write("thetaSX: mean = " + f"{tSXmean:1.4f}" + "\n")
         details.write("         diff = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
+        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "] or " + str(tSXrange) + "\n")
         details.write("vs: mean = " + f"{vsmean:1.2f}" + "\n")
         details.write("    diff = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "]\n")
+        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "] or " + str(vsrange) + "\n")
         details.write("vx: mean = " + f"{vxmean:1.2f}" + "\n")
         details.write("    diff = " + f"{vxdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "]\n")
+        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "] or " + str(vxrange) + "\n")
         details.write("\n\n")
         details.close()
 
@@ -465,8 +452,25 @@ def main():
         vsrange *= vsrate
         vxrange *= vxrate
 
+        # set new low and high values
+        pars.set_tHSvals(tHSmean,tHSrange)
+        pars.set_tHXvals(tHXmean,tHXrange)
+        pars.set_tSXvals(tSXmean,tSXrange)
+        pars.set_vsvals(vsmean,vsrange)
+        pars.set_vxvals(vxmean,vxrange)
+
+        # get new volume
+        volumeNew = pars.volume()
+        volumeRatio = volumeNew/volume
+
         # step down npoints
-        npoints = int(npoints * pointrate)
+        npoints = int(npoints * volumeRatio * (1 + density_growth_rate))
+
+        # make sure npoints doesn't drop below the minimum
+        if npoints < minpoints:
+            npoints = minpoints
+
+        ##### TODO: Add early stopping conditions
 
         ##### TODO: Add functionality to concatenate all outputs into a single large output
 
