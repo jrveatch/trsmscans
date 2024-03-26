@@ -85,7 +85,7 @@ if os.path.exists(tsvname):
 pars.writeini(initemplate,ininame)
 
 # run scan
-process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
+process = ["TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
 print(process)
 subprocess.run(process)
 

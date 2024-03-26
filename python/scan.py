@@ -300,7 +300,7 @@ def main():
         # write new .ini file from template and parameters
         pars.writeini(templateini,ininame)
 
-        process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
+        process = ["TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
         print(process)
         subprocess.run(process)
 
