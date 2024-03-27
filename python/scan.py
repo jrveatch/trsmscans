@@ -103,7 +103,11 @@ def runScan():
     # directory where we want the output to go
     dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)+"/"
 
-    # check if directory exists, otherwise make it
+    # remove previous directory if set to overwrite
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+
+    # check if directory exists, if not make it
     if not os.path.exists(dir):
         os.makedirs(dir)
 
