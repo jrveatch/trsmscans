@@ -1,7 +1,7 @@
 # import various modules to help with logistics
 import os
 import shutil
-#import subprocess
+import subprocess
 import time
 import datetime
 import argparse
@@ -19,13 +19,14 @@ def runPrescan():
     scanstart = time.time()
 
     # Parse command line arguments
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-    parser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-    parser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
-    parser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    parser.add_argument("-f", "--force", default=False, type=bool, help="Overwrite previous prescan")
-    args = vars(parser.parse_args())
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
+    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-f", "--force", default=False, type=bool, help="Overwrite previous prescan")
+    argparser.add_argument("-m", "--multiprocessing", default=False, type=bool, help="Whether multiprocessing should be used")
+    args = vars(argparser.parse_args())
 
     # Masses
     mH1 = 125
@@ -42,6 +43,9 @@ def runPrescan():
     overwrite = args['force']
 
     # TODO: Add check to make sure overwrite is wanted
+
+    # whether multiprocessing should be used
+    use_multiprocessing = args['multiprocessing']
 
     # make instance of params
     # this automatically initializes the parameters
@@ -84,11 +88,13 @@ def runPrescan():
     # write .ini file from template
     pars.writeini(initemplate,ininame)
 
-    # run scan
-    runScannerS.runScannerS(ininame,npoints)
-    #process = ["TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
-    #print(process)
-    #subprocess.run(process)
+    # run ScannerS
+    if use_multiprocessing:
+        runScannerS.runScannerS(ininame,npoints)
+    else:
+        process = ["TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
+        print(process)
+        subprocess.run(process)
 
     # initialize filter columns
     # this also renames the output .tsv
@@ -100,8 +106,8 @@ def runPrescan():
     # run bounds filter
     bounds.filterbounds(tsvname,maxwidth)
 
+    # get total time taken
     scanend = time.time()
-
     scantime = (scanend - scanstart)
 
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
