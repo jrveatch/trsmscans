@@ -10,7 +10,7 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
     tsvname = model + ".tsv"
 
     # maximum number of points for a single process
-    max_points = 100
+    max_points = 1000
 
     # default number of processes
     num_processes = 1
@@ -103,4 +103,4 @@ def concatenate_files(directories,filename,points_per_job):
 
 
 if __name__ == "__main__":
-    runScannerS("TRSMBroken_baseline.ini",200)
+    runScannerS("TRSMBroken_baseline.ini",1000)
