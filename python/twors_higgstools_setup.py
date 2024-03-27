@@ -29,16 +29,13 @@ def setupHiggsTools():
     # get the SM chi-squared for HiggsSignals
     HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
     ress_SM = signals(pred)
-    print("HiggsSignals chi-sq. for SM =", ress_SM)
+    #print("HiggsSignals chi-sq. for SM =", ress_SM)
 
     return pred, h1, h2, h3, ress_SM
 
 def getHiggsData():
 
     datadir = os.environ['DATADIR']
-
-    print(datadir)
-    print(datadir+'hbdataset')
 
     bounds = HB.Bounds(datadir+'hbdataset') # load HB dataset
     signals = HS.Signals(datadir+'hsdataset') # load HS dataset
