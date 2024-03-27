@@ -21,7 +21,7 @@ import arrays
 import params
 import filterinit
 
-def main():
+def runScan():
 
     # get scan start time
     scanstart = time.time()
@@ -485,5 +485,5 @@ def main():
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
 
-# call main()
-main()
+if __name__ == "__main__":
+    runScan()
