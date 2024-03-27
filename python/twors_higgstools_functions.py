@@ -4,7 +4,6 @@ from prettytable import PrettyTable
 from collections import OrderedDict
 from scipy.interpolate import interp1d
 
-
 # round to sig significant figures
 def round_sig(x, sig=2):
     if x == 0.:
@@ -148,7 +147,9 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, BR_text_array_heavy_triple, textinfo):
     print('consistency test: sum(BRs)=', BRsum_heavy)
     print('\n')
 
-BR_text_array_heavy_withtripleHiggs = [ '$b\\bar{b}$', '$\\tau \\tau$', '$\\mu \\mu$', '$c\\bar{c}$', '$s\\bar{s}$', '$t\\bar{t}$', '$gg$', '$\\gamma\\gamma$', '$Z \\gamma$', '$WW$', '$ZZ$', '$h_1 h1$', '$h_1 h_1 h_1$', '$\\Gamma$' ]
+def get_BR_text_array_heavy_withtripleHiggs():
+    BR_text_array_heavy_withtripleHiggs = [ '$b\\bar{b}$', '$\\tau \\tau$', '$\\mu \\mu$', '$c\\bar{c}$', '$s\\bar{s}$', '$t\\bar{t}$', '$gg$', '$\\gamma\\gamma$', '$Z \\gamma$', '$WW$', '$ZZ$', '$h_1 h1$', '$h_1 h_1 h_1$', '$\\Gamma$' ]
+    return BR_text_array_heavy_withtripleHiggs
 
 ###########################################################################################
 # below is a calculation of the cross section independently from HiggsTools for validation
