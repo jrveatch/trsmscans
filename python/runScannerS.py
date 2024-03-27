@@ -21,8 +21,12 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
     if npoints > max_points:
         if npoints % max_points:
             print("Can only run with multiples of",max_points,"per process, rounding up")
+        # get number of jobs, rounded up to the nearest integer
         num_processes = math.ceil(npoints/max_points)
+        # run max_points for each job
         points_per_job = max_points
+        # update npoints to reflect how many are actually run
+        npoints = points_per_job * num_processes
     else:
         points_per_job = npoints
 
@@ -64,7 +68,7 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
             # combine the outputs into a single file
             concatenate_files(directories,"TRSMBroken.tsv",points_per_job)
 
-    return
+    return npoints
 
 def run_process(process, directory):
     print(f"Running process in directory '{directory}'.")
