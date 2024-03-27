@@ -1,7 +1,4 @@
 
-# search strings
-import re
-
 import numpy as np
 
 import arrays
