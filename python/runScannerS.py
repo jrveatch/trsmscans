@@ -4,11 +4,7 @@ import os
 import shutil
 import math
 
-import time
-
 def runScannerS(ininame,npoints,model="TRSMBroken"):
-
-    start = time.time()
 
     # output .tsv name
     tsvname = model + ".tsv"
@@ -67,12 +63,6 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
 
             # combine the outputs into a single file
             concatenate_files(directories,"TRSMBroken.tsv",points_per_job)
-
-    end = time.time()
-
-    tottime = (end - start)
-
-    print(tottime)
 
     return
 
