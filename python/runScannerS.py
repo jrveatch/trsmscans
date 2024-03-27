@@ -42,8 +42,8 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
 
     # if only one process needed, just use subprocess
     if num_processes == 1:
-        print(f"Running process in directory '{directory}'.")
         directory = "dir_0"
+        print(f"Running process in directory '{directory}'.")
         os.makedirs(directory, exist_ok=True)
         os.chdir(directory)
         subprocess.run(process)
