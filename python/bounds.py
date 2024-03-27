@@ -1,16 +1,10 @@
 
 from twors_higgstools_setup import *
-import os
 
 import arrays
 import filterinit
 
 # SETUP STARTS HERE
-
-# get root directory
-rootdir = os.getcwd()
-
-print(rootdir)
 
 # SM Higgs mass and VEV
 mh = 125.09
