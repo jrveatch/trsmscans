@@ -3,7 +3,7 @@
 
 # Minimum Python and CMake versions
 python3_minimum="3.10"
-cmake_minimum="3.50"
+cmake_minimum="3.17"
 
 # Minimum majors and minors
 python3_minimum_major=$(echo "$python3_minimum" | cut -d. -f1)
