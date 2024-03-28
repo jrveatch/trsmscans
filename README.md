@@ -19,15 +19,16 @@ following installed:
     installation script. Apple Clang, unfortunately does not compile
     Fortran, so you will need to install `gcc` (or another compiler)
     manually.
-  - [CMake] >= 3.17, download it through your package manager, through
-    [`pip`][cmake_pip], or grab the latest [binary][cmake_bin].
-  - [GSL], can be installed through the package manager on most unix systems.
+  - `python` >= 3.10
+  - `cmake` >= 3.17, download it through your package manager, through
+    `pip`, or grab the latest binary.
+  - GSL, can be installed through the package manager on most unix systems.
     The package is called `libgsl-dev` on Ubuntu and `gsl` most everywhere else
     (e.g. on OpenSUSE/CentOS or homebrew).
-  - [Eigen3] >= 3.3.0, can be installed through the package manager on most unix
+  - Eigen3 >= 3.3.0, can be installed through the package manager on most unix
     systems. The package is called `libeigen3-dev` on Ubuntu, `eigen3` on
     OpenSUSE/CentOS and `eigen` in homebrew.
-  - [clang] >= 5
+  - `clang` >= 5
 
 Note: If you are using a Mac, the installation seems to work better if you
 use homebrew instead of macports as your package manager.
