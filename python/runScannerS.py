@@ -1,36 +1,62 @@
 import subprocess
-import multiprocessing
+import multiprocessing as mp
 import os
 import shutil
 import math
 
-def runScannerS(ininame,npoints,model="TRSMBroken"):
+def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
 
-    # output .tsv name
-    tsvname = model + ".tsv"
+    # if only one process needed, just use subprocess
+    if njobs == 1:
+        return runSingleProcess(ininame,npoints,model)
 
-    # maximum number of points for a single process
-    max_points = 1000
-
-    # default number of processes
-    num_processes = 1
-
-    # if npoints is larger than the max, round to nearest
-    # multiple of max_points and figure out how many processes
-    # to run
-    if npoints > max_points:
-        if npoints % max_points:
-            print("Can only run with multiples of",max_points,"per process, rounding up")
-        # get number of jobs, rounded up to the nearest integer
-        num_processes = math.ceil(npoints/max_points)
-        # run max_points for each job
-        points_per_job = max_points
-        # update npoints to reflect how many are actually run
-        npoints = points_per_job * num_processes
+    # otherwise use multiprocessing
     else:
-        points_per_job = npoints
+        return runParallelProcesses(ininame,npoints,model,njobs)
 
-    # TODO: Should we put some limit on num_processes?
+def runSingleProcess(ininame,npoints,model="TRSMBroken"):
+    print(f"Running ScannerS as a single process.")
+    # define process
+    process = [model, "--config", ininame, "scan", "-n", str(npoints)]
+    # run process
+    subprocess.run(process)
+    print("Finished running process. Continuing...")
+    return npoints
+
+def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
+
+    # get number of available CPUs
+    ncpu = mp.cpu_count()
+
+    # if there is only 1 CPU available, run a single process
+    if ncpu == 1:
+        print("Only 1 CPU available, running as a single process")
+        return runSingleProcess(ininame,npoints,model)
+
+    # set number of workers to 80% of the available cores
+    nworkers = int(ncpu * 0.8)
+
+    # by default set nprocesses to nworkers
+    if njobs < 1:
+        num_processes = nworkers
+    # if the number of requested jobs is greater than the number
+    # of workers, limit number of processes to number of workers
+    elif njobs > nworkers:
+        num_processes = nworkers
+    # otherwise set the number of processes to the requested
+    # number of jobs
+    else:
+        num_processes = njobs
+
+    print("Using",nworkers,"workers and",num_processes,"processes")
+
+    # TODO: put in some checks/changes for minimum points per job
+
+    # get number of points per job, rounded up
+    points_per_job = math.ceil(npoints/num_processes)
+
+    # reset npoints to reflect how many are actually used
+    npoints = points_per_job * num_processes
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -38,35 +64,20 @@ def runScannerS(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
 
-    print(process)
+    # create a pool of processes
+    with mp.Pool(processes=num_processes) as pool:
 
-    # if only one process needed, just use subprocess
-    if num_processes == 1:
-        directory = "dir_0"
-        print(f"Running process in directory '{directory}'.")
-        os.makedirs(directory, exist_ok=True)
-        os.chdir(directory)
-        subprocess.run(process)
-        shutil.move(tsvname,"../"+tsvname)
-        os.chdir("..")
-        shutil.rmtree(directory)
-        print("Finished running process. Continuing...")
+        # map the run_process function to each directory
+        pool.starmap(run_process, [(process, directory) for directory in directories])
 
-    # otherwise use multiprocessing
-    else:
-        # create a pool of processes
-        with multiprocessing.Pool(processes=num_processes) as pool:
-            # map the run_process function to each directory
-            pool.starmap(run_process, [(process, directory) for directory in directories])
-        
-            # wait for all processes to finish
-            pool.close()
-            pool.join()
+        # wait for all processes to finish
+        pool.close()
+        pool.join()
 
-            print("All processes finished. Continuing...")
+    print("All processes finished. Merging outputs...")
 
-            # combine the outputs into a single file
-            concatenate_files(directories,"TRSMBroken.tsv",points_per_job)
+    # combine the outputs into a single file
+    concatenate_files(directories,model+".tsv",points_per_job)
 
     return npoints
 
@@ -105,6 +116,5 @@ def concatenate_files(directories,filename,points_per_job):
             # delete the temporary directory
             shutil.rmtree(directory)
 
-
 if __name__ == "__main__":
-    runScannerS("TRSMBroken_baseline.ini",1000)
+    runScannerS(ininame="TRSMBroken_baseline.ini",npoints=200,njobs=4)
