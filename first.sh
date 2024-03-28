@@ -1,18 +1,25 @@
 
-if [ -d trsm_venv ]; then
-    echo "Already called this script. Perhaps you want to call setup.sh instead?"
-    return
+# check dependencies
+source scripts/checkdeps.sh
+ret=$?
+if [ $ret -ne 0 ]; then
+    return 1
 fi
 
 # set up submodules
 echo "Setting up submodules"
 source scripts/setupsubmodules.sh
 
-# set up python virtual environment
-echo "Setting up python virtual environment"
-python3 -m venv trsm_venv
-source trsm_venv/bin/activate
-pip install -r python/requirements.txt
+# set up python virtual environment if it doesn't exist
+if [ ! -d trsm_venv ]; then
+    echo "Setting up python virtual environment"
+    python3 -m venv trsm_venv
+    source trsm_venv/bin/activate
+    pip install -r python/requirements.txt
+fi
+
+# source setup.sh to make sure all vars are set
+source setup.sh
 
 # install ScannerS and HiggsTools
 echo "Compiling ScannerS and higgstools"
