@@ -2,7 +2,6 @@
 # import various modules to help with logistics
 import os
 import shutil
-import subprocess
 import time
 import datetime
 import argparse
@@ -310,11 +309,9 @@ def runScan():
 
         # run ScannerS
         if use_multiprocessing:
-            npoints = runScannerS.runScannerS(ininame,npoints)
+            npoints = runScannerS.runParallelProcesses(ininame,npoints)
         else:
-            process = ["TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
-            print(process)
-            subprocess.run(process)
+            runScannerS.runSingleProcess(ininame,npoints)
 
         # initialize filter columns
         # this also renames the output .tsv
