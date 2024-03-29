@@ -36,10 +36,10 @@ def runScan():
     argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
+    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-r", "--rangeshrink", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-m", "--multiprocessing", default=False, type=bool, help="Whether multiprocessing should be used")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
     # whether prescan should be used

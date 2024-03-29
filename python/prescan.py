@@ -23,8 +23,8 @@ def runPrescan():
     argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
     argparser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-f", "--force", default=False, type=bool, help="Overwrite previous prescan")
-    argparser.add_argument("-m", "--multiprocessing", default=False, type=bool, help="Whether multiprocessing should be used")
+    argparser.add_argument("-f", "--force", action="store_true", help="Overwrite previous prescan")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
     # Masses
