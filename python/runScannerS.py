@@ -48,15 +48,22 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     else:
         num_processes = njobs
 
-    print("Using",nworkers,"workers and",num_processes,"processes")
-
-    # TODO: put in some checks/changes for minimum points per job
-
     # get number of points per job, rounded up
     points_per_job = math.ceil(npoints/num_processes)
 
+    # minimum number of points per job
+    min_points = 100
+
+    # if points_per_job is less than min_points, reduce the number of jobs
+    if points_per_job < min_points:
+        num_processes = math.ceil(npoints/min_points)
+        points_per_job = min_points
+
     # reset npoints to reflect how many are actually used
     npoints = points_per_job * num_processes
+
+    # print out some information
+    print("Running",num_processes,"process with",points_per_job,"points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -74,6 +81,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
         pool.close()
         pool.join()
 
+    # success message
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
