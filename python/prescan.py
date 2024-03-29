@@ -6,10 +6,8 @@ import datetime
 import argparse
 
 # import tools
-import bounds
-import width
 import params
-import filterinit
+import filters
 import runScannerS
 
 def runPrescan():
@@ -93,12 +91,9 @@ def runPrescan():
     else:
         runScannerS.runSingleProcess(ininame,npoints)
 
-    # initialize filter columns
-    # this also renames the output .tsv
-    filterinit.init_filter_columns(base + ".tsv",tsvname)
-
-    # run width filter
-    width.filterwidths(tsvname,maxwidth)
+    # apply width and bounds filters
+    # this also renames the output .tsv file
+    filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
 
     # run bounds filter
     bounds.filterbounds(tsvname,maxwidth)

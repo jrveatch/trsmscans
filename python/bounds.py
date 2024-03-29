@@ -2,7 +2,7 @@
 from twors_higgstools_setup import *
 
 import arrays
-import filterinit
+import filters
 
 # SETUP STARTS HERE
 
@@ -123,8 +123,8 @@ def filterbounds(filename,debug=False):
     pred, h1, h2, h3, ress_SM = setupHiggsTools()
 
     # check whether filt_width column exists, if not initialize it
-    if not filterinit.column_exists(filename,"filt_bounds"):
-        filterinit(filename)
+    if not filters.column_exists(filename,"filt_bounds"):
+        filters(filename)
 
     # load in arrays from .tsv file
     arrs = arrays.Arrays(filename)
