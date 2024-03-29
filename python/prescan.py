@@ -89,15 +89,9 @@ process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan
 print(process)
 subprocess.run(process)
 
-# initialize filter columns
-# this also renames the output .tsv
-filters.initializeFilters(base + ".tsv",tsvname)
-
-# run width filter
-width.filterwidths(tsvname,maxwidth)
-
-# run bounds filter
-bounds.filterbounds(tsvname)
+# apply width and bounds filters
+# this also renames the output .tsv file
+filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
 
 scanend = time.time()
 

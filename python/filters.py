@@ -2,14 +2,22 @@
 import os
 import shutil
 
-def column_exists(input_file,column_header):
-    
-    with open(input_file, 'r') as f_in:
-        # Read the header
-        header = f_in.readline().strip().split('\t')
-        # Check if the column header exists in the header
-        return column_header in header
-    
+import width
+import bounds
+
+def applyFilters(input_file,maxwidth,output_file=""):
+
+    # initialize filter columns
+    initializeFilters(input_file,output_file)
+
+    # apply width filter
+    nwidth = width.filterwidths(output_file,maxwidth)
+
+    # apply bounds filter
+    nbounds = bounds.filterbounds(output_file)
+
+    return nwidth, nbounds
+
 def initializeFilters(input_file,output_file=""):
 
     # filter column headers
@@ -62,11 +70,19 @@ def initializeFilters(input_file,output_file=""):
             if not has_filt_bounds:
                 columns.append('1')
 
-            # Write the updated line to the output file
+            # write the updated line to the output file
             f_out.write('\t'.join(columns) + '\n')
 
-    # Replace the input file with the output file
+    # replace the input file with the output file
     if replacefile:
         shutil.move(outname, input_file)
     else:
         os.remove(input_file)
+
+def column_exists(input_file,column_header):
+
+    with open(input_file, 'r') as f_in:
+        # Read the header
+        header = f_in.readline().strip().split('\t')
+        # Check if the column header exists in the header
+        return column_header in header

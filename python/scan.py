@@ -308,12 +308,9 @@ def main():
         print(process)
         subprocess.run(process)
 
-        # initialize filter columns
-        # this also renames the output .tsv
-        filters.initializeFilters(base + ".tsv",tsvname)
-
-        # run width filter
-        nwidth = width.filterwidths(tsvname,maxwidth)
+        # apply width and bounds filters
+        # this also renames the output .tsv file
+        nwidth, nbounds = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -323,9 +320,6 @@ def main():
             details.write("\n\n\n\n")
             details.close()
             continue
-
-        # run bounds filter
-        nbounds = bounds.filterbounds(tsvname)
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:
