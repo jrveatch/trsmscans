@@ -3,13 +3,14 @@ import os
 import shutil
 
 def column_exists(input_file,column_header):
+    
     with open(input_file, 'r') as f_in:
         # Read the header
         header = f_in.readline().strip().split('\t')
         # Check if the column header exists in the header
         return column_header in header
     
-def init_filter_columns(input_file,output_file=""):
+def initializeFilters(input_file,output_file=""):
 
     # filter column headers
     header_width = "filt_width"

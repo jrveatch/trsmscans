@@ -19,7 +19,7 @@ import width
 import bounds
 import arrays
 import params
-import filterinit
+import filters
 
 def main():
 
@@ -310,7 +310,7 @@ def main():
 
         # initialize filter columns
         # this also renames the output .tsv
-        filterinit.init_filter_columns(base + ".tsv",tsvname)
+        filters.initializeFilters(base + ".tsv",tsvname)
 
         # run width filter
         nwidth = width.filterwidths(tsvname,maxwidth)
@@ -325,7 +325,7 @@ def main():
             continue
 
         # run bounds filter
-        nbounds = bounds.filterbounds(tsvname,maxwidth)
+        nbounds = bounds.filterbounds(tsvname)
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:

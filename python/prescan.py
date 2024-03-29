@@ -10,7 +10,7 @@ import argparse
 import bounds
 import width
 import params
-import filterinit
+import filters
 
 # get scan start time
 scanstart = time.time()
@@ -91,13 +91,13 @@ subprocess.run(process)
 
 # initialize filter columns
 # this also renames the output .tsv
-filterinit.init_filter_columns(base + ".tsv",tsvname)
+filters.initializeFilters(base + ".tsv",tsvname)
 
 # run width filter
 width.filterwidths(tsvname,maxwidth)
 
 # run bounds filter
-bounds.filterbounds(tsvname,maxwidth)
+bounds.filterbounds(tsvname)
 
 scanend = time.time()
 
