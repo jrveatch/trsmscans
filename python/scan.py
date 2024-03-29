@@ -15,9 +15,6 @@ from decimal import Decimal
 
 # import tools
 import parse
-import width
-import bounds
-import arrays
 import params
 import filters
 
@@ -310,7 +307,7 @@ def main():
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
+        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -332,13 +329,6 @@ def main():
 
         # get parser with new arrays
         scanparser = parse.Parse(tsvname)
-
-        # get number of points that pass both filters
-        arrs = scanparser.getArrays()
-        filt_width = arrs.data['filt_width']
-        filt_bounds = arrs.data['filt_bounds']
-        filt_total = np.multiply(filt_width,filt_bounds)
-        npass = filt_total.sum()
 
         # get new points
         maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)

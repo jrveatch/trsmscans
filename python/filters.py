@@ -2,6 +2,9 @@
 import os
 import shutil
 
+import numpy as np
+
+import arrays
 import width
 import bounds
 
@@ -16,7 +19,17 @@ def applyFilters(input_file,maxwidth,output_file=""):
     # apply bounds filter
     nbounds = bounds.filterbounds(output_file)
 
-    return nwidth, nbounds
+    # get arrays from output file
+    arrs = arrays.Arrays(output_file)
+    arrs.loadArrays()
+
+    # find how many points pass both filters
+    filt_width = arrs.data['filt_width']
+    filt_bounds = arrs.data['filt_bounds']
+    filt_total = np.multiply(filt_width,filt_bounds)
+    npass = filt_total.sum()
+
+    return nwidth, nbounds, npass
 
 def initializeFilters(input_file,output_file=""):
 

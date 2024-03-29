@@ -7,8 +7,6 @@ import datetime
 import argparse
 
 # import tools
-import bounds
-import width
 import params
 import filters
 
