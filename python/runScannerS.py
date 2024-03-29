@@ -59,6 +59,11 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
         num_processes = math.ceil(npoints/min_points)
         points_per_job = min_points
 
+    # if there is only 1 CPU available, run a single process
+    if num_processes == 1:
+        print("Only 1 process needed, running as a single process")
+        return runSingleProcess(ininame,npoints,model)
+
     # reset npoints to reflect how many are actually used
     npoints = points_per_job * num_processes
 
