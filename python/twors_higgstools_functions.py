@@ -4,7 +4,6 @@ from prettytable import PrettyTable
 from collections import OrderedDict
 from scipy.interpolate import interp1d
 
-
 # round to sig significant figures
 def round_sig(x, sig=2):
     if x == 0.:
@@ -124,9 +123,9 @@ def width_h2(sth, m1, m2, l112, Gam_SM):
     total_width = Gam_SM * sth**2  + Gam_h2_to_h1h1(m1, m2, l112, sth)
     return total_width
 
-def get_BR_interpolators_SM(rootdir):
+def get_BR_interpolators_SM():
     # the file containing the branching ratios for the SM Higgs boson:
-    BR_file = rootdir+"/../data/higgsBR_YR4.txt"
+    BR_file = "../data/higgsBR_YR4.txt"
     # read the file:
     HiggsBRs = read_higgsBR(BR_file)
 
@@ -148,7 +147,9 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, BR_text_array_heavy_triple, textinfo):
     print('consistency test: sum(BRs)=', BRsum_heavy)
     print('\n')
 
-BR_text_array_heavy_withtripleHiggs = [ '$b\\bar{b}$', '$\\tau \\tau$', '$\\mu \\mu$', '$c\\bar{c}$', '$s\\bar{s}$', '$t\\bar{t}$', '$gg$', '$\\gamma\\gamma$', '$Z \\gamma$', '$WW$', '$ZZ$', '$h_1 h1$', '$h_1 h_1 h_1$', '$\\Gamma$' ]
+def get_BR_text_array_heavy_withtripleHiggs():
+    BR_text_array_heavy_withtripleHiggs = [ '$b\\bar{b}$', '$\\tau \\tau$', '$\\mu \\mu$', '$c\\bar{c}$', '$s\\bar{s}$', '$t\\bar{t}$', '$gg$', '$\\gamma\\gamma$', '$Z \\gamma$', '$WW$', '$ZZ$', '$h_1 h1$', '$h_1 h_1 h_1$', '$\\Gamma$' ]
+    return BR_text_array_heavy_withtripleHiggs
 
 ###########################################################################################
 # below is a calculation of the cross section independently from HiggsTools for validation
@@ -197,9 +198,9 @@ def interpolate_HiggsXS(xsdict):
 
   return interp_higgsxss
 
-def get_XS_interpolator_SM_13TeV_NNLONNLL(rootdir):
+def get_XS_interpolator_SM_13TeV_NNLONNLL():
     # the 13 TeV ggF cross sections at NNLO+NNLL
-    XS13_file = rootdir+"/../data/higgsXS_YR4_13TeV_NNLONNLL.txt"
+    XS13_file = "../data/higgsXS_YR4_13TeV_NNLONNLL.txt"
     HiggsXS_13_NNLONNLL = read_higgsXS_N3LO(XS13_file)
     # get the interpolated XS
     XS_interpolator_SM_13TeV_NNLONNLL = interpolate_HiggsXS(HiggsXS_13_NNLONNLL)

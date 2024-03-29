@@ -1,31 +1,18 @@
 
 from twors_higgstools_setup import *
-import os
 
 import arrays
 import filters
 
 # SETUP STARTS HERE
 
-# get root directory
-rootdir = os.getcwd()
-
-print(rootdir)
-
-# SM Higgs mass and VEV
-mh = 125.09
-v = 246.
-# set the SM Higgs mass
-h1.setMass(mh)
-
-# get the SM chi-squared for HiggsSignals
-HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
-ress_SM = signals(pred)
-print("HiggsSignals chi-sq. for SM =", ress_SM)
-
 # FUNCTION THAT RETURNS HiggsBounds True/False and chi-squared from HiggsSignals
 # INPUT IS MH, sintheta and l112, the Scalar-Higgs-Higgs coupling
 def check_singlet_point(MH, sintheta, l112, debug=False):
+
+    bounds, signals = getHiggsData()
+    pred, h1, h2, h3, ress_SM = setupHiggsTools()
+
     # get the cosine of theta:
     costheta = math.sqrt(1-sintheta**2)
     
@@ -38,10 +25,11 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(sintheta))
 
     # calculate and print the heavy H branching ratios, given MH, lambda_112 and sintheta
-    BR_interpolators_SM = get_BR_interpolators_SM(rootdir)
+    BR_interpolators_SM = get_BR_interpolators_SM()
     heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MH, mh, l112, sintheta)
     heavyBRs = fix_heavy_BRs(heavyBRs)
     if debug is True:
+        BR_text_array_heavy_withtripleHiggs = get_BR_text_array_heavy_withtripleHiggs()
         print_heavy_Higgs_info(heavyBRs, BR_text_array_heavy_withtripleHiggs, 'Heavy Higgs BRs & width')
 
     # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
@@ -76,11 +64,12 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     # test whether the BRs have been set correctly
     if debug is True:
         test_BR_array = [H.br('bb'), H.br('tautau'), H.br('mumu'), H.br('cc'), H.br('ss'), H.br('tt'), H.br('gg'), H.br('gamgam'), H.br('Zgam'), H.br('WW'), H.br('ZZ'), H.br('h', 'h'), 0., H.totalWidth()]
+        BR_text_array_heavy_withtripleHiggs = get_BR_text_array_heavy_withtripleHiggs()
         print_heavy_Higgs_info(test_BR_array, BR_text_array_heavy_withtripleHiggs, 'Heavy Higgs BRs & width TEST')
         print('gg > h cross section @ pp @ 13 TeV=', h.cxn('LHC13', "ggH"))
         print('gg > H cross section @ pp @ 13 TeV=', H.cxn('LHC13', "ggH"))
         # compare to independent calculations:
-        XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL(rootdir)
+        XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL()
         xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MH),5)
         print('independent calculation of the cross section:')
         print('gg > H cross section @ pp @ 13 TeV (N^2LO+NNLL)=',  xs13_nnlonnll)
@@ -129,6 +118,9 @@ def testpoint(mH,sintheta,tanb):
     print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mH, sintheta, l112, debug=True))
 
 def filterbounds(filename,debug=False):
+
+    bounds, signals = getHiggsData()
+    pred, h1, h2, h3, ress_SM = setupHiggsTools()
 
     # check whether filt_width column exists, if not initialize it
     if not filters.column_exists(filename,"filt_bounds"):

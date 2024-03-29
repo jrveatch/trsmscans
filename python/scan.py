@@ -2,7 +2,6 @@
 # import various modules to help with logistics
 import os
 import shutil
-import subprocess
 import time
 import datetime
 import argparse
@@ -17,8 +16,9 @@ from decimal import Decimal
 import parse
 import params
 import filters
+import runScannerS
 
-def main():
+def runScan():
 
     # get scan start time
     scanstart = time.time()
@@ -34,9 +34,10 @@ def main():
     argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-p", "--useprescan", default=False, type=bool, help="Use prescan")
+    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-r", "--rangeshrink", default=0.05, type=float, help="Rate at which parameter range should shrink")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
     # whether prescan should be used
@@ -70,7 +71,7 @@ def main():
 
     # number of scan points
     npoints = args["npoints"]
-    minpoints = 100
+    minpoints = 1000
 
     # make sure we use the minimum number of points
     if npoints < minpoints:
@@ -82,6 +83,9 @@ def main():
     # point density growth and parameter range shrink rates
     density_growth_rate = args['densitygrowth']
     range_shrink_rate = args['rangeshrink']
+
+    # whether multiprocessing should be used
+    use_multiprocessing = args['multiprocessing']
 
     # make instance of params
     # this automatically initializes the parameters
@@ -301,9 +305,11 @@ def main():
         # write new .ini file from template and parameters
         pars.writeini(templateini,ininame)
 
-        process = [rootdir + "/../ScannerS/build/TRSMBroken", "--config", ininame, "scan", "-n", str(npoints)]
-        print(process)
-        subprocess.run(process)
+        # run ScannerS
+        if use_multiprocessing:
+            npoints = runScannerS.runParallelProcesses(ininame,npoints)
+        else:
+            runScannerS.runSingleProcess(ininame,npoints)
 
         # apply width and bounds filters
         # this also renames the output .tsv file
@@ -473,5 +479,5 @@ def main():
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
 
-# call main()
-main()
+if __name__ == "__main__":
+    runScan()

@@ -2,8 +2,8 @@ __pycache__
 .DS_Store
 output
 STXS*.txt
-run/HS_analyses.txt
-run/HS_correlations.txt
-run/Key.dat
-run/TRSMBroken.tsv
+HS_analyses.txt
+HS_correlations.txt
+Key.dat
+TRSMBroken.tsv
 trsm_venv
