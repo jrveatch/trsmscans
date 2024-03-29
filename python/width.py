@@ -3,15 +3,15 @@ import numpy as np
 
 import arrays
 
-import filterinit
+import filters
 
 def filterwidths(filename, maxwidth):
 
     # TODO: accept different widths for each H
 
     # check whether filt_width column exists, if not initialize it
-    if not filterinit.column_exists(filename,"filt_width"):
-        filterinit.init_filter_columns(filename)
+    if not filters.column_exists(filename,"filt_width"):
+        filters.initializeFilters(filename)
 
     # load in arrays from .tsv file
     arrs = arrays.Arrays(filename)
