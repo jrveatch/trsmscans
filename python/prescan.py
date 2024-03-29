@@ -95,9 +95,6 @@ def runPrescan():
     # this also renames the output .tsv file
     filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
 
-    # run bounds filter
-    bounds.filterbounds(tsvname,maxwidth)
-
     # get total time taken
     scanend = time.time()
     scantime = (scanend - scanstart)
