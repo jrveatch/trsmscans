@@ -13,14 +13,19 @@ def applyFilters(input_file,maxwidth,output_file=""):
     # initialize filter columns
     initializeFilters(input_file,output_file)
 
+    # if no output file name is given, use input_file
+    filename=output_file
+    if not filename:
+        filename=input_file
+
     # apply width filter
-    nwidth = width.filterwidths(output_file,maxwidth)
+    nwidth = width.filterwidths(filename,maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filterbounds(output_file)
+    nbounds = bounds.filterbounds(filename)
 
     # get arrays from output file
-    arrs = arrays.Arrays(output_file)
+    arrs = arrays.Arrays(filename)
     arrs.loadArrays()
 
     # find how many points pass both filters
