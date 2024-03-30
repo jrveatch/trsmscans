@@ -92,6 +92,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # combine the outputs into a single file
     concatenate_files(directories,model+".tsv",points_per_job)
 
+    # return number of points that are actually used
     return npoints
 
 def run_process(process, directory):
