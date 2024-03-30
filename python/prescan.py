@@ -11,39 +11,15 @@ import params
 import filters
 import runScannerS
 
-def runPrescan():
+def runPrescan(XMass,SMass,npoints,maxwidth=0.15,overwrite=False,use_multiprocessing=False):
 
     # get scan start time
     scanstart = time.time()
 
-    # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
-    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    args = vars(argparser.parse_args())
-
-    # Masses
+    # set H mass to 125
     HMass = 125
-    SMass = args["SMass"]
-    XMass = args["XMass"]
-
-    # maximum allowed width
-    maxwidth = args["widthmax"]
-
-    # number of scan points
-    npoints = args["npoints"]
-
-    # overwrite previous prescan
-    overwrite = args['overwrite']
 
     # TODO: Add check to make sure overwrite is wanted
-
-    # whether multiprocessing should be used
-    use_multiprocessing = args['multiprocessing']
 
     # make instance of params
     # this automatically initializes the parameters
@@ -176,4 +152,31 @@ def checkPrescan(XMass,SMass):
     return npoints
 
 if __name__ == "__main__":
-    runPrescan()
+
+    # parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
+    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
+    args = vars(argparser.parse_args())
+
+    # masses
+    xmass = args["XMass"]
+    smass = args["SMass"]
+
+    # number of points to run
+    npoints = args["npoints"]
+
+    # get maximum width
+    maxwidth = args["widthmax"]
+
+    # run options
+    overwrite = args["overwrite"]
+    use_multiprocessing = args["multiprocessing"]
+
+    runPrescan(XMass=xmass,SMass=smass,npoints=npoints,
+               maxwidth=maxwidth,overwrite=overwrite,
+               use_multiprocessing=use_multiprocessing)
