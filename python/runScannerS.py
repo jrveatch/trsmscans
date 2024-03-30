@@ -53,7 +53,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     points_per_job = math.ceil(npoints/num_processes)
 
     # minimum number of points per job
-    min_points = 100
+    min_points = 10
 
     # if points_per_job is less than min_points, reduce the number of jobs
     if points_per_job < min_points:
