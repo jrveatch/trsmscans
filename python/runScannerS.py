@@ -19,7 +19,8 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
     # run process
-    subprocess.run(process)
+    with open(os.devnull, 'w') as devnull:
+        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
     print("Finished running process. Continuing...")
     return npoints
 
