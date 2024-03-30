@@ -19,7 +19,8 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
     # run process
-    subprocess.run(process)
+    with open(os.devnull, 'w') as devnull:
+        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
     print("Finished running process. Continuing...")
     return npoints
 
@@ -52,7 +53,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     points_per_job = math.ceil(npoints/num_processes)
 
     # minimum number of points per job
-    min_points = 100
+    min_points = 10
 
     # if points_per_job is less than min_points, reduce the number of jobs
     if points_per_job < min_points:
@@ -92,6 +93,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # combine the outputs into a single file
     concatenate_files(directories,model+".tsv",points_per_job)
 
+    # return number of points that are actually used
     return npoints
 
 def run_process(process, directory):

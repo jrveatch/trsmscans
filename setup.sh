@@ -7,3 +7,6 @@ export PATH="${PWD}/ScannerS/build:$PATH"
 
 # set data directory as environment variable
 export DATADIR="${PWD}/data/"
+
+# set prescan directory as environment variable
+export PRESCANDIR="${PWD}/run/output/prescan/"
