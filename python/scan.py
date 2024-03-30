@@ -71,7 +71,7 @@ def runScan():
 
     # number of scan points
     npoints = args["npoints"]
-    minpoints = 1000
+    minpoints = 500
 
     # make sure we use the minimum number of points
     if npoints < minpoints:
@@ -268,6 +268,22 @@ def runScan():
         summary.write(" " + f"{vxmean:1.4f}")
         summary.write("\n")
         summary.close()
+
+        # get new theta ranges
+        tHSrange = pars.tHSrange() * tHSrate
+        tHXrange = pars.tHXrange() * tHXrate
+        tSXrange = pars.tSXrange() * tSXrate
+
+        # get new vev ranges
+        vsrange = pars.vsrange() * vsrate
+        vxrange = pars.vxrange() * vxrate
+
+        # set new low and high values
+        pars.set_tHSvals(tHSmean,tHSrange)
+        pars.set_tHXvals(tHXmean,tHXrange)
+        pars.set_tSXvals(tSXmean,tSXrange)
+        pars.set_vsvals(vsmean,vsrange)
+        pars.set_vxvals(vxmean,vxrange)
 
     # iterate over multiple scans
     for iter in range(niter):

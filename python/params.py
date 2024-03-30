@@ -57,56 +57,67 @@ class Params:
     # functions to set min and max values
     # if the current high or low values are beyond
     # the new min or max, set them
+    # this also sets new mean and range values
 
     def set_tHSmin(self,val):
         self._tHSmin = val
         if self._tHSlow < self._tHSmin:
             self._tHSlow = self._tHSmin
+            self._tHSrange = self.getRange(self._tHSlow,self._tHShigh)
 
     def set_tHSmax(self,val):
         self._tHSmax = val
         if self._tHShigh > self._tHSmax:
             self._tHShigh = self._tHSmax
+            self._tHSrange = self.getRange(self._tHSlow,self._tHShigh)
 
     def set_tHXmin(self,val):
         self._tHXmin = val
         if self._tHXlow < self._tHXmin:
             self._tHXlow = self._tHXmin
+            self._tHXrange = self.getRange(self._tHXlow,self._tHXhigh)
 
     def set_tHXmax(self,val):
         self._tHXmax = val
         if self._tHXhigh > self._tHXmax:
             self._tHXhigh = self._tHXmax
+            self._tHXrange = self.getRange(self._tHXlow,self._tHXhigh)
 
     def set_tSXmin(self,val):
         self._tSXmin = val
         if self._tSXlow < self._tSXmin:
             self._tSXlow = self._tSXmin
+            self._tSXrange = self.getRange(self._tSXlow,self._tSXhigh)
 
     def set_tSXmax(self,val):
         self._tSXmax = val
         if self._tSXhigh > self._tSXmax:
             self._tSXhigh = self._tSXmax
+            self._tSXrange = self.getRange(self._tSXlow,self._tSXhigh)
 
     def set_vsmin(self,val):
         self._vsmin = val
         if self._vslow < self._vsmin:
             self._vslow = self._vsmin
+            self._vsrange = self.getRange(self._vslow,self._vshigh)
 
     def set_vsmax(self,val):
         self._vsmax = val
         if self._vshigh > self._vsmax:
             self._vshigh = self._vsmax
+            self._vsrange = self.getRange(self._vslow,self._vshigh)
 
     def set_vxmin(self,val):
         self._vxmin = val
         if self._vxlow < self._vxmin:
             self._vxlow = self._vxmin
+            self._vxrange = self.getRange(self._vxlow,self._vxhigh)
 
     def set_vxmax(self,val):
         self._vxmax = val
         if self._vxhigh > self._vxmax:
             self._vxhigh = self._vxmax
+            self._vxrange = self.getRange(self._vxlow,self._vxhigh)
 
     # function to calculate mean parameter value
     
