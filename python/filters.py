@@ -47,13 +47,14 @@ def initializeFilters(input_file,output_file=""):
     has_filt_bounds = column_exists(input_file,"filt_bounds")
 
     # print to screen if columns already exist
-    if has_filt_width:
-        print(input_file,"already has",header_width,"column. Skipping initialization.")
-    if has_filt_bounds:
-        print(input_file,"already has",header_bounds,"column. Skipping initialization.")
+    #if has_filt_width:
+    #    print(input_file,"already has",header_width,"column. Skipping initialization.")
+    #if has_filt_bounds:
+    #    print(input_file,"already has",header_bounds,"column. Skipping initialization.")
 
+    # skip initialization if it is not needed
     if has_filt_width and has_filt_bounds:
-        print("Nothing left to initialize...")
+        #print("Nothing left to initialize...")
         return
 
     outname = "temp.tsv"
