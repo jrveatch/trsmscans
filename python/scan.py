@@ -138,7 +138,7 @@ def runScan(XMass,
         # if prescan output doesn't exist, complain and exit
         if not os.path.exists(prescan):
             print("You are attempting to use a prescan that doesn't exist.")
-            print("Please run prescan.py before continuing.")
+            print("Please run prescan.py before continuing or run without -p.")
             quit()
 
         # count the number of prescan points available
