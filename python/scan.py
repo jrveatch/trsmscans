@@ -18,38 +18,23 @@ import params
 import filters
 import runScannerS
 
-def runScan():
+def runScan(XMass,
+            SMass,
+            decay,
+            npoints,
+            niter,
+            maxwidth,
+            theta_range_shrink_rate,
+            vev_range_shrink_rate,
+            density_growth_rate,
+            useprescan=False,
+            use_multiprocessing=False):
 
     # get scan start time
     scanstart = time.time()
 
-    # get root directory
-    rootdir = os.getcwd()
-
-    # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
-    argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
-    argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
-    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
-    argparser.add_argument("-r", "--rangeshrink", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    args = vars(argparser.parse_args())
-
-    # whether prescan should be used
-    useprescan = args["useprescan"]
-
-    # masses
-    mH1 = 125
-    mH2 = args["SMass"]
-    mH3 = args["XMass"]
-
-    # decay mode
-    decay = args["decaymode"]
+    # H mass
+    HMass = 125
 
     # check to make sure decay mode is supported
     supported = False
@@ -66,30 +51,14 @@ def runScan():
         print("Quitting...")
         quit()
 
-    # maximum allowed width
-    maxwidth = args["widthmax"]
-
-    # number of scan points
-    npoints = args["npoints"]
-    minpoints = 1000
-
     # make sure we use the minimum number of points
+    minpoints = 500
     if npoints < minpoints:
         npoints = minpoints
 
-    # number of iterations
-    niter = args["iterations"]
-
-    # point density growth and parameter range shrink rates
-    density_growth_rate = args['densitygrowth']
-    range_shrink_rate = args['rangeshrink']
-
-    # whether multiprocessing should be used
-    use_multiprocessing = args['multiprocessing']
-
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(mH1,mH2,mH3)
+    pars = params.Params(HMass,SMass,XMass)
 
     # base name for all files
     base = "TRSMBroken"
@@ -98,7 +67,7 @@ def runScan():
     templateini = base + "_template.ini"
 
     # directory where we want the output to go
-    dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)+"/"
+    dir = "output/scan/"+decay+"/X"+str(XMass)+"_S"+str(SMass)+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir):
@@ -149,12 +118,11 @@ def runScan():
     vxrange = pars.vxrange()
 
     # annealing rate for each parameter
-    # TODO: make these independent of each other
-    tHSrate = (1.0 - range_shrink_rate)
-    tHXrate = (1.0 - range_shrink_rate)
-    tSXrate = (1.0 - range_shrink_rate)
-    vsrate = (1.0 - range_shrink_rate)
-    vxrate = (1.0 - range_shrink_rate)
+    tHSrate = (1.0 - theta_range_shrink_rate)
+    tHXrate = (1.0 - theta_range_shrink_rate)
+    tSXrate = (1.0 - theta_range_shrink_rate)
+    vsrate = (1.0 - vev_range_shrink_rate)
+    vxrate = (1.0 - vev_range_shrink_rate)
 
     # initialize max xsec times BR
     maxxb = 0.0
@@ -164,9 +132,8 @@ def runScan():
         # TODO: Add the ability to reapply width and bounds filters to prescan
 
         # location of prescan outputs
-        prescandir = rootdir + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
-        prescanbase = prescandir + base
-        prescan = prescanbase + "_prescan.tsv"
+        prescandir = os.environ['PRESCANDIR']
+        prescan = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
 
         # if prescan output doesn't exist, complain and exit
         if not os.path.exists(prescan):
@@ -181,7 +148,7 @@ def runScan():
         # if prescan doesn't have enough points, complain and exit
         if nprescan < 0.5 * npoints:
             print("Prescan doesn't have enough points to justify using.")
-            print("Run a prescan with more points or rerun scan with --useprescan=False")
+            print("Run a prescan with more points or rerun scan without -p")
             quit()
 
         # get parser from prescan
@@ -209,6 +176,7 @@ def runScan():
         # scan range and minimize scan points that are wasted
         # TODO: figure out a more robust way to constrain min and max
  
+        # set tolerance from boundaries
         tolerance = 0.05
 
         # thetas
@@ -268,6 +236,22 @@ def runScan():
         summary.write(" " + f"{vxmean:1.4f}")
         summary.write("\n")
         summary.close()
+
+        # get new theta ranges
+        tHSrange = pars.tHSrange() * tHSrate
+        tHXrange = pars.tHXrange() * tHXrate
+        tSXrange = pars.tSXrange() * tSXrate
+
+        # get new vev ranges
+        vsrange = pars.vsrange() * vsrate
+        vxrange = pars.vxrange() * vxrate
+
+        # set new low and high values
+        pars.set_tHSvals(tHSmean,tHSrange)
+        pars.set_tHXvals(tHXmean,tHXrange)
+        pars.set_tSXvals(tSXmean,tSXrange)
+        pars.set_vsvals(vsmean,vsrange)
+        pars.set_vxvals(vxmean,vxrange)
 
     # iterate over multiple scans
     for iter in range(niter):
@@ -408,21 +392,26 @@ def runScan():
         details.write("Found max xsec*BR = " + f"{Decimal(maxxbNew):.4E}" + "\n")
         details.write("Update = " + str(update) + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
-        details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tHSdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
-        details.write("thetaHX: mean = " + f"{tHXmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tHXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
-        details.write("thetaSX: mean = " + f"{tSXmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
-        details.write("vs: mean = " + f"{vsmean:1.2f}" + "\n")
-        details.write("    diff = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "]\n")
-        details.write("vx: mean = " + f"{vxmean:1.2f}" + "\n")
-        details.write("    diff = " + f"{vxdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "]\n")
+        details.write("thetaHS: range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tHSmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tHSdiff:1.3f}" + "\n")
+        details.write("thetaHX: range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tHXmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tHXdiff:1.3f}" + "\n")
+        details.write("thetaSX: range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tSXmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tSXdiff:1.3f}" + "\n")
+        details.write("vs: range = [" + f"{vslow:1.4f}" + "," + f"{vshigh:1.4f}" + "]\n")
+        if update:
+            details.write("    new optimal value = " + f"{vsmean:1.2f}" + "\n")
+            details.write("    rel. diff w.r.t. previous = " + f"{vsdiff:1.3f}" + "\n")
+        details.write("vx: range = [" + f"{vxlow:1.4f}" + "," + f"{vxhigh:1.4f}" + "]\n")
+        if update:
+            details.write("    new optimal value = " + f"{vxmean:1.2f}" + "\n")
+            details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
         details.write("\n\n")
         details.close()
 
@@ -480,4 +469,58 @@ def runScan():
     details.close()
 
 if __name__ == "__main__":
-    runScan()
+
+    # Parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
+    argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
+    argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
+    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
+    argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
+    argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
+    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    args = vars(argparser.parse_args())
+
+    # whether prescan should be used
+    useprescan = args["useprescan"]
+
+    # masses
+    xmass = args["XMass"]
+    smass = args["SMass"]
+
+    # decay mode
+    decay = args["decaymode"]
+
+    # maximum allowed width
+    maxwidth = args["widthmax"]
+
+    # number of scan points
+    npoints = args["npoints"]
+    minpoints = 500
+
+    # number of iterations
+    niter = args["iterations"]
+
+    # point density growth and parameter range shrink rates
+    theta_range_shrink_rate = args['theta_range_shrink']
+    vev_range_shrink_rate = args['vev_range_shrink']
+    density_growth_rate = args['densitygrowth']
+
+    # whether multiprocessing should be used
+    use_multiprocessing = args['multiprocessing']
+
+    runScan(XMass=xmass,
+            SMass=smass,
+            decay=decay,
+            npoints=npoints,
+            niter=niter,
+            maxwidth=maxwidth,
+            theta_range_shrink_rate=theta_range_shrink_rate,
+            vev_range_shrink_rate=vev_range_shrink_rate,
+            density_growth_rate=density_growth_rate,
+            useprescan=useprescan,
+            use_multiprocessing=use_multiprocessing)
