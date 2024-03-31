@@ -18,7 +18,17 @@ import params
 import filters
 import runScannerS
 
-def runScan():
+def runScan(XMass,
+            SMass,
+            decay,
+            npoints,
+            niter,
+            maxwidth,
+            theta_range_shrink_rate,
+            vev_range_shrink_rate,
+            density_growth_rate,
+            useprescan=False,
+            use_multiprocessing=False):
 
     # get scan start time
     scanstart = time.time()
@@ -26,30 +36,8 @@ def runScan():
     # get root directory
     rootdir = os.getcwd()
 
-    # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
-    argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
-    argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
-    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
-    argparser.add_argument("-r", "--rangeshrink", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    args = vars(argparser.parse_args())
-
-    # whether prescan should be used
-    useprescan = args["useprescan"]
-
-    # masses
-    mH1 = 125
-    mH2 = args["SMass"]
-    mH3 = args["XMass"]
-
-    # decay mode
-    decay = args["decaymode"]
+    # H mass
+    HMass = 125
 
     # check to make sure decay mode is supported
     supported = False
@@ -66,30 +54,14 @@ def runScan():
         print("Quitting...")
         quit()
 
-    # maximum allowed width
-    maxwidth = args["widthmax"]
-
-    # number of scan points
-    npoints = args["npoints"]
-    minpoints = 500
-
     # make sure we use the minimum number of points
+    minpoints = 500
     if npoints < minpoints:
         npoints = minpoints
 
-    # number of iterations
-    niter = args["iterations"]
-
-    # point density growth and parameter range shrink rates
-    density_growth_rate = args['densitygrowth']
-    range_shrink_rate = args['rangeshrink']
-
-    # whether multiprocessing should be used
-    use_multiprocessing = args['multiprocessing']
-
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(mH1,mH2,mH3)
+    pars = params.Params(HMass,SMass,XMass)
 
     # base name for all files
     base = "TRSMBroken"
@@ -98,7 +70,7 @@ def runScan():
     templateini = base + "_template.ini"
 
     # directory where we want the output to go
-    dir = "output/scan/"+decay+"/X"+str(mH3)+"_S"+str(mH2)+"/"
+    dir = "output/scan/"+decay+"/X"+str(XMass)+"_S"+str(SMass)+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir):
@@ -150,11 +122,11 @@ def runScan():
 
     # annealing rate for each parameter
     # TODO: make these independent of each other
-    tHSrate = (1.0 - range_shrink_rate)
-    tHXrate = (1.0 - range_shrink_rate)
-    tSXrate = (1.0 - range_shrink_rate)
-    vsrate = (1.0 - range_shrink_rate)
-    vxrate = (1.0 - range_shrink_rate)
+    tHSrate = (1.0 - theta_range_shrink_rate)
+    tHXrate = (1.0 - theta_range_shrink_rate)
+    tSXrate = (1.0 - theta_range_shrink_rate)
+    vsrate = (1.0 - vev_range_shrink_rate)
+    vxrate = (1.0 - vev_range_shrink_rate)
 
     # initialize max xsec times BR
     maxxb = 0.0
@@ -164,7 +136,7 @@ def runScan():
         # TODO: Add the ability to reapply width and bounds filters to prescan
 
         # location of prescan outputs
-        prescandir = rootdir + "/output/prescan/X" + str(mH3) + "_S" + str(mH2) + "/"
+        prescandir = rootdir + "/output/prescan/X" + str(XMass) + "_S" + str(SMass) + "/"
         prescanbase = prescandir + base
         prescan = prescanbase + "_prescan.tsv"
 
@@ -496,4 +468,58 @@ def runScan():
     details.close()
 
 if __name__ == "__main__":
-    runScan()
+
+    # Parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
+    argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
+    argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
+    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
+    argparser.add_argument("-t", "--theta_range_shrink", default=0.1, type=float, help="Rate at which theta range should shrink")
+    argparser.add_argument("-v", "--vev_range_shrink", default=0.2, type=float, help="Rate at which vev range should shrink")
+    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    args = vars(argparser.parse_args())
+
+    # whether prescan should be used
+    useprescan = args["useprescan"]
+
+    # masses
+    xmass = args["XMass"]
+    smass = args["SMass"]
+
+    # decay mode
+    decay = args["decaymode"]
+
+    # maximum allowed width
+    maxwidth = args["widthmax"]
+
+    # number of scan points
+    npoints = args["npoints"]
+    minpoints = 500
+
+    # number of iterations
+    niter = args["iterations"]
+
+    # point density growth and parameter range shrink rates
+    theta_range_shrink_rate = args['theta_range_shrink']
+    vev_range_shrink_rate = args['vev_range_shrink']
+    density_growth_rate = args['densitygrowth']
+
+    # whether multiprocessing should be used
+    use_multiprocessing = args['multiprocessing']
+
+    runScan(XMass=xmass,
+            SMass=smass,
+            decay=decay,
+            npoints=npoints,
+            niter=niter,
+            maxwidth=maxwidth,
+            theta_range_shrink_rate=theta_range_shrink_rate,
+            vev_range_shrink_rate=vev_range_shrink_rate,
+            density_growth_rate=density_growth_rate,
+            useprescan=useprescan,
+            use_multiprocessing=use_multiprocessing)
