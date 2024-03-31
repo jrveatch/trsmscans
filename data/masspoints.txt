@@ -1,4 +1,5 @@
-XMass SMass
+# comment out any masses you don't want with #
+#XMass SMass
 240 110
 250 100
 250 110

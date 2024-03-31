@@ -13,11 +13,12 @@ def runAllPrescans(npoints,maxwidth,overwrite,use_multiprocessing):
 
     with open(masspointsfile,"r") as masspoints:
 
-        # skip first line with headers
-        next(masspoints)
-
         # read the rest of the file
         for line in masspoints:
+
+            # skip any lines that are commented out
+            if line.startswith('#'):
+                continue
 
             # parse the line and store the mass values
             xmass, smass = line.strip().split()
