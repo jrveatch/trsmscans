@@ -11,7 +11,12 @@ import params
 import filters
 import runScannerS
 
-def runPrescan(XMass,SMass,npoints,maxwidth=0.15,overwrite=False,use_multiprocessing=False):
+def runPrescan(XMass,
+               SMass,
+               npoints,
+               maxwidth,
+               overwrite=False,
+               use_multiprocessing=False):
 
     # get scan start time
     scanstart = time.time()
@@ -178,5 +183,6 @@ if __name__ == "__main__":
     use_multiprocessing = args["multiprocessing"]
 
     runPrescan(XMass=xmass,SMass=smass,npoints=npoints,
-               maxwidth=maxwidth,overwrite=overwrite,
+               maxwidth=maxwidth,
+               overwrite=overwrite,
                use_multiprocessing=use_multiprocessing)
