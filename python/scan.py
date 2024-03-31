@@ -118,7 +118,6 @@ def runScan(XMass,
     vxrange = pars.vxrange()
 
     # annealing rate for each parameter
-    # TODO: make these independent of each other
     tHSrate = (1.0 - theta_range_shrink_rate)
     tHXrate = (1.0 - theta_range_shrink_rate)
     tSXrate = (1.0 - theta_range_shrink_rate)
@@ -393,21 +392,26 @@ def runScan(XMass,
         details.write("Found max xsec*BR = " + f"{Decimal(maxxbNew):.4E}" + "\n")
         details.write("Update = " + str(update) + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
-        details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tHSdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
-        details.write("thetaHX: mean = " + f"{tHXmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tHXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
-        details.write("thetaSX: mean = " + f"{tSXmean:1.4f}" + "\n")
-        details.write("         diff = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("         range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
-        details.write("vs: mean = " + f"{vsmean:1.2f}" + "\n")
-        details.write("    diff = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vslow:1.2f}" + "," + f"{vshigh:1.2f}" + "]\n")
-        details.write("vx: mean = " + f"{vxmean:1.2f}" + "\n")
-        details.write("    diff = " + f"{vxdiff:1.3f}" + "\n")
-        details.write("    range = [" + f"{vxlow:1.2f}" + "," + f"{vxhigh:1.2f}" + "]\n")
+        details.write("thetaHS: range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tHSmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tHSdiff:1.3f}" + "\n")
+        details.write("thetaHX: range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tHXmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tHXdiff:1.3f}" + "\n")
+        details.write("thetaSX: range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
+        if update:
+            details.write("         new optimal value = " + f"{tSXmean:1.4f}" + "\n")
+            details.write("         rel. diff w.r.t. previous = " + f"{tSXdiff:1.3f}" + "\n")
+        details.write("vs: range = [" + f"{vslow:1.4f}" + "," + f"{vshigh:1.4f}" + "]\n")
+        if update:
+            details.write("    new optimal value = " + f"{vsmean:1.2f}" + "\n")
+            details.write("    rel. diff w.r.t. previous = " + f"{vsdiff:1.3f}" + "\n")
+        details.write("vx: range = [" + f"{vxlow:1.4f}" + "," + f"{vxhigh:1.4f}" + "]\n")
+        if update:
+            details.write("    new optimal value = " + f"{vxmean:1.2f}" + "\n")
+            details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
         details.write("\n\n")
         details.close()
 
@@ -475,8 +479,8 @@ if __name__ == "__main__":
     argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
-    argparser.add_argument("-t", "--theta_range_shrink", default=0.1, type=float, help="Rate at which theta range should shrink")
-    argparser.add_argument("-v", "--vev_range_shrink", default=0.2, type=float, help="Rate at which vev range should shrink")
+    argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
+    argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
     argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
