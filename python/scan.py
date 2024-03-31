@@ -33,9 +33,6 @@ def runScan(XMass,
     # get scan start time
     scanstart = time.time()
 
-    # get root directory
-    rootdir = os.getcwd()
-
     # H mass
     HMass = 125
 
@@ -136,9 +133,8 @@ def runScan(XMass,
         # TODO: Add the ability to reapply width and bounds filters to prescan
 
         # location of prescan outputs
-        prescandir = rootdir + "/output/prescan/X" + str(XMass) + "_S" + str(SMass) + "/"
-        prescanbase = prescandir + base
-        prescan = prescanbase + "_prescan.tsv"
+        prescandir = os.environ['PRESCANDIR']
+        prescan = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
 
         # if prescan output doesn't exist, complain and exit
         if not os.path.exists(prescan):
@@ -153,7 +149,7 @@ def runScan(XMass,
         # if prescan doesn't have enough points, complain and exit
         if nprescan < 0.5 * npoints:
             print("Prescan doesn't have enough points to justify using.")
-            print("Run a prescan with more points or rerun scan with --useprescan=False")
+            print("Run a prescan with more points or rerun scan without -p")
             quit()
 
         # get parser from prescan
@@ -181,6 +177,7 @@ def runScan(XMass,
         # scan range and minimize scan points that are wasted
         # TODO: figure out a more robust way to constrain min and max
  
+        # set tolerance from boundaries
         tolerance = 0.05
 
         # thetas
