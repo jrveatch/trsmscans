@@ -32,7 +32,7 @@ def runPrescan(XMass,
 
     # names of .ini and .tsv files
     base = "TRSMBroken"
-    initemplate = base + "_template.ini"
+    templateini = base + "_template.ini"
     outbase = "./" + base
     ininame = outbase + ".ini"
     tsvname_initial = outbase + ".tsv"
@@ -42,7 +42,7 @@ def runPrescan(XMass,
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
-    dir = prescandir+"/X"+str(XMass)+"_S"+str(SMass)
+    dir = prescandir+"/X"+str(XMass)+"_S"+str(SMass)+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir) and overwrite:
@@ -52,8 +52,9 @@ def runPrescan(XMass,
     if not os.path.exists(dir):
         os.makedirs(dir)
 
-    # copy template .ini into dir
-    shutil.copy(initemplate,dir)
+    # copy template .ini into dir if it doesn't already exist
+    if not os.path.exists(dir+templateini):
+        shutil.copy(templateini,dir)
 
     # go into the run directory
     os.chdir(dir)
@@ -83,7 +84,7 @@ def runPrescan(XMass,
         print("If you want to overwrite the existing prescan, run with -o.")
 
     # write .ini file from template
-    pars.writeini(initemplate,ininame)
+    pars.writeini(templateini,ininame)
 
     # run ScannerS
     if use_multiprocessing:
