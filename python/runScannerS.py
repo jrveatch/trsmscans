@@ -15,13 +15,21 @@ def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
         return runParallelProcesses(ininame,npoints,model,njobs)
 
 def runSingleProcess(ininame,npoints,model="TRSMBroken"):
+
+    # simple information message
     print(f"Running ScannerS as a single process.")
+
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
+
     # run process
     with open(os.devnull, 'w') as devnull:
         subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+
+    # simple information message
     print("Finished running process. Continuing...")
+
+    # return number of points used
     return npoints
 
 def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
@@ -97,37 +105,56 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     return npoints
 
 def run_process(process, directory):
+
+    # simple information message
     print(f"Running process in directory '{directory}'.")
+
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
+
     # change to the temporary directory
     os.chdir(directory)
+
     # call the process with arguments and suppress output
     with open(os.devnull, 'w') as devnull:
         subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+
+    # simple information message
     print(f"Process in directory '{directory}' finished.")
 
 def concatenate_files(directories,filename,points_per_job):
+
+    # flag indicating whether header has already been written
     header_written = False
+
     # open output file
     with open(filename,"w") as outfile:
+
         # loop over temporary directories
         for dir_number, directory in enumerate(directories):
+
             # open .tsv file in the directory
             with open(directory+"/"+filename,"r") as infile:
+
                 # if the header has not already been written, write it
                 if not header_written:
                     header = infile.readline()
                     outfile.write(header)
                     header_written = True
+
+                # if header has already been written, skip it in future files
                 else:
                     # skip the header line
                     next(infile)
+
+                # loop over all non-header lines in file
                 for line in infile:
+
                     # replace the index with a unique value
                     parts = line.strip().split('\t')
                     parts[0] = str(int(parts[0]) + dir_number * points_per_job)
                     outfile.write('\t'.join(parts) + '\n')
+
             # delete the temporary directory
             shutil.rmtree(directory)
 
