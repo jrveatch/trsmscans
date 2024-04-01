@@ -3,7 +3,10 @@ import os
 import prescan
 import argparse
 
-def runAllPrescans(npoints,maxwidth,overwrite,use_multiprocessing):
+def runAllPrescans(npoints,
+                   maxwidth,
+                   overwrite=False,
+                   use_multiprocessing=True):
 
     # get the data directory
     datadir = os.environ['DATADIR']
@@ -52,7 +55,8 @@ if __name__ == "__main__":
     use_single_process = args["single_process"]
 
     # run all prescans
-    runAllPrescans(npoints=npoints,maxwidth=maxwidth,
+    runAllPrescans(npoints=npoints,
+                   maxwidth=maxwidth,
                    overwrite=overwrite,
                    use_multiprocessing=not use_single_process)
     
