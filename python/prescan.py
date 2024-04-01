@@ -16,7 +16,8 @@ def runPrescan(XMass,
                npoints,
                maxwidth,
                overwrite=False,
-               use_multiprocessing=False):
+               use_multiprocessing=False,
+               stepsize=10000):
 
     # get scan start time
     scanstart = time.time()
@@ -25,10 +26,6 @@ def runPrescan(XMass,
     HMass = 125
 
     # TODO: Add check to make sure overwrite is wanted
-
-    # make instance of params
-    # this automatically initializes the parameters
-    pars = params.Params(HMass,SMass,XMass)
 
     # names of .ini and .tsv files
     base = "TRSMBroken"
@@ -59,15 +56,18 @@ def runPrescan(XMass,
     # go into the run directory
     os.chdir(dir)
 
+    # make instance of params
+    # this automatically initializes the parameters
+    pars = params.Params(HMass,SMass,XMass)
+
+    # write .ini file from template
+    pars.writeini(templateini,ininame)
+
     # get number of pre-existing prescan points
     nexisting = checkPrescan(XMass=XMass,SMass=SMass)
 
-    # boolean indicating whether prescan already exists
-    prescan_exists = False
-
     # if prescan exists, adjust the number of prescan points to run
     if nexisting >= 0:
-        prescan_exists = True
 
         # if enough points already exist, exit
         if nexisting >= npoints:
@@ -83,39 +83,41 @@ def runPrescan(XMass,
         print(npointsOld,"points requested, so I am running with",npoints,"points.")
         print("If you want to overwrite the existing prescan, run with -o.")
 
-    # write .ini file from template
-    pars.writeini(templateini,ininame)
+    # increment up to the total number of points this will
+    # run the prescan to add stepsize points each time
+    # this approach takes a slightly longer time but allows
+    # progress to be captured at smaller increments in case
+    # the longer prescan runs get interrupted
+    if stepsize > 0:
 
-    # run ScannerS
-    if use_multiprocessing:
-        runScannerS.runParallelProcesses(ininame,npoints)
-    else:
-        runScannerS.runSingleProcess(ininame,npoints)
+        # number of points that have already been run
+        points_done = 0
 
-    # initialize filter columns
-    filters.initializeFilters(tsvname_initial)
+        # keep going while fewer than npoints have been done so far
+        while points_done < npoints:
 
-    # if prescan does not already exist, rename file
-    if not prescan_exists:
-        os.rename(tsvname_initial,tsvname)
-    # otherwise append new file to existing prescan .tsv
-    else:
-        with open(tsvname_initial,'r') as source_file:
-            # skip the first line
-            next(source_file)
+            # if there is space, run another set of stepsize
+            if npoints - points_done > stepsize:
+                points_to_run = stepsize
 
-            # open final .tsv file for appending
-            with open(tsvname,'a') as destination_file:
-                # get each line in the new .tsv file
-                for line in source_file:
-                    # replace the index with a unique value
-                    parts = line.strip().split('\t')
-                    parts[0] = str(int(parts[0]) + nexisting)
-                    # append each line to final .tsv file
-                    destination_file.write('\t'.join(parts) + '\n')
+            # otherwise run the remaining points
+            else:
+                points_to_run = npoints - points_done
 
-        # delete new .tsv file
-        os.remove(tsvname_initial)
+            # run ScannerS for the next set of points
+            if use_multiprocessing:
+                runScannerS.runParallelProcesses(ininame,points_to_run)
+            else:
+                runScannerS.runSingleProcess(ininame,points_to_run)
+
+            # increment the count of points done
+            points_done += countNPointsInFile(tsvname_initial)
+
+            # initialize filter columns
+            filters.initializeFilters(tsvname_initial)
+
+            # save output to tsvname
+            saveOutput(tsvname_initial,tsvname)
 
     # apply width and bounds filters
     # this also renames the output .tsv file
@@ -131,8 +133,6 @@ def runPrescan(XMass,
     return 0
 
 # function to check previous prescan
-# returns -1 if previous prescan does not exist
-# otherwise returns number of existing prescan points
 def checkPrescan(XMass,SMass):
 
     # get prescan directory
@@ -141,9 +141,18 @@ def checkPrescan(XMass,SMass):
     # prescan file name
     filename = prescandir+"/X"+str(XMass)+"_S"+str(SMass)+"/TRSMBroken_prescan.tsv"
 
+    # get number of points in file
+    npoints = countNPointsInFile(filename)
+
+    return npoints
+
+# function to get number of points in a file
+# returns -1 if file does not exist
+# otherwise returns number of existing points in file
+def countNPointsInFile(filename):
+
     # if file doesn't exist, return -1
     if not os.path.exists(filename):
-        print(filename,"does not exist yet.")
         return -1
 
     # run wc -l to get the number of lines
@@ -157,6 +166,40 @@ def checkPrescan(XMass,SMass):
 
     return npoints
 
+# function to save output
+def saveOutput(inputfile,outputfile):
+
+    # get number of points already in output file
+    nexisting = countNPointsInFile(outputfile)
+
+    # if output file doesn't exist or is empty, simply rename input file
+    if nexisting <= 0:
+        os.rename(inputfile,outputfile)
+        return
+
+    # otherwise append the contents of inputfile to outputfile
+    with open(inputfile,'r') as source_file:
+        # skip the first line
+        next(source_file)
+
+        # open output .tsv file for appending
+        with open(outputfile,'a') as destination_file:
+
+            # get each line in the new .tsv file
+            for line in source_file:
+
+                # replace the index with a unique value
+                parts = line.strip().split('\t')
+                parts[0] = str(int(parts[0]) + nexisting)
+
+                # append each line to final .tsv file
+                destination_file.write('\t'.join(parts) + '\n')
+
+    # delete input .tsv file
+    os.remove(inputfile)
+
+    return
+
 if __name__ == "__main__":
 
     # parse command line arguments
@@ -167,6 +210,7 @@ if __name__ == "__main__":
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
+    argparser.add_argument("-t", "--stepsize", default=10000, type=int, help="Step size to save progress")
     args = vars(argparser.parse_args())
 
     # masses
@@ -176,6 +220,9 @@ if __name__ == "__main__":
     # number of points to run
     npoints = args["npoints"]
 
+    # progress saving step size
+    stepsize = args["stepsize"]
+
     # get maximum width
     maxwidth = args["widthmax"]
 
@@ -183,7 +230,10 @@ if __name__ == "__main__":
     overwrite = args["overwrite"]
     use_multiprocessing = args["multiprocessing"]
 
-    runPrescan(XMass=xmass,SMass=smass,npoints=npoints,
+    runPrescan(XMass=xmass,
+               SMass=smass,
+               npoints=npoints,
                maxwidth=maxwidth,
                overwrite=overwrite,
-               use_multiprocessing=use_multiprocessing)
+               use_multiprocessing=use_multiprocessing,
+               stepsize=stepsize)
