@@ -81,8 +81,9 @@ def runScan(XMass,
     if not os.path.exists(dir + "/files"):
         os.makedirs(dir + "/files")
 
-    # copy template .ini into dir
-    shutil.copy(templateini,dir)
+    # copy template .ini into dir if it doesn't already exist
+    if not os.path.exists(dir+templateini):
+        shutil.copy(templateini,dir)
 
     # go into the run directory
     os.chdir(dir)
