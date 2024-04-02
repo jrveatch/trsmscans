@@ -75,7 +75,14 @@ class Parse:
     # get maximum xb for the decay
     def getxbdecay(self,decay):
 
+        # get appropriate BR for decay mode
         match decay:
+
+            # 4b case
+            case "H2H1bbbb":
+                xb_decay = np.multiply(self.b_H1_bb,self.b_H2_bb)
+
+            # bbtautau cases
             case "H2bbH1tautau":
                 xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_bb)
             case "H2tautauH1bb":
@@ -84,6 +91,38 @@ class Parse:
                 arr1 = np.multiply(self.b_H1_bb,self.b_H2_tautau)
                 arr2 = np.multiply(self.b_H1_tautau,self.b_H2_bb)
                 xb_decay = np.add(arr1,arr2)
+
+            # bbWW cases
+            case "H2bbH1WW":
+                xb_decay = np.multiply(self.b_H1_WW,self.b_H2_bb)
+            case "H2WWH1bb":
+                xb_decay = np.multiply(self.b_H2_WW,self.b_H1_bb)
+            case "H2H1bbWW":
+                arr1 = np.multiply(self.b_H2_WW,self.b_H1_bb)
+                arr2 = np.multiply(self.b_H1_WW,self.b_H2_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # bbZZ cases
+            case "H2bbH1ZZ":
+                xb_decay = np.multiply(self.b_H1_ZZ,self.b_H2_bb)
+            case "H2ZZH1bb":
+                xb_decay = np.multiply(self.b_H2_ZZ,self.b_H1_bb)
+            case "H2H1bbZZ":
+                arr1 = np.multiply(self.b_H2_ZZ,self.b_H1_bb)
+                arr2 = np.multiply(self.b_H1_ZZ,self.b_H2_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # VVtautau cases
+            case "H2VVH1bb":
+                xb_decay = np.multiply(self.b_H1_bb,np.add(self.b_H2_WW,self.b_H2_ZZ))
+            case "H2bbH1VV":
+                xb_decay = np.multiply(self.b_H2_bb,np.add(self.b_H1_WW,self.b_H1_ZZ))
+            case "H2H1VVbb":
+                arr1 = np.multiply(self.b_H2_bb,np.add(self.b_H1_WW,self.b_H1_ZZ))
+                arr2 = np.multiply(self.b_H1_bb,np.add(self.b_H2_WW,self.b_H2_ZZ))
+                xb_decay = np.add(arr1,arr2)
+
+            # WWtautau cases
             case "H2WWH1tautau":
                 xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_WW)
             case "H2tautauH1WW":
@@ -92,6 +131,8 @@ class Parse:
                 arr1 = np.multiply(self.b_H2_tautau,self.b_H1_WW)
                 arr2 = np.multiply(self.b_H1_tautau,self.b_H2_WW)
                 xb_decay = np.add(arr1,arr2)
+
+            # ZZtautau cases
             case "H2ZZH1tautau":
                 xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_ZZ)
             case "H2tautauH1ZZ":
@@ -100,14 +141,28 @@ class Parse:
                 arr1 = np.multiply(self.b_H2_tautau,self.b_H1_ZZ)
                 arr2 = np.multiply(self.b_H1_tautau,self.b_H2_ZZ)
                 xb_decay = np.add(arr1,arr2)
+
+            # VVtautau cases
             case "H2VVH1tautau":
                 xb_decay = np.multiply(self.b_H1_tautau,np.add(self.b_H2_WW,self.b_H2_ZZ))
             case "H2tautauH1VV":
                 xb_decay = np.multiply(self.b_H2_tautau,np.add(self.b_H1_WW,self.b_H1_ZZ))
             case "H2H1VVtautau":
-                arr1 = np.multiply(self.b_H2_tautau,np.add(self.b_H1_W,self.b_H1_ZZ))
+                arr1 = np.multiply(self.b_H2_tautau,np.add(self.b_H1_WW,self.b_H1_ZZ))
                 arr2 = np.multiply(self.b_H1_tautau,np.add(self.b_H2_WW,self.b_H2_ZZ))
                 xb_decay = np.add(arr1,arr2)
+
+            # bbgamgam cases
+            case "H2bbH1gamgam":
+                xb_decay = np.multiply(self.b_H1_gamgam,self.b_H2_bb)
+            case "H2gamgamH1bb":
+                xb_decay = np.multiply(self.b_H1_bb,self.b_H2_gamgam)
+            case "H2H1bbgamgam":
+                arr1 = np.multiply(self.b_H1_bb,self.b_H2_gamgam)
+                arr2 = np.multiply(self.b_H1_gamgam,self.b_H2_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # all other cases
             case _:
                 print("Unrecognized decay",decay)
                 print("This should not have happened")
@@ -149,14 +204,20 @@ class Parse:
         self.vs = self.arr.data['vs'][self.filters != 0]
         self.vx = self.arr.data['vx'][self.filters != 0]
 
-        # xsec and br values
-        self.x_H3_gg = self.arr.data['x_H3_gg'][self.filters != 0]
-        self.b_H3_H1H2 = self.arr.data['b_H3_H1H2'][self.filters != 0]
+        # H1 xsec and BR values
         self.b_H1_bb = self.arr.data['b_H1_bb'][self.filters != 0]
         self.b_H1_tautau = self.arr.data['b_H1_tautau'][self.filters != 0]
         self.b_H1_WW = self.arr.data['b_H1_WW'][self.filters != 0]
         self.b_H1_ZZ = self.arr.data['b_H1_ZZ'][self.filters != 0]
+        self.b_H1_gamgam = self.arr.data['b_H1_gamgam'][self.filters != 0]
+
+        # H2 xsec and BR values
         self.b_H2_bb = self.arr.data['b_H2_bb'][self.filters != 0]
         self.b_H2_tautau = self.arr.data['b_H2_tautau'][self.filters != 0]
         self.b_H2_WW = self.arr.data['b_H2_WW'][self.filters != 0]
         self.b_H2_ZZ = self.arr.data['b_H2_ZZ'][self.filters != 0]
+        self.b_H2_gamgam = self.arr.data['b_H2_gamgam'][self.filters != 0]
+
+        # H3 xsec and BR values
+        self.x_H3_gg = self.arr.data['x_H3_gg'][self.filters != 0]
+        self.b_H3_H1H2 = self.arr.data['b_H3_H1H2'][self.filters != 0]
