@@ -33,7 +33,7 @@ H2ZZH1tautau
 H2tautauH1ZZ
 H2H1ZZtautau
 
-# permutations of VV tautau where V is W or Z
+# permutations of VVtautau where V is W or Z
 H2VVH1tautau
 H2tautauH1VV
 H2H1VVtautau
