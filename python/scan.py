@@ -485,11 +485,11 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", default=500, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", default=300, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-d", "--decaymode", default="H2bbH1tautau", type=str, help="Decay mode")
-    argparser.add_argument("-n", "--npoints", default=10000, type=int, help="Initial number of scan points")
-    argparser.add_argument("-i", "--iterations", default=100, type=int, help="Maximum number of iterations")
+    argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
+    argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
+    argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
