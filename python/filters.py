@@ -1,6 +1,7 @@
 
 import os
 import shutil
+import argparse
 
 import numpy as np
 
@@ -105,3 +106,19 @@ def column_exists(input_file,column_header):
         header = f_in.readline().strip().split('\t')
         # Check if the column header exists in the header
         return column_header in header
+
+if __name__ == "__main__":
+
+    # Parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-f", "--filename", help="Name of file to apply filters to")
+    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    args = vars(argparser.parse_args())
+
+    # filename
+    filename = args["filename"]
+
+    # maximum allowed width
+    maxwidth = args["widthmax"]
+
+    applyFilters(input_file=filename,maxwidth=maxwidth)

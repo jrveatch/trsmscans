@@ -37,15 +37,7 @@ def runScan(XMass,
     HMass = 125
 
     # check to make sure decay mode is supported
-    supported = False
-    if decay == "H2bbH1tautau" or decay == "H2tautauH1bb" or decay == "H2H1bbtautau":
-        supported = True
-    if decay == "H2WWH1tautau" or decay == "H2tautauH1WW" or decay == "H2H1WWtautau":
-        supported = True
-    if decay == "H2ZZH1tautau" or decay == "H2tautauH1ZZ" or decay == "H2H1ZZtautau":
-        supported = True
-    if decay == "H2VVH1tautau" or decay == "H2tautauH1VV" or decay == "H2H1VVtautau":
-        supported = True
+    supported = isValidDecay(decay)
     if not supported:
         print("Unrecognized decay",decay)
         print("Quitting...")
@@ -89,13 +81,13 @@ def runScan(XMass,
     os.chdir(dir)
 
     # create summary file
-    summaryname = "scansummary.txt"
+    summaryname = "scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     summary = open(summaryname,"w")
     summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
     summary.close()
 
     # create details file
-    detailsname = "scandetails.txt"
+    detailsname = "scandetails_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
@@ -469,6 +461,26 @@ def runScan(XMass,
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
 
+def isValidDecay(decaymode):
+
+    # decay mode file name
+    filename = os.environ['DATADIR'] + "decaymodes.txt"
+
+    # search for decaymode in file
+    with open(filename, 'r') as file:
+        # loop over every line in the file
+        for line in file:
+            # skip blank lines
+            if line.strip():
+                # get first word from each line
+                first_word = line.split()[0]
+                if first_word == decaymode:
+                    # if it is found, return True
+                    return True
+
+    # if it isn't found, return False
+    return False
+
 if __name__ == "__main__":
 
     # Parse command line arguments
@@ -482,7 +494,7 @@ if __name__ == "__main__":
     argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
     argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
-    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-g", "--densitygrowth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
