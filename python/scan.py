@@ -81,13 +81,13 @@ def runScan(XMass,
     os.chdir(dir)
 
     # create summary file
-    summaryname = "scansummary.txt"
+    summaryname = "scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     summary = open(summaryname,"w")
     summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
     summary.close()
 
     # create details file
-    detailsname = "scandetails.txt"
+    detailsname = "scandetails_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
