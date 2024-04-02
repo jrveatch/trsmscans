@@ -494,7 +494,7 @@ if __name__ == "__main__":
     argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
     argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
-    argparser.add_argument("-g", "--densitygrowth", default=0.1, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-g", "--densitygrowth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
