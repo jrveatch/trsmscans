@@ -1,0 +1,44 @@
+# list of available decay modes
+
+# 4b
+H2H1bbbb
+
+# permutations of bbtautau
+H2bbH1tautau
+H2tautauH1bb
+H2H1bbtautau
+
+# permutations of bbWW
+H2bbH1WW
+H2WWH1bb
+H2H1bbWW
+
+# permutations of bbZZ
+H2bbH1ZZ
+H2ZZH1bb
+H2H1bbZZ
+
+# permutations of bbVV
+H2bbH1VV
+H2VVH1bb
+H2H1bbVV
+
+# permutations of WWtautau
+H2WWH1tautau
+H2tautauH1WW
+H2H1WWtautau
+
+# permutations of ZZtautau
+H2ZZH1tautau
+H2tautauH1ZZ
+H2H1ZZtautau
+
+# permutations of VV tautau where V is W or Z
+H2VVH1tautau
+H2tautauH1VV
+H2H1VVtautau
+
+# permutations of bbgamgam
+H2bbH1gamgam
+H2gamgamH1bb
+H2H1bbgamgam
