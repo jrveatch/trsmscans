@@ -9,8 +9,10 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,filename,HMass,SMass):
-        self.arr = arrays.Arrays(filename)
-        self.loadArrays(filename)
+
+        # initialize HName and SName
+        self.HName = ""
+        self.SName = ""
 
         # assign H and S to H1 and H2
         if SMass > HMass:
@@ -19,6 +21,10 @@ class Parse:
         else:
             self.HName = "H2"
             self.SName = "H1"
+
+        # get arrays
+        self.arr = arrays.Arrays(filename)
+        self.loadArrays(filename)
 
     # load new arrays
     def loadArrays(self,filename):
