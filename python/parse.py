@@ -8,9 +8,17 @@ import arrays
 class Parse:
 
     # load new set of arrays
-    def __init__(self,filename):
+    def __init__(self,filename,HMass,SMass):
         self.arr = arrays.Arrays(filename)
         self.loadArrays(filename)
+
+        # assign H and S to H1 and H2
+        if SMass > HMass:
+            self.HName = "H1"
+            self.SName = "H2"
+        else:
+            self.HName = "H2"
+            self.SName = "H1"
 
     # load new arrays
     def loadArrays(self,filename):
@@ -68,7 +76,7 @@ class Parse:
         # TODO: take decay as argument for other channels modes
 
         # get production cross section
-        xb_prod = np.multiply(self.x_H3_gg,self.b_H3_H1H2)
+        xb_prod = np.multiply(self.x_X_gg,self.b_X_SH)
 
         return xb_prod
 
@@ -79,87 +87,87 @@ class Parse:
         match decay:
 
             # 4b case
-            case "H2H1bbbb":
-                xb_decay = np.multiply(self.b_H1_bb,self.b_H2_bb)
+            case "SHbbbb":
+                xb_decay = np.multiply(self.b_S_bb,self.b_H_bb)
 
             # bbtautau cases
-            case "H2bbH1tautau":
-                xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_bb)
-            case "H2tautauH1bb":
-                xb_decay = np.multiply(self.b_H1_bb,self.b_H2_tautau)
-            case "H2H1bbtautau":
-                arr1 = np.multiply(self.b_H1_bb,self.b_H2_tautau)
-                arr2 = np.multiply(self.b_H1_tautau,self.b_H2_bb)
+            case "SbbHtautau":
+                xb_decay = np.multiply(self.b_S_bb,self.b_H_tautau)
+            case "StautauHbb":
+                xb_decay = np.multiply(self.b_S_tautau,self.b_H_bb)
+            case "SHbbtautau":
+                arr1 = np.multiply(self.b_S_bb,self.b_H_tautau)
+                arr2 = np.multiply(self.b_S_tautau,self.b_H_bb)
                 xb_decay = np.add(arr1,arr2)
 
             # bbWW cases
-            case "H2bbH1WW":
-                xb_decay = np.multiply(self.b_H1_WW,self.b_H2_bb)
-            case "H2WWH1bb":
-                xb_decay = np.multiply(self.b_H2_WW,self.b_H1_bb)
-            case "H2H1bbWW":
-                arr1 = np.multiply(self.b_H2_WW,self.b_H1_bb)
-                arr2 = np.multiply(self.b_H1_WW,self.b_H2_bb)
+            case "SbbHWW":
+                xb_decay = np.multiply(self.b_S_bb,self.b_H_WW)
+            case "SWWHbb":
+                xb_decay = np.multiply(self.b_S_WW,self.b_H_bb)
+            case "SHbbWW":
+                arr1 = np.multiply(self.b_S_bb,self.b_H_WW)
+                arr2 = np.multiply(self.b_S_WW,self.b_H_bb)
                 xb_decay = np.add(arr1,arr2)
 
             # bbZZ cases
-            case "H2bbH1ZZ":
-                xb_decay = np.multiply(self.b_H1_ZZ,self.b_H2_bb)
-            case "H2ZZH1bb":
-                xb_decay = np.multiply(self.b_H2_ZZ,self.b_H1_bb)
-            case "H2H1bbZZ":
-                arr1 = np.multiply(self.b_H2_ZZ,self.b_H1_bb)
-                arr2 = np.multiply(self.b_H1_ZZ,self.b_H2_bb)
+            case "SbbHZZ":
+                xb_decay = np.multiply(self.b_S_bb,self.b_H_ZZ)
+            case "SZZHbb":
+                xb_decay = np.multiply(self.b_S_ZZ,self.b_H_bb)
+            case "SHbbZZ":
+                arr1 = np.multiply(self.b_S_bb,self.b_H_ZZ)
+                arr2 = np.multiply(self.b_S_ZZ,self.b_H_bb)
                 xb_decay = np.add(arr1,arr2)
 
             # VVtautau cases
-            case "H2VVH1bb":
-                xb_decay = np.multiply(self.b_H1_bb,np.add(self.b_H2_WW,self.b_H2_ZZ))
-            case "H2bbH1VV":
-                xb_decay = np.multiply(self.b_H2_bb,np.add(self.b_H1_WW,self.b_H1_ZZ))
-            case "H2H1VVbb":
-                arr1 = np.multiply(self.b_H2_bb,np.add(self.b_H1_WW,self.b_H1_ZZ))
-                arr2 = np.multiply(self.b_H1_bb,np.add(self.b_H2_WW,self.b_H2_ZZ))
+            case "SVVHbb":
+                xb_decay = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_bb)
+            case "SbbHVV":
+                xb_decay = np.multiply(self.b_S_bb,np.add(self.b_H_WW,self.b_H_ZZ))
+            case "SHVVbb":
+                arr1 = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_bb)
+                arr2 = np.multiply(self.b_S_bb,np.add(self.b_H_WW,self.b_H_ZZ))
                 xb_decay = np.add(arr1,arr2)
 
             # WWtautau cases
-            case "H2WWH1tautau":
-                xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_WW)
-            case "H2tautauH1WW":
-                xb_decay = np.multiply(self.b_H2_tautau,self.b_H1_WW)
-            case "H2H1WWtautau":
-                arr1 = np.multiply(self.b_H2_tautau,self.b_H1_WW)
-                arr2 = np.multiply(self.b_H1_tautau,self.b_H2_WW)
+            case "SWWHtautau":
+                xb_decay = np.multiply(self.b_S_WW,self.b_H_tautau)
+            case "StautauHWW":
+                xb_decay = np.multiply(self.b_S_tautau,self.b_H_WW)
+            case "SHWWtautau":
+                arr1 = np.multiply(self.b_S_WW,self.b_H_tautau)
+                arr2 = np.multiply(self.b_S_tautau,self.b_H_WW)
                 xb_decay = np.add(arr1,arr2)
 
             # ZZtautau cases
-            case "H2ZZH1tautau":
-                xb_decay = np.multiply(self.b_H1_tautau,self.b_H2_ZZ)
-            case "H2tautauH1ZZ":
-                xb_decay = np.multiply(self.b_H2_tautau,self.b_H1_ZZ)
-            case "H2H1ZZtautau":
-                arr1 = np.multiply(self.b_H2_tautau,self.b_H1_ZZ)
-                arr2 = np.multiply(self.b_H1_tautau,self.b_H2_ZZ)
+            case "SZZHtautau":
+                xb_decay = np.multiply(self.b_S_ZZ,self.b_H_tautau)
+            case "StautauHZZ":
+                xb_decay = np.multiply(self.b_S_tautau,self.b_H_ZZ)
+            case "SHZZtautau":
+                arr1 = np.multiply(self.b_S_ZZ,self.b_H_tautau)
+                arr2 = np.multiply(self.b_S_tautau,self.b_H_ZZ)
                 xb_decay = np.add(arr1,arr2)
 
             # VVtautau cases
-            case "H2VVH1tautau":
-                xb_decay = np.multiply(self.b_H1_tautau,np.add(self.b_H2_WW,self.b_H2_ZZ))
-            case "H2tautauH1VV":
-                xb_decay = np.multiply(self.b_H2_tautau,np.add(self.b_H1_WW,self.b_H1_ZZ))
-            case "H2H1VVtautau":
-                arr1 = np.multiply(self.b_H2_tautau,np.add(self.b_H1_WW,self.b_H1_ZZ))
-                arr2 = np.multiply(self.b_H1_tautau,np.add(self.b_H2_WW,self.b_H2_ZZ))
+            case "SVVHtautau":
+                xb_decay = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_tautau)
+            case "StautauHVV":
+                xb_decay = np.multiply(self.b_S_tautau,np.add(self.b_H_WW,self.b_H_ZZ))
+            case "SHVVtautau":
+                arr1 = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_tautau)
+                arr2 = np.multiply(self.b_S_tautau,np.add(self.b_H_WW,self.b_H_ZZ))
                 xb_decay = np.add(arr1,arr2)
 
             # bbgamgam cases
-            case "H2bbH1gamgam":
-                xb_decay = np.multiply(self.b_H1_gamgam,self.b_H2_bb)
-            case "H2gamgamH1bb":
-                xb_decay = np.multiply(self.b_H1_bb,self.b_H2_gamgam)
-            case "H2H1bbgamgam":
-                arr1 = np.multiply(self.b_H1_bb,self.b_H2_gamgam)
-                arr2 = np.multiply(self.b_H1_gamgam,self.b_H2_bb)
+            case "SbbHgamgam":
+                xb_decay = np.multiply(self.b_S_bb,self.b_H_gamgam)
+            case "SgamgamHbb":
+                xb_decay = np.multiply(self.b_S_gamgam,self.b_H_bb)
+            case "SHbbgamgam":
+                arr1 = np.multiply(self.b_S_bb,self.b_H_gamgam)
+                arr2 = np.multiply(self.b_S_gamgam,self.b_H_bb)
                 xb_decay = np.add(arr1,arr2)
 
             # all other cases
@@ -205,19 +213,19 @@ class Parse:
         self.vx = self.arr.data['vx'][self.filters != 0]
 
         # H1 xsec and BR values
-        self.b_H1_bb = self.arr.data['b_H1_bb'][self.filters != 0]
-        self.b_H1_tautau = self.arr.data['b_H1_tautau'][self.filters != 0]
-        self.b_H1_WW = self.arr.data['b_H1_WW'][self.filters != 0]
-        self.b_H1_ZZ = self.arr.data['b_H1_ZZ'][self.filters != 0]
-        self.b_H1_gamgam = self.arr.data['b_H1_gamgam'][self.filters != 0]
+        self.b_H_bb = self.arr.data['b_'+self.HName+'_bb'][self.filters != 0]
+        self.b_H_tautau = self.arr.data['b_'+self.HName+'_tautau'][self.filters != 0]
+        self.b_H_WW = self.arr.data['b_'+self.HName+'_WW'][self.filters != 0]
+        self.b_H_ZZ = self.arr.data['b_'+self.HName+'_ZZ'][self.filters != 0]
+        self.b_H_gamgam = self.arr.data['b_'+self.HName+'_gamgam'][self.filters != 0]
 
         # H2 xsec and BR values
-        self.b_H2_bb = self.arr.data['b_H2_bb'][self.filters != 0]
-        self.b_H2_tautau = self.arr.data['b_H2_tautau'][self.filters != 0]
-        self.b_H2_WW = self.arr.data['b_H2_WW'][self.filters != 0]
-        self.b_H2_ZZ = self.arr.data['b_H2_ZZ'][self.filters != 0]
-        self.b_H2_gamgam = self.arr.data['b_H2_gamgam'][self.filters != 0]
+        self.b_S_bb = self.arr.data['b_'+self.SName+'_bb'][self.filters != 0]
+        self.b_S_tautau = self.arr.data['b_'+self.SName+'_tautau'][self.filters != 0]
+        self.b_S_WW = self.arr.data['b_'+self.SName+'_WW'][self.filters != 0]
+        self.b_S_ZZ = self.arr.data['b_'+self.SName+'_ZZ'][self.filters != 0]
+        self.b_S_gamgam = self.arr.data['b_'+self.SName+'_gamgam'][self.filters != 0]
 
         # H3 xsec and BR values
-        self.x_H3_gg = self.arr.data['x_H3_gg'][self.filters != 0]
-        self.b_H3_H1H2 = self.arr.data['b_H3_H1H2'][self.filters != 0]
+        self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
+        self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]

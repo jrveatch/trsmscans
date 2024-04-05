@@ -311,7 +311,7 @@ def runScan(XMass,
             continue
 
         # get parser with new arrays
-        scanparser = parse.Parse(tsvname)
+        scanparser = parse.Parse(filename=tsvname,HMass=HMass,SMass=SMass)
 
         # get new points
         maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
