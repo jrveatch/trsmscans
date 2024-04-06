@@ -134,9 +134,10 @@ def get_BR_interpolators_SM():
     return BR_interpolators_SM
 
 # print the heavy Higgs info:
-def print_heavy_Higgs_info(HeavyHiggsBRs, BR_text_array_heavy_triple, textinfo):
+def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo):
     print(textinfo)
     tbl = PrettyTable(["process", "BR"])
+    BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
       tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],5)])
     print(tbl)
