@@ -26,7 +26,7 @@ def check_singlet_point(mh, MX, sintheta, l112, debug=False):
 
     # calculate and print the heavy H branching ratios, given MH, lambda_112 and sintheta
     BR_interpolators_SM = get_BR_interpolators_SM()
-    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MX, mh, l112, sintheta)
+    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MX, l112, sintheta)
     heavyBRs = fix_heavy_BRs(heavyBRs)
     if debug is True:
         BR_text_array_heavy_withtripleHiggs = get_BR_text_array_heavy_withtripleHiggs()

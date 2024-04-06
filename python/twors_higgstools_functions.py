@@ -85,7 +85,7 @@ def fix_heavy_BRs(heavyBRs):
     return heavyBRs_fixed
 
 # function that calculates the heavy Higgs branching ratios
-def calculate_heavy_BRs_only(interpolators_SM, mh2, mh1, l112, sintheta):
+def calculate_heavy_BRs_only(interpolators_SM, mh2, l112, sintheta):
     heavyBRs = []
     # fix the SM Higgs mass
     mh1 = 125.09
