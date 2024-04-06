@@ -8,10 +8,11 @@ from twors_higgstools_functions import *   # probably need much less as in princ
 
 def setupHiggsTools():
 
-    # get signals and bounds
-    bounds, signals = getHiggsData()
+    # get signals dataset
+    signals = getHiggsSignals()
 
-    pred = HP.Predictions() # create the model predictions
+    # create the model predictions
+    pred = HP.Predictions()
 
     # add a SM-like Higgs boson with SM-like couplings
     h1 = pred.addParticle(HP.NeutralScalar("h1", "even"))
@@ -22,7 +23,6 @@ def setupHiggsTools():
 
     # SM Higgs mass and VEV
     mh = 125.09
-    v = 246.
     # set the SM Higgs mass
     h1.setMass(mh)
 
@@ -35,10 +35,31 @@ def setupHiggsTools():
 
 def getHiggsData():
 
-    datadir = os.environ['DATADIR']
+    # get HB dataset
+    bounds = getHiggsBounds()
 
-    bounds = HB.Bounds(datadir+'hbdataset') # load HB dataset
-    signals = HS.Signals(datadir+'hsdataset') # load HS dataset
+    # get HS dataset
+    signals = getHiggsSignals()
 
     return bounds, signals
+
+def getHiggsSignals():
+
+    # get data directory
+    datadir = os.environ['DATADIR']
+
+    # get HS dataset
+    signals = HS.Signals(datadir+'hsdataset')
+
+    return signals
+
+def getHiggsBounds():
+
+    # get data directory
+    datadir = os.environ['DATADIR']
+
+    # get HB dataset
+    bounds = HB.Bounds(datadir+'hbdataset')
+
+    return bounds
 
