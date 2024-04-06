@@ -156,8 +156,22 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo):
     print('\n')
 
 def get_BR_text_array_heavy_withtripleHiggs():
-    BR_text_array_heavy_withtripleHiggs = [ '$b\\bar{b}$', '$\\tau \\tau$', '$\\mu \\mu$', '$c\\bar{c}$', '$s\\bar{s}$', '$t\\bar{t}$', '$gg$', '$\\gamma\\gamma$', '$Z \\gamma$', '$WW$', '$ZZ$', '$h_1 h1$', '$h_1 h_1 h_1$', '$\\Gamma$' ]
-    return BR_text_array_heavy_withtripleHiggs
+    BR_text_array = []
+    BR_text_array.append('$b\\bar{b}$')
+    BR_text_array.append('$\\tau \\tau$')
+    BR_text_array.append('$\\mu \\mu$')
+    BR_text_array.append('$c\\bar{c}$')
+    BR_text_array.append('$s\\bar{s}$')
+    BR_text_array.append('$t\\bar{t}$')
+    BR_text_array.append('$gg$')
+    BR_text_array.append('$\\gamma\\gamma$')
+    BR_text_array.append('$Z \\gamma$')
+    BR_text_array.append('$WW$')
+    BR_text_array.append('$ZZ$')
+    BR_text_array.append('$h_1 h1$')
+    BR_text_array.append('$h_1 h_1 h_1$')
+    BR_text_array.append('$\\Gamma$')
+    return BR_text_array
 
 ###########################################################################################
 # below is a calculation of the cross section independently from HiggsTools for validation
