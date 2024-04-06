@@ -9,7 +9,7 @@ import arrays
 import width
 import bounds
 
-def applyFilters(input_file,maxwidth,output_file=""):
+def applyFilters(input_file,maxwidth,SMass,output_file=""):
 
     # initialize filter columns
     initializeFilters(input_file,output_file)
@@ -23,7 +23,7 @@ def applyFilters(input_file,maxwidth,output_file=""):
     nwidth = width.filterwidths(filename,maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filterbounds(filename)
+    nbounds = bounds.filterbounds(filename,SMass)
 
     # get arrays from output file
     arrs = arrays.Arrays(filename)

@@ -16,34 +16,35 @@ def round_sig(x, sig=2):
 
 # create interpolators for the various BRs and total width and return a dictionary
 def interpolate_HiggsBR(brdict):
-  # the kind of interpolation
-  interpkind = 'cubic'
 
-  # define an array of interpolators
-  interp_higgsbrs = []
+    # the kind of interpolation
+    interpkind = 'cubic'
 
-  # find out how many BRs+width we have:
-  values_view = list(brdict.values())
-  value_iterator = iter(values_view)
-  first_value = next(value_iterator)
-  NBRs = len(first_value)
+    # define an array of interpolators
+    interp_higgsbrs = []
+
+    # find out how many BRs+width we have:
+    values_view = list(brdict.values())
+    value_iterator = iter(values_view)
+    first_value = next(value_iterator)
+    NBRs = len(first_value)
   
-  # push back all the values of the masses, brs and width into arrays
-  mass_array = []
-  br_array =[[] for yy in range(NBRs)]
+    # push back all the values of the masses, brs and width into arrays
+    mass_array = []
+    br_array =[[] for yy in range(NBRs)]
 
-  # get the mass and the corresponding BR arrays
-  for key in list(brdict.keys()):
-      mass_array.append(key)
-      for ii in range(NBRs):
-        br_array[ii].append(brdict[key][ii])
+    # get the mass and the corresponding BR arrays
+    for key in list(brdict.keys()):
+        mass_array.append(key)
+        for ii in range(NBRs):
+            br_array[ii].append(brdict[key][ii])
 
-  # now create the interpolators and put them in the array:
-  for ii in range(NBRs):
+    # now create the interpolators and put them in the array:
+    for ii in range(NBRs):
         interpolator = interp1d(mass_array, br_array[ii], kind=interpkind, bounds_error=False)
         interp_higgsbrs.append(interpolator)
 
-  return interp_higgsbrs
+    return interp_higgsbrs
 
 # branching ratio RESCALING for h2 -> xx given Gamma_SM, sintheta, m1, m2, l112:
 def RES_BR_h2_to_xx(sth, Gam_SM, m1, m2, l112):
@@ -53,10 +54,10 @@ def RES_BR_h2_to_xx(sth, Gam_SM, m1, m2, l112):
 
 # calculate the width h2 -> h1 h1, given the mass, the self-coupling l112 (in GeV) and the sin(mixing angle)
 def Gam_h2_to_h1h1(m1, m2, l112, sth):
-  if m2 < 2*m1:
-    return 0.
-  width_h2h1h1 = l112**2 * math.sqrt( 1 - 4 * m1**2 / m2**2 ) / 8 / math.pi / m2
-  return width_h2h1h1
+    if m2 < 2*m1:
+        return 0.
+    width_h2h1h1 = l112**2 * math.sqrt( 1 - 4 * m1**2 / m2**2 ) / 8 / math.pi / m2
+    return width_h2h1h1
 
 # function to read in the branching ratios into a dictionary in the format:
 # mass [GeV] | H -> bbbar | H -> tautau | H -> mumu | H -> cc | H -> ss | H -> tt | H -> gg | H -> gammagamma | H -> Zgamma | H -> WW | H -> ZZ | total width [GeV]
@@ -194,35 +195,42 @@ def read_higgsXS_N3LO(xsfile):
 
 # create interpolators for the XS and return a dictionary
 def interpolate_HiggsXS(xsdict):
-  # the kind of interpolation
-  interpkind = 'linear'
 
-  # define an array of interpolators
-  interp_higgsxss = []
+    # the kind of interpolation
+    interpkind = 'linear'
 
-  # find out how many BRs+width we have:
-  values_view = list(xsdict.values())
-  value_iterator = iter(values_view)
-  first_value = next(value_iterator)
+    # define an array of interpolators
+    interp_higgsxss = []
+
+    # find out how many BRs+width we have:
+    values_view = list(xsdict.values())
+    value_iterator = iter(values_view)
+    first_value = next(value_iterator)
   
-  # push back all the values of the masses, brs and width into arrays
-  mass_array = []
-  xs_array =[]
+    # push back all the values of the masses, brs and width into arrays
+    mass_array = []
+    xs_array =[]
 
-  # get the mass and the corresponding BR arrays
-  for key in list(xsdict.keys()):
-      mass_array.append(key)
-      xs_array.append(xsdict[key][0])
+    # get the mass and the corresponding BR arrays
+    for key in list(xsdict.keys()):
+        mass_array.append(key)
+        xs_array.append(xsdict[key][0])
 
-  # now create the interpolators and put them in the array:
-  interp_higgsxss = interp1d(mass_array, xs_array, kind=interpkind, bounds_error=False)
+    # now create the interpolators and put them in the array:
+    interp_higgsxss = interp1d(mass_array, xs_array, kind=interpkind, bounds_error=False)
 
-  return interp_higgsxss
+    return interp_higgsxss
 
 def get_XS_interpolator_SM_13TeV_NNLONNLL():
+
+    # get data directory
+    datadir = os.environ['DATADIR']
+
     # the 13 TeV ggF cross sections at NNLO+NNLL
-    XS13_file = "../data/higgsXS_YR4_13TeV_NNLONNLL.txt"
+    XS13_file = datadir+"higgsXS_YR4_13TeV_NNLONNLL.txt"
     HiggsXS_13_NNLONNLL = read_higgsXS_N3LO(XS13_file)
+
     # get the interpolated XS
     XS_interpolator_SM_13TeV_NNLONNLL = interpolate_HiggsXS(HiggsXS_13_NNLONNLL)
+
     return XS_interpolator_SM_13TeV_NNLONNLL

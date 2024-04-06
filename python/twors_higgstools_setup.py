@@ -15,23 +15,26 @@ def setupHiggsTools():
     pred = HP.Predictions()
 
     # add a SM-like Higgs boson with SM-like couplings
-    h1 = pred.addParticle(HP.NeutralScalar("h1", "even"))
+    H = pred.addParticle(HP.NeutralScalar("H", "even"))
 
-    # add second BSM Higgs boson which decays to two h bosons and is produced via gluon fusion
-    h2 = pred.addParticle(HP.NeutralScalar("h2", "even"))
-    h3 = pred.addParticle(HP.NeutralScalar("h3", "even"))
+    # add BSM boson S that decays to SM particles
+    S = pred.addParticle(HP.NeutralScalar("S", "even"))
+
+    # add BSM boson X that decays two H+S
+    X = pred.addParticle(HP.NeutralScalar("X", "even"))
 
     # SM Higgs mass and VEV
-    mh = 125.09
+    mH = 125.09
+
     # set the SM Higgs mass
-    h1.setMass(mh)
+    H.setMass(mH)
 
     # get the SM chi-squared for HiggsSignals
-    HP.effectiveCouplingInput(h1, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
+    HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
     ress_SM = signals(pred)
     #print("HiggsSignals chi-sq. for SM =", ress_SM)
 
-    return pred, h1, h2, h3, ress_SM
+    return pred, H, S, X, ress_SM
 
 def getHiggsData():
 

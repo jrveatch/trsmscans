@@ -121,7 +121,7 @@ def runPrescan(XMass,
 
     # apply width and bounds filters
     # this also renames the output .tsv file
-    filters.applyFilters(tsvname,maxwidth=maxwidth)
+    filters.applyFilters(tsvname,maxwidth=maxwidth,SMass=SMass)
 
     # get total time taken
     scanend = time.time()
