@@ -3,6 +3,7 @@ import operator
 from prettytable import PrettyTable
 from collections import OrderedDict
 from scipy.interpolate import interp1d
+import os
 
 # round to sig significant figures
 def round_sig(x, sig=2):
@@ -124,12 +125,18 @@ def width_h2(sth, m1, m2, l112, Gam_SM):
     return total_width
 
 def get_BR_interpolators_SM():
+
+    # get data directory
+    datadir = os.environ['DATADIR']
+
     # the file containing the branching ratios for the SM Higgs boson:
-    BR_file = "../data/higgsBR_YR4.txt"
+    BR_file = datadir+"higgsBR_YR4.txt"
+
     # read the file:
     HiggsBRs = read_higgsBR(BR_file)
 
-    BR_interpolators_SM = interpolate_HiggsBR(HiggsBRs)  # this returns the actual interpolators
+    # get the actual interpolators
+    BR_interpolators_SM = interpolate_HiggsBR(HiggsBRs)
 
     return BR_interpolators_SM
 
@@ -183,7 +190,6 @@ def interpolate_HiggsXS(xsdict):
   values_view = list(xsdict.values())
   value_iterator = iter(values_view)
   first_value = next(value_iterator)
-  NXSs = len(first_value)
   
   # push back all the values of the masses, brs and width into arrays
   mass_array = []
