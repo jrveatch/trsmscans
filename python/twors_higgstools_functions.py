@@ -136,10 +136,10 @@ def get_BR_interpolators_SM():
     # read the file:
     HiggsBRs = read_higgsBR(BR_file)
 
-    # get the actual interpolators
-    BR_interpolators_SM = interpolate_HiggsBR(HiggsBRs)
+    # get the BR interpolators
+    interpolators = interpolate_HiggsBR(HiggsBRs)
 
-    return BR_interpolators_SM
+    return interpolators
 
 # print the heavy Higgs info:
 def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo):
@@ -231,6 +231,6 @@ def get_XS_interpolator_SM_13TeV_NNLONNLL():
     HiggsXS_13_NNLONNLL = read_higgsXS_N3LO(XS13_file)
 
     # get the interpolated XS
-    XS_interpolator_SM_13TeV_NNLONNLL = interpolate_HiggsXS(HiggsXS_13_NNLONNLL)
+    interpolator = interpolate_HiggsXS(HiggsXS_13_NNLONNLL)
 
-    return XS_interpolator_SM_13TeV_NNLONNLL
+    return interpolator
