@@ -4,8 +4,6 @@ import Higgs.signals as HS
 
 import os
 
-from twors_higgstools_functions import *   # probably need much less as in principle can read in everything from the .tsv output from scanners
-
 def setupHiggsTools():
 
     # get signals dataset
