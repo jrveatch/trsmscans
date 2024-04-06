@@ -8,10 +8,10 @@ import filters
 
 # FUNCTION THAT RETURNS HiggsBounds True/False and chi-squared from HiggsSignals
 # INPUT IS MH, sintheta and l112, the Scalar-Higgs-Higgs coupling
-def check_singlet_point(MH, sintheta, l112, debug=False):
+def check_singlet_point(mh, MX, sintheta, l112, debug=False):
 
     bounds, signals = getHiggsData()
-    pred, h1, h2, h3, ress_SM = setupHiggsTools()
+    pred, h, h2, X, ress_SM = setupHiggsTools()
 
     # get the cosine of theta:
     costheta = math.sqrt(1-sintheta**2)
@@ -21,58 +21,58 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     
     # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
     # then set the BRs according to the calculation
-    H.setMass(MH)
-    HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(sintheta))
+    X.setMass(MX)
+    HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(sintheta))
 
     # calculate and print the heavy H branching ratios, given MH, lambda_112 and sintheta
     BR_interpolators_SM = get_BR_interpolators_SM()
-    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MH, mh, l112, sintheta)
+    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MX, mh, l112, sintheta)
     heavyBRs = fix_heavy_BRs(heavyBRs)
     if debug is True:
         BR_text_array_heavy_withtripleHiggs = get_BR_text_array_heavy_withtripleHiggs()
         print_heavy_Higgs_info(heavyBRs, BR_text_array_heavy_withtripleHiggs, 'Heavy Higgs BRs & width')
 
     # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
-    H.setBr('bb', 0.)
-    H.setBr('tautau', 0.)
-    H.setBr('mumu', 0.)
-    H.setBr('cc', 0.)
-    H.setBr('ss', 0.)
-    H.setBr('tt', 0.)
-    H.setBr('gg', 0.)
-    H.setBr('gamgam', 0.)
-    H.setBr('Zgam', 0.)
-    H.setBr('WW', 0.)
-    H.setBr('ZZ', 0.)
+    X.setBr('bb', 0.)
+    X.setBr('tautau', 0.)
+    X.setBr('mumu', 0.)
+    X.setBr('cc', 0.)
+    X.setBr('ss', 0.)
+    X.setBr('tt', 0.)
+    X.setBr('gg', 0.)
+    X.setBr('gamgam', 0.)
+    X.setBr('Zgam', 0.)
+    X.setBr('WW', 0.)
+    X.setBr('ZZ', 0.)
 
     # SET THE BRS
-    H.setBr('bb', heavyBRs[0])
-    H.setBr('tautau', heavyBRs[1])
-    H.setBr('mumu', heavyBRs[2])
-    H.setBr('cc', heavyBRs[3])
-    H.setBr('ss', heavyBRs[4])
-    H.setBr('tt', heavyBRs[5])
-    H.setBr('gg', heavyBRs[6])
-    H.setBr('gamgam', heavyBRs[7])
-    H.setBr('Zgam', heavyBRs[8])
-    H.setBr('WW', heavyBRs[9])
-    H.setBr('ZZ', heavyBRs[10])
-    H.setBr('h', 'h', heavyBRs[11])
-    H.setTotalWidth(heavyBRs[13])
+    X.setBr('bb', heavyBRs[0])
+    X.setBr('tautau', heavyBRs[1])
+    X.setBr('mumu', heavyBRs[2])
+    X.setBr('cc', heavyBRs[3])
+    X.setBr('ss', heavyBRs[4])
+    X.setBr('tt', heavyBRs[5])
+    X.setBr('gg', heavyBRs[6])
+    X.setBr('gamgam', heavyBRs[7])
+    X.setBr('Zgam', heavyBRs[8])
+    X.setBr('WW', heavyBRs[9])
+    X.setBr('ZZ', heavyBRs[10])
+    X.setBr('h', 'h', heavyBRs[11])
+    X.setTotalWidth(heavyBRs[13])
 
     # SOME TESTS HERE:
     # test whether the BRs have been set correctly
     if debug is True:
-        test_BR_array = [H.br('bb'), H.br('tautau'), H.br('mumu'), H.br('cc'), H.br('ss'), H.br('tt'), H.br('gg'), H.br('gamgam'), H.br('Zgam'), H.br('WW'), H.br('ZZ'), H.br('h', 'h'), 0., H.totalWidth()]
+        test_BR_array = [X.br('bb'), X.br('tautau'), X.br('mumu'), X.br('cc'), X.br('ss'), X.br('tt'), X.br('gg'), X.br('gamgam'), X.br('Zgam'), X.br('WW'), X.br('ZZ'), X.br('h', 'h'), 0., X.totalWidth()]
         BR_text_array_heavy_withtripleHiggs = get_BR_text_array_heavy_withtripleHiggs()
         print_heavy_Higgs_info(test_BR_array, BR_text_array_heavy_withtripleHiggs, 'Heavy Higgs BRs & width TEST')
         print('gg > h cross section @ pp @ 13 TeV=', h.cxn('LHC13', "ggH"))
-        print('gg > H cross section @ pp @ 13 TeV=', H.cxn('LHC13', "ggH"))
+        print('gg > X cross section @ pp @ 13 TeV=', X.cxn('LHC13', "ggH"))
         # compare to independent calculations:
         XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL()
-        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MH),5)
+        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MX),5)
         print('independent calculation of the cross section:')
-        print('gg > H cross section @ pp @ 13 TeV (N^2LO+NNLL)=',  xs13_nnlonnll)
+        print('gg > X cross section @ pp @ 13 TeV (N^2LO+NNLL)=',  xs13_nnlonnll)
         
 
     # get and print the HiggsBounds results
@@ -95,12 +95,12 @@ def check_singlet_point(MH, sintheta, l112, debug=False):
     # return HiggsBounds (True/False) for Allowed/Disallowed and the chi-squared from HiggsSignals
     return resb.allowed, HS_allowed
 
-def tanb_to_lambda112(mh, mH, sintheta, v, tanb):
+def tanb_to_lambda112(mh, mX, sintheta, v, tanb):
     costheta = math.sqrt(1-sintheta**2)
     x = v/tanb
-    lambda1 = (mh**2 / (2 * v**2)) * costheta**2 + (mH**2 / (2 * v**2)) * sintheta**2
-    lambda2 = (mh**2 / (2 * x**2)) * sintheta**2 + (mH**2 / (2 * x**2)) * costheta**2
-    lambda3 = ((mH**2 - mh**2)/(v*x)) * sintheta * costheta
+    lambda1 = (mh**2 / (2 * v**2)) * costheta**2 + (mX**2 / (2 * v**2)) * sintheta**2
+    lambda2 = (mh**2 / (2 * x**2)) * sintheta**2 + (mX**2 / (2 * x**2)) * costheta**2
+    lambda3 = ((mX**2 - mh**2)/(v*x)) * sintheta * costheta
     lambda112 = - (lambda3 / 2)  * ( x * costheta**3 + v*sintheta**3) + (lambda3 - 3 * lambda1) * v * costheta**2 * sintheta + (lambda3 - 3 * lambda2) * x * costheta * sintheta**2
     # cross check:
     #sin2alpha = lambda3 * x * v / math.sqrt( (lambda1 * v**2 - lambda2 * x**2)**2 + (lambda3 * x * v)**2)
@@ -109,13 +109,18 @@ def tanb_to_lambda112(mh, mH, sintheta, v, tanb):
     
     return lambda112
 
-def testpoint(mH,sintheta,tanb):
-    print('mh, mH, sintheta, v, tanb=', mh, mH, sintheta, v, tanb)
-    l112 = tanb_to_lambda112(mh, mH, sintheta, v, tanb)
+def testpoint(mX,sintheta,tanb):
+
+    # SM Higgs mass and VEV
+    mh = 125.09
+    v = 246.
+
+    print('mh, mH, sintheta, v, tanb=', mh, mX, sintheta, v, tanb)
+    l112 = tanb_to_lambda112(mh, mX, sintheta, v, tanb)
     print('l112=', l112)
     
     # check this example point:
-    print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mH, sintheta, l112, debug=True))
+    print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mh, mX, sintheta, l112, debug=True))
 
 def filterbounds(filename,debug=False):
 
@@ -392,21 +397,16 @@ def filterbounds(filename,debug=False):
     npass = filt_bounds.sum()
     return npass
 
-################################
-# START LOOP OR TESTING HERE
-################################
+# test a single point if called as a standalone script
+if __name__ == "__main__":
 
-TEST_SINGLE = False # do not use
-
-# TEST ONE SET OF VALUES HERE:
-if TEST_SINGLE is True:
     # Singlet parameters, Tania:
-    #mH = 966.278
+    #mX = 966.278
     #sintheta = -0.25468226979564057
     #tanb = 1.0678636931186718
 
-    mH = 218.98275755792929
+    mX = 218.98275755792929
     sintheta = -8.9105204943541461E-002
     tanb = 0.96965458337420274
 
-    testpoint(mH,sintheta,tanb)
+    testpoint(mX,sintheta,tanb)
