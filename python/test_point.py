@@ -63,13 +63,13 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
     if debug is True:
         test_BR_array = [X.br('bb'), X.br('tautau'), X.br('mumu'), X.br('cc'), X.br('ss'), X.br('tt'), X.br('gg'), X.br('gamgam'), X.br('Zgam'), X.br('WW'), X.br('ZZ'), X.br('h', 'h'), 0., X.totalWidth()]
         print_heavy_Higgs_info(test_BR_array, 'Heavy Higgs BRs & width TEST')
-        print('gg > h cross section @ pp @ 13 TeV=', H.cxn('LHC13', "ggH"))
-        print('gg > X cross section @ pp @ 13 TeV=', X.cxn('LHC13', "ggH"))
+        print('gg -> H cross section @ pp @ 13 TeV =', H.cxn('LHC13', "ggH"))
+        print('gg -> X cross section @ pp @ 13 TeV =', X.cxn('LHC13', "ggH"))
         # compare to independent calculations:
         XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL()
         xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MX),5)
         print('independent calculation of the cross section:')
-        print('gg > X cross section @ pp @ 13 TeV (N^2LO+NNLL)=',  xs13_nnlonnll)
+        print('gg -> X cross section @ pp @ 13 TeV (N^2LO+NNLL) =',  xs13_nnlonnll)
         
 
     # get and print the HiggsBounds results
@@ -117,7 +117,7 @@ def testpoint(mX,sintheta,tanb):
     print('l112=', l112)
     
     # check this example point:
-    print('HiggsBounds Allowed, HiggsSignals chi-sq.=', check_singlet_point(mX, sintheta, l112, debug=True))
+    print('HiggsBounds Allowed, HiggsSignals chi-sq. =', check_singlet_point(mX, sintheta, l112, debug=True))
 
 # test a single point if called as a standalone script
 if __name__ == "__main__":
