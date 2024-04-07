@@ -1,7 +1,7 @@
 
 from twors_higgstools_setup import *
 
-from twors_higgstools_functions import *
+from test_point_utils import *
 
 # SETUP STARTS HERE
 
