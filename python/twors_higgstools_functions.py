@@ -63,12 +63,28 @@ def Gam_h2_to_h1h1(m1, m2, l112, sth):
 # mass [GeV] | H -> bbbar | H -> tautau | H -> mumu | H -> cc | H -> ss | H -> tt | H -> gg | H -> gammagamma | H -> Zgamma | H -> WW | H -> ZZ | total width [GeV]
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR2014#SM_Higgs_Branching_Ratios_and_Pa
 def read_higgsBR(brfile):
+
+    # initialize BRs dictionary
     higgsbrs = {}
+
+    # open file of BRs
     brstream = open(brfile, 'r')
-    brarray = []
+
+    # loop over the file
     for line in brstream:
-        brarray = [ float(line.split()[1]), float(line.split()[2]), float(line.split()[3]), float(line.split()[4]), float(line.split()[5]), float(line.split()[6]), float(line.split()[7]), float(line.split()[8]), float(line.split()[9]), float(line.split()[10]), float(line.split()[11]), float(line.split()[12])]
-        higgsbrs[float(line.split()[0])] = brarray
+
+        # split line by whitespace
+        values_raw = line.strip().split()
+
+        # convert values to floats
+        values = [float(value) for value in values_raw]
+
+        # create brarray from all values except first
+        brarray = values[1:]
+
+        # create BRs dictionary from brarray
+        higgsbrs[values[0]] = brarray
+
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgsbrs.items()), key=operator.itemgetter(0))
     sorted_higgsbrs = OrderedDict(sorted_x)
@@ -182,12 +198,28 @@ def get_BR_text_array_heavy_withtripleHiggs():
 # mS or mH (GeV) | Cross Section (pb) |	+Theory | -Theory |	TH Gaussian | -+(PDF+alphaS)
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHXSWG#BSM_Higgs
 def read_higgsXS_N3LO(xsfile):
+
+    # initialize xsec dictionary
     higgsxss = {}
+
+    # open xsec file
     xsstream = open(xsfile, 'r')
-    xsarray = []
+
+    # loop over the file
     for line in xsstream:
-        xsarray = [ float(line.split()[1]), float(line.split()[2]), float(line.split()[3]), float(line.split()[4]), float(line.split()[5])]
-        higgsxss[float(line.split()[0])] = xsarray
+
+        # split line by whitespace
+        values_raw = line.strip().split()
+
+        # convert values to floats
+        values = [float(value) for value in values_raw]
+
+        # create brarray from all values except first
+        xsarray = values[1:]
+
+        # create BRs dictionary from brarray
+        higgsxss[values[0]] = xsarray
+
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgsxss.items()), key=operator.itemgetter(0))
     sorted_higgsxss = OrderedDict(sorted_x)
