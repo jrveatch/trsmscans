@@ -6,7 +6,7 @@ class Params:
     def __init__(self,mH,mS,mX):
 
         # make list of masses
-        masses = [mH,mS,mX]
+        masses = [float(mH),float(mS),float(mX)]
 
         # sort masses in ascending order
         masses.sort()
