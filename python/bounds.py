@@ -19,7 +19,7 @@ def filterbounds(filename,SMass,debug=False):
 
     # if mS > mH, switch order
     HgtS = False
-    if float(SMass) < 125:
+    if SMass < 125:
         SName = 'H2'
         HName = 'H1'
         HgtS = True
