@@ -452,11 +452,14 @@ def runScan(XMass,
 
         ##### TODO: Add functionality to concatenate all outputs into a single large output
 
+    # get total scan time
     scanend = time.time()
-
     scantime = (scanend - scanstart)
 
+    # print out scan time
     print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
+
+    # write time info to details file
     details = open(detailsname,"a")
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
