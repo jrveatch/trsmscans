@@ -61,7 +61,21 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
     # SOME TESTS HERE:
     # test whether the BRs have been set correctly
     if debug is True:
-        test_BR_array = [X.br('bb'), X.br('tautau'), X.br('mumu'), X.br('cc'), X.br('ss'), X.br('tt'), X.br('gg'), X.br('gamgam'), X.br('Zgam'), X.br('WW'), X.br('ZZ'), X.br('h', 'h'), 0., X.totalWidth()]
+        test_BR_array = []
+        test_BR_array.append(X.br('bb'))
+        test_BR_array.append(X.br('tautau'))
+        test_BR_array.append(X.br('mumu'))
+        test_BR_array.append(X.br('cc'))
+        test_BR_array.append(X.br('ss'))
+        test_BR_array.append(X.br('tt'))
+        test_BR_array.append(X.br('gg'))
+        test_BR_array.append(X.br('gamgam'))
+        test_BR_array.append(X.br('Zgam'))
+        test_BR_array.append(X.br('WW'))
+        test_BR_array.append(X.br('ZZ'))
+        test_BR_array.append(X.br('h', 'h'))
+        test_BR_array.append(0.)
+        test_BR_array.append(X.totalWidth())
         print_heavy_Higgs_info(test_BR_array, 'Heavy Higgs BRs & width TEST')
         print('gg -> H cross section @ pp @ 13 TeV =', H.cxn('LHC13', "ggH"))
         print('gg -> X cross section @ pp @ 13 TeV =', X.cxn('LHC13', "ggH"))
@@ -98,7 +112,9 @@ def tanb_to_lambda112(mH, mX, sintheta, v, tanb):
     lambda1 = (mH**2 / (2 * v**2)) * costheta**2 + (mX**2 / (2 * v**2)) * sintheta**2
     lambda2 = (mH**2 / (2 * x**2)) * sintheta**2 + (mX**2 / (2 * x**2)) * costheta**2
     lambda3 = ((mX**2 - mH**2)/(v*x)) * sintheta * costheta
-    lambda112 = - (lambda3 / 2)  * ( x * costheta**3 + v*sintheta**3) + (lambda3 - 3 * lambda1) * v * costheta**2 * sintheta + (lambda3 - 3 * lambda2) * x * costheta * sintheta**2
+    lambda112 = - (lambda3 / 2) * ( x * costheta**3 + v*sintheta**3)
+    lambda112 += (lambda3 - 3 * lambda1) * v * costheta**2 * sintheta
+    lambda112 += (lambda3 - 3 * lambda2) * x * costheta * sintheta**2
     # cross check:
     #sin2alpha = lambda3 * x * v / math.sqrt( (lambda1 * v**2 - lambda2 * x**2)**2 + (lambda3 * x * v)**2)
     #sinalpha_xcheck = math.sqrt( (1 - math.sqrt(1-sin2alpha**2))/2) 
