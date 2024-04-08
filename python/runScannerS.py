@@ -22,9 +22,9 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
 
-    # run process
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+    # TODO: Make this a separate function that uses Popen and checks output file and terminates if it stalls out. Use process.poll() to check if it is still running
+    # run the process with arguments and suppress output
+    subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # simple information message
     print("Finished running process. Continuing...")
@@ -115,9 +115,8 @@ def run_process(process, directory):
     # change to the temporary directory
     os.chdir(directory)
 
-    # call the process with arguments and suppress output
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+    # run the process with arguments and suppress output
+    subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # simple information message
     print(f"Process in directory '{directory}' finished.")
