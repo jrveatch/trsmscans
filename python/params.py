@@ -3,12 +3,18 @@ import math
 
 class Params:
 
-    def __init__(self,mH1,mH2,mH3):
+    def __init__(self,mH,mS,mX):
+
+        # make list of masses
+        masses = [float(mH),float(mS),float(mX)]
+
+        # sort masses in ascending order
+        masses.sort()
 
         # set mass values
-        self._mH1 = mH1
-        self._mH2 = mH2
-        self._mH3 = mH3
+        self._mH1 = masses[0]
+        self._mH2 = masses[1]
+        self._mH3 = masses[2]
 
         # set min and max theta values
         # these should not be changed once initialized

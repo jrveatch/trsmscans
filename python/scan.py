@@ -290,7 +290,7 @@ def runScan(XMass,
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth)
+        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth,SMass=SMass)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -311,7 +311,7 @@ def runScan(XMass,
             continue
 
         # get parser with new arrays
-        scanparser = parse.Parse(tsvname)
+        scanparser = parse.Parse(filename=tsvname,HMass=HMass,SMass=SMass)
 
         # get new points
         maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
