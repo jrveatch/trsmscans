@@ -30,9 +30,12 @@ def runAllPrescans(npoints,
             print("\n\nRunning prescan for XMass =",xmass,"SMass =",smass)
 
             # run a prescan for each mass point
-            prescan.runPrescan(XMass=float(xmass),SMass=float(smass),npoints=npoints,
-                               maxwidth=maxwidth,overwrite=overwrite,
-                               use_multiprocessing=use_multiprocessing)
+            result = prescan.runPrescan(XMass=float(xmass),SMass=float(smass),npoints=npoints,
+                                        maxwidth=maxwidth,overwrite=overwrite,
+                                        use_multiprocessing=use_multiprocessing)
+
+            if result < 0:
+                print("mX = ",xmass,"mS =",smass,"has timed out. It is probably best to not use it.")
 
 if __name__ == "__main__":
 

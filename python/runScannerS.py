@@ -2,6 +2,7 @@ import subprocess
 import multiprocessing as mp
 import os
 import shutil
+import time
 import math
 
 def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
@@ -22,9 +23,12 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
 
-    # TODO: Make this a separate function that uses Popen and checks output file and terminates if it stalls out. Use process.poll() to check if it is still running
-    # run the process with arguments and suppress output
-    subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    # run the process
+    result = run_subprocess(process,model)
+
+    # pass failed job error up the line
+    if result < 0:
+        return result
 
     # simple information message
     print("Finished running process. Continuing...")
@@ -85,6 +89,8 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # define process
     process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
 
+    # TODO: run a quick test job and exit if it fails
+
     # create a pool of processes
     with mp.Pool(processes=num_processes) as pool:
 
@@ -120,6 +126,43 @@ def run_process(process, directory):
 
     # simple information message
     print(f"Process in directory '{directory}' finished.")
+
+def run_subprocess(process,model="TRSMBroken"):
+
+    # output file name
+    outfile = model + ".tsv"
+
+    # launch process
+    process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout = 30
+
+    # get start time
+    start_time = time.time()
+
+    # flag to check timeout
+    check_timeout = True
+
+    # check output while the process is still running
+    while process.poll() is None:
+
+        # check timeout once if it hasn't been checked before
+        if check_timeout and time.time() - start_time >= timeout:
+
+            # if output file is empty, complain and exit
+            if os.path.exists(outfile) and not os.path.getsize(outfile):
+                print("No output after",timeout,"seconds. Exiting!")
+                return -1
+
+            # only need to check timeout once
+            check_timeout = False
+
+        # wait 1 second before checking again
+        time.sleep(1)
+
+    # successful run
+    return 0
 
 def concatenate_files(directories,filename,points_per_job):
 
