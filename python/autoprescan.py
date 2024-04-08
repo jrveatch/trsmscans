@@ -14,6 +14,7 @@ def runAllPrescans(npoints,
     # file with list of mass points
     masspointsfile = datadir+"/masspoints.txt"
 
+    # open mass points file
     with open(masspointsfile,"r") as masspoints:
 
         # read the rest of the file
@@ -30,10 +31,14 @@ def runAllPrescans(npoints,
             print("\n\nRunning prescan for XMass =",xmass,"SMass =",smass)
 
             # run a prescan for each mass point
-            result = prescan.runPrescan(XMass=float(xmass),SMass=float(smass),npoints=npoints,
-                                        maxwidth=maxwidth,overwrite=overwrite,
+            result = prescan.runPrescan(XMass=float(xmass),
+                                        SMass=float(smass),
+                                        npoints=npoints,
+                                        maxwidth=maxwidth,
+                                        overwrite=overwrite,
                                         use_multiprocessing=use_multiprocessing)
 
+            # print error to screen
             if result < 0:
                 print("mX = ",xmass,"mS =",smass,"has timed out. It is probably best to not use it.")
 
