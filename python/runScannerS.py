@@ -86,10 +86,19 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
+    # define test process with 10 points
+    test_process = [model, "--config", "../"+ininame, "scan", "-n", "10"]
+
+    # run test process
+    test_result = run_subprocess(test_process,model)
+
+    # if test_result indicates a timeout, complain and exit
+    if test_result < 0:
+        print("Test job timed out. Exiting")
+        return test_result
+
     # define process
     process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
-
-    # TODO: run a quick test job and exit if it fails
 
     # create a pool of processes
     with mp.Pool(processes=num_processes) as pool:
