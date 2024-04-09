@@ -77,17 +77,8 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
         print("Only 1 process needed, running as a single process")
         return runSingleProcess(ininame,npoints,model)
 
-    # reset npoints to reflect how many are actually used
-    npoints = points_per_job * num_processes
-
-    # print out some information
-    print("Running",num_processes,"process with",points_per_job,"points each")
-
-    # create list of directories
-    directories = [f"dir_{i}" for i in range(num_processes)]
-
     # define test process with 10 points
-    test_process = [model, "--config", "../"+ininame, "scan", "-n", "10"]
+    test_process = [model, "--config", ininame, "scan", "-n", "10"]
 
     # run test process
     test_result = run_subprocess(test_process,model)
@@ -96,6 +87,15 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     if test_result < 0:
         print("Test job timed out. Exiting")
         return test_result
+
+    # reset npoints to reflect how many are actually used
+    npoints = points_per_job * num_processes
+
+    # print out some information
+    print("Running",num_processes,"process with",points_per_job,"points each")
+
+    # create list of directories
+    directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
     process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
