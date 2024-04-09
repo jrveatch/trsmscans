@@ -181,20 +181,23 @@ def filterbounds(filename,SMass,debug=False):
             # include H->SS if mH > mS
             if HgtS:
                 H.setBr('S', 'S', b_H_SS)
+
             # some debug printouts to check BRs
             if debug is True:
                 print ('brs so far ', b_H_bb, b_H_tautau, b_H_mumu, b_H_cc, b_H_ss, b_H_tt, b_H_gg, b_H_gamgam, b_H_Zgam, b_H_WW, b_H_ZZ, b_H_SS)
                 print('sum before zz', b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS)
                 print('sum after zz',b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ)
                 print('width ',w_H)
-            sum = b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ
+            sum_H = b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ
 
-            if sum > 1:
-                b_H_ZZ=b_H_ZZ-sum+1
+            # if BR sum is too large, adjust H->ZZ BR
+            if sum_H > 1:
+                b_H_ZZ=b_H_ZZ-sum_H+1
                 if debug is True:
                     print ('adjusted last br by ',sum-1)
                     print ('new zz', b_H_ZZ)
 
+            # add H->ZZ BR
             H.setBr('ZZ',b_H_ZZ)
 
         if w_S != 0: # TODO: Should this be > e-13?
@@ -220,9 +223,26 @@ def filterbounds(filename,SMass,debug=False):
             S.setBr('gamgam',b_S_gamgam)
             S.setBr('Zgam',b_S_Zgam)
             S.setBr('WW',b_S_WW)
-            S.setBr('ZZ',b_S_ZZ)
             if not HgtS:
                 S.setBr('H', 'H', b_S_HH)
+
+            # some debug printouts to check BRs
+            if debug is True:
+                print ('brs so far ', b_S_bb, b_S_tautau, b_S_mumu, b_S_cc, b_S_ss, b_S_tt, b_S_gg, b_S_gamgam, b_S_Zgam, b_S_WW, b_S_ZZ, b_S_HH)
+                print('sum before zz', b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH)
+                print('sum after zz',b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ)
+                print('width ',w_S)
+            sum_S = b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ
+
+            # if BR sum is too large, adjust S->ZZ BR
+            if sum_S > 1:
+                b_S_ZZ=b_S_ZZ-sum_S+1
+                if debug is True:
+                    print ('adjusted last br by ',sum-1)
+                    print ('new zz', b_S_ZZ)
+
+            # add S->ZZ BR
+            S.setBr('ZZ',b_S_ZZ)
 
         if w_X != 0: # TODO: Should this be > e-13?
             X.setBr('bb', 0.)
