@@ -20,8 +20,8 @@ def filterbounds(filename,SMass,debug=False):
     # if mS > mH, switch order
     HgtS = False
     if SMass < 125:
-        SName = 'H2'
-        HName = 'H1'
+        SName = 'H1'
+        HName = 'H2'
         HgtS = True
 
     # check whether filt_width column exists, if not initialize it
