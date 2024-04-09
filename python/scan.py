@@ -145,7 +145,7 @@ def runScan(XMass,
             quit()
 
         # get parser from prescan
-        scanparser = parse.Parse(prescan)
+        scanparser = parse.Parse(prescan,HMass=HMass,SMass=SMass)
 
         # check ranges of the prescan
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
@@ -203,6 +203,7 @@ def runScan(XMass,
         # write scan details to details file
         details = open(detailsname,"a")
         details.write("Prescan\n")
+        details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
         details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
