@@ -6,9 +6,6 @@ import time
 import datetime
 import argparse
 
-# import numpy
-import numpy as np
-
 # import decimal
 from decimal import Decimal
 
