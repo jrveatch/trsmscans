@@ -258,7 +258,7 @@ def runScan(XMass,
 
         # get iteration identifier
         identifier = f"{iter:04d}"
-        print(identifier)
+        print("Iteration:",identifier)
 
         # set names of input .ini and output .tsv files
         outname = "./files/" + base + "_" + identifier
