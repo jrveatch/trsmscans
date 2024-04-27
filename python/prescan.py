@@ -110,8 +110,16 @@ def runPrescan(XMass,
             else:
                 result = runScannerS.runSingleProcess(ininame,points_to_run)
 
-            # if a negative result is returned, return it
+            # if a process returns a negative result, delete directory and return result
             if result < 0:
+
+                # inform user
+                print("Removing directory",dir)
+
+                # delete directory
+                shutil.rmtree(dir)
+
+                # return result from process
                 return result
 
             # increment the count of points done
