@@ -145,7 +145,7 @@ def run_subprocess(process,model="TRSMBroken"):
     process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # time in seconds at which process will be killed if nothing is printed out
-    timeout = 30
+    timeout = 10
 
     # get start time
     start_time = time.time()
