@@ -161,8 +161,14 @@ def run_subprocess(process,model="TRSMBroken"):
 
             # if output file is empty, complain, kill process and exit
             if os.path.exists(outfile) and not os.path.getsize(outfile):
+
+                # complain
                 print("No output after",timeout,"seconds. Exiting!")
+
+                # kill process
                 process.kill()
+
+                # exit
                 return -1
 
             # only need to check timeout once
