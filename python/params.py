@@ -46,142 +46,142 @@ class Params:
         self._vxlow = self._vxmin
         self._vxhigh = self._vxmax
 
-        # initialize mean values
-        self._tHSmean = self.getMean(self._tHSlow,self._tHShigh)
-        self._tHXmean = self.getMean(self._tHXlow,self._tHXhigh)
-        self._tSXmean = self.getMean(self._tSXlow,self._tSXhigh)
-        self._vsmean = self.getMean(self._vslow,self._vshigh)
-        self._vxmean = self.getMean(self._vxlow,self._vxhigh)
+        # initialize parameter values
+        self._tHSval = self.getVal(low=self._tHSlow,high=self._tHShigh)
+        self._tHXval = self.getVal(low=self._tHXlow,high=self._tHXhigh)
+        self._tSXval = self.getVal(low=self._tSXlow,high=self._tSXhigh)
+        self._vsval = self.getVal(low=self._vslow,high=self._vshigh)
+        self._vxval = self.getVal(low=self._vxlow,high=self._vxhigh)
 
         # initialize parameter ranges
-        self._tHSrange = self.getRange(self._tHSlow,self._tHShigh)
-        self._tHXrange = self.getRange(self._tHXlow,self._tHXhigh)
-        self._tSXrange = self.getRange(self._tSXlow,self._tSXhigh)
-        self._vsrange = self.getRange(self._vslow,self._vshigh)
-        self._vxrange = self.getRange(self._vxlow,self._vxhigh)
+        self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
+        self._tHXrange = self.getRange(low=self._tHXlow,high=self._tHXhigh)
+        self._tSXrange = self.getRange(low=self._tSXlow,high=self._tSXhigh)
+        self._vsrange = self.getRange(low=self._vslow,high=self._vshigh)
+        self._vxrange = self.getRange(low=self._vxlow,high=self._vxhigh)
 
     # functions to set min and max values
     # if the current high or low values are beyond
     # the new min or max, set them
-    # this also sets new mean and range values
+    # this also sets new range values
 
     def set_tHSmin(self,val):
         self._tHSmin = val
         if self._tHSlow < self._tHSmin:
             self._tHSlow = self._tHSmin
-            self._tHSrange = self.getRange(self._tHSlow,self._tHShigh)
+            self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
 
     def set_tHSmax(self,val):
         self._tHSmax = val
         if self._tHShigh > self._tHSmax:
             self._tHShigh = self._tHSmax
-            self._tHSrange = self.getRange(self._tHSlow,self._tHShigh)
+            self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
 
     def set_tHXmin(self,val):
         self._tHXmin = val
         if self._tHXlow < self._tHXmin:
             self._tHXlow = self._tHXmin
-            self._tHXrange = self.getRange(self._tHXlow,self._tHXhigh)
+            self._tHXrange = self.getRange(low=self._tHXlow,high=self._tHXhigh)
 
     def set_tHXmax(self,val):
         self._tHXmax = val
         if self._tHXhigh > self._tHXmax:
             self._tHXhigh = self._tHXmax
-            self._tHXrange = self.getRange(self._tHXlow,self._tHXhigh)
+            self._tHXrange = self.getRange(low=self._tHXlow,high=self._tHXhigh)
 
     def set_tSXmin(self,val):
         self._tSXmin = val
         if self._tSXlow < self._tSXmin:
             self._tSXlow = self._tSXmin
-            self._tSXrange = self.getRange(self._tSXlow,self._tSXhigh)
+            self._tSXrange = self.getRange(low=self._tSXlow,high=self._tSXhigh)
 
     def set_tSXmax(self,val):
         self._tSXmax = val
         if self._tSXhigh > self._tSXmax:
             self._tSXhigh = self._tSXmax
-            self._tSXrange = self.getRange(self._tSXlow,self._tSXhigh)
+            self._tSXrange = self.getRange(low=self._tSXlow,high=self._tSXhigh)
 
     def set_vsmin(self,val):
         self._vsmin = val
         if self._vslow < self._vsmin:
             self._vslow = self._vsmin
-            self._vsrange = self.getRange(self._vslow,self._vshigh)
+            self._vsrange = self.getRange(low=self._vslow,high=self._vshigh)
 
     def set_vsmax(self,val):
         self._vsmax = val
         if self._vshigh > self._vsmax:
             self._vshigh = self._vsmax
-            self._vsrange = self.getRange(self._vslow,self._vshigh)
+            self._vsrange = self.getRange(low=self._vslow,high=self._vshigh)
 
     def set_vxmin(self,val):
         self._vxmin = val
         if self._vxlow < self._vxmin:
             self._vxlow = self._vxmin
-            self._vxrange = self.getRange(self._vxlow,self._vxhigh)
+            self._vxrange = self.getRange(low=self._vxlow,high=self._vxhigh)
 
     def set_vxmax(self,val):
         self._vxmax = val
         if self._vxhigh > self._vxmax:
             self._vxhigh = self._vxmax
-            self._vxrange = self.getRange(self._vxlow,self._vxhigh)
+            self._vxrange = self.getRange(low=self._vxlow,high=self._vxhigh)
 
-    # function to calculate mean parameter value
+    # function to calculate parameter value
     
-    def getMean(self,val1,val2):
-        return (val1 + val2) / 2
+    def getVal(self,low,high):
+        return (low + high) / 2
 
     # function to calculate parameter ranges
     
-    def getRange(self,val1,val2):
-        return abs(val1 - val2) / 2
+    def getRange(self,low,high):
+        return abs(high - low) / 2
     
     # function to get new low value
 
-    def getNewLow(self,mean,range,min):
-        newLow = mean - range
+    def getNewLow(self,val,range,min):
+        newLow = val - range
         if newLow < min:
             newLow = min
         return newLow
     
     # function to get new high value
 
-    def getNewHigh(self,mean,range,max):
-        newHigh = mean + range
+    def getNewHigh(self,val,range,max):
+        newHigh = val + range
         if newHigh > max:
             newHigh = max
         return newHigh
 
     # functions to set new low and high parameters
 
-    def set_tHSvals(self,mean,range):
-        self._tHSmean = mean
+    def set_tHSparams(self,val,range):
+        self._tHSval = val
         self._tHSrange = range
-        self._tHSlow = self.getNewLow(mean,range,self._tHSmin)
-        self._tHShigh = self.getNewHigh(mean,range,self._tHSmax)
+        self._tHSlow = self.getNewLow(val,range,self._tHSmin)
+        self._tHShigh = self.getNewHigh(val,range,self._tHSmax)
 
-    def set_tHXvals(self,mean,range):
-        self._tHXmean = mean
+    def set_tHXparams(self,val,range):
+        self._tHXval = val
         self._tHXrange = range
-        self._tHXlow = self.getNewLow(mean,range,self._tHXmin)
-        self._tHXhigh = self.getNewHigh(mean,range,self._tHXmax)
+        self._tHXlow = self.getNewLow(val,range,self._tHXmin)
+        self._tHXhigh = self.getNewHigh(val,range,self._tHXmax)
 
-    def set_tSXvals(self,mean,range):
-        self._tSXmean = mean
+    def set_tSXparams(self,val,range):
+        self._tSXval = val
         self._tSXrange = range
-        self._tSXlow = self.getNewLow(mean,range,self._tSXmin)
-        self._tSXhigh = self.getNewHigh(mean,range,self._tSXmax)
+        self._tSXlow = self.getNewLow(val,range,self._tSXmin)
+        self._tSXhigh = self.getNewHigh(val,range,self._tSXmax)
 
-    def set_vsvals(self,mean,range):
-        self._vsmean = mean
+    def set_vsparams(self,val,range):
+        self._vsval = val
         self._vsrange = range
-        self._vslow = self.getNewLow(mean,range,self._vsmin)
-        self._vshigh = self.getNewHigh(mean,range,self._vsmax)
+        self._vslow = self.getNewLow(val,range,self._vsmin)
+        self._vshigh = self.getNewHigh(val,range,self._vsmax)
 
-    def set_vxvals(self,mean,range):
-        self._vxmean = mean
+    def set_vxparams(self,val,range):
+        self._vxval = val
         self._vxrange = range
-        self._vxlow = self.getNewLow(mean,range,self._vxmin)
-        self._vxhigh = self.getNewHigh(mean,range,self._vxmax)
+        self._vxlow = self.getNewLow(val,range,self._vxmin)
+        self._vxhigh = self.getNewHigh(val,range,self._vxmax)
 
     # function to calculate volume
     def volume(self):
@@ -262,22 +262,22 @@ class Params:
     def vxhigh(self):
         return self._vxhigh
     
-    # functions to get mean values
+    # functions to get parameter values
         
-    def tHSmean(self):
-        return self._tHSmean
+    def tHSval(self):
+        return self._tHSval
     
-    def tHXmean(self):
-        return self._tHXmean
+    def tHXval(self):
+        return self._tHXval
     
-    def tSXmean(self):
-        return self._tSXmean
+    def tSXval(self):
+        return self._tSXval
     
-    def vsmean(self):
-        return self._vsmean
+    def vsval(self):
+        return self._vsval
     
-    def vxmean(self):
-        return self._vxmean
+    def vxval(self):
+        return self._vxval
     
     # functions to get parameter ranges
         
