@@ -370,17 +370,6 @@ def runScan(XMass,
         if abs(vxopt) > 1e-3:
             vxdiff = (vxoptOld - vxopt) / vxopt
 
-        """
-        # print scan details to screen
-        print("index = " + str(index))
-        print("maxxb = " + str(maxxb))
-        print("tHSopt = " + str(tHSopt))
-        print("tHXopt = " + str(tHXopt))
-        print("tSXopt = " + str(tSXopt))
-        print("vsopt = " + str(vsopt))
-        print("vxopt = " + str(vxopt))
-        """
-
         # get iteration end time
         iterend = time.time()
         itertime = iterend - iterstart
