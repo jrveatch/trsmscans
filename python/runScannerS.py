@@ -159,9 +159,10 @@ def run_subprocess(process,model="TRSMBroken"):
         # check timeout once if it hasn't been checked before
         if check_timeout and time.time() - start_time >= timeout:
 
-            # if output file is empty, complain and exit
+            # if output file is empty, complain, kill process and exit
             if os.path.exists(outfile) and not os.path.getsize(outfile):
                 print("No output after",timeout,"seconds. Exiting!")
+                process.kill()
                 return -1
 
             # only need to check timeout once
