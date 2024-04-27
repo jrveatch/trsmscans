@@ -85,7 +85,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
 
     # if test_result indicates a timeout, complain and exit
     if test_result < 0:
-        print("Test job timed out. Exiting")
+        print("Test job timed out. Exiting.")
         return test_result
 
     # reset npoints to reflect how many are actually used
