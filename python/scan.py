@@ -58,8 +58,11 @@ def runScan(XMass,
     # name of template .ini file
     templateini = base + "_template.ini"
 
+    # get scan directory
+    scandir = os.environ['SCANDIR']
+
     # directory where we want the output to go
-    dir = "output/scan/"+decay+"/X"+str(XMass)+"_S"+str(SMass)+"/"
+    dir = scandir+decay+"/X"+str(XMass)+"_S"+str(SMass)+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir):
@@ -287,7 +290,19 @@ def runScan(XMass,
         if use_multiprocessing:
             npoints = runScannerS.runParallelProcesses(ininame,npoints)
         else:
-            runScannerS.runSingleProcess(ininame,npoints)
+            npoints = runScannerS.runSingleProcess(ininame,npoints)
+
+        # if a process returns a negative result, delete directory and return result
+        if npoints < 0:
+
+            # inform user
+            print("Removing directory",dir)
+
+            # delete directory
+            shutil.rmtree(dir)
+
+            # return result from process
+            return npoints
 
         # apply width and bounds filters
         # this also renames the output .tsv file
@@ -453,11 +468,14 @@ def runScan(XMass,
 
         ##### TODO: Add functionality to concatenate all outputs into a single large output
 
+    # get total scan time
     scanend = time.time()
-
     scantime = (scanend - scanstart)
 
+    # print out scan time
     print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
+
+    # write time info to details file
     details = open(detailsname,"a")
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()

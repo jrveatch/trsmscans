@@ -2,6 +2,7 @@ import subprocess
 import multiprocessing as mp
 import os
 import shutil
+import time
 import math
 
 def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
@@ -22,9 +23,12 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     # define process
     process = [model, "--config", ininame, "scan", "-n", str(npoints)]
 
-    # run process
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+    # run the process
+    result = run_subprocess(process,model)
+
+    # pass failed job error up the line
+    if result < 0:
+        return result
 
     # simple information message
     print("Finished running process. Continuing...")
@@ -73,6 +77,17 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
         print("Only 1 process needed, running as a single process")
         return runSingleProcess(ininame,npoints,model)
 
+    # define test process with 10 points
+    test_process = [model, "--config", ininame, "scan", "-n", "10"]
+
+    # run test process
+    test_result = run_subprocess(test_process,model)
+
+    # if test_result indicates a timeout, complain and exit
+    if test_result < 0:
+        print("Test job timed out. Exiting.")
+        return test_result
+
     # reset npoints to reflect how many are actually used
     npoints = points_per_job * num_processes
 
@@ -115,12 +130,55 @@ def run_process(process, directory):
     # change to the temporary directory
     os.chdir(directory)
 
-    # call the process with arguments and suppress output
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run(process, stdout=devnull, stderr=subprocess.STDOUT)
+    # run the process with arguments and suppress output
+    subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # simple information message
     print(f"Process in directory '{directory}' finished.")
+
+def run_subprocess(process,model="TRSMBroken"):
+
+    # output file name
+    outfile = model + ".tsv"
+
+    # launch process
+    process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout = 10
+
+    # get start time
+    start_time = time.time()
+
+    # flag to check timeout
+    check_timeout = True
+
+    # check output while the process is still running
+    while process.poll() is None:
+
+        # check timeout once if it hasn't been checked before
+        if check_timeout and time.time() - start_time >= timeout:
+
+            # if output file is empty, complain, kill process and exit
+            if os.path.exists(outfile) and not os.path.getsize(outfile):
+
+                # complain
+                print("No output after",timeout,"seconds. Exiting!")
+
+                # kill process
+                process.kill()
+
+                # exit
+                return -1
+
+            # only need to check timeout once
+            check_timeout = False
+
+        # wait 1 second before checking again
+        time.sleep(1)
+
+    # successful run
+    return 0
 
 def concatenate_files(directories,filename,points_per_job):
 

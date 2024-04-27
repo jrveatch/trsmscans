@@ -106,9 +106,21 @@ def runPrescan(XMass,
 
             # run ScannerS for the next set of points
             if use_multiprocessing:
-                runScannerS.runParallelProcesses(ininame,points_to_run)
+                result = runScannerS.runParallelProcesses(ininame,points_to_run)
             else:
-                runScannerS.runSingleProcess(ininame,points_to_run)
+                result = runScannerS.runSingleProcess(ininame,points_to_run)
+
+            # if a process returns a negative result, delete directory and return result
+            if result < 0:
+
+                # inform user
+                print("Removing directory",dir)
+
+                # delete directory
+                shutil.rmtree(dir)
+
+                # return result from process
+                return result
 
             # increment the count of points done
             points_done += countNPointsInFile(tsvname_initial)
