@@ -47,11 +47,11 @@ class Params:
         self._vxhigh = self._vxmax
 
         # initialize parameter values
-        self._tHSval = self.getVal(low=self._tHSlow,high=self._tHShigh)
-        self._tHXval = self.getVal(low=self._tHXlow,high=self._tHXhigh)
-        self._tSXval = self.getVal(low=self._tSXlow,high=self._tSXhigh)
-        self._vsval = self.getVal(low=self._vslow,high=self._vshigh)
-        self._vxval = self.getVal(low=self._vxlow,high=self._vxhigh)
+        self._tHSval = self.getMidPoint(low=self._tHSlow,high=self._tHShigh)
+        self._tHXval = self.getMidPoint(low=self._tHXlow,high=self._tHXhigh)
+        self._tSXval = self.getMidPoint(low=self._tSXlow,high=self._tSXhigh)
+        self._vsval = self.getMidPoint(low=self._vslow,high=self._vshigh)
+        self._vxval = self.getMidPoint(low=self._vxlow,high=self._vxhigh)
 
         # initialize parameter ranges
         self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
@@ -127,7 +127,7 @@ class Params:
 
     # function to calculate parameter value
     
-    def getVal(self,low,high):
+    def getMidPoint(self,low,high):
         return (low + high) / 2
 
     # function to calculate parameter ranges
