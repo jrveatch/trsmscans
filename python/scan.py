@@ -6,9 +6,6 @@ import time
 import datetime
 import argparse
 
-# import numpy
-import numpy as np
-
 # import decimal
 from decimal import Decimal
 
@@ -95,23 +92,14 @@ def runScan(XMass,
     details.write("Scan details\n\n")
     details.close()
 
-    # initialize theta means
-    tHSmean = pars.tHSmean()
-    tHXmean = pars.tHXmean()
-    tSXmean = pars.tSXmean()
-
     # initialize theta ranges
-    tHSrange = pars.tHSrange()
-    tHXrange = pars.tHXrange()
-    tSXrange = pars.tSXrange()
-
-    # initialize vev means
-    vsmean = pars.vsmean()
-    vxmean = pars.vxmean()
+    tHSrange = pars.range("tHS")
+    tHXrange = pars.range("tHX")
+    tSXrange = pars.range("tSX")
 
     # initialize vev ranges
-    vsrange = pars.vsrange()
-    vxrange = pars.vxrange()
+    vsrange = pars.range("vs")
+    vxrange = pars.range("vx")
 
     # annealing rate for each parameter
     tHSrate = (1.0 - theta_range_shrink_rate)
@@ -120,8 +108,8 @@ def runScan(XMass,
     vsrate = (1.0 - vev_range_shrink_rate)
     vxrate = (1.0 - vev_range_shrink_rate)
 
-    # initialize max xsec times BR
-    maxxb = 0.0
+    # initialize optimal point
+    optPoint = parse.Point()
 
     if useprescan:
 
@@ -154,7 +142,7 @@ def runScan(XMass,
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
         
         # get new points
-        maxxb, tHSmean, tHXmean, tSXmean, vsmean, vxmean = scanparser.getmaxpoint(decay)
+        optPoint = scanparser.getmaxpoint(decay)
 
         # print the ranges to the screen
         print("\n")
@@ -176,28 +164,28 @@ def runScan(XMass,
         tolerance = 0.05
 
         # thetas
-        if mintHS - (abs(mintHS) * tolerance) > pars.tHSmin():
-            pars.set_tHSmin(mintHS)
-        if mintHX - (abs(mintHX) * tolerance) > pars.tHXmin():
-            pars.set_tHXmin(mintHX)
-        if mintSX - (abs(mintSX) * tolerance) > pars.tSXmin():
-            pars.set_tSXmin(mintSX)
-        if maxtHS + (abs(maxtHS) * tolerance) < pars.tHSmax():
-            pars.set_tHSmax(maxtHS)
-        if maxtHX + (abs(maxtHX) * tolerance) < pars.tHXmax():
-            pars.set_tHXmax(maxtHX)
-        if maxtSX + (abs(maxtSX) * tolerance) < pars.tSXmax():
-            pars.set_tSXmax(maxtSX)
+        if mintHS - (abs(mintHS) * tolerance) > pars.min("tHS"):
+            pars.set_min("tHS",mintHS)
+        if mintHX - (abs(mintHX) * tolerance) > pars.min("tHX"):
+            pars.set_min("tHX",mintHX)
+        if mintSX - (abs(mintSX) * tolerance) > pars.min("tSX"):
+            pars.set_min("tSX",mintSX)
+        if maxtHS + (abs(maxtHS) * tolerance) < pars.max("tHS"):
+            pars.set_max("tHS",maxtHS)
+        if maxtHX + (abs(maxtHX) * tolerance) < pars.max("tHX"):
+            pars.set_max("tHX",maxtHX)
+        if maxtSX + (abs(maxtSX) * tolerance) < pars.max("tSX"):
+            pars.set_max("tSX",maxtSX)
 
         # vevs
-        if minvs - (abs(minvs) * tolerance) > pars.vsmin():
-            pars.set_vsmin(minvs)
-        if minvx - (abs(minvx) * tolerance) > pars.vxmin():
-            pars.set_vxmin(minvx)
-        if maxvs + (abs(maxvs) * tolerance) < pars.vsmax():
-            pars.set_vsmin(maxvs)
-        if maxvx + (abs(maxvx) * tolerance) < pars.vxmax():
-            pars.set_vxmax(maxvx)
+        if minvs - (abs(minvs) * tolerance) > pars.min("vs"):
+            pars.set_min("vs",minvs)
+        if minvx - (abs(minvx) * tolerance) > pars.min("vx"):
+            pars.set_min("vx",minvx)
+        if maxvs + (abs(maxvs) * tolerance) < pars.max("vs"):
+            pars.set_min("vs",maxvs)
+        if maxvx + (abs(maxvx) * tolerance) < pars.max("vx"):
+            pars.set_max("vx",maxvx)
         
         # get scan density
         volume = pars.volume()
@@ -208,47 +196,47 @@ def runScan(XMass,
         details.write("Prescan\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
-        details.write("thetaHS: mean = " + f"{tHSmean:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tHSlow():1.4f}" + "," + f"{pars.tHShigh():1.4f}" + "]\n")
-        details.write("thetaHX: mean = " + f"{tHXmean:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tHXlow():1.4f}" + "," + f"{pars.tHXhigh():1.4f}" + "]\n")
-        details.write("thetaSX: mean = " + f"{tSXmean:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tSXlow():1.4f}" + "," + f"{pars.tSXhigh():1.4f}" + "]\n")
-        details.write("vs: mean = " + f"{vsmean:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.vslow():1.2f}" + "," + f"{pars.vshigh():1.2f}" + "]\n")
-        details.write("vx: mean = " + f"{vxmean:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.vxlow():1.2f}" + "," + f"{pars.vxhigh():1.2f}" + "]\n")
+        details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
+        details.write("thetaHS: value = " + f"{optPoint.tHS:1.4f}" + "\n")
+        details.write("         range = [" + f"{pars.low("tHS"):1.4f}" + "," + f"{pars.high("tHS"):1.4f}" + "]\n")
+        details.write("thetaHX: value = " + f"{optPoint.tHX:1.4f}" + "\n")
+        details.write("         range = [" + f"{pars.low("tHX"):1.4f}" + "," + f"{pars.high("tHX"):1.4f}" + "]\n")
+        details.write("thetaSX: value = " + f"{optPoint.tSX:1.4f}" + "\n")
+        details.write("         range = [" + f"{pars.low("tSX"):1.4f}" + "," + f"{pars.high("tSX"):1.4f}" + "]\n")
+        details.write("vs: value = " + f"{optPoint.vs:1.2f}" + "\n")
+        details.write("    range = [" + f"{pars.low("vs"):1.2f}" + "," + f"{pars.high("vs"):1.2f}" + "]\n")
+        details.write("vx: value = " + f"{optPoint.vx:1.2f}" + "\n")
+        details.write("    range = [" + f"{pars.low("vx"):1.2f}" + "," + f"{pars.high("vx"):1.2f}" + "]\n")
         details.write("\n\n")
         details.close()
 
         # write scan results to summary file
         summary = open(summaryname,"a")
         summary.write("Pre")
-        summary.write(" " + f"{Decimal(maxxb):.4E}")
-        summary.write(" " + f"{tHSmean:1.4f}")
-        summary.write(" " + f"{tHXmean:1.4f}")
-        summary.write(" " + f"{tSXmean:1.4f}")
-        summary.write(" " + f"{vsmean:1.4f}")
-        summary.write(" " + f"{vxmean:1.4f}")
+        summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
+        summary.write(" " + f"{optPoint.tHS:1.4f}")
+        summary.write(" " + f"{optPoint.tHX:1.4f}")
+        summary.write(" " + f"{optPoint.tSX:1.4f}")
+        summary.write(" " + f"{optPoint.vs:1.4f}")
+        summary.write(" " + f"{optPoint.vx:1.4f}")
         summary.write("\n")
         summary.close()
 
         # get new theta ranges
-        tHSrange = pars.tHSrange() * tHSrate
-        tHXrange = pars.tHXrange() * tHXrate
-        tSXrange = pars.tSXrange() * tSXrate
+        tHSrange = pars.range("tHS") * tHSrate
+        tHXrange = pars.range("tHX") * tHXrate
+        tSXrange = pars.range("tSX") * tSXrate
 
         # get new vev ranges
-        vsrange = pars.vsrange() * vsrate
-        vxrange = pars.vxrange() * vxrate
+        vsrange = pars.range("vs") * vsrate
+        vxrange = pars.range("vx") * vxrate
 
         # set new low and high values
-        pars.set_tHSvals(tHSmean,tHSrange)
-        pars.set_tHXvals(tHXmean,tHXrange)
-        pars.set_tSXvals(tSXmean,tSXrange)
-        pars.set_vsvals(vsmean,vsrange)
-        pars.set_vxvals(vxmean,vxrange)
+        pars.set_params("tHS",optPoint.tHS,tHSrange)
+        pars.set_params("tHX",optPoint.tHX,tHXrange)
+        pars.set_params("tSX",optPoint.tSX,tSXrange)
+        pars.set_params("vs",optPoint.vs,vsrange)
+        pars.set_params("vx",optPoint.vx,vxrange)
 
     # iterate over multiple scans
     for iter in range(niter):
@@ -258,7 +246,7 @@ def runScan(XMass,
 
         # get iteration identifier
         identifier = f"{iter:04d}"
-        print(identifier)
+        print("Iteration:",identifier)
 
         # set names of input .ini and output .tsv files
         outname = "./files/" + base + "_" + identifier
@@ -266,18 +254,18 @@ def runScan(XMass,
         tsvname = outname + ".tsv"
 
         # get theta lows and highs
-        tHSlow = pars.tHSlow()
-        tHShigh = pars.tHShigh()
-        tHXlow = pars.tHXlow()
-        tHXhigh = pars.tHXhigh()
-        tSXlow = pars.tSXlow()
-        tSXhigh = pars.tSXhigh()
+        tHSlow = pars.low("tHS")
+        tHShigh = pars.high("tHS")
+        tHXlow = pars.low("tHX")
+        tHXhigh = pars.high("tHX")
+        tSXlow = pars.low("tSX")
+        tSXhigh = pars.high("tSX")
 
         # get vev lows and highs
-        vslow = pars.vslow()
-        vshigh = pars.vshigh()
-        vxlow = pars.vxlow()
-        vxhigh = pars.vxhigh()
+        vslow = pars.low("vs")
+        vshigh = pars.high("vs")
+        vxlow = pars.low("vx")
+        vxhigh = pars.high("vx")
 
         # calculate point density from ranges
         volume = pars.volume()
@@ -329,27 +317,18 @@ def runScan(XMass,
         # get parser with new arrays
         scanparser = parse.Parse(filename=tsvname,HMass=HMass,SMass=SMass)
 
-        # get new points
-        maxxbNew, tHSmeanNew, tHXmeanNew, tSXmeanNew, vsmeanNew, vxmeanNew = scanparser.getmaxpoint(decay)
+        # get new point as the maximum from the current scan
+        newPoint = scanparser.getmaxpoint(decay)
 
         update = False
 
-        # store the previous points
-        tHSmeanOld = tHSmean
-        tHXmeanOld = tHXmean
-        tSXmeanOld = tSXmean
+        # store the previous point
+        optPointOld = optPoint
 
-        vsmeanOld = vsmean
-        vxmeanOld = vxmean
-
-        if maxxbNew > maxxb:
+        # if new point is better than the optimal point, replace it
+        if newPoint > optPoint:
             update = True
-            maxxb = maxxbNew
-            tHSmean = tHSmeanNew
-            tHXmean = tHXmeanNew
-            tSXmean = tSXmeanNew
-            vsmean = vsmeanNew
-            vxmean = vxmeanNew
+            optPoint = newPoint
 
         # parameter differences
         tHSdiff = 9e9
@@ -359,30 +338,13 @@ def runScan(XMass,
         vsdiff = 9e9
         vxdiff = 9e9
 
-        # TODO: Rethink how to show difference
-        # TODO: Probably should be difference w.r.t. previous best
-        if abs(tHSmean) > 1e-3:
-            tHSdiff = (tHSmeanOld - tHSmean) / tHSmean
-        if abs(tHXmean) > 1e-3:
-            tHXdiff = (tHXmeanOld - tHXmean) / tHXmean
-        if abs(tSXmean) > 1e-3:
-            tSXdiff = (tSXmeanOld - tSXmean) / tSXmean
-
-        if abs(vsmean) > 1e-3:
-            vsdiff = (vsmeanOld - vsmean) / vsmean
-        if abs(vxmean) > 1e-3:
-            vxdiff = (vxmeanOld - vxmean) / vxmean
-
-        """
-        # print scan details to screen
-        print("index = " + str(index))
-        print("maxxb = " + str(maxxb))
-        print("tHSmean = " + str(tHSmean))
-        print("tHXmean = " + str(tHXmean))
-        print("tSXmean = " + str(tSXmean))
-        print("vsmean = " + str(vsmean))
-        print("vxmean = " + str(vxmean))
-        """
+        # calculate difference w.r.t. previous optimal point if new point is found
+        if update:
+            tHSdiff = optPoint.diff(optPointOld,"tHS")
+            tHXdiff = optPoint.diff(optPointOld,"tHX")
+            tSXdiff = optPoint.diff(optPointOld,"tSX")
+            vsdiff = optPoint.diff(optPointOld,"vs")
+            vxdiff = optPoint.diff(optPointOld,"vx")
 
         # get iteration end time
         iterend = time.time()
@@ -398,28 +360,28 @@ def runScan(XMass,
         details.write(str(nwidth) + "/" + str(npoints) + " pass width cut of " + str(maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(npoints) + " pass both checks\n")
-        details.write("Found max xsec*BR = " + f"{Decimal(maxxbNew):.4E}" + "\n")
-        details.write("Update = " + str(update) + "\n")
-        details.write("Max xsec*BR = " + f"{Decimal(maxxb):.4E}" + "\n")
+        details.write("Found new max xsec*BR = " + f"{Decimal(newPoint.xb):.4E}" + "\n")
+        details.write("Update optimal point: " + str(update) + "\n")
+        details.write("Optimal point xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
         details.write("thetaHS: range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
         if update:
-            details.write("         new optimal value = " + f"{tHSmean:1.4f}" + "\n")
+            details.write("         new optimal value = " + f"{optPoint.tHS:1.4f}" + "\n")
             details.write("         rel. diff w.r.t. previous = " + f"{tHSdiff:1.3f}" + "\n")
         details.write("thetaHX: range = [" + f"{tHXlow:1.4f}" + "," + f"{tHXhigh:1.4f}" + "]\n")
         if update:
-            details.write("         new optimal value = " + f"{tHXmean:1.4f}" + "\n")
+            details.write("         new optimal value = " + f"{optPoint.tHX:1.4f}" + "\n")
             details.write("         rel. diff w.r.t. previous = " + f"{tHXdiff:1.3f}" + "\n")
         details.write("thetaSX: range = [" + f"{tSXlow:1.4f}" + "," + f"{tSXhigh:1.4f}" + "]\n")
         if update:
-            details.write("         new optimal value = " + f"{tSXmean:1.4f}" + "\n")
+            details.write("         new optimal value = " + f"{optPoint.tSX:1.4f}" + "\n")
             details.write("         rel. diff w.r.t. previous = " + f"{tSXdiff:1.3f}" + "\n")
         details.write("vs: range = [" + f"{vslow:1.4f}" + "," + f"{vshigh:1.4f}" + "]\n")
         if update:
-            details.write("    new optimal value = " + f"{vsmean:1.2f}" + "\n")
+            details.write("    new optimal value = " + f"{optPoint.vs:1.2f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vsdiff:1.3f}" + "\n")
         details.write("vx: range = [" + f"{vxlow:1.4f}" + "," + f"{vxhigh:1.4f}" + "]\n")
         if update:
-            details.write("    new optimal value = " + f"{vxmean:1.2f}" + "\n")
+            details.write("    new optimal value = " + f"{optPoint.vx:1.2f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
         details.write("\n\n")
         details.close()
@@ -428,12 +390,12 @@ def runScan(XMass,
             # write scan results to summary file
             summary = open(summaryname,"a")
             summary.write(identifier)
-            summary.write(" " + f"{Decimal(maxxb):.4E}")
-            summary.write(" " + f"{tHSmean:1.4f}")
-            summary.write(" " + f"{tHXmean:1.4f}")
-            summary.write(" " + f"{tSXmean:1.4f}")
-            summary.write(" " + f"{vsmean:1.4f}")
-            summary.write(" " + f"{vxmean:1.4f}")
+            summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
+            summary.write(" " + f"{optPoint.tHS:1.4f}")
+            summary.write(" " + f"{optPoint.tHX:1.4f}")
+            summary.write(" " + f"{optPoint.tSX:1.4f}")
+            summary.write(" " + f"{optPoint.vs:1.4f}")
+            summary.write(" " + f"{optPoint.vx:1.4f}")
             summary.write("\n")
             summary.close()
 
@@ -447,11 +409,11 @@ def runScan(XMass,
         vxrange *= vxrate
 
         # set new low and high values
-        pars.set_tHSvals(tHSmean,tHSrange)
-        pars.set_tHXvals(tHXmean,tHXrange)
-        pars.set_tSXvals(tSXmean,tSXrange)
-        pars.set_vsvals(vsmean,vsrange)
-        pars.set_vxvals(vxmean,vxrange)
+        pars.set_params("tHS",optPoint.tHS,tHSrange)
+        pars.set_params("tHX",optPoint.tHX,tHXrange)
+        pars.set_params("tSX",optPoint.tSX,tSXrange)
+        pars.set_params("vs",optPoint.vs,vsrange)
+        pars.set_params("vx",optPoint.vx,vxrange)
 
         # get new volume
         volumeNew = pars.volume()
