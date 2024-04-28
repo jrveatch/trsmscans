@@ -46,7 +46,7 @@ class Params:
         self._vxlow = self._vxmin
         self._vxhigh = self._vxmax
 
-        # initialize parameter values
+        # initialize parameter values to midpoint of range
         self._tHSval = self.getMidPoint(low=self._tHSlow,high=self._tHShigh)
         self._tHXval = self.getMidPoint(low=self._tHXlow,high=self._tHXhigh)
         self._tSXval = self.getMidPoint(low=self._tSXlow,high=self._tSXhigh)
