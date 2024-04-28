@@ -243,6 +243,7 @@ class Parse:
 
 class Point:
 
+    # initialize point parameters
     def __init__(self,xb=0,tHS=0,tHX=0,tSX=0,vs=0,vx=0):
         self.xb = xb
         self.tHS = tHS
@@ -251,14 +252,18 @@ class Point:
         self.vs = vs
         self.vx = vx
 
+    # wrapper function to get attribute
+    def get_attribute(self,attr_name):
+        return getattr(self,attr_name)
+
     # get difference between two values of varname
     def diff(self,other,varname):
-        return getattr(self,varname) - getattr(other,varname)
+        return self.get_attribute(varname) - other.get_attribute(varname)
 
     # get fractional difference between two values of varname
     # TODO: Add divide-by-zero protection
     def diffFrac(self,other,varname):
-        return self.diff(other,varname) / abs(getattr(self,varname))
+        return self.diff(other,varname) / abs(self.get_attribute(varname))
 
     # define the greater than (>) operator
     def __gt__(self,other):
