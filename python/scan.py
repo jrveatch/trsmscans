@@ -326,8 +326,8 @@ def runScan(XMass,
         # get parser with new arrays
         scanparser = parse.Parse(filename=tsvname,HMass=HMass,SMass=SMass)
 
-        # get new points
-        optPointNew = scanparser.getmaxpoint(decay)
+        # get new point as the maximum from the current scan
+        newPoint = scanparser.getmaxpoint(decay)
 
         update = False
 
@@ -335,9 +335,9 @@ def runScan(XMass,
         optPointOld = optPoint
 
         # if new point is better than the optimal point, replace it
-        if optPointNew > optPoint:
+        if newPoint > optPoint:
             update = True
-            optPoint = optPointNew
+            optPoint = newPoint
 
         # parameter differences
         tHSdiff = 9e9
@@ -347,13 +347,13 @@ def runScan(XMass,
         vsdiff = 9e9
         vxdiff = 9e9
 
-        # TODO: Rethink how to show difference
-        # TODO: Probably should be difference w.r.t. previous best
-        tHSdiff = optPoint.diff(optPointOld,"tHS")
-        tHXdiff = optPoint.diff(optPointOld,"tHX")
-        tSXdiff = optPoint.diff(optPointOld,"tSX")
-        vsdiff = optPoint.diff(optPointOld,"vs")
-        vxdiff = optPoint.diff(optPointOld,"vx")
+        # calculate difference w.r.t. previous optimal point if new point is found
+        if update:
+            tHSdiff = optPoint.diff(optPointOld,"tHS")
+            tHXdiff = optPoint.diff(optPointOld,"tHX")
+            tSXdiff = optPoint.diff(optPointOld,"tSX")
+            vsdiff = optPoint.diff(optPointOld,"vs")
+            vxdiff = optPoint.diff(optPointOld,"vx")
 
         # get iteration end time
         iterend = time.time()
