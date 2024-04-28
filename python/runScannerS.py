@@ -4,6 +4,7 @@ import os
 import shutil
 import time
 import math
+from blessings import Terminal
 
 def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
 
@@ -100,11 +101,18 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # define process
     process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
 
+    # create a manager and a shared counter to track the number of finished processes
+    manager = mp.Manager()
+    counter = manager.Value("i",0)
+
+    # print empty job completion counter
+    print(f"{counter.value}/{num_processes} processes finished")
+
     # create a pool of processes
     with mp.Pool(processes=num_processes) as pool:
 
         # map the run_process function to each directory
-        pool.starmap(run_process, [(process, directory) for directory in directories])
+        pool.starmap(run_process, [(process, directory, counter, num_processes) for directory in directories])
 
         # wait for all processes to finish
         pool.close()
@@ -119,10 +127,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # return number of points that are actually used
     return npoints
 
-def run_process(process, directory):
-
-    # simple information message
-    print(f"Running process in directory '{directory}'.")
+def run_process(process, directory, counter, num_processes):
 
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
@@ -133,8 +138,12 @@ def run_process(process, directory):
     # run the process with arguments and suppress output
     subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-    # simple information message
-    print(f"Process in directory '{directory}' finished.")
+    # get Terminal for nicer outputs
+    term  = Terminal()
+
+    # increment the counter and print out how many processes are finished
+    counter.value += 1
+    print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 def run_subprocess(process,model="TRSMBroken"):
 
