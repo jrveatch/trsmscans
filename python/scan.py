@@ -369,7 +369,7 @@ def runScan(XMass,
         details.write(str(nwidth) + "/" + str(npoints) + " pass width cut of " + str(maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(npoints) + " pass both checks\n")
-        details.write("Found new max xsec*BR = " + f"{Decimal(optPointNew.xb):.4E}" + "\n")
+        details.write("Found new max xsec*BR = " + f"{Decimal(newPoint.xb):.4E}" + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
         details.write("Optimal point xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
         details.write("thetaHS: range = [" + f"{tHSlow:1.4f}" + "," + f"{tHShigh:1.4f}" + "]\n")
