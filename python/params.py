@@ -65,65 +65,17 @@ class Params:
     # the new min or max, set them
     # this also sets new range values
 
-    def set_tHSmin(self,val):
-        self._tHSmin = val
-        if self._tHSlow < self._tHSmin:
-            self._tHSlow = self._tHSmin
-            self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
+    def set_min(self,varname,val):
+        setattr(self,"_"+varname+"min",val)
+        if getattr(self,"_"+varname+"low") < getattr(self,"_"+varname+"min"):
+            setattr(self,"_"+varname+"low",getattr(self,"_"+varname+"min"))
+            setattr(self,"_"+varname+"range",self.getRange(low=getattr(self,"_"+varname+"low"),high=getattr(self,"_"+varname+"high")))
 
-    def set_tHSmax(self,val):
-        self._tHSmax = val
-        if self._tHShigh > self._tHSmax:
-            self._tHShigh = self._tHSmax
-            self._tHSrange = self.getRange(low=self._tHSlow,high=self._tHShigh)
-
-    def set_tHXmin(self,val):
-        self._tHXmin = val
-        if self._tHXlow < self._tHXmin:
-            self._tHXlow = self._tHXmin
-            self._tHXrange = self.getRange(low=self._tHXlow,high=self._tHXhigh)
-
-    def set_tHXmax(self,val):
-        self._tHXmax = val
-        if self._tHXhigh > self._tHXmax:
-            self._tHXhigh = self._tHXmax
-            self._tHXrange = self.getRange(low=self._tHXlow,high=self._tHXhigh)
-
-    def set_tSXmin(self,val):
-        self._tSXmin = val
-        if self._tSXlow < self._tSXmin:
-            self._tSXlow = self._tSXmin
-            self._tSXrange = self.getRange(low=self._tSXlow,high=self._tSXhigh)
-
-    def set_tSXmax(self,val):
-        self._tSXmax = val
-        if self._tSXhigh > self._tSXmax:
-            self._tSXhigh = self._tSXmax
-            self._tSXrange = self.getRange(low=self._tSXlow,high=self._tSXhigh)
-
-    def set_vsmin(self,val):
-        self._vsmin = val
-        if self._vslow < self._vsmin:
-            self._vslow = self._vsmin
-            self._vsrange = self.getRange(low=self._vslow,high=self._vshigh)
-
-    def set_vsmax(self,val):
-        self._vsmax = val
-        if self._vshigh > self._vsmax:
-            self._vshigh = self._vsmax
-            self._vsrange = self.getRange(low=self._vslow,high=self._vshigh)
-
-    def set_vxmin(self,val):
-        self._vxmin = val
-        if self._vxlow < self._vxmin:
-            self._vxlow = self._vxmin
-            self._vxrange = self.getRange(low=self._vxlow,high=self._vxhigh)
-
-    def set_vxmax(self,val):
-        self._vxmax = val
-        if self._vxhigh > self._vxmax:
-            self._vxhigh = self._vxmax
-            self._vxrange = self.getRange(low=self._vxlow,high=self._vxhigh)
+    def set_max(self,varname,val):
+        setattr(self,"_"+varname+"max",val)
+        if getattr(self,"_"+varname+"high") > getattr(self,"_"+varname+"max"):
+            setattr(self,"_"+varname+"high",getattr(self,"_"+varname+"max"))
+            setattr(self,"_"+varname+"range",self.getRange(low=getattr(self,"_"+varname+"low"),high=getattr(self,"_"+varname+"high")))
 
     # function to calculate parameter value
     
@@ -153,35 +105,11 @@ class Params:
 
     # functions to set new low and high parameters
 
-    def set_tHSparams(self,val,range):
-        self._tHSval = val
-        self._tHSrange = range
-        self._tHSlow = self.getNewLow(val,range,self._tHSmin)
-        self._tHShigh = self.getNewHigh(val,range,self._tHSmax)
-
-    def set_tHXparams(self,val,range):
-        self._tHXval = val
-        self._tHXrange = range
-        self._tHXlow = self.getNewLow(val,range,self._tHXmin)
-        self._tHXhigh = self.getNewHigh(val,range,self._tHXmax)
-
-    def set_tSXparams(self,val,range):
-        self._tSXval = val
-        self._tSXrange = range
-        self._tSXlow = self.getNewLow(val,range,self._tSXmin)
-        self._tSXhigh = self.getNewHigh(val,range,self._tSXmax)
-
-    def set_vsparams(self,val,range):
-        self._vsval = val
-        self._vsrange = range
-        self._vslow = self.getNewLow(val,range,self._vsmin)
-        self._vshigh = self.getNewHigh(val,range,self._vsmax)
-
-    def set_vxparams(self,val,range):
-        self._vxval = val
-        self._vxrange = range
-        self._vxlow = self.getNewLow(val,range,self._vxmin)
-        self._vxhigh = self.getNewHigh(val,range,self._vxmax)
+    def set_params(self,varname,val,range):
+        setattr(self,"_"+varname+"val",val)
+        setattr(self,"_"+varname+"range",range)
+        setattr(self,"_"+varname+"low",self.getNewLow(val,range,getattr(self,"_"+varname+"min")))
+        setattr(self,"_"+varname+"high",self.getNewHigh(val,range,getattr(self,"_"+varname+"max")))
 
     # function to calculate volume
     def volume(self):
@@ -199,102 +127,30 @@ class Params:
         return volume
 
     # functions to get min and max values
-        
-    def tHSmin(self):
-        return self._tHSmin
-    
-    def tHSmax(self):
-        return self._tHSmax
-    
-    def tHXmin(self):
-        return self._tHXmin
-    
-    def tHXmax(self):
-        return self._tHXmax
-    
-    def tSXmin(self):
-        return self._tSXmin
-    
-    def tSXmax(self):
-        return self._tSXmax
-    
-    def vsmin(self):
-        return self._vsmin
-    
-    def vsmax(self):
-        return self._vsmax
-    
-    def vxmin(self):
-        return self._vxmin
-    
-    def vxmax(self):
-        return self._vxmax
+
+    def min(self,varname):
+        return getattr(self,"_"+varname+"min")
+
+    def max(self,varname):
+        return getattr(self,"_"+varname+"max")
     
     # functions to get low and high values
-        
-    def tHSlow(self):
-        return self._tHSlow
-    
-    def tHShigh(self):
-        return self._tHShigh
-    
-    def tHXlow(self):
-        return self._tHXlow
-    
-    def tHXhigh(self):
-        return self._tHXhigh
-    
-    def tSXlow(self):
-        return self._tSXlow
-    
-    def tSXhigh(self):
-        return self._tSXhigh
-    
-    def vslow(self):
-        return self._vslow
-    
-    def vshigh(self):
-        return self._vshigh
-    
-    def vxlow(self):
-        return self._vxlow
-    
-    def vxhigh(self):
-        return self._vxhigh
+
+    def low(self,varname):
+        return getattr(self,"_"+varname+"low")
+
+    def high(self,varname):
+        return getattr(self,"_"+varname+"high")
     
     # functions to get parameter values
-        
-    def tHSval(self):
-        return self._tHSval
-    
-    def tHXval(self):
-        return self._tHXval
-    
-    def tSXval(self):
-        return self._tSXval
-    
-    def vsval(self):
-        return self._vsval
-    
-    def vxval(self):
-        return self._vxval
+
+    def val(self,varname):
+        return getattr(self,"_"+varname+"val")
     
     # functions to get parameter ranges
-        
-    def tHSrange(self):
-        return self._tHSrange
-    
-    def tHXrange(self):
-        return self._tHXrange
-    
-    def tSXrange(self):
-        return self._tSXrange
-    
-    def vsrange(self):
-        return self._vsrange
-    
-    def vxrange(self):
-        return self._vxrange
+
+    def range(self,varname):
+        return getattr(self,"_"+varname+"range")
     
     # function to write .ini file with parameters
     def writeini(self,templateini,ininame):

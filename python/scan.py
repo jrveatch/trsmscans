@@ -92,23 +92,14 @@ def runScan(XMass,
     details.write("Scan details\n\n")
     details.close()
 
-    # initialize theta values
-    tHSopt = pars.tHSval()
-    tHXopt = pars.tHXval()
-    tSXopt = pars.tSXval()
-
     # initialize theta ranges
-    tHSrange = pars.tHSrange()
-    tHXrange = pars.tHXrange()
-    tSXrange = pars.tSXrange()
-
-    # initialize vev values
-    vsopt = pars.vsval()
-    vxopt = pars.vxval()
+    tHSrange = pars.range("tHS")
+    tHXrange = pars.range("tHX")
+    tSXrange = pars.range("tSX")
 
     # initialize vev ranges
-    vsrange = pars.vsrange()
-    vxrange = pars.vxrange()
+    vsrange = pars.range("vs")
+    vxrange = pars.range("vx")
 
     # annealing rate for each parameter
     tHSrate = (1.0 - theta_range_shrink_rate)
@@ -173,28 +164,28 @@ def runScan(XMass,
         tolerance = 0.05
 
         # thetas
-        if mintHS - (abs(mintHS) * tolerance) > pars.tHSmin():
-            pars.set_tHSmin(mintHS)
-        if mintHX - (abs(mintHX) * tolerance) > pars.tHXmin():
-            pars.set_tHXmin(mintHX)
-        if mintSX - (abs(mintSX) * tolerance) > pars.tSXmin():
-            pars.set_tSXmin(mintSX)
-        if maxtHS + (abs(maxtHS) * tolerance) < pars.tHSmax():
-            pars.set_tHSmax(maxtHS)
-        if maxtHX + (abs(maxtHX) * tolerance) < pars.tHXmax():
-            pars.set_tHXmax(maxtHX)
-        if maxtSX + (abs(maxtSX) * tolerance) < pars.tSXmax():
-            pars.set_tSXmax(maxtSX)
+        if mintHS - (abs(mintHS) * tolerance) > pars.min("tHS"):
+            pars.set_min("tHS",mintHS)
+        if mintHX - (abs(mintHX) * tolerance) > pars.min("tHX"):
+            pars.set_min("tHX",mintHX)
+        if mintSX - (abs(mintSX) * tolerance) > pars.min("tSX"):
+            pars.set_min("tSX",mintSX)
+        if maxtHS + (abs(maxtHS) * tolerance) < pars.max("tHS"):
+            pars.set_max("tHS",maxtHS)
+        if maxtHX + (abs(maxtHX) * tolerance) < pars.max("tHX"):
+            pars.set_max("tHX",maxtHX)
+        if maxtSX + (abs(maxtSX) * tolerance) < pars.max("tSX"):
+            pars.set_max("tSX",maxtSX)
 
         # vevs
-        if minvs - (abs(minvs) * tolerance) > pars.vsmin():
-            pars.set_vsmin(minvs)
-        if minvx - (abs(minvx) * tolerance) > pars.vxmin():
-            pars.set_vxmin(minvx)
-        if maxvs + (abs(maxvs) * tolerance) < pars.vsmax():
-            pars.set_vsmin(maxvs)
-        if maxvx + (abs(maxvx) * tolerance) < pars.vxmax():
-            pars.set_vxmax(maxvx)
+        if minvs - (abs(minvs) * tolerance) > pars.min("vs"):
+            pars.set_min("vs",minvs)
+        if minvx - (abs(minvx) * tolerance) > pars.min("vx"):
+            pars.set_min("vx",minvx)
+        if maxvs + (abs(maxvs) * tolerance) < pars.max("vs"):
+            pars.set_min("vs",maxvs)
+        if maxvx + (abs(maxvx) * tolerance) < pars.max("vx"):
+            pars.set_max("vx",maxvx)
         
         # get scan density
         volume = pars.volume()
@@ -207,15 +198,15 @@ def runScan(XMass,
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
         details.write("thetaHS: value = " + f"{optPoint.tHS:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tHSlow():1.4f}" + "," + f"{pars.tHShigh():1.4f}" + "]\n")
+        details.write("         range = [" + f"{pars.low("tHS"):1.4f}" + "," + f"{pars.high("tHS"):1.4f}" + "]\n")
         details.write("thetaHX: value = " + f"{optPoint.tHX:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tHXlow():1.4f}" + "," + f"{pars.tHXhigh():1.4f}" + "]\n")
+        details.write("         range = [" + f"{pars.low("tHX"):1.4f}" + "," + f"{pars.high("tHX"):1.4f}" + "]\n")
         details.write("thetaSX: value = " + f"{optPoint.tSX:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.tSXlow():1.4f}" + "," + f"{pars.tSXhigh():1.4f}" + "]\n")
+        details.write("         range = [" + f"{pars.low("tSX"):1.4f}" + "," + f"{pars.high("tSX"):1.4f}" + "]\n")
         details.write("vs: value = " + f"{optPoint.vs:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.vslow():1.2f}" + "," + f"{pars.vshigh():1.2f}" + "]\n")
+        details.write("    range = [" + f"{pars.low("vs"):1.2f}" + "," + f"{pars.high("vs"):1.2f}" + "]\n")
         details.write("vx: value = " + f"{optPoint.vx:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.vxlow():1.2f}" + "," + f"{pars.vxhigh():1.2f}" + "]\n")
+        details.write("    range = [" + f"{pars.low("vx"):1.2f}" + "," + f"{pars.high("vx"):1.2f}" + "]\n")
         details.write("\n\n")
         details.close()
 
@@ -232,20 +223,20 @@ def runScan(XMass,
         summary.close()
 
         # get new theta ranges
-        tHSrange = pars.tHSrange() * tHSrate
-        tHXrange = pars.tHXrange() * tHXrate
-        tSXrange = pars.tSXrange() * tSXrate
+        tHSrange = pars.range("tHS") * tHSrate
+        tHXrange = pars.range("tHX") * tHXrate
+        tSXrange = pars.range("tSX") * tSXrate
 
         # get new vev ranges
-        vsrange = pars.vsrange() * vsrate
-        vxrange = pars.vxrange() * vxrate
+        vsrange = pars.range("vs") * vsrate
+        vxrange = pars.range("vx") * vxrate
 
         # set new low and high values
-        pars.set_tHSparams(tHSopt,tHSrange)
-        pars.set_tHXparams(tHXopt,tHXrange)
-        pars.set_tSXparams(tSXopt,tSXrange)
-        pars.set_vsparams(vsopt,vsrange)
-        pars.set_vxparams(vxopt,vxrange)
+        pars.set_params("tHS",optPoint.tHS,tHSrange)
+        pars.set_params("tHX",optPoint.tHX,tHXrange)
+        pars.set_params("tSX",optPoint.tSX,tSXrange)
+        pars.set_params("vs",optPoint.vs,vsrange)
+        pars.set_params("vx",optPoint.vx,vxrange)
 
     # iterate over multiple scans
     for iter in range(niter):
@@ -263,18 +254,18 @@ def runScan(XMass,
         tsvname = outname + ".tsv"
 
         # get theta lows and highs
-        tHSlow = pars.tHSlow()
-        tHShigh = pars.tHShigh()
-        tHXlow = pars.tHXlow()
-        tHXhigh = pars.tHXhigh()
-        tSXlow = pars.tSXlow()
-        tSXhigh = pars.tSXhigh()
+        tHSlow = pars.low("tHS")
+        tHShigh = pars.high("tHS")
+        tHXlow = pars.low("tHX")
+        tHXhigh = pars.high("tHX")
+        tSXlow = pars.low("tSX")
+        tSXhigh = pars.high("tSX")
 
         # get vev lows and highs
-        vslow = pars.vslow()
-        vshigh = pars.vshigh()
-        vxlow = pars.vxlow()
-        vxhigh = pars.vxhigh()
+        vslow = pars.low("vs")
+        vshigh = pars.high("vs")
+        vxlow = pars.low("vx")
+        vxhigh = pars.high("vx")
 
         # calculate point density from ranges
         volume = pars.volume()
@@ -418,11 +409,11 @@ def runScan(XMass,
         vxrange *= vxrate
 
         # set new low and high values
-        pars.set_tHSparams(optPoint.tHS,tHSrange)
-        pars.set_tHXparams(optPoint.tHX,tHXrange)
-        pars.set_tSXparams(optPoint.tSX,tSXrange)
-        pars.set_vsparams(optPoint.vs,vsrange)
-        pars.set_vxparams(optPoint.vx,vxrange)
+        pars.set_params("tHS",optPoint.tHS,tHSrange)
+        pars.set_params("tHX",optPoint.tHX,tHXrange)
+        pars.set_params("tSX",optPoint.tSX,tSXrange)
+        pars.set_params("vs",optPoint.vs,vsrange)
+        pars.set_params("vx",optPoint.vx,vxrange)
 
         # get new volume
         volumeNew = pars.volume()
