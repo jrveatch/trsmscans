@@ -258,7 +258,7 @@ class Point:
     # get fractional difference between two values of varname
     # TODO: Add divide-by-zero protection
     def diffFrac(self,other,varname):
-        return self.diff(self,other,varname) / abs(getattr(self,varname))
+        return self.diff(other,varname) / abs(getattr(self,varname))
 
     # define the greater than (>) operator
     def __gt__(self,other):
