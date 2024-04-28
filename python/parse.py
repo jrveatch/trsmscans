@@ -60,7 +60,12 @@ class Parse:
         maxvs = self.vs[maxidx]
         maxvx = self.vx[maxidx]
 
-        return maxxb, maxthS, maxthX, maxtSX, maxvs, maxvx
+        return Point(xb=maxxb,
+                     tHS=maxthS,
+                     tHX=maxthX,
+                     tSX=maxtSX,
+                     vs=maxvs,
+                     vx=maxvx)
 
     # get the maximum xb
     def getxb(self,decay):
@@ -235,3 +240,30 @@ class Parse:
         # H3 xsec and BR values
         self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
+
+class Point:
+
+    def __init__(self,xb=0,tHS=0,tHX=0,tSX=0,vs=0,vx=0):
+        self.xb = xb
+        self.tHS = tHS
+        self.tHX = tHX
+        self.tSX = tSX
+        self.vs = vs
+        self.vx = vx
+
+    # get difference between two values of varname
+    def diff(self,other,varname):
+        return getattr(self,varname) - getattr(other,varname)
+
+    # get fractional difference between two values of varname
+    # TODO: Add divide-by-zero protection
+    def diffFrac(self,other,varname):
+        return self.diff(self,other,varname) / abs(getattr(self,varname))
+
+    # define the greater than (>) operator
+    def __gt__(self,other):
+        return self.xb > other.xb
+
+    # define the less than (<) operator
+    def __lt__(self,other):
+        return self.xb < other.xb
