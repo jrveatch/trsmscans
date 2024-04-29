@@ -1,6 +1,7 @@
+#!/bin/bash
 
-# start the python virtual environment
-source trsm_venv/bin/activate
+# start python virtual environment
+source scripts/venv.sh
 
 # add path to executable to PATH
 export PATH="${PWD}/ScannerS/build:$PATH"
