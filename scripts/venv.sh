@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# deactivate any previously activated virtual environment
+deactivate 2>/dev/null
+
 # start the python virtual environment
 source trsm_venv/bin/activate
 
