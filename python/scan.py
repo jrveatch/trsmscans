@@ -129,6 +129,9 @@ def runScan(XMass,
         with open(prescan, "r") as f:
             nprescan = sum(1 for _ in f)
 
+        # info message about prescan
+        print("\nAnalyzing prescan with",nprescan,"points")
+
         # if prescan doesn't have enough points, complain and exit
         if nprescan < 0.5 * npoints:
             print("Prescan doesn't have enough points to justify using.")
@@ -145,15 +148,12 @@ def runScan(XMass,
         optPoint = scanparser.getmaxpoint(decay)
 
         # print the ranges to the screen
-        print("\n")
         print("Found the following ranges from the prescan:")
-        print("\n")
-        print("thetaHS",f"{mintHS:1.4f}",f"{maxtHS:1.4f}")
-        print("thetaHX",f"{mintHX:1.4f}",f"{maxtHX:1.4f}")
-        print("thetaSX",f"{mintSX:1.4f}",f"{maxtSX:1.4f}")
-        print("vs",f"{minvs:1.4f}",f"{maxvs:1.4f}")
-        print("vx",f"{minvx:1.4f}",f"{maxvx:1.4f}")
-        print("\n")
+        print("thetaHS: ["+f"{mintHS:1.4f}"+","+f"{maxtHS:1.4f}"+"]")
+        print("thetaHX: ["+f"{mintHX:1.4f}"+","+f"{maxtHX:1.4f}"+"]")
+        print("thetaSX: ["+f"{mintSX:1.4f}"+","+f"{maxtSX:1.4f}"+"]")
+        print("vs: ["+f"{maxvs:1.2f}"+","+f"{maxvs:1.2f}"+"]")
+        print("vx: ["+f"{minvx:1.2f}"+","+f"{maxvx:1.2f}"+"]")
 
         # if the prescan ranges are more than 5% away from
         # the boundaries, change the boundaries to restrict
@@ -246,7 +246,7 @@ def runScan(XMass,
 
         # get iteration identifier
         identifier = f"{iter:04d}"
-        print("Iteration:",identifier)
+        print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
         outname = "./files/" + base + "_" + identifier
@@ -350,6 +350,9 @@ def runScan(XMass,
         iterend = time.time()
         itertime = iterend - iterstart
 
+        # print iteration time to screen
+        print("Iteration took",f"{itertime:1.1f}","seconds to complete")
+
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
         details = open(detailsname,"a")
@@ -435,6 +438,7 @@ def runScan(XMass,
     scantime = (scanend - scanstart)
 
     # print out scan time
+    print("Done!")
     print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
     # write time info to details file

@@ -93,7 +93,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     npoints = points_per_job * num_processes
 
     # print out some information
-    print("Running",num_processes,"process with",points_per_job,"points each")
+    print("Running",npoints,"points as",num_processes,"processes with",points_per_job,"points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]

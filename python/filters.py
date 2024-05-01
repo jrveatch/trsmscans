@@ -35,6 +35,7 @@ def applyFilters(input_file,maxwidth,SMass,output_file=""):
     filt_total = np.multiply(filt_width,filt_bounds)
     npass = filt_total.sum()
 
+    # return numbers of events passing each filter
     return nwidth, nbounds, npass
 
 def initializeFilters(input_file,output_file=""):
@@ -47,17 +48,11 @@ def initializeFilters(input_file,output_file=""):
     has_filt_width = column_exists(input_file,"filt_width")
     has_filt_bounds = column_exists(input_file,"filt_bounds")
 
-    # print to screen if columns already exist
-    #if has_filt_width:
-    #    print(input_file,"already has",header_width,"column. Skipping initialization.")
-    #if has_filt_bounds:
-    #    print(input_file,"already has",header_bounds,"column. Skipping initialization.")
-
     # skip initialization if it is not needed
     if has_filt_width and has_filt_bounds:
-        #print("Nothing left to initialize...")
         return
 
+    # set up output file name
     outname = "temp.tsv"
     replacefile = True
     if output_file:
@@ -96,6 +91,7 @@ def initializeFilters(input_file,output_file=""):
     # replace the input file with the output file
     if replacefile:
         shutil.move(outname, input_file)
+    # otherwise delete the input file
     else:
         os.remove(input_file)
 
