@@ -78,17 +78,14 @@ class Params:
             setattr(self,varname+"range",self.getRange(low=getattr(self,varname+"low"),high=getattr(self,varname+"high")))
 
     # function to calculate parameter value
-    
     def getMidPoint(self,low,high):
         return (low + high) / 2
 
     # function to calculate parameter ranges
-    
     def getRange(self,low,high):
         return abs(high - low) / 2
     
     # function to get new low value
-
     def getNewLow(self,val,range,min):
         newLow = val - range
         if newLow < min:
@@ -96,7 +93,6 @@ class Params:
         return newLow
     
     # function to get new high value
-
     def getNewHigh(self,val,range,max):
         newHigh = val + range
         if newHigh > max:
@@ -104,7 +100,6 @@ class Params:
         return newHigh
 
     # functions to set new low and high parameters
-
     def set_params(self,varname,val,range):
         setattr(self,varname+"val",val)
         setattr(self,varname+"range",range)
@@ -126,29 +121,27 @@ class Params:
             volume *= abs(self.vxhigh - self.vxlow)
         return volume
 
-    # functions to get min and max values
-
+    # function to get min value
     def min(self,varname):
         return getattr(self,varname+"min")
 
+    # function to get max value
     def max(self,varname):
         return getattr(self,varname+"max")
-    
-    # functions to get low and high values
 
+    # function to get low value
     def low(self,varname):
         return getattr(self,varname+"low")
 
+    # function to get high value
     def high(self,varname):
         return getattr(self,varname+"high")
     
-    # functions to get parameter values
-
+    # function to get parameter values
     def val(self,varname):
         return getattr(self,varname+"val")
     
-    # functions to get parameter ranges
-
+    # function to get parameter ranges
     def range(self,varname):
         return getattr(self,varname+"range")
     
@@ -160,6 +153,7 @@ class Params:
         filedata = template.read()
         template.close()
 
+        # create filedata with parameters
         filedata = filedata.replace("MH1",str(self.mH1))
         filedata = filedata.replace("MH2",str(self.mH2))
         filedata = filedata.replace("MH3",str(self.mH3))
@@ -174,6 +168,7 @@ class Params:
         filedata = filedata.replace("VXLOW",str(self.vxlow))
         filedata = filedata.replace("VXHIGH",str(self.vxhigh))
 
+        # write to .ini file
         outfile = open(ininame,"w")
         outfile.write(filedata)
         outfile.close()

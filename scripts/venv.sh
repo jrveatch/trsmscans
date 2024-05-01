@@ -16,14 +16,13 @@ fi
 installed_packages_temp=$(mktemp)
 requirements_temp=$(mktemp)
 
-# Capture the current installed packages using pip freeze
+# capture the current installed packages using pip freeze
 pip freeze > "$installed_packages_temp"
 
 # get list of packages from pip freeze that are not in requirements.txt
 comm -13 "$installed_packages_temp" "python/requirements.txt" > "$requirements_temp"
 
 # check if there are any differences between installed packages and requirements
-
 if [ -s "$requirements_temp" ]; then
     echo "Requirements file has changed"
     cat "$requirements_temp"

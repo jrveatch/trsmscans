@@ -5,6 +5,7 @@ import numpy as np
 # import list of arrays
 import arrays
 
+# class to parse arrays and provide details about data
 class Parse:
 
     # load new set of arrays
@@ -60,6 +61,7 @@ class Parse:
         maxvs = self.vs[maxidx]
         maxvx = self.vx[maxidx]
 
+        # return a point object holding xb and other parameters
         return Point(xb=maxxb,
                      tHS=maxthS,
                      tHX=maxthX,
@@ -84,7 +86,7 @@ class Parse:
     # get maximum xb for the production
     def getxbprod(self):
 
-        # TODO: take decay as argument for other channels modes
+        # TODO: take decay as argument for other production modes
 
         # get production cross section
         xb_prod = np.multiply(self.x_X_gg,self.b_X_SH)
@@ -187,6 +189,7 @@ class Parse:
                 print("This should not have happened")
                 quit()
 
+        # return the decay BR
         return xb_decay
 
     def getparams(self):
@@ -241,6 +244,7 @@ class Parse:
         self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
 
+# class that holds parameter and xb values for a single point
 class Point:
 
     # initialize point parameters
