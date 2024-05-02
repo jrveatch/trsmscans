@@ -5,11 +5,17 @@ import numpy as np
 # import list of arrays
 import arrays
 
+# import dip test for unimodality
+import diptest
+
+# import math for useful functions
+import math
+
 # class to parse arrays and provide details about data
 class Parse:
 
     # load new set of arrays
-    def __init__(self,filename,HMass,SMass):
+    def __init__(self,filename,HMass,SMass,decay):
 
         # initialize HName and SName
         self.HName = ""
@@ -25,14 +31,14 @@ class Parse:
 
         # get arrays
         self.arr = arrays.Arrays(filename)
-        self.loadArrays(filename)
+        self.loadArrays(filename,decay)
 
     # load new arrays
-    def loadArrays(self,filename):
+    def loadArrays(self,filename,decay):
         # load arrays from file
         self.arr.loadArrays(filename)
         # get arrays masked by filters
-        self.getFilteredArrays()
+        self.getFilteredArrays(decay)
 
     # get the arrays
     def getArrays(self):
@@ -43,21 +49,18 @@ class Parse:
         self.filters = np.multiply(self.arr.data['filt_width'],self.arr.data['filt_bounds'])
 
     # find the point that maximizes xb
-    def getmaxpoint(self,decay):
-
-        # get cross-section times branching ratio
-        xb = self.getxb(decay)
+    def getmaxpoint(self):
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(xb)
+        maxidx = np.argmax(self.xb)
 
         # get max xsec times BR
-        maxxb = xb[maxidx]
+        maxxb = self.xb[maxidx]
 
         # get theta and vev values that maximize xsec times BR
-        maxthS = self.thetahS[maxidx]
-        maxthX = self.thetahX[maxidx]
-        maxtSX = self.thetaSX[maxidx]
+        maxthS = self.tHS[maxidx]
+        maxthX = self.tHX[maxidx]
+        maxtSX = self.tSX[maxidx]
         maxvs = self.vs[maxidx]
         maxvx = self.vx[maxidx]
 
@@ -194,12 +197,12 @@ class Parse:
 
     def getparams(self):
 
-        minthS = np.min(self.thetahS)
-        maxthS = np.max(self.thetahS)
-        minthX = np.min(self.thetahX)
-        maxthX = np.max(self.thetahX)
-        mintSX = np.min(self.thetaSX)
-        maxtSX = np.max(self.thetaSX)
+        minthS = np.min(self.tHS)
+        maxthS = np.max(self.tHS)
+        minthX = np.min(self.tHX)
+        maxthX = np.max(self.tHX)
+        mintSX = np.min(self.tSX)
+        maxtSX = np.max(self.tSX)
 
         minvs = np.min(self.vs)
         maxvs = np.max(self.vs)
@@ -209,10 +212,10 @@ class Parse:
         return minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx
     
     def getvars(self):
-        return self.thetahS, self.thetahX, self.thetaSX, self.vs, self.vx
+        return self.tHS, self.tHX, self.tSX, self.vs, self.vx
 
     # apply filters as mask
-    def getFilteredArrays(self):
+    def getFilteredArrays(self,decay):
         
         # get array of filters to use as a mask
         self.getFilters()
@@ -220,9 +223,9 @@ class Parse:
         # create local arrays by applying filter mask
 
         # theta and vev values
-        self.thetahS = self.arr.data['thetahS'][self.filters != 0]
-        self.thetahX = self.arr.data['thetahX'][self.filters != 0]
-        self.thetaSX = self.arr.data['thetaSX'][self.filters != 0]
+        self.tHS = self.arr.data['thetahS'][self.filters != 0]
+        self.tHX = self.arr.data['thetahX'][self.filters != 0]
+        self.tSX = self.arr.data['thetaSX'][self.filters != 0]
         self.vs = self.arr.data['vs'][self.filters != 0]
         self.vx = self.arr.data['vx'][self.filters != 0]
 
@@ -243,6 +246,47 @@ class Parse:
         # H3 xsec and BR values
         self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
+
+        # cross-section times branching ratio
+        self.xb = self.getxb(decay)
+
+    # function that checks whether xb is unimodal in a parameter
+    def isBimodal(self,param_name):
+
+        # percentile threshold for xb
+        percentile_threshold = 98
+
+        # number of points available
+        npoints = len(self.xb)
+
+        # minimum number of points for test
+        min_points = 200
+
+        # modify percentile threshold to ensure there are at least min_points
+        if npoints * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/npoints))
+
+        # make sure percentile threshold is >= 0
+        if percentile_threshold < 0:
+            percentile_threshold = 0
+
+        # get xb value that corresponds to percentile threshold
+        threshold_value = np.percentile(self.xb, percentile_threshold)
+
+        # get set of parameter values with xb in selected percentile
+        param_selected = getattr(self,param_name)[self.xb > threshold_value]
+
+        # use Hartigan's dip test for unimodality
+        dip, pval = diptest.diptest(param_selected)
+
+        # p-value threshold for multimodality
+        pval_threshold = 0.05
+
+        # if p-value is below threshold, return True, otherwise return False
+        if pval < pval_threshold:
+            return True
+        else:
+            return False
 
 # class that holds parameter and xb values for a single point
 class Point:

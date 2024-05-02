@@ -139,13 +139,16 @@ def runScan(XMass,
             quit()
 
         # get parser from prescan
-        scanparser = parse.Parse(prescan,HMass=HMass,SMass=SMass)
+        scanparser = parse.Parse(prescan,
+                                 HMass=HMass,
+                                 SMass=SMass,
+                                 decay=decay)
 
         # check ranges of the prescan
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
         
         # get new points
-        optPoint = scanparser.getmaxpoint(decay)
+        optPoint = scanparser.getmaxpoint()
 
         # print the ranges to the screen
         print("Found the following ranges from the prescan:")
@@ -315,10 +318,13 @@ def runScan(XMass,
             continue
 
         # get parser with new arrays
-        scanparser = parse.Parse(filename=tsvname,HMass=HMass,SMass=SMass)
+        scanparser = parse.Parse(filename=tsvname,
+                                 HMass=HMass,
+                                 SMass=SMass,
+                                 decay=decay)
 
         # get new point as the maximum from the current scan
-        newPoint = scanparser.getmaxpoint(decay)
+        newPoint = scanparser.getmaxpoint()
 
         update = False
 
