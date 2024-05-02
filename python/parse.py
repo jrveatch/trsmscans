@@ -55,9 +55,9 @@ class Parse:
         maxxb = xb[maxidx]
 
         # get theta and vev values that maximize xsec times BR
-        maxthS = self.thetahS[maxidx]
-        maxthX = self.thetahX[maxidx]
-        maxtSX = self.thetaSX[maxidx]
+        maxthS = self.tHS[maxidx]
+        maxthX = self.tHX[maxidx]
+        maxtSX = self.tSX[maxidx]
         maxvs = self.vs[maxidx]
         maxvx = self.vx[maxidx]
 
@@ -194,12 +194,12 @@ class Parse:
 
     def getparams(self):
 
-        minthS = np.min(self.thetahS)
-        maxthS = np.max(self.thetahS)
-        minthX = np.min(self.thetahX)
-        maxthX = np.max(self.thetahX)
-        mintSX = np.min(self.thetaSX)
-        maxtSX = np.max(self.thetaSX)
+        minthS = np.min(self.tHS)
+        maxthS = np.max(self.tHS)
+        minthX = np.min(self.tHX)
+        maxthX = np.max(self.tHX)
+        mintSX = np.min(self.tSX)
+        maxtSX = np.max(self.tSX)
 
         minvs = np.min(self.vs)
         maxvs = np.max(self.vs)
@@ -209,7 +209,7 @@ class Parse:
         return minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx
     
     def getvars(self):
-        return self.thetahS, self.thetahX, self.thetaSX, self.vs, self.vx
+        return self.tHS, self.tHX, self.tSX, self.vs, self.vx
 
     # apply filters as mask
     def getFilteredArrays(self):
@@ -220,9 +220,9 @@ class Parse:
         # create local arrays by applying filter mask
 
         # theta and vev values
-        self.thetahS = self.arr.data['thetahS'][self.filters != 0]
-        self.thetahX = self.arr.data['thetahX'][self.filters != 0]
-        self.thetaSX = self.arr.data['thetaSX'][self.filters != 0]
+        self.tHS = self.arr.data['thetahS'][self.filters != 0]
+        self.tHX = self.arr.data['thetahX'][self.filters != 0]
+        self.tSX = self.arr.data['thetaSX'][self.filters != 0]
         self.vs = self.arr.data['vs'][self.filters != 0]
         self.vx = self.arr.data['vx'][self.filters != 0]
 
