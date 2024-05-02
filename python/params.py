@@ -3,7 +3,17 @@ import math
 
 class Params:
 
-    def __init__(self,mH,mS,mX):
+    def __init__(self,mH,mS,mX,
+                 tHSmin=-1*math.pi/2,
+                 tHSmax=math.pi/2,
+                 tHXmin=-1*math.pi/2,
+                 tHXmax=math.pi/2,
+                 tSXmin=-1*math.pi/2,
+                 tSXmax=math.pi/2,
+                 vsmin=0.0,
+                 vsmax=1000.0,
+                 vxmin=0.0,
+                 vxmax=1000.0):
 
         # make list of masses
         masses = [float(mH),float(mS),float(mX)]
@@ -18,21 +28,19 @@ class Params:
 
         # set min and max theta values
         # these should not be changed once initialized
-        # TODO: make these configurable from arguments
-        self.tHSmin = -1 * math.pi / 2
-        self.tHSmax = math.pi / 2
-        self.tHXmin = -1 * math.pi / 2
-        self.tHXmax = math.pi / 2
-        self.tSXmin = -1 * math.pi / 2
-        self.tSXmax = math.pi / 2
+        self.tHSmin = tHSmin
+        self.tHSmax = tHSmax
+        self.tHXmin = tHXmin
+        self.tHXmax = tHXmax
+        self.tSXmin = tSXmin
+        self.tSXmax = tSXmax
 
         # set min and max vev values
         # these should not be changed once initialized
-        # TODO: make these configurable from arguments
-        self.vsmin = 0.0
-        self.vsmax = 1000.0
-        self.vxmin = 0.0
-        self.vxmax = 1000.0
+        self.vsmin = vsmin
+        self.vsmax = vsmax
+        self.vxmin = vxmin
+        self.vxmax = vxmax
 
         # initialize high and low values from max and min values
         self.tHSlow = self.tHSmin
