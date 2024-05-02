@@ -5,6 +5,12 @@ import numpy as np
 # import list of arrays
 import arrays
 
+# import dip test for unimodality
+import diptest
+
+# import math for useful functions
+import math
+
 # class to parse arrays and provide details about data
 class Parse:
 
@@ -243,6 +249,27 @@ class Parse:
 
         # cross-section times branching ratio
         self.xb = self.getxb(decay)
+
+    # function that checks whether xb is unimodal in a parameter
+    def isUnimodal(self):
+
+        # percentile threshold for xb
+        percentile_threshold = 98
+
+        # minimum number of points for test
+        min_points = 200
+
+        # modify percentile threshold to ensure there are at least 200 points
+        # TODO: Validate this works
+        if len(self.xb) * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/len(self.xb)))
+
+        # get xb value that corresponds to percentile threshold
+        threshold_value = np.percentile(self.xb, percentile_threshold)
+
+        xb_selected = self.xb[self.xb > threshold_value]
+
+        return True
 
 # class that holds parameter and xb values for a single point
 class Point:
