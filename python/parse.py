@@ -9,7 +9,7 @@ import arrays
 class Parse:
 
     # load new set of arrays
-    def __init__(self,filename,HMass,SMass):
+    def __init__(self,filename,HMass,SMass,decay):
 
         # initialize HName and SName
         self.HName = ""
@@ -25,14 +25,14 @@ class Parse:
 
         # get arrays
         self.arr = arrays.Arrays(filename)
-        self.loadArrays(filename)
+        self.loadArrays(filename,decay)
 
     # load new arrays
-    def loadArrays(self,filename):
+    def loadArrays(self,filename,decay):
         # load arrays from file
         self.arr.loadArrays(filename)
         # get arrays masked by filters
-        self.getFilteredArrays()
+        self.getFilteredArrays(decay)
 
     # get the arrays
     def getArrays(self):
@@ -43,16 +43,13 @@ class Parse:
         self.filters = np.multiply(self.arr.data['filt_width'],self.arr.data['filt_bounds'])
 
     # find the point that maximizes xb
-    def getmaxpoint(self,decay):
-
-        # get cross-section times branching ratio
-        xb = self.getxb(decay)
+    def getmaxpoint(self):
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(xb)
+        maxidx = np.argmax(self.xb)
 
         # get max xsec times BR
-        maxxb = xb[maxidx]
+        maxxb = self.xb[maxidx]
 
         # get theta and vev values that maximize xsec times BR
         maxthS = self.tHS[maxidx]
@@ -212,7 +209,7 @@ class Parse:
         return self.tHS, self.tHX, self.tSX, self.vs, self.vx
 
     # apply filters as mask
-    def getFilteredArrays(self):
+    def getFilteredArrays(self,decay):
         
         # get array of filters to use as a mask
         self.getFilters()
@@ -243,6 +240,9 @@ class Parse:
         # H3 xsec and BR values
         self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
+
+        # cross-section times branching ratio
+        self.xb = self.getxb(decay)
 
 # class that holds parameter and xb values for a single point
 class Point:
