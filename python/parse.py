@@ -251,25 +251,42 @@ class Parse:
         self.xb = self.getxb(decay)
 
     # function that checks whether xb is unimodal in a parameter
-    def isUnimodal(self):
+    def isBimodal(self,param_name):
 
         # percentile threshold for xb
         percentile_threshold = 98
 
+        # number of points available
+        npoints = len(self.xb)
+
         # minimum number of points for test
         min_points = 200
 
-        # modify percentile threshold to ensure there are at least 200 points
-        # TODO: Validate this works
-        if len(self.xb) * (1.0 - percentile_threshold / 100) < min_points:
-            percentile_threshold = math.floor(100 * (1.0 - min_points/len(self.xb)))
+        # modify percentile threshold to ensure there are at least min_points
+        if npoints * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/npoints))
+
+        # make sure percentile threshold is >= 0
+        if percentile_threshold < 0:
+            percentile_threshold = 0
 
         # get xb value that corresponds to percentile threshold
         threshold_value = np.percentile(self.xb, percentile_threshold)
 
-        xb_selected = self.xb[self.xb > threshold_value]
+        # get set of parameter values with xb in selected percentile
+        param_selected = getattr(self,param_name)[self.xb > threshold_value]
 
-        return True
+        # use Hartigan's dip test for unimodality
+        dip, pval = diptest.diptest(param_selected)
+
+        # p-value threshold for multimodality
+        pval_threshold = 0.05
+
+        # if p-value is below threshold, return True, otherwise return False
+        if pval < pval_threshold:
+            return True
+        else:
+            return False
 
 # class that holds parameter and xb values for a single point
 class Point:
