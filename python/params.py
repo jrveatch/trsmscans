@@ -3,7 +3,10 @@ import math
 
 class Params:
 
-    def __init__(self,mH,mS,mX,
+    def __init__(self,
+                 mH,
+                 mS,
+                 mX,
                  tHSmin=-1*math.pi/2,
                  tHSmax=math.pi/2,
                  tHXmin=-1*math.pi/2,
@@ -21,7 +24,12 @@ class Params:
         # sort masses in ascending order
         masses.sort()
 
-        # set mass values
+        # set H/S/X mass values
+        self.mH = mH
+        self.mS = mS
+        self.mX = mX
+
+        # set H1/2/3 mass values
         self.mH1 = masses[0]
         self.mH2 = masses[1]
         self.mH3 = masses[2]
@@ -165,6 +173,7 @@ class Params:
         filedata = filedata.replace("MH1",str(self.mH1))
         filedata = filedata.replace("MH2",str(self.mH2))
         filedata = filedata.replace("MH3",str(self.mH3))
+        # TODO: These probably need to be ordered by mass
         filedata = filedata.replace("T1LOW",str(self.tHSlow))
         filedata = filedata.replace("T1HIGH",str(self.tHShigh))
         filedata = filedata.replace("T2LOW",str(self.tHXlow))
