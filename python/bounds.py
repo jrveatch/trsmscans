@@ -6,7 +6,7 @@ import filters
 
 import argparse
 
-def filterbounds(filename,SMass,debug=False):
+def filterbounds(filename,HMass,SMass,debug=False):
 
     # get data and tools
     bounds, signals = getHiggsData()
@@ -19,7 +19,7 @@ def filterbounds(filename,SMass,debug=False):
 
     # if mS > mH, switch order
     HgtS = False
-    if SMass < 125:
+    if SMass < HMass:
         SName = 'H1'
         HName = 'H2'
         HgtS = True
