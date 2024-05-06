@@ -5,7 +5,7 @@ import argparse
 
 import numpy as np
 
-import arrays
+from arrays import Arrays
 import width
 import bounds
 
@@ -31,7 +31,7 @@ def applyFilters(input_file,
     nbounds = bounds.filterbounds(filename,masses)
 
     # get arrays from output file
-    arrs = arrays.Arrays(filename)
+    arrs = Arrays(filename)
     arrs.loadArrays()
 
     # find how many points pass both filters

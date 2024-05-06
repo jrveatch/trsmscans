@@ -10,8 +10,8 @@ import argparse
 from decimal import Decimal
 
 # import tools
-import parse
-import params
+from parse import Parse, Point
+from params import Params
 import filters
 import runScannerS
 from masses import Masses
@@ -51,7 +51,7 @@ def runScan(XMass,
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(masses)
+    pars = Params(masses)
 
     # base name for all files
     base = "TRSMBroken"
@@ -113,7 +113,7 @@ def runScan(XMass,
     vxrate = (1.0 - vev_range_shrink_rate)
 
     # initialize optimal point
-    optPoint = parse.Point()
+    optPoint = Point()
 
     if useprescan:
 
@@ -143,9 +143,9 @@ def runScan(XMass,
             quit()
 
         # get parser from prescan
-        scanparser = parse.Parse(prescan,
-                                 masses,
-                                 decay=decay)
+        scanparser = Parse(prescan,
+                           masses,
+                           decay=decay)
 
         # check ranges of the prescan
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
@@ -323,9 +323,9 @@ def runScan(XMass,
             continue
 
         # get parser with new arrays
-        scanparser = parse.Parse(filename=tsvname,
-                                 masses=masses,
-                                 decay=decay)
+        scanparser = Parse(filename=tsvname,
+                           masses=masses,
+                           decay=decay)
 
         # get new point as the maximum from the current scan
         newPoint = scanparser.getmaxpoint()

@@ -7,7 +7,7 @@ import datetime
 import argparse
 
 # import tools
-import params
+from params import Params
 import filters
 import runScannerS
 from masses import Masses
@@ -62,7 +62,7 @@ def runPrescan(XMass,
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(masses)
+    pars = Params(masses)
 
     # write .ini file from template
     pars.writeini(templateini,ininame)
