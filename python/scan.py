@@ -45,7 +45,7 @@ def runScan(XMass,
         quit()
 
     # make sure we use the minimum number of points
-    minpoints = 500
+    minpoints = 100
     if npoints < minpoints:
         npoints = minpoints
 
@@ -508,7 +508,6 @@ if __name__ == "__main__":
 
     # number of scan points
     npoints = args["npoints"]
-    minpoints = 100
 
     # number of iterations
     niter = args["iterations"]
