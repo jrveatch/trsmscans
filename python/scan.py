@@ -191,8 +191,7 @@ def runScan(XMass,
             pars.set_max("vx",maxvx)
         
         # get scan density
-        volume = pars.volume()
-        density = nprescan / volume
+        density = nprescan / pars.volume()
 
         # write scan details to details file
         details = open(detailsname,"a")
@@ -270,10 +269,6 @@ def runScan(XMass,
         vxlow = pars.low("vx")
         vxhigh = pars.high("vx")
 
-        # calculate point density from ranges
-        volume = pars.volume()
-        density = npoints / volume
-
         # write new .ini file from template and parameters
         pars.writeini(templateini,ininame)
 
@@ -282,6 +277,10 @@ def runScan(XMass,
             npoints = runScannerS.runParallelProcesses(ininame,npoints)
         else:
             npoints = runScannerS.runSingleProcess(ininame,npoints)
+
+        # calculate point density from ranges
+        volume = pars.volume()
+        density = npoints / volume
 
         # if a process returns a negative result, delete directory and return result
         if npoints < 0:
@@ -297,7 +296,11 @@ def runScan(XMass,
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth,SMass=SMass)
+        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",
+                                                      output_file=tsvname,
+                                                      maxwidth=maxwidth,
+                                                      HMass=HMass,
+                                                      SMass=SMass)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
