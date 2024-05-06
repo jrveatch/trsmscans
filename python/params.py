@@ -18,6 +18,9 @@ class Params:
                  vxmin=0.0,
                  vxmax=1000.0):
 
+        # store masses
+        self.masses = masses
+
         # set H1/2/3 mass values
         self.mH1 = masses.mH1
         self.mH2 = masses.mH2
