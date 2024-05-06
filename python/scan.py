@@ -14,6 +14,7 @@ import parse
 import params
 import filters
 import runScannerS
+from masses import Masses
 
 def runScan(XMass,
             SMass,
@@ -33,6 +34,9 @@ def runScan(XMass,
     # H mass
     HMass = 125
 
+    # create masses object
+    masses = Masses(mX=XMass,mS=SMass,mH=HMass)
+
     # check to make sure decay mode is supported
     supported = isValidDecay(decay)
     if not supported:
@@ -47,7 +51,7 @@ def runScan(XMass,
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(HMass,SMass,XMass)
+    pars = params.Params(masses)
 
     # base name for all files
     base = "TRSMBroken"
@@ -140,8 +144,7 @@ def runScan(XMass,
 
         # get parser from prescan
         scanparser = parse.Parse(prescan,
-                                 HMass=HMass,
-                                 SMass=SMass,
+                                 masses,
                                  decay=decay)
 
         # check ranges of the prescan
@@ -299,8 +302,7 @@ def runScan(XMass,
         nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",
                                                       output_file=tsvname,
                                                       maxwidth=maxwidth,
-                                                      HMass=HMass,
-                                                      SMass=SMass)
+                                                      masses=masses)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -322,8 +324,7 @@ def runScan(XMass,
 
         # get parser with new arrays
         scanparser = parse.Parse(filename=tsvname,
-                                 HMass=HMass,
-                                 SMass=SMass,
+                                 masses=masses,
                                  decay=decay)
 
         # get new point as the maximum from the current scan
@@ -507,7 +508,7 @@ if __name__ == "__main__":
 
     # number of scan points
     npoints = args["npoints"]
-    minpoints = 500
+    minpoints = 100
 
     # number of iterations
     niter = args["iterations"]

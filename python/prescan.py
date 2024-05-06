@@ -10,6 +10,7 @@ import argparse
 import params
 import filters
 import runScannerS
+from masses import Masses
 
 def runPrescan(XMass,
                SMass,
@@ -24,6 +25,9 @@ def runPrescan(XMass,
 
     # set H mass to 125
     HMass = 125
+
+    # create masses object
+    masses = Masses(mX=XMass,mS=SMass,mH=HMass)
 
     # TODO: Add check to make sure overwrite is wanted
 
@@ -58,13 +62,13 @@ def runPrescan(XMass,
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(HMass,SMass,XMass)
+    pars = params.Params(masses)
 
     # write .ini file from template
     pars.writeini(templateini,ininame)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(XMass=XMass,SMass=SMass)
+    nexisting = checkPrescan(masses)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting >= 0:
@@ -133,7 +137,7 @@ def runPrescan(XMass,
 
     # apply width and bounds filters
     # this also renames the output .tsv file
-    filters.applyFilters(tsvname,maxwidth=maxwidth,SMass=SMass)
+    filters.applyFilters(tsvname,maxwidth=maxwidth,masses=masses)
 
     # get total time taken
     scanend = time.time()
@@ -145,13 +149,13 @@ def runPrescan(XMass,
     return 0
 
 # function to check previous prescan
-def checkPrescan(XMass,SMass):
+def checkPrescan(masses: Masses):
 
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # prescan file name
-    filename = prescandir+"/X"+str(XMass)+"_S"+str(SMass)+"/TRSMBroken_prescan.tsv"
+    filename = prescandir+"/X"+str(masses.mX)+"_S"+str(masses.mS)+"/TRSMBroken_prescan.tsv"
 
     # get number of points in file
     npoints = countNPointsInFile(filename)
