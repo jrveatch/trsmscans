@@ -1,35 +1,32 @@
 
 from twors_higgstools_setup import *
 
-import arrays
+from arrays import Arrays
 import filters
 
 import argparse
 
-def filterbounds(filename,SMass,debug=False):
+from masses import Masses
+
+def filterbounds(filename,
+                 masses: Masses,
+                 debug=False):
 
     # get data and tools
     bounds, signals = getHiggsData()
     pred, H, S, X, ress_SM = setupHiggsTools()
 
     # get strings for 3 bosons
-    HName = 'H1'
-    SName = 'H2'
-    XName = 'H3'
-
-    # if mS > mH, switch order
-    HgtS = False
-    if SMass < 125:
-        SName = 'H1'
-        HName = 'H2'
-        HgtS = True
+    HName = masses.HName
+    SName = masses.SName
+    XName = masses.XName
 
     # check whether filt_width column exists, if not initialize it
     if not filters.column_exists(filename,"filt_bounds"):
         filters(filename)
 
     # load in arrays from .tsv file
-    arrs = arrays.Arrays(filename)
+    arrs = Arrays(filename)
     arrs.loadArrays()
 
     # get filt_bounds array
@@ -45,7 +42,7 @@ def filterbounds(filename,SMass,debug=False):
         mX = float(arrs.data['m'+XName][i])
 
         # rescalings
-        if HgtS:
+        if HName == "H2":
             RS = float(arrs.data['R11'][i])
             RH = float(arrs.data['R21'][i])
         else:
@@ -70,7 +67,7 @@ def filterbounds(filename,SMass,debug=False):
         b_H_tt = float(arrs.data['b_'+HName+'_tt'][i])
         # H->SS BR is 0 for mS > mH, otherwise get its value
         b_H_SS = 0
-        if HgtS: # mH > mS
+        if HName == "H2": # mH > mS
             b_H_SS = float(arrs.data['b_H2_H1H1'][i])
 
         # H2 BRs
@@ -87,7 +84,7 @@ def filterbounds(filename,SMass,debug=False):
         b_S_tt = float(arrs.data['b_'+SName+'_tt'][i])
         # S->HH BR is 0 for mH > mS, otherwise get its value
         b_S_HH = 0
-        if not HgtS: # mH < mS
+        if SName == "H2": # mH < mS
             b_S_HH = float(arrs.data['b_H2_H1H1'][i])
 
         # X BRs
@@ -102,12 +99,8 @@ def filterbounds(filename,SMass,debug=False):
         b_X_ss = float(arrs.data['b_'+XName+'_ss'][i])
         b_X_tautau = float(arrs.data['b_'+XName+'_tautau'][i])
         b_X_tt = float(arrs.data['b_'+XName+'_tt'][i])
-        if HgtS: # mH > mS
-            b_X_HH = float(arrs.data['b_H3_H2H2'][i])
-            b_X_SS = float(arrs.data['b_H3_H1H1'][i])
-        else: # mH < mS
-            b_X_HH = float(arrs.data['b_H3_H1H1'][i])
-            b_X_SS = float(arrs.data['b_H3_H2H2'][i])
+        b_X_HH = float(arrs.data['b_H3_'+HName+HName][i])
+        b_X_SS = float(arrs.data['b_H3_'+SName+SName][i])
         b_X_SH = float(arrs.data['b_H3_H1H2'][i])
 
         # Widths
@@ -179,7 +172,7 @@ def filterbounds(filename,SMass,debug=False):
             H.setBr('Zgam',b_H_Zgam)
             H.setBr('WW',b_H_WW)
             # include H->SS if mH > mS
-            if HgtS:
+            if HName == "H2":
                 H.setBr('S', 'S', b_H_SS)
 
             # some debug printouts to check BRs
@@ -223,7 +216,7 @@ def filterbounds(filename,SMass,debug=False):
             S.setBr('gamgam',b_S_gamgam)
             S.setBr('Zgam',b_S_Zgam)
             S.setBr('WW',b_S_WW)
-            if not HgtS:
+            if SName == "H2":
                 S.setBr('H', 'H', b_S_HH)
 
             # some debug printouts to check BRs

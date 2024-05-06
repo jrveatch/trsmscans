@@ -11,23 +11,21 @@ import diptest
 # import math for useful functions
 import math
 
+# import masses class to handle mass orderings
+from masses import Masses
+
 # class to parse arrays and provide details about data
 class Parse:
 
     # load new set of arrays
-    def __init__(self,filename,HMass,SMass,decay):
+    def __init__(self,
+                 filename,
+                 masses: Masses,
+                 decay):
 
         # initialize HName and SName
-        self.HName = ""
-        self.SName = ""
-
-        # assign H and S to H1 and H2
-        if SMass > HMass:
-            self.HName = "H1"
-            self.SName = "H2"
-        else:
-            self.HName = "H2"
-            self.SName = "H1"
+        self.HName = masses.HName
+        self.SName = masses.SName
 
         # get arrays
         self.arr = arrays.Arrays(filename)

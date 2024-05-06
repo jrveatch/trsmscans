@@ -5,11 +5,16 @@ import argparse
 
 import numpy as np
 
-import arrays
+from arrays import Arrays
 import width
 import bounds
 
-def applyFilters(input_file,maxwidth,SMass,output_file=""):
+from masses import Masses
+
+def applyFilters(input_file,
+                 maxwidth,
+                 masses: Masses,
+                 output_file=""):
 
     # initialize filter columns
     initializeFilters(input_file,output_file)
@@ -23,10 +28,10 @@ def applyFilters(input_file,maxwidth,SMass,output_file=""):
     nwidth = width.filterwidths(filename,maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filterbounds(filename,SMass)
+    nbounds = bounds.filterbounds(filename,masses)
 
     # get arrays from output file
-    arrs = arrays.Arrays(filename)
+    arrs = Arrays(filename)
     arrs.loadArrays()
 
     # find how many points pass both filters

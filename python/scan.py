@@ -10,10 +10,11 @@ import argparse
 from decimal import Decimal
 
 # import tools
-import parse
-import params
+from parse import Parse, Point
+from params import Params
 import filters
 import runScannerS
+from masses import Masses
 
 def runScan(XMass,
             SMass,
@@ -33,6 +34,9 @@ def runScan(XMass,
     # H mass
     HMass = 125
 
+    # create masses object
+    masses = Masses(mX=XMass,mS=SMass,mH=HMass)
+
     # check to make sure decay mode is supported
     supported = isValidDecay(decay)
     if not supported:
@@ -41,13 +45,13 @@ def runScan(XMass,
         quit()
 
     # make sure we use the minimum number of points
-    minpoints = 500
+    minpoints = 100
     if npoints < minpoints:
         npoints = minpoints
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = params.Params(HMass,SMass,XMass)
+    pars = Params(masses)
 
     # base name for all files
     base = "TRSMBroken"
@@ -109,7 +113,7 @@ def runScan(XMass,
     vxrate = (1.0 - vev_range_shrink_rate)
 
     # initialize optimal point
-    optPoint = parse.Point()
+    optPoint = Point()
 
     if useprescan:
 
@@ -139,10 +143,9 @@ def runScan(XMass,
             quit()
 
         # get parser from prescan
-        scanparser = parse.Parse(prescan,
-                                 HMass=HMass,
-                                 SMass=SMass,
-                                 decay=decay)
+        scanparser = Parse(prescan,
+                           masses,
+                           decay=decay)
 
         # check ranges of the prescan
         mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
@@ -191,8 +194,7 @@ def runScan(XMass,
             pars.set_max("vx",maxvx)
         
         # get scan density
-        volume = pars.volume()
-        density = nprescan / volume
+        density = nprescan / pars.volume()
 
         # write scan details to details file
         details = open(detailsname,"a")
@@ -270,10 +272,6 @@ def runScan(XMass,
         vxlow = pars.low("vx")
         vxhigh = pars.high("vx")
 
-        # calculate point density from ranges
-        volume = pars.volume()
-        density = npoints / volume
-
         # write new .ini file from template and parameters
         pars.writeini(templateini,ininame)
 
@@ -282,6 +280,10 @@ def runScan(XMass,
             npoints = runScannerS.runParallelProcesses(ininame,npoints)
         else:
             npoints = runScannerS.runSingleProcess(ininame,npoints)
+
+        # calculate point density from ranges
+        volume = pars.volume()
+        density = npoints / volume
 
         # if a process returns a negative result, delete directory and return result
         if npoints < 0:
@@ -297,7 +299,10 @@ def runScan(XMass,
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",output_file=tsvname,maxwidth=maxwidth,SMass=SMass)
+        nwidth, nbounds, npass = filters.applyFilters(base + ".tsv",
+                                                      output_file=tsvname,
+                                                      maxwidth=maxwidth,
+                                                      masses=masses)
 
         # protection against the case where all points fail width filter
         if nwidth == 0:
@@ -318,10 +323,9 @@ def runScan(XMass,
             continue
 
         # get parser with new arrays
-        scanparser = parse.Parse(filename=tsvname,
-                                 HMass=HMass,
-                                 SMass=SMass,
-                                 decay=decay)
+        scanparser = Parse(filename=tsvname,
+                           masses=masses,
+                           decay=decay)
 
         # get new point as the maximum from the current scan
         newPoint = scanparser.getmaxpoint()
@@ -504,7 +508,6 @@ if __name__ == "__main__":
 
     # number of scan points
     npoints = args["npoints"]
-    minpoints = 500
 
     # number of iterations
     niter = args["iterations"]
