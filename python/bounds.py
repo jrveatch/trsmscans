@@ -1,7 +1,7 @@
 
 from twors_higgstools_setup import *
 
-import arrays
+from arrays import Arrays
 import filters
 
 import argparse
@@ -26,7 +26,7 @@ def filterbounds(filename,
         filters(filename)
 
     # load in arrays from .tsv file
-    arrs = arrays.Arrays(filename)
+    arrs = Arrays(filename)
     arrs.loadArrays()
 
     # get filt_bounds array
