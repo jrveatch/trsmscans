@@ -243,6 +243,14 @@ def runScan(XMass,
         pars.set_params("vs",optPoint.vs,vsrange)
         pars.set_params("vx",optPoint.vx,vxrange)
 
+    myscanner = Scanner(npoints=npoints,
+                        params=pars,
+                        optPoint=optPoint,
+                        suffix="blah",
+                        use_multiprocessing=use_multiprocessing)
+    #myscanner.run(7)
+    #return
+
     # iterate over multiple scans
     for iter in range(niter):
 
@@ -475,6 +483,112 @@ def isValidDecay(decaymode):
 
     # if it isn't found, return False
     return False
+
+class Scanner:
+
+    def __init__(self,
+                 params: Params,
+                 npoints,
+                 optPoint,
+                 suffix="",
+                 base="TRSMBroken",
+                 use_multiprocessing=False):
+
+        self.params = params
+        self.npoints = npoints
+        self.optPoint = optPoint
+        self.suffix = suffix
+        self.base = base
+        self.use_multiprocessing = use_multiprocessing
+
+        # name of template .ini file
+        self.templateini = self.base + "_template.ini"
+
+        # TODO: Names of details and summary files
+
+    def run(self,iter):
+
+        # get iteration identifier
+        identifier = f"{iter:04d}"
+        if self.suffix:
+            identifier += "_" + self.suffix
+        print("\nIteration:",identifier)
+
+        # set names of input .ini and output .tsv files
+        outname = "./files/" + self.base + "_" + identifier
+        ininame = outname + ".ini"
+        tsvname = outname + ".tsv"
+
+        # get parameter ranges, lows and highs
+        self.getpars()
+
+        # write new .ini file from template and parameters
+        self.params.writeini(self.templateini,ininame)
+
+        # run ScannerS
+        if self.use_multiprocessing:
+            print("Using multiprocessing")
+            self.npoints = runScannerS.runParallelProcesses(ininame,self.npoints)
+        else:
+            print("Using single processing")
+            self.npoints = runScannerS.runSingleProcess(ininame,self.npoints)
+
+        # TODO: Figure out what to do if process returns negative value
+
+        # calculate point density from ranges
+        volume = self.params.volume()
+        density = npoints / volume
+
+        # apply width and bounds filters
+        # this also renames the output .tsv file
+        nwidth, nbounds, npass = filters.applyFilters(self.base + ".tsv",
+                                                      output_file=tsvname,
+                                                      maxwidth=maxwidth,
+                                                      masses=self.params.masses)
+
+        # TODO: Figure out whether these are needed and what return values to use
+        # protection against the case where all points fail width filter
+        if nwidth == 0:
+            details = open(detailsname,"a")
+            details.write("Iteration = " + str(identifier) + "\n")
+            details.write("Skip due to " + str(nwidth) + " events passing width filter\n")
+            details.write("\n\n\n\n")
+            details.close()
+            return
+
+        # protection against the case where all points fail bounds filter
+        if nbounds == 0:
+            details = open(detailsname,"a")
+            details.write("Iteration = " + str(identifier) + "\n")
+            details.write("Skip due to " + str(nbounds) + " events passing bounds filter\n")
+            details.write("\n\n")
+            details.close()
+            return
+
+        return
+
+    def getpars(self):
+
+        # get parameter ranges
+        self.tHSrange = self.params.range("tHS")
+        self.tHXrange = self.params.range("tHX")
+        self.tSXrange = self.params.range("tSX")
+        self.vsrange = self.params.range("vs")
+        self.vxrange = self.params.range("vx")
+
+        # get parameter low values
+        self.tHSlow = self.params.low("tHS")
+        self.tHXlow = self.params.low("tHX")
+        self.tSXlow = self.params.low("tSX")
+        self.vslow = self.params.low("vs")
+        self.vxlow = self.params.low("vx")
+
+        # get parameter high values
+        self.tHShigh = self.params.high("tHS")
+        self.tHXhigh = self.params.high("tHX")
+        self.tSXhigh = self.params.high("tSX")
+        self.vshigh = self.params.high("vs")
+        self.vxhigh = self.params.high("vx")
 
 if __name__ == "__main__":
 
