@@ -303,7 +303,7 @@ class Point:
         return getattr(self,attr_name)
 
     # get difference between two values of varname
-    def diff(self,other,varname):
+    def diff(self,other: 'Point',varname):
         return self.get_attribute(varname) - other.get_attribute(varname)
 
     # get fractional difference between two values of varname
@@ -312,9 +312,9 @@ class Point:
         return self.diff(other,varname) / abs(self.get_attribute(varname))
 
     # define the greater than (>) operator
-    def __gt__(self,other):
+    def __gt__(self,other: 'Point'):
         return self.xb > other.xb
 
     # define the less than (<) operator
-    def __lt__(self,other):
+    def __lt__(self,other: 'Point'):
         return self.xb < other.xb
