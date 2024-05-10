@@ -5,6 +5,7 @@ import os as os
 import os.path
 import parse
 import argparse
+from masses import Masses
 
 # Main Function
 def main(decay, xmass, smass):
@@ -22,6 +23,9 @@ def main(decay, xmass, smass):
 
 #Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
 def plot(file_array, smass, decay, xmass):
+
+    #Create a masses object
+    masses = Masses(mX=float(xmass),mS=float(smass), mH=125)
     
     # Create Directory
     output_dir = "output/plots/" + decay + "/X" + xmass + "_S" + smass + "/" 
@@ -39,7 +43,7 @@ def plot(file_array, smass, decay, xmass):
     for file in file_array:
 
         #Retrieve the variables from the list
-        parser = parse.Parse(file, HMass=125, SMass=float(smass)) 
+        parser = parse.Parse(filename=file, masses=masses, decay=decay) 
         thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
         xb = parser.getxb(decay)
         
