@@ -5,7 +5,6 @@ import os as os
 import os.path
 import parse
 import argparse
-import pandas as pd
 
 # Main Function
 def main(decay, xmass, smass):
@@ -18,147 +17,85 @@ def main(decay, xmass, smass):
     if ((os.path.exists(prescan))):
         all_files.insert(0, prescan)
 
-    '''
-    Note: Reason why there is no if-else is due to testing variables, I will create the if-else after assuring that functions work as desired
-    '''
-    
     # Using Iterate Directory - Plot all files and variables
-    plot_multiple_chat(all_files, smass, decay, xmass)
+    plot(all_files, smass, decay, xmass)
 
-
-
-'''
-The way this function works is that it will plot all of the points for one combination and then move on from combination to combination 
-
-^^ This is different from my original idea of plotting each combination as we go through each file 
-
-Pros -- Code works !!!
-Cons -- the code runs slower than original approach as it is plotting through each file almost manually
-
-'''
 #Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
-def plot_multiple_chat(file_array, smass, decay, xmass):
-
-    array_of_colors = ["brown", "red", "orangered", "sienna", "saddlebrown", "darkorange", "gold", "darkolivegreen", "green", "teal", "steelblue", "blue", "blueviolet", "purple", "hotpink"]
+def plot(file_array, smass, decay, xmass):
     
     # Create Directory
-    output_dir = "output/plots/" + decay + "/X" + xmass + "_S" + smass + "/"
-    mkdir_p(output_dir)
+    output_dir = "output/plots/" + decay + "/X" + xmass + "_S" + smass + "/" 
+    mkdir_p(output_dir) #pass directory to the make directory function
 
-    op = (0.8 / len(file_array))
+    #Initialize variable 2D-lists to store each variable list from all files
+    thetahS_list = []
+    thetahX_list = []
+    thetaSX_list = []
+    vs_list = []
+    vx_list = []
+    xb_list = []
 
+    #Iterate through each file
+    for file in file_array:
 
-    for i in range(15):
-        opac = op + 0.19
-        plt.figure()  # Create a new figure for each variable combination
-        for df in file_array:
-            print(df)
-            parser = parse.Parse(df, HMass=125, SMass=float(smass))
-            thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
-            xb = parser.getxb(decay)
-
-            var_array = [[thetahS, thetahX], [thetahS, thetaSX], [thetahS, vs], [thetahS, vx], [thetahX, thetaSX],
-                         [thetahX, vs], [thetahX, vx], [thetaSX, vs], [thetaSX, vx], [vs, vx], [thetahS, xb],
-                         [thetahX, xb], [thetaSX, xb], [vs, xb], [vx, xb]]
-            var_names = [["thetahS", "thetahX"], ["thetahS", "thetaSX"], ["thetahS", "vs"], ["thetahS", "vx"],
-                         ["thetahX", "thetaSX"], ["thetahX", "vs"], ["thetahX", "vx"], ["thetaSX", "vs"], ["thetaSX", "vx"],
-                         ["vs", "vx"], ["thetahS", "xb"], ["thetahX", "xb"], ["thetaSX", "xb"], ["vs", "xb"], ["vx", "xb"]]
-
-            plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac, label=f"{df}: {var_names[i][0]} vs {var_names[i][1]}")
-            opac += op
-            #array_of_colors.reverse()
-
-        plt.xlabel(var_names[i][0])
-        plt.ylabel(var_names[i][1])
-        plt.title(f"{var_names[i][0]} vs {var_names[i][1]}")
-        #plt.legend()
-        plt.savefig(output_dir + f"{var_names[i][0]}_vs..._{var_names[i][1]}.png")
-        plt.close()
-
-
-#### Original plot multiple function 
-def plot_multiple(file_array, smass, decay, xmass):
-
-    array_of_colors = ["brown", "red", "orangered", "sienna", "saddlebrown", "darkorange", "gold", "darkolivegreen", "green", "teal", "steelblue", "blue", "blueviolet", "purple", "hotpink"]
-
-    #Create Directory
-    output_dir = "output/plots/" + decay + "/X"+xmass+"_S"+smass+"/"
-    mkdir_p(output_dir)
-
-    counter = 0
-    plots = []
-
-    op = (0.8 / len(file_array))
-    opac = op + 0.19
-    
-    for df in file_array:
-
-        print(df)
-
-        parser = parse.Parse(df,HMass=125,SMass=float(smass))
-
+        #Retrieve the variables from the list
+        parser = parse.Parse(file, HMass=125, SMass=float(smass)) 
         thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
         xb = parser.getxb(decay)
         
-        var_array = [[thetahS, thetahX], [thetahS, thetaSX], [thetahS, vs], [thetahS, vx], [thetahX, thetaSX], [thetahX, vs], [thetahX, vx], [thetaSX, vs], [thetaSX, vx], [vs, vx], [thetahS, xb], [thetahX, xb], [thetaSX, xb], [vs, xb], [vx,xb]]
-        var_names = [["thetahS", "thetahX"], ["thetahS", "thetaSX"], ["thetahS", "vs"], ["thetahS", "vx"], ["thetahX", "thetaSX"], ["thetahX", "vs"], ["thetahX", "vx"], ["thetaSX", "vs"], ["thetaSX", "vx"], ["vs", "vx"], ["thetahS", "xb"], ["thetahX", "xb"], ["thetaSX", "xb"], ["vs", "xb"], ["vx", "xb"]]
+        #Append each variable list from the file to its 2D-Variable array
+        thetahS_list.append(thetahS)
+        thetahX_list.append(thetahX)
+        thetaSX_list.append(thetaSX)
+        vs_list.append(vs)
+        vx_list.append(vx)
+        xb_list.append(xb)
+
+    #Create a list containing all of the variable lists
+    var_list = [thetahS_list, thetahX_list, thetaSX_list, vs_list, vx_list, xb_list]
+    var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
+
+    # Define default start and end colors using RGB values directly
+    start_rgb = (0, 0, 1)  # Blue
+    end_rgb = (1, 0, 0)    # Red
+
+    #Iterate through the list of all variables to plot each variable combination from each file
+    for v in range(len(var_list)-1):
+
+        var1 = var_list[v] #Get the first variable 2D-list from the all variable list
         
-        for i in range(len(var_array)):
-            plt.figure()  # Create a new figure for each variable combination
-            plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-            plt.xlabel(var_names[i][0])
-            plt.ylabel(var_names[i][1])
-            plt.title(f"{var_names[i][0]} v s {var_names[i][1]}")
-            plt.savefig(output_dir + f"{var_names[i][0]}_v_s_{var_names[i][1]}.png")
+        for j in range(v+1, len(var_list)):
+
+            var2 = var_list[j] #Get the second variable 2D-List from the all variable list
+
+            #Set the opacity to be between values 0.19 and 1 depending on amount of files
+            op = (0.8 / len(file_array))
+            opac = op + 0.19
+
+            #Create a new scatter figure
+            plt.figure()
+    
+            #Iterate through both variable 2D-Lists to plot the info from each file
+            for i in range(len(thetahS_list)):
+
+                #Decipher the color used for the scatterplot
+                t = i / len(file_array)
+                color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
+
+                #Plot the variables by file
+                plt.scatter(var1[i], var2[i], s=15, c=color, alpha=opac)
+                opac+=op #adjust the opacity
+                
+            #Initialize scatterplot labels
+            plt.title(f"{var_names[v]} vs {var_names[j]}")
+            plt.xlabel(f"{var_names[v]}")
+            plt.ylabel(f"{var_names[j]}")
+
+            #Save the figure as a png
+            plt.savefig(output_dir + f"{var_names[v]}_vs_{var_names[j]}.png")
+
+            #Close the figure
             plt.close()
-
-        
-        if counter == 0:
-            for i in range(len(var_array)):
-
-                
-                #print("**")
-                fig = plt.figure()
-                scatter = plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-                axis = fig.add_subplot(111)
-                axis.add_collection(scatter)
-                
-
-                plt.figure()
-                plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-                scatter = plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-                plt.xlabel(var_names[i][0])
-                plt.ylabel(var_names[i][1])
-                plt.title(f'{var_names[i][0]} vs. {var_names[i][1]}')
-                plt.savefig(output_dir + f'{var_names[i][0]} testy {var_names[i][1]}.png')
-                plots.append(scatter)
-                #plt.show()
-                plt.close()
-                
-              
-        else:
-
-            for i in range(len(var_array)):
-                plt.figure()  # Create a new figure
-                plt.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-                plt.xlabel(var_names[i][0])
-                plt.ylabel(var_names[i][1])
-                plt.savefig(output_dir + f'{var_names[i][0]} testy {var_names[i][1]}.png')
-                plt.close()
-
-            
-            for i in range(len(var_array)):
-                plot = plots[i]
-                plot.figure()
-                plot.axes.scatter(var_array[i][0], var_array[i][1], s=15, c=array_of_colors[i], alpha=opac)
-                plot.axes.xlabel(var_names[i][0])
-                plot.axes.ylabel(var_names[i][1])
-                plot.savefig(output_dir + f'{var_names[i][0]} testy {var_names[i][1]}.png')
-                #plt.show()
-                plot.axes.close()
-        
-        counter += 1
-        opac += op
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
 def iterate_directory(decay, xmass, smass):
@@ -196,37 +133,6 @@ def mkdir_p(mypath):
         if exc.errno == EEXIST and path.isdir(mypath):
             pass
         else: raise
-
-#Function that will plot the given arrays and save them as a png ---- original function (will be deleted soon)
-def plot_and_save(array1, array2, array1_name, array2_name, xmass, smass, size=30):
-    x = array1_name
-    y = array2_name
-    
-    decay = "SbbHtautau"
-    xmass = xmass
-    smass = smass
-
-    #create color
-    r = random.random()
-    g = random.random()
-    b = random.random()
-
-    color = (r, g, b)
-
-    plt.figure()
-    plt.scatter(array1, array2, size, c=color)
-    plt.xlabel(x)
-    plt.ylabel(y)
-    plt.title(x + " vs " + y)
-
-    #Create Directory
-    output_dir = "output/plots/" + decay + "/X"+xmass+"_S"+smass+"/"
-    mkdir_p(output_dir)
-
-    #name = str(x + " vs " + y + ".png")
-
-    plt.savefig(output_dir + name)
-    #plt.show()
 
 if __name__ == '__main__':
 
