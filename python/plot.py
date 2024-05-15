@@ -64,6 +64,9 @@ def plot(file_array, smass, decay, xmass):
         #Append the maximum point in to its respective list
         maxpoint_list.append(maxpoint)
 
+    #Find the Maximum point from the maximum points
+    maximum = get_max_point(maxpoint_list)
+
     #Create a list containing all of the variable lists
     var_list = [thetahS_list, thetahX_list, thetaSX_list, vs_list, vx_list, xb_list]
     var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
@@ -95,34 +98,35 @@ def plot(file_array, smass, decay, xmass):
                 t = i / len(file_array)
                 color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
+                #Plot the variables by file
+                plt.scatter(var1[i], var2[i], s=15, c=color, alpha=opac)
+                
+                #Adjust the opacity
+                opac+=op 
+
+            #Reset opacity for star points
+            opac = op
+            opac += 0.19
+            
+            for q in range(len(thetahS_list)):
+
                 #Initialize both variables to be retrieved from the Point
                 variable1 = point_vars[v]
                 variable2 = point_vars[j]
 
                 #Get and store the max points for each variable
-                point1 = maxpoint_list[i].get_attribute(variable1)
-                point2 = maxpoint_list[i].get_attribute(variable2)
-
-                #Plot the variables by file
-                plt.scatter(var1[i], var2[i], s=15, c=color, alpha=opac)
+                point1 = maxpoint_list[q].get_attribute(variable1)
+                point2 = maxpoint_list[q].get_attribute(variable2)
 
                 #Plot the max point from the scatterplot [star]
-                if i < (len(thetahS_list) - 1):
-                    plt.scatter(point1, point2, s=25, c="yellow", alpha=opac, marker="*")
-                else:
-
-                    #opacity adjustment
-                    opacity = ((1-opac)/3)
-                    opaci = opacity + opac
-
-                    #Emphasize the final max point by size and opacity
-                    plt.scatter(point1, point2, s=60, c="gold", alpha=opaci, marker="*") 
-                    plt.scatter(point1, point2, s=55, c="gold", alpha=opaci+opacity, marker="*")
-                    plt.scatter(point1, point2, s=50, c="gold", alpha=opaci+(2*opacity), marker="*")
+                if(maxpoint_list[q] != maximum): #Make sure the point is not the maximum point
+                    plt.scatter(point1, point2, s=25, c="yellow", alpha=opac, marker="*") #plot normally
+                else: #If point is maximum point plot as a bigger star
+                    plt.scatter(point1, point2, s=60, c="gold", alpha=0.999, marker="*")
 
                 #Adjust the opacity
-                opac+=op 
-                
+                opac+=op
+
             #Initialize scatterplot labels
             plt.title(f"{var_names[v]} vs {var_names[j]}")
             plt.xlabel(f"{var_names[v]}")
@@ -133,6 +137,20 @@ def plot(file_array, smass, decay, xmass):
 
             #Close the figure
             plt.close()
+
+#Function that returns the maximum point from all maximum point objects
+def get_max_point(points):
+
+    #Initialize the maximum point as the first point
+    maxpoint = points[0]
+
+    #Iterate to decipher the maximum point from the list
+    for i in range(len(points)-1):
+        if maxpoint < points[i+1]:
+            maxpoint = points[i+1]
+
+    #Return maximum point
+    return maxpoint
 
 #Function that defines colors to plot using random RGB values
 def select_colors():
@@ -146,23 +164,19 @@ def select_colors():
     color1 = (r, g, b)
     color2 = (g, b, r)
 
-    '''
-    Note: same RGB values are used so similar hues are not used [hard to differentiate]
-    '''
-
     #Return the values to call
     return color1, color2
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
 def iterate_directory(decay, xmass, smass):
 
-    # Empty array that will hold the files found
+    #Empty array that will hold the files found
     file_array = []
 
-    # Directory for the scan outputs
+    #Directory for the scan outputs
     directory = "./output/scan/"+decay+"/X"+xmass+"_S"+smass+"/files/"
 
-    # Iterate through the directory
+    #Iterate through the directory
     for file in os.listdir(directory):
 
         file_name = file
@@ -176,7 +190,7 @@ def iterate_directory(decay, xmass, smass):
     return file_array
 
 
-#Create a function that will determine if the directory is already made, else it will create it
+# Create a function that will determine if the directory is already made, else it will create it
 def mkdir_p(mypath):
     '''Creates a directory. equivalent to using mkdir -p on the command line'''
 
