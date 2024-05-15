@@ -39,6 +39,9 @@ def plot(file_array, smass, decay, xmass):
     vx_list = []
     xb_list = []
 
+    #Initialize list that will hold all the maximum points for each file iteration
+    maxpoint_list = []
+
     #Iterate through each file
     for file in file_array:
 
@@ -46,6 +49,9 @@ def plot(file_array, smass, decay, xmass):
         parser = parse.Parse(filename=file, masses=masses, decay=decay) 
         thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
         xb = parser.getxb(decay)
+
+        #Retrive maximum point based on the file's variables
+        maxpoint = parser.getmaxpoint()
         
         #Append each variable list from the file to its 2D-Variable array
         thetahS_list.append(thetahS)
@@ -55,9 +61,13 @@ def plot(file_array, smass, decay, xmass):
         vx_list.append(vx)
         xb_list.append(xb)
 
+        #Append the maximum point in to its respective list
+        maxpoint_list.append(maxpoint)
+
     #Create a list containing all of the variable lists
     var_list = [thetahS_list, thetahX_list, thetaSX_list, vs_list, vx_list, xb_list]
     var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
+    point_vars = ["tHS", "tHX", "tSX", "vs", "vx", "xb"] #List with all the variable names based on the Point class
 
     # Define default start and end colors using RGB values directly
     start_rgb = (0, 0, 1)  # Blue
@@ -86,8 +96,23 @@ def plot(file_array, smass, decay, xmass):
                 t = i / len(file_array)
                 color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
+                #Initialize both variables to be retrieved from the Point
+                variable1 = point_vars[v]
+                variable2 = point_vars[j]
+
+                #Get and store the max points for each variable
+                point1 = maxpoint_list[i].get_attribute(variable1)
+                point2 = maxpoint_list[i].get_attribute(variable2)
+
                 #Plot the variables by file
                 plt.scatter(var1[i], var2[i], s=15, c=color, alpha=opac)
+
+                #Plot the max point from the scatterplot [star]
+                if i < (len(thetahS_list) - 1):
+                    plt.scatter(point1, point2, s=25, c="gold", alpha=opac, marker="*")
+                else:
+                    plt.scatter(point1, point2, s=60, c="yellow", alpha=opac, marker="*") #Final max point from last file
+
                 opac+=op #adjust the opacity
                 
             #Initialize scatterplot labels
