@@ -69,9 +69,8 @@ def plot(file_array, smass, decay, xmass):
     var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
     point_vars = ["tHS", "tHX", "tSX", "vs", "vx", "xb"] #List with all the variable names based on the Point class
 
-    # Define default start and end colors using RGB values directly
-    start_rgb = (0, 0, 1)  # Blue
-    end_rgb = (1, 0, 0)    # Red
+    #Set the start and end colors by random RGB values
+    start_rgb, end_rgb = select_colors()
 
     #Iterate through the list of all variables to plot each variable combination from each file
     for v in range(len(var_list)-1):
@@ -109,11 +108,20 @@ def plot(file_array, smass, decay, xmass):
 
                 #Plot the max point from the scatterplot [star]
                 if i < (len(thetahS_list) - 1):
-                    plt.scatter(point1, point2, s=25, c="gold", alpha=opac, marker="*")
+                    plt.scatter(point1, point2, s=25, c="yellow", alpha=opac, marker="*")
                 else:
-                    plt.scatter(point1, point2, s=60, c="yellow", alpha=opac, marker="*") #Final max point from last file
 
-                opac+=op #adjust the opacity
+                    #opacity adjustment
+                    opacity = ((1-opac)/3)
+                    opaci = opacity + opac
+
+                    #Emphasize the final max point by size and opacity
+                    plt.scatter(point1, point2, s=60, c="gold", alpha=opaci, marker="*") 
+                    plt.scatter(point1, point2, s=55, c="gold", alpha=opaci+opacity, marker="*")
+                    plt.scatter(point1, point2, s=50, c="gold", alpha=opaci+(2*opacity), marker="*")
+
+                #Adjust the opacity
+                opac+=op 
                 
             #Initialize scatterplot labels
             plt.title(f"{var_names[v]} vs {var_names[j]}")
@@ -125,6 +133,25 @@ def plot(file_array, smass, decay, xmass):
 
             #Close the figure
             plt.close()
+
+#Function that defines colors to plot using random RGB values
+def select_colors():
+
+    #Set random RGB values
+    r = random.random()
+    g = random.random()
+    b = random.random()
+
+    #Define two different colors with the given RGB values
+    color1 = (r, g, b)
+    color2 = (g, b, r)
+
+    '''
+    Note: same RGB values are used so similar hues are not used [hard to differentiate]
+    '''
+
+    #Return the values to call
+    return color1, color2
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
 def iterate_directory(decay, xmass, smass):
