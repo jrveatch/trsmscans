@@ -20,8 +20,7 @@ thetaVars = ["tHS","tHX","tSX"]
 vevVars = ["vs","vx"]
 varnames = thetaVars + vevVars
 
-def runScan(XMass,
-            SMass,
+def runScan(masses: 'Masses',
             decay,
             npoints,
             niter,
@@ -35,11 +34,9 @@ def runScan(XMass,
     # get scan start time
     scanstart = time.time()
 
-    # H mass
-    HMass = 125
-
-    # create masses object
-    masses = Masses(mX=XMass,mS=SMass,mH=HMass)
+    # get masses
+    XMass = masses.mX
+    SMass = masses.mS
 
     # check to make sure decay mode is supported
     supported = isValidDecay(decay)
@@ -468,6 +465,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
     argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
@@ -485,6 +483,10 @@ if __name__ == "__main__":
     # masses
     xmass = args["XMass"]
     smass = args["SMass"]
+    hmass = args["HMass"]
+
+    # create masses object
+    masses = Masses(mX=xmass,mS=smass,mH=hmass)
 
     # decay mode
     decay = args["decaymode"]
@@ -506,8 +508,7 @@ if __name__ == "__main__":
     # whether multiprocessing should be used
     use_multiprocessing = args['multiprocessing']
 
-    runScan(XMass=xmass,
-            SMass=smass,
+    runScan(masses=masses,
             decay=decay,
             npoints=npoints,
             niter=niter,
