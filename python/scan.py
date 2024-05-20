@@ -16,7 +16,9 @@ import filters
 import runScannerS
 from masses import Masses
 
-varnames = ["tHS","tHX","tSX","vs","vx"]
+thetaVars = ["tHS","tHX","tSX"]
+vevVars = ["vs","vx"]
+varnames = thetaVars + vevVars
 
 def runScan(XMass,
             SMass,
@@ -190,16 +192,12 @@ def runScan(XMass,
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
-        details.write("thetaHS: value = " + f"{optPoint.tHS:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.low("tHS"):1.4f}" + "," + f"{pars.high("tHS"):1.4f}" + "]\n")
-        details.write("thetaHX: value = " + f"{optPoint.tHX:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.low("tHX"):1.4f}" + "," + f"{pars.high("tHX"):1.4f}" + "]\n")
-        details.write("thetaSX: value = " + f"{optPoint.tSX:1.4f}" + "\n")
-        details.write("         range = [" + f"{pars.low("tSX"):1.4f}" + "," + f"{pars.high("tSX"):1.4f}" + "]\n")
-        details.write("vs: value = " + f"{optPoint.vs:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.low("vs"):1.2f}" + "," + f"{pars.high("vs"):1.2f}" + "]\n")
-        details.write("vx: value = " + f"{optPoint.vx:1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.low("vx"):1.2f}" + "," + f"{pars.high("vx"):1.2f}" + "]\n")
+        for var in thetaVars:
+            details.write(var+": value = " + f"{getattr(optPoint,var):1.4f}" + "\n")
+            details.write("     range = [" + f"{pars.low(var):1.4f}" + "," + f"{pars.high(var):1.4f}" + "]\n")
+        for var in vevVars:
+            details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
+            details.write("    range = [" + f"{pars.low(var):1.2f}" + "," + f"{pars.high(var):1.2f}" + "]\n")
         details.write("\n\n")
         details.close()
 
