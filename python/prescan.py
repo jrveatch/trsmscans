@@ -40,7 +40,10 @@ def runPrescan(masses: 'Masses',
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
-    dir = prescandir+"/X"+str(XMass)+"_S"+str(SMass)+"/"
+    dir = prescandir+"X"+str(XMass)+"_S"+str(SMass)+"/"
+
+    # print starting message
+    print("Attempting to run prescan in",dir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir) and overwrite:
@@ -73,7 +76,7 @@ def runPrescan(masses: 'Masses',
         # if enough points already exist, exit
         if nexisting >= npoints:
             print("Found a prescan that already has",nexisting,"points.")
-            print("Skipping this prescan of",npoints,"points.")
+            print(npoints,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with -o.")
             return 0
 

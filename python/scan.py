@@ -15,6 +15,7 @@ from params import Params
 import filters
 import runScannerS
 from masses import Masses
+import prescan
 
 thetaVars = ["tHS","tHX","tSX"]
 vevVars = ["vs","vx"]
@@ -82,9 +83,6 @@ def runScan(masses: 'Masses',
     if not os.path.exists(dir+templateini):
         shutil.copy(templateini,dir)
 
-    # go into the run directory
-    os.chdir(dir)
-
     # create summary file
     summaryname = "scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     summary = open(summaryname,"w")
@@ -123,6 +121,15 @@ def runScan(masses: 'Masses',
         # location of prescan outputs
         prescandir = os.environ['PRESCANDIR']
         prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
+
+        # call prescan
+        prescan.runPrescan(masses=masses,
+                           npoints=npoints,
+                           maxwidth=maxwidth,
+                           use_multiprocessing=use_multiprocessing)
+
+        # go into the correct directory
+        os.chdir(dir)
 
         # if prescan output doesn't exist, complain and exit
         if not os.path.exists(prescantsv):
@@ -438,6 +445,9 @@ def runScan(masses: 'Masses',
     details = open(detailsname,"a")
     details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
+
+    # return to run directory
+    os.chdir(os.environ['PRESCANDIR'])
 
 def isValidDecay(decaymode):
 
