@@ -125,16 +125,16 @@ def runScan(XMass,
 
         # location of prescan outputs
         prescandir = os.environ['PRESCANDIR']
-        prescan = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
+        prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
 
         # if prescan output doesn't exist, complain and exit
-        if not os.path.exists(prescan):
+        if not os.path.exists(prescantsv):
             print("You are attempting to use a prescan that doesn't exist.")
             print("Please run prescan.py before continuing or run without -p.")
             quit()
 
         # count the number of prescan points available
-        with open(prescan, "r") as f:
+        with open(prescantsv, "r") as f:
             nprescan = sum(1 for _ in f)
 
         # info message about prescan
@@ -147,7 +147,7 @@ def runScan(XMass,
             quit()
 
         # get parser from prescan
-        scanparser = Parse(prescan,
+        scanparser = Parse(prescantsv,
                            masses,
                            decay=decay)
 
