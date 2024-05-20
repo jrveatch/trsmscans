@@ -16,6 +16,8 @@ import filters
 import runScannerS
 from masses import Masses
 
+varnames = ["tHS","tHX","tSX","vs","vx"]
+
 def runScan(XMass,
             SMass,
             decay,
@@ -147,20 +149,6 @@ def runScan(XMass,
                            masses,
                            decay=decay)
 
-        # check ranges of the prescan
-        mintHS, maxtHS, mintHX, maxtHX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx = scanparser.getparams()
-        
-        # get new points
-        optPoint = scanparser.getmaxpoint()
-
-        # print the ranges to the screen
-        print("Found the following ranges from the prescan:")
-        print("thetaHS: ["+f"{mintHS:1.4f}"+","+f"{maxtHS:1.4f}"+"]")
-        print("thetaHX: ["+f"{mintHX:1.4f}"+","+f"{maxtHX:1.4f}"+"]")
-        print("thetaSX: ["+f"{mintSX:1.4f}"+","+f"{maxtSX:1.4f}"+"]")
-        print("vs: ["+f"{maxvs:1.2f}"+","+f"{maxvs:1.2f}"+"]")
-        print("vx: ["+f"{minvx:1.2f}"+","+f"{maxvx:1.2f}"+"]")
-
         # if the prescan ranges are more than 5% away from
         # the boundaries, change the boundaries to restrict
         # scan range and minimize scan points that are wasted
@@ -169,32 +157,32 @@ def runScan(XMass,
         # set tolerance from boundaries
         tolerance = 0.05
 
-        # thetas
-        if mintHS - (abs(mintHS) * tolerance) > pars.min("tHS"):
-            pars.set_min("tHS",mintHS)
-        if mintHX - (abs(mintHX) * tolerance) > pars.min("tHX"):
-            pars.set_min("tHX",mintHX)
-        if mintSX - (abs(mintSX) * tolerance) > pars.min("tSX"):
-            pars.set_min("tSX",mintSX)
-        if maxtHS + (abs(maxtHS) * tolerance) < pars.max("tHS"):
-            pars.set_max("tHS",maxtHS)
-        if maxtHX + (abs(maxtHX) * tolerance) < pars.max("tHX"):
-            pars.set_max("tHX",maxtHX)
-        if maxtSX + (abs(maxtSX) * tolerance) < pars.max("tSX"):
-            pars.set_max("tSX",maxtSX)
+        # print header about prescan ranges to the screen
+        print("Found the following ranges from the prescan:")
 
-        # vevs
-        if minvs - (abs(minvs) * tolerance) > pars.min("vs"):
-            pars.set_min("vs",minvs)
-        if minvx - (abs(minvx) * tolerance) > pars.min("vx"):
-            pars.set_min("vx",minvx)
-        if maxvs + (abs(maxvs) * tolerance) < pars.max("vs"):
-            pars.set_min("vs",maxvs)
-        if maxvx + (abs(maxvx) * tolerance) < pars.max("vx"):
-            pars.set_max("vx",maxvx)
+        # loop over variables and adjust min and max values
+        for var in varnames:
+
+            # get min and max from prescan
+            newMin = scanparser.getmin(var)
+            newMax = scanparser.getmax(var)
+
+            # check min value
+            if newMin > pars.min(var) + abs(pars.min(var)) * tolerance:
+                pars.set_min(var,newMin)
+
+            # check max value
+            if newMax < pars.max(var) - abs(pars.max(var)) * tolerance:
+                pars.set_max(var,newMax)
+
+            # print min and max to the screen after prescan
+            print(var+": ["+f"{pars.min(var):1.4f}"+","+f"{pars.max(var):1.4f}"+"]")
         
         # get scan density
         density = nprescan / pars.volume()
+        
+        # get new points
+        optPoint = scanparser.getmaxpoint()
 
         # write scan details to details file
         details = open(detailsname,"a")

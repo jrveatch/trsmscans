@@ -193,21 +193,11 @@ class Parse:
         # return the decay BR
         return xb_decay
 
-    def getparams(self):
+    def getmin(self,varname):
+        return np.min(getattr(self,varname))
 
-        minthS = np.min(self.tHS)
-        maxthS = np.max(self.tHS)
-        minthX = np.min(self.tHX)
-        maxthX = np.max(self.tHX)
-        mintSX = np.min(self.tSX)
-        maxtSX = np.max(self.tSX)
-
-        minvs = np.min(self.vs)
-        maxvs = np.max(self.vs)
-        minvx = np.min(self.vx)
-        maxvx = np.max(self.vx)
-
-        return minthS, maxthS, minthX, maxthX, mintSX, maxtSX, minvs, maxvs, minvx, maxvx
+    def getmax(self,varname):
+        return np.max(getattr(self,varname))
     
     def getvars(self):
         return self.tHS, self.tHX, self.tSX, self.vs, self.vx
