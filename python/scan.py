@@ -29,7 +29,6 @@ def runScan(masses: 'Masses',
             theta_range_shrink_rate,
             vev_range_shrink_rate,
             density_growth_rate,
-            useprescan=False,
             use_multiprocessing=False):
 
     # get scan start time
@@ -95,15 +94,6 @@ def runScan(masses: 'Masses',
     details.write("Scan details\n\n")
     details.close()
 
-    # initialize theta ranges
-    tHSrange = pars.range("tHS")
-    tHXrange = pars.range("tHX")
-    tSXrange = pars.range("tSX")
-
-    # initialize vev ranges
-    vsrange = pars.range("vs")
-    vxrange = pars.range("vx")
-
     # annealing rate for each parameter
     tHSrate = (1.0 - theta_range_shrink_rate)
     tHXrate = (1.0 - theta_range_shrink_rate)
@@ -111,115 +101,113 @@ def runScan(masses: 'Masses',
     vsrate = (1.0 - vev_range_shrink_rate)
     vxrate = (1.0 - vev_range_shrink_rate)
 
-    # initialize optimal point
-    optPoint = Point()
+    # use prescan to help constrain scan parameters
+    # TODO: Factorize this out into a separate function
 
-    if useprescan:
+    # TODO: Add the ability to reapply width and bounds filters to prescan
 
-        # TODO: Add the ability to reapply width and bounds filters to prescan
+    # location of prescan outputs
+    prescandir = os.environ['PRESCANDIR']
+    prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
 
-        # location of prescan outputs
-        prescandir = os.environ['PRESCANDIR']
-        prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
+    # call prescan
+    prescan.runPrescan(masses=masses,
+                        npoints=npoints,
+                        maxwidth=maxwidth,
+                        use_multiprocessing=use_multiprocessing)
 
-        # call prescan
-        prescan.runPrescan(masses=masses,
-                           npoints=npoints,
-                           maxwidth=maxwidth,
-                           use_multiprocessing=use_multiprocessing)
+    # go into the correct directory
+    os.chdir(dir)
 
-        # go into the correct directory
-        os.chdir(dir)
+    # count the number of prescan points available
+    with open(prescantsv, "r") as f:
+        nprescan = sum(1 for _ in f)
 
-        # count the number of prescan points available
-        with open(prescantsv, "r") as f:
-            nprescan = sum(1 for _ in f)
+    # info message about prescan
+    print("\nAnalyzing prescan with",nprescan,"points")
 
-        # info message about prescan
-        print("\nAnalyzing prescan with",nprescan,"points")
+    # get parser from prescan
+    scanparser = Parse(prescantsv,
+                        masses,
+                        decay=decay)
 
-        # get parser from prescan
-        scanparser = Parse(prescantsv,
-                           masses,
-                           decay=decay)
+    # if the prescan ranges are more than 5% away from
+    # the boundaries, change the boundaries to restrict
+    # scan range and minimize scan points that are wasted
+    # TODO: figure out a more robust way to constrain min and max
 
-        # if the prescan ranges are more than 5% away from
-        # the boundaries, change the boundaries to restrict
-        # scan range and minimize scan points that are wasted
-        # TODO: figure out a more robust way to constrain min and max
- 
-        # set tolerance from boundaries
-        tolerance = 0.05
+    # set tolerance from boundaries
+    tolerance = 0.05
 
-        # print header about prescan ranges to the screen
-        print("Found the following ranges from the prescan:")
+    # print header about prescan ranges to the screen
+    print("Found the following ranges from the prescan:")
 
-        # loop over variables and adjust min and max values
-        for var in varnames:
+    # loop over variables and adjust min and max values
+    for var in varnames:
 
-            # get min and max from prescan
-            newMin = scanparser.getmin(var)
-            newMax = scanparser.getmax(var)
+        # get min and max from prescan
+        newMin = scanparser.getmin(var)
+        newMax = scanparser.getmax(var)
 
-            # check min value
-            if newMin > pars.min(var) + abs(pars.min(var)) * tolerance:
-                pars.set_min(var,newMin)
+        # check min value
+        if newMin > pars.min(var) + abs(pars.min(var)) * tolerance:
+            pars.set_min(var,newMin)
 
-            # check max value
-            if newMax < pars.max(var) - abs(pars.max(var)) * tolerance:
-                pars.set_max(var,newMax)
+        # check max value
+        if newMax < pars.max(var) - abs(pars.max(var)) * tolerance:
+            pars.set_max(var,newMax)
 
-            # print min and max to the screen after prescan
-            print(var+": ["+f"{pars.min(var):1.3f}"+","+f"{pars.max(var):1.3f}"+"]")
-        
-        # get scan density
-        density = nprescan / pars.volume()
-        
-        # get new points
-        optPoint = scanparser.getmaxpoint()
+        # print min and max to the screen after prescan
+        print(var+": ["+f"{pars.min(var):1.3f}"+","+f"{pars.max(var):1.3f}"+"]")
+    
+    # get scan density
+    density = nprescan / pars.volume()
+    
+    # get new points
+    optPoint = scanparser.getmaxpoint()
 
-        # write scan details to details file
-        details = open(detailsname,"a")
-        details.write("Prescan\n")
-        details.write("Number of prescan points = " + str(nprescan) + "\n")
-        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
-        for var in thetaVars:
-            details.write(var+": value = " + f"{getattr(optPoint,var):1.4f}" + "\n")
-            details.write("     range = [" + f"{pars.low(var):1.4f}" + "," + f"{pars.high(var):1.4f}" + "]\n")
-        for var in vevVars:
-            details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
-            details.write("    range = [" + f"{pars.low(var):1.2f}" + "," + f"{pars.high(var):1.2f}" + "]\n")
-        details.write("\n\n")
-        details.close()
+    # write scan details to details file
+    details = open(detailsname,"a")
+    details.write("Prescan\n")
+    details.write("Number of prescan points = " + str(nprescan) + "\n")
+    details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
+    details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
+    for var in thetaVars:
+        details.write(var+": value = " + f"{getattr(optPoint,var):1.4f}" + "\n")
+        details.write("     range = [" + f"{pars.low(var):1.4f}" + "," + f"{pars.high(var):1.4f}" + "]\n")
+    for var in vevVars:
+        details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
+        details.write("    range = [" + f"{pars.low(var):1.2f}" + "," + f"{pars.high(var):1.2f}" + "]\n")
+    details.write("\n\n")
+    details.close()
 
-        # write scan results to summary file
-        summary = open(summaryname,"a")
-        summary.write("Pre")
-        summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
-        summary.write(" " + f"{optPoint.tHS:1.4f}")
-        summary.write(" " + f"{optPoint.tHX:1.4f}")
-        summary.write(" " + f"{optPoint.tSX:1.4f}")
-        summary.write(" " + f"{optPoint.vs:1.4f}")
-        summary.write(" " + f"{optPoint.vx:1.4f}")
-        summary.write("\n")
-        summary.close()
+    # write scan results to summary file
+    summary = open(summaryname,"a")
+    summary.write("Pre")
+    summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
+    summary.write(" " + f"{optPoint.tHS:1.4f}")
+    summary.write(" " + f"{optPoint.tHX:1.4f}")
+    summary.write(" " + f"{optPoint.tSX:1.4f}")
+    summary.write(" " + f"{optPoint.vs:1.4f}")
+    summary.write(" " + f"{optPoint.vx:1.4f}")
+    summary.write("\n")
+    summary.close()
 
-        # get new theta ranges
-        tHSrange = pars.range("tHS") * tHSrate
-        tHXrange = pars.range("tHX") * tHXrate
-        tSXrange = pars.range("tSX") * tSXrate
+    # get new theta ranges
+    tHSrange = pars.range("tHS") * tHSrate
+    tHXrange = pars.range("tHX") * tHXrate
+    tSXrange = pars.range("tSX") * tSXrate
 
-        # get new vev ranges
-        vsrange = pars.range("vs") * vsrate
-        vxrange = pars.range("vx") * vxrate
+    # get new vev ranges
+    vsrange = pars.range("vs") * vsrate
+    vxrange = pars.range("vx") * vxrate
 
-        # set new low and high values
-        pars.set_params("tHS",optPoint.tHS,tHSrange)
-        pars.set_params("tHX",optPoint.tHX,tHXrange)
-        pars.set_params("tSX",optPoint.tSX,tSXrange)
-        pars.set_params("vs",optPoint.vs,vsrange)
-        pars.set_params("vx",optPoint.vx,vxrange)
+    # set new low and high values
+    pars.set_params("tHS",optPoint.tHS,tHSrange)
+    pars.set_params("tHX",optPoint.tHX,tHXrange)
+    pars.set_params("tSX",optPoint.tSX,tSXrange)
+    pars.set_params("vs",optPoint.vs,vsrange)
+    pars.set_params("vx",optPoint.vx,vxrange)
 
     # iterate over multiple scans
     for iter in range(niter):
@@ -468,15 +456,11 @@ if __name__ == "__main__":
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-p", "--useprescan", action="store_true", help="Use prescan")
     argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
     argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
     argparser.add_argument("-g", "--densitygrowth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
-
-    # whether prescan should be used
-    useprescan = args["useprescan"]
 
     # masses
     xmass = args["XMass"]
@@ -514,5 +498,4 @@ if __name__ == "__main__":
             theta_range_shrink_rate=theta_range_shrink_rate,
             vev_range_shrink_rate=vev_range_shrink_rate,
             density_growth_rate=density_growth_rate,
-            useprescan=useprescan,
             use_multiprocessing=use_multiprocessing)
