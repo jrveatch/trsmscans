@@ -84,7 +84,7 @@ def runPrescan(masses: 'Masses',
         npointsOld = npoints
         npoints -= nexisting
         print("Found prescan with",nexisting,"points.")
-        print(npointsOld,"points requested, so I am running with",npoints,"points.")
+        print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
         print("If you want to overwrite the existing prescan, run with -o.")
 
     # increment up to the total number of points this will
