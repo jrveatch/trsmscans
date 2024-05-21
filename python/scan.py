@@ -170,7 +170,7 @@ def runScan(masses: 'Masses',
                 pars.set_max(var,newMax)
 
             # print min and max to the screen after prescan
-            print(var+": ["+f"{pars.min(var):1.4f}"+","+f"{pars.max(var):1.4f}"+"]")
+            print(var+": ["+f"{pars.min(var):1.3f}"+","+f"{pars.max(var):1.3f}"+"]")
         
         # get scan density
         density = nprescan / pars.volume()
@@ -374,7 +374,7 @@ def runScan(masses: 'Masses',
         if update:
             details.write("    new optimal value = " + f"{optPoint.vx:1.2f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
-        details.write("\n\n")
+        details.write("\n")
         details.close()
 
         if update is True:
@@ -426,12 +426,12 @@ def runScan(masses: 'Masses',
     scantime = (scanend - scanstart)
 
     # print out scan time
-    print("Done!")
+    print("\nDone!")
     print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
     # write time info to details file
     details = open(detailsname,"a")
-    details.write("\nScan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
+    details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
 
     # return to run directory

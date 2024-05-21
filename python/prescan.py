@@ -43,7 +43,7 @@ def runPrescan(masses: 'Masses',
     dir = prescandir+"X"+str(XMass)+"_S"+str(SMass)+"/"
 
     # print starting message
-    print("Attempting to run prescan in",dir)
+    print("\nAttempting to run prescan in",dir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir) and overwrite:
