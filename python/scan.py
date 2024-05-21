@@ -84,13 +84,13 @@ def runScan(masses: 'Masses',
         shutil.copy(templateini,dir)
 
     # create summary file
-    summaryname = "scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
+    summaryname = dir+"scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     summary = open(summaryname,"w")
     summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
     summary.close()
 
     # create details file
-    detailsname = "scandetails_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
+    detailsname = dir+"scandetails_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
