@@ -12,8 +12,7 @@ import filters
 import runScannerS
 from masses import Masses
 
-def runPrescan(XMass,
-               SMass,
+def runPrescan(masses: 'Masses',
                npoints,
                maxwidth,
                overwrite=False,
@@ -23,11 +22,9 @@ def runPrescan(XMass,
     # get scan start time
     scanstart = time.time()
 
-    # set H mass to 125
-    HMass = 125
-
-    # create masses object
-    masses = Masses(mX=XMass,mS=SMass,mH=HMass)
+    # get masses
+    XMass = masses.mX
+    SMass = masses.mS
 
     # TODO: Add check to make sure overwrite is wanted
 
@@ -43,7 +40,10 @@ def runPrescan(XMass,
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
-    dir = prescandir+"/X"+str(XMass)+"_S"+str(SMass)+"/"
+    dir = prescandir+"X"+str(XMass)+"_S"+str(SMass)+"/"
+
+    # print starting message
+    print("\nAttempting to run prescan in",dir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir) and overwrite:
@@ -76,7 +76,7 @@ def runPrescan(XMass,
         # if enough points already exist, exit
         if nexisting >= npoints:
             print("Found a prescan that already has",nexisting,"points.")
-            print("Skipping this prescan of",npoints,"points.")
+            print(npoints,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with -o.")
             return 0
 
@@ -84,7 +84,7 @@ def runPrescan(XMass,
         npointsOld = npoints
         npoints -= nexisting
         print("Found prescan with",nexisting,"points.")
-        print(npointsOld,"points requested, so I am running with",npoints,"points.")
+        print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
         print("If you want to overwrite the existing prescan, run with -o.")
 
     # increment up to the total number of points this will
@@ -222,6 +222,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
@@ -232,6 +233,10 @@ if __name__ == "__main__":
     # masses
     xmass = args["XMass"]
     smass = args["SMass"]
+    hmass = args["HMass"]
+
+    # create masses object
+    masses = Masses(mX=xmass,mS=smass,mH=hmass)
 
     # number of points to run
     npoints = args["npoints"]
@@ -246,8 +251,7 @@ if __name__ == "__main__":
     overwrite = args["overwrite"]
     use_multiprocessing = args["multiprocessing"]
 
-    runPrescan(XMass=xmass,
-               SMass=smass,
+    runPrescan(masses=masses,
                npoints=npoints,
                maxwidth=maxwidth,
                overwrite=overwrite,
