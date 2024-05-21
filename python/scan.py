@@ -188,11 +188,11 @@ def runScan(masses: 'Masses',
     summary = open(summaryname,"a")
     summary.write("Pre")
     summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
-    summary.write(" " + f"{optPoint.tHS:1.4f}")
-    summary.write(" " + f"{optPoint.tHX:1.4f}")
-    summary.write(" " + f"{optPoint.tSX:1.4f}")
-    summary.write(" " + f"{optPoint.vs:1.4f}")
-    summary.write(" " + f"{optPoint.vx:1.4f}")
+    for var in varnames:
+        if var in thetaVars:
+            summary.write(" " + f"{getattr(optPoint,var):1.4f}")
+        if var in vevVars:
+            summary.write(" " + f"{getattr(optPoint,var):1.1f}")
     summary.write("\n")
     summary.close()
 
@@ -373,11 +373,11 @@ def runScan(masses: 'Masses',
             summary = open(summaryname,"a")
             summary.write(identifier)
             summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
-            summary.write(" " + f"{optPoint.tHS:1.4f}")
-            summary.write(" " + f"{optPoint.tHX:1.4f}")
-            summary.write(" " + f"{optPoint.tSX:1.4f}")
-            summary.write(" " + f"{optPoint.vs:1.4f}")
-            summary.write(" " + f"{optPoint.vx:1.4f}")
+            for var in varnames:
+                if var in thetaVars:
+                    summary.write(" " + f"{getattr(optPoint,var):1.4f}")
+                if var in vevVars:
+                    summary.write(" " + f"{getattr(optPoint,var):1.1f}")
             summary.write("\n")
             summary.close()
 
