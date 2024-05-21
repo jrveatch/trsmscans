@@ -158,7 +158,10 @@ def runScan(masses: 'Masses',
             pars.set_max(var,newMax)
 
         # print min and max to the screen after prescan
-        print(var+": ["+f"{pars.min(var):1.3f}"+","+f"{pars.max(var):1.3f}"+"]")
+        if var in thetaVars:
+            print(var+": ["+f"{pars.min(var):1.4f}"+","+f"{pars.max(var):1.4f}"+"]")
+        if var in vevVars:
+            print(var+": ["+f"{pars.min(var):1.1f}"+","+f"{pars.max(var):1.1f}"+"]")
     
     # get scan density
     density = nprescan / pars.volume()
@@ -177,7 +180,7 @@ def runScan(masses: 'Masses',
         details.write("     range = [" + f"{pars.low(var):1.4f}" + "," + f"{pars.high(var):1.4f}" + "]\n")
     for var in vevVars:
         details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
-        details.write("    range = [" + f"{pars.low(var):1.2f}" + "," + f"{pars.high(var):1.2f}" + "]\n")
+        details.write("    range = [" + f"{pars.low(var):1.1f}" + "," + f"{pars.high(var):1.1f}" + "]\n")
     details.write("\n\n")
     details.close()
 
@@ -354,13 +357,13 @@ def runScan(masses: 'Masses',
         if update:
             details.write("         new optimal value = " + f"{optPoint.tSX:1.4f}" + "\n")
             details.write("         rel. diff w.r.t. previous = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("vs: range = [" + f"{vslow:1.4f}" + "," + f"{vshigh:1.4f}" + "]\n")
+        details.write("vs: range = [" + f"{vslow:1.1f}" + "," + f"{vshigh:1.1f}" + "]\n")
         if update:
-            details.write("    new optimal value = " + f"{optPoint.vs:1.2f}" + "\n")
+            details.write("    new optimal value = " + f"{optPoint.vs:1.1f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("vx: range = [" + f"{vxlow:1.4f}" + "," + f"{vxhigh:1.4f}" + "]\n")
+        details.write("vx: range = [" + f"{vxlow:1.1f}" + "," + f"{vxhigh:1.1f}" + "]\n")
         if update:
-            details.write("    new optimal value = " + f"{optPoint.vx:1.2f}" + "\n")
+            details.write("    new optimal value = " + f"{optPoint.vx:1.1f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
         details.write("\n")
         details.close()
