@@ -103,14 +103,14 @@ def initializeFilters(input_file,output_file=""):
 def column_exists(input_file,column_header):
 
     with open(input_file, 'r') as f_in:
-        # Read the header
+        # read the header
         header = f_in.readline().strip().split('\t')
-        # Check if the column header exists in the header
+        # check if the column header exists in the header
         return column_header in header
 
 if __name__ == "__main__":
 
-    # Parse command line arguments
+    # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--filename", help="Name of file to apply filters to")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")

@@ -334,11 +334,15 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--filename", required=True, help="Name of tsvfile to run over")
+    argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
     args = vars(argparser.parse_args())
 
     # get arguments
     filename = args["filename"]
+    xmass = args["XMass"]
     smass = args["SMass"]
 
-    filterbounds(filename=filename,SMass=smass,debug=True)
+    masses = Masses(mX=xmass,mS=smass,mH=125)
+
+    filterbounds(filename=filename,masses=masses,debug=True)
