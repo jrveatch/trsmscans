@@ -131,24 +131,12 @@ def runScan(masses: 'Masses',
         # go into the correct directory
         os.chdir(dir)
 
-        # if prescan output doesn't exist, complain and exit
-        if not os.path.exists(prescantsv):
-            print("You are attempting to use a prescan that doesn't exist.")
-            print("Please run prescan.py before continuing or run without -p.")
-            quit()
-
         # count the number of prescan points available
         with open(prescantsv, "r") as f:
             nprescan = sum(1 for _ in f)
 
         # info message about prescan
         print("\nAnalyzing prescan with",nprescan,"points")
-
-        # if prescan doesn't have enough points, complain and exit
-        if nprescan < 0.5 * npoints:
-            print("Prescan doesn't have enough points to justify using.")
-            print("Run a prescan with more points or rerun scan without -p")
-            quit()
 
         # get parser from prescan
         scanparser = Parse(prescantsv,
