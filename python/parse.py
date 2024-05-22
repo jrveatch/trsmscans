@@ -19,9 +19,9 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 filename,
                  masses: Masses,
-                 decay):
+                 decay,
+                 filename = ""):
 
         # initialize HName and SName
         self.HName = masses.HName
@@ -30,9 +30,10 @@ class Parse:
         # initialize decay mode
         self.decay = decay
 
-        # get arrays
-        self.arr = arrays.Arrays(filename)
-        self.loadArrays(filename)
+        # get arrays if filename is provided
+        if filename:
+            self.arr = arrays.Arrays(filename)
+            self.loadArrays(filename)
 
     # load new arrays
     def loadArrays(self,filename):

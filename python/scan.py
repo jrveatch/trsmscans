@@ -127,9 +127,9 @@ def runScan(masses: 'Masses',
     print("\nAnalyzing prescan with",nprescan,"points")
 
     # get parser from prescan
-    scanparser = Parse(prescantsv,
-                        masses,
-                        decay=decay)
+    scanparser = Parse(filename=prescantsv,
+                       masses=masses,
+                       decay=decay)
 
     # if the prescan ranges are more than 5% away from
     # the boundaries, change the boundaries to restrict
