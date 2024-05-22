@@ -33,10 +33,10 @@ class Parse:
         # get arrays if filename is provided
         if filename:
             self.arr = arrays.Arrays(filename)
-            self.loadArrays(filename)
+            self.readFile(filename)
 
     # load new arrays
-    def loadArrays(self,filename):
+    def readFile(self,filename):
         # load arrays from file
         self.arr.loadArrays(filename)
         # get arrays masked by filters
