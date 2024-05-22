@@ -119,7 +119,7 @@ def runScan(masses: 'Masses',
         # return result from process
         return result
 
-    # go into the correct directory
+    # go into the working directory
     os.chdir(dir)
 
     # count the number of prescan points available
@@ -246,9 +246,6 @@ def runScan(masses: 'Masses',
     details = open(detailsname,"a")
     details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
     details.close()
-
-    # return to run directory
-    os.chdir(os.environ['PRESCANDIR'])
 
 def isValidDecay(decaymode):
 
