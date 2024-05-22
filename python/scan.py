@@ -116,9 +116,6 @@ def runScan(masses: 'Masses',
         # return result from process
         return result
 
-    # go into the working directory
-    os.chdir(dir)
-
     # count the number of prescan points available
     with open(prescantsv, "r") as f:
         nprescan = sum(1 for _ in f)
@@ -212,6 +209,9 @@ def runScan(masses: 'Masses',
     pars.set_params("vs",optPoint.vs,vsrange)
     pars.set_params("vx",optPoint.vx,vxrange)
 
+    # move into the working directory for scans
+    os.chdir(dir)
+
     # TODO: Need to find a optPoint for each scanner range
     myscanner = Scanner(npoints=npoints,
                         params=pars,
@@ -219,6 +219,7 @@ def runScan(masses: 'Masses',
                         detailsname=detailsname,
                         summaryname=summaryname,
                         zoom=zoom,
+                        dir=dir,
                         label="test")
 
     # run multiple scan iterations
@@ -273,6 +274,7 @@ class Scanner:
                  npoints,
                  optPoint: Point,
                  zoom: 'Zoom',
+                 dir,
                  label="",
                  base="TRSMBroken"):
 
@@ -282,6 +284,7 @@ class Scanner:
         self.params = params
         self.npoints = npoints
         self.optPoint = optPoint
+        self.dir = dir
         self.label = label
         self.base = base
 
@@ -292,7 +295,7 @@ class Scanner:
         self.minpoints = 100
 
         # name of template .ini file
-        self.templateini = self.base + "_template.ini"
+        self.templateini = self.dir + self.base + "_template.ini"
 
         # create parse object without a filename
         self.scanparser = Parse(masses=masses,
@@ -316,7 +319,7 @@ class Scanner:
         print("Running scanner with identifier",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = "./files/" + self.base + "_" + identifier
+        outname = self.dir + "files/" + self.base + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 

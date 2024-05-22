@@ -28,19 +28,19 @@ def runPrescan(masses: 'Masses',
 
     # TODO: Add check to make sure overwrite is wanted
 
-    # names of .ini and .tsv files
-    base = "TRSMBroken"
-    templateini = base + "_template.ini"
-    outbase = "./" + base
-    ininame = outbase + ".ini"
-    tsvname_initial = outbase + ".tsv"
-    tsvname = outbase + "_prescan.tsv"
-
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
     dir = prescandir+"X"+str(XMass)+"_S"+str(SMass)+"/"
+
+    # names of .ini and .tsv files
+    base = "TRSMBroken"
+    templateini = base + "_template.ini"
+    outbase = "./" + base
+    ininame = dir + outbase + ".ini"
+    tsvname_initial = outbase + ".tsv"
+    tsvname = outbase + "_prescan.tsv"
 
     # print starting message
     print("\nAttempting to run prescan in",dir)
@@ -57,7 +57,7 @@ def runPrescan(masses: 'Masses',
     if not os.path.exists(dir+templateini):
         shutil.copy(templateini,dir)
 
-    # go into the run directory
+    # move into working directory for prescan
     os.chdir(dir)
 
     # make instance of params
