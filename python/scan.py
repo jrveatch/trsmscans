@@ -212,15 +212,15 @@ def runScan(masses: 'Masses',
     pars.set_params("vs",optPoint.vs,vsrange)
     pars.set_params("vx",optPoint.vx,vxrange)
 
+    # TODO: Need to find a optPoint for each scanner range
     myscanner = Scanner(npoints=npoints,
                         params=pars,
                         optPoint=optPoint,
-                        suffix="blah",
-                        use_multiprocessing=use_multiprocessing)
-    #myscanner.run(7)
+                        suffix="blah")
+    #myscanner.run(7,use_multiprocessing)
     #return
 
-    # iterate over multiple scans
+    # run multiple scan iterations
     for iter in range(niter):
 
         # get time of iteration start
@@ -462,28 +462,33 @@ class Scanner:
                  params: Params,
                  npoints,
                  optPoint,
-                 suffix="",
-                 base="TRSMBroken",
-                 use_multiprocessing=False):
+                 label="",
+                 base="TRSMBroken"):
 
+        # some basic scanner information
         self.params = params
         self.npoints = npoints
         self.optPoint = optPoint
-        self.suffix = suffix
+        self.label = label
         self.base = base
-        self.use_multiprocessing = use_multiprocessing
 
         # name of template .ini file
         self.templateini = self.base + "_template.ini"
 
+        # create parse object without a filename
+        self.scanparser = Parse(masses=masses,
+                                decay=decay)
+
         # TODO: Names of details and summary files
 
-    def run(self,iter):
+    def run(self,
+            iter,
+            use_multiprocessing=False):
 
         # get iteration identifier
         identifier = f"{iter:04d}"
-        if self.suffix:
-            identifier += "_" + self.suffix
+        if self.label:
+            identifier = self.label + "_" + identifier
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
@@ -498,7 +503,7 @@ class Scanner:
         self.params.writeini(self.templateini,ininame)
 
         # run ScannerS
-        if self.use_multiprocessing:
+        if use_multiprocessing:
             print("Using multiprocessing")
             self.npoints = runScannerS.runParallelProcesses(ininame,self.npoints)
         else:
@@ -536,6 +541,9 @@ class Scanner:
             details.write("\n\n")
             details.close()
             return
+        
+        # read output tsv into parser
+        self.scanparser.readFile(filename=tsvname)
 
         return
 
