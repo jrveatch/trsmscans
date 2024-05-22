@@ -26,9 +26,7 @@ def runScan(masses: 'Masses',
             npoints,
             niter,
             maxwidth,
-            theta_range_shrink_rate,
-            vev_range_shrink_rate,
-            density_growth_rate,
+            zoom: 'Zoom',
             use_multiprocessing=False):
 
     # get scan start time
@@ -93,13 +91,6 @@ def runScan(masses: 'Masses',
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
-
-    # annealing rate for each parameter
-    tHSrate = (1.0 - theta_range_shrink_rate)
-    tHXrate = (1.0 - theta_range_shrink_rate)
-    tSXrate = (1.0 - theta_range_shrink_rate)
-    vsrate = (1.0 - vev_range_shrink_rate)
-    vxrate = (1.0 - vev_range_shrink_rate)
 
     # use prescan to help constrain scan parameters
     # TODO: Factorize this out into a separate function
@@ -209,13 +200,13 @@ def runScan(masses: 'Masses',
     summary.close()
 
     # get new theta ranges
-    tHSrange = pars.range("tHS") * tHSrate
-    tHXrange = pars.range("tHX") * tHXrate
-    tSXrange = pars.range("tSX") * tSXrate
+    tHSrange = pars.range("tHS")
+    tHXrange = pars.range("tHX")
+    tSXrange = pars.range("tSX")
 
     # get new vev ranges
-    vsrange = pars.range("vs") * vsrate
-    vxrange = pars.range("vx") * vxrate
+    vsrange = pars.range("vs")
+    vxrange = pars.range("vx")
 
     # set new low and high values
     pars.set_params("tHS",optPoint.tHS,tHSrange)
@@ -230,9 +221,7 @@ def runScan(masses: 'Masses',
                         optPoint=optPoint,
                         detailsname=detailsname,
                         summaryname=summaryname,
-                        theta_range_shrink_rate=theta_range_shrink_rate,
-                        vev_range_shrink_rate=vev_range_shrink_rate,
-                        density_growth_rate=density_growth_rate,
+                        zoom=zoom,
                         label="blah")
 
     #myscanner.run(7,use_multiprocessing)
@@ -400,13 +389,13 @@ def runScan(masses: 'Masses',
             summary.close()
 
         # step down theta ranges
-        tHSrange *= tHSrate
-        tHXrange *= tHXrate
-        tSXrange *= tSXrate
+        tHSrange *= 1.0 - zoom.thetaRate
+        tHXrange *= 1.0 - zoom.thetaRate
+        tSXrange *= 1.0 - zoom.thetaRate
 
         # step down vev ranges
-        vsrange *= vsrate
-        vxrange *= vxrate
+        vsrange *= 1.0 - zoom.vevRate
+        vxrange *= 1.0 - zoom.vevRate
 
         # set new low and high values
         pars.set_params("tHS",optPoint.tHS,tHSrange)
@@ -420,7 +409,7 @@ def runScan(masses: 'Masses',
         volumeRatio = volumeNew/volume
 
         # step down npoints
-        npoints = int(npoints * volumeRatio * (1 + density_growth_rate))
+        npoints = int(npoints * volumeRatio * (1 + zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if npoints < minpoints:
@@ -474,9 +463,7 @@ class Scanner:
                  params: Params,
                  npoints,
                  optPoint: Point,
-                 theta_range_shrink_rate,
-                 vev_range_shrink_rate,
-                 density_growth_rate,
+                 zoom: 'Zoom',
                  label="",
                  base="TRSMBroken"):
 
@@ -489,15 +476,8 @@ class Scanner:
         self.label = label
         self.base = base
 
-        # annealing rate for each parameter
-        self.tHSrate = (1.0 - theta_range_shrink_rate)
-        self.tHXrate = (1.0 - theta_range_shrink_rate)
-        self.tSXrate = (1.0 - theta_range_shrink_rate)
-        self.vsrate = (1.0 - vev_range_shrink_rate)
-        self.vxrate = (1.0 - vev_range_shrink_rate)
-
-        # density growth rate
-        self.density_growth_rate = density_growth_rate
+        # zoom rates
+        self.zoom = zoom
 
         # set minimum number of points per iteration
         self.minpoints = 100
@@ -666,13 +646,13 @@ class Scanner:
             summary.close()
 
         # step down theta ranges
-        self.tHSrange *= self.tHSrate
-        self.tHXrange *= self.tHXrate
-        self.tSXrange *= self.tSXrate
+        self.tHSrange *= 1.0 - self.zoom.thetaRate
+        self.tHXrange *= 1.0 - self.zoom.thetaRate
+        self.tSXrange *= 1.0 - self.zoom.thetaRate
 
         # step down vev ranges
-        self.vsrange *= self.vsrate
-        self.vxrange *= self.vxrate
+        self.vsrange *= 1.0 - self.zoom.vevRate
+        self.vxrange *= 1.0 - self.zoom.vevRate
 
         # set new low and high values
         self.params.set_params("tHS",self.tHSOpt,self.tHSrange)
@@ -686,7 +666,7 @@ class Scanner:
         volumeRatio = volumeNew/volume
 
         # step down npoints
-        self.npoints = int(self.npoints * volumeRatio * (1 + self.density_growth_rate))
+        self.npoints = int(self.npoints * volumeRatio * (1 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -724,6 +704,17 @@ class Scanner:
         self.vsOpt = self.optPoint.vs
         self.vxOpt = self.optPoint.vx
         self.xbOpt = self.optPoint.xb
+
+class Zoom:
+
+    def __init__(self,
+                 theta_range_shrink_rate,
+                 vev_range_shrink_rate,
+                 density_growth_rate):
+        
+        self.thetaRate = theta_range_shrink_rate
+        self.vevRate = vev_range_shrink_rate
+        self.densityRate = density_growth_rate
 
 if __name__ == "__main__":
 
@@ -767,6 +758,10 @@ if __name__ == "__main__":
     vev_range_shrink_rate = args['vev_range_shrink']
     density_growth_rate = args['densitygrowth']
 
+    zoom = Zoom(theta_range_shrink_rate=theta_range_shrink_rate,
+                vev_range_shrink_rate=vev_range_shrink_rate,
+                density_growth_rate=density_growth_rate)
+
     # whether multiprocessing should be used
     use_multiprocessing = args['multiprocessing']
 
@@ -775,7 +770,5 @@ if __name__ == "__main__":
             npoints=npoints,
             niter=niter,
             maxwidth=maxwidth,
-            theta_range_shrink_rate=theta_range_shrink_rate,
-            vev_range_shrink_rate=vev_range_shrink_rate,
-            density_growth_rate=density_growth_rate,
+            zoom=zoom,
             use_multiprocessing=use_multiprocessing)
