@@ -32,13 +32,19 @@ class Parse:
 
         # get arrays if filename is provided
         if filename:
-            self.arr = arrays.Arrays(filename)
             self.readFile(filename)
 
     # load new arrays
     def readFile(self,filename):
-        # load arrays from file
-        self.arr.loadArrays(filename)
+
+        # create arrays object if it does not exist
+        if not hasattr(self,"arr"):
+            self.arr = arrays.Arrays(filename)
+
+        # load arrays from new file if arrays object already exists
+        else:
+            self.arr.loadArrays(filename)
+
         # get arrays masked by filters
         self.getFilteredArrays()
 
