@@ -27,16 +27,19 @@ class Parse:
         self.HName = masses.HName
         self.SName = masses.SName
 
+        # initialize decay mode
+        self.decay = decay
+
         # get arrays
         self.arr = arrays.Arrays(filename)
-        self.loadArrays(filename,decay)
+        self.loadArrays(filename)
 
     # load new arrays
-    def loadArrays(self,filename,decay):
+    def loadArrays(self,filename):
         # load arrays from file
         self.arr.loadArrays(filename)
         # get arrays masked by filters
-        self.getFilteredArrays(decay)
+        self.getFilteredArrays()
 
     # get the arrays
     def getArrays(self):
@@ -203,7 +206,7 @@ class Parse:
         return self.tHS, self.tHX, self.tSX, self.vs, self.vx
 
     # apply filters as mask
-    def getFilteredArrays(self,decay):
+    def getFilteredArrays(self):
         
         # get array of filters to use as a mask
         self.getFilters()
@@ -236,7 +239,7 @@ class Parse:
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
 
         # cross-section times branching ratio
-        self.xb = self.getxb(decay)
+        self.xb = self.getxb(self.decay)
 
     # function that checks whether xb is unimodal in a parameter
     def isBimodal(self,param_name):
