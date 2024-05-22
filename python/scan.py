@@ -68,17 +68,14 @@ def runScan(masses: 'Masses',
     if os.path.exists(dir):
         shutil.rmtree(dir)
 
-    # check if directory exists, if not make it
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    # make working directory
+    os.makedirs(dir)
 
     # directory to store all of the output files
-    if not os.path.exists(dir + "/files"):
-        os.makedirs(dir + "/files")
+    os.makedirs(dir+"/files")
 
-    # copy template .ini into dir if it doesn't already exist
-    if not os.path.exists(dir+templateini):
-        shutil.copy(templateini,dir)
+    # copy template .ini into dir
+    shutil.copy(os.environ['RUNDIR']+templateini,dir)
 
     # create summary file
     summaryname = dir+"scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
