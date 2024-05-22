@@ -110,11 +110,23 @@ def runScan(masses: 'Masses',
     prescandir = os.environ['PRESCANDIR']
     prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
 
-    # call prescan
-    prescan.runPrescan(masses=masses,
-                        npoints=npoints,
-                        maxwidth=maxwidth,
-                        use_multiprocessing=use_multiprocessing)
+    # call prescan and get result
+    result = prescan.runPrescan(masses=masses,
+                                npoints=npoints,
+                                maxwidth=maxwidth,
+                                use_multiprocessing=use_multiprocessing)
+    
+    # if prescan fails, remove directory and return
+    if result < 0:
+        
+        # inform user
+        print("Removing directory",dir)
+
+        # delete directory
+        shutil.rmtree(dir)
+
+        # return result from process
+        return result
 
     # go into the correct directory
     os.chdir(dir)
