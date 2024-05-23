@@ -178,7 +178,7 @@ def runScan(masses: 'Masses',
     for var in vevVars:
         details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
         details.write("    range = [" + f"{pars.low(var):1.1f}" + "," + f"{pars.high(var):1.1f}" + "]\n")
-    details.write("\n\n")
+    details.write("\n")
     details.close()
 
     # write scan results to summary file
@@ -238,7 +238,7 @@ def runScan(masses: 'Masses',
 
     # print out scan time
     print("\nDone!")
-    print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
+    print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)\n")
 
     # write time info to details file
     details = open(detailsname,"a")
@@ -403,7 +403,8 @@ class Scanner:
         itertime = iterend - iterstart
 
         # print iteration time to screen
-        print("Iteration took",f"{itertime:1.1f}","seconds to complete")
+        #print("Iteration took",f"{itertime:1.1f}","seconds to complete")
+        print("Iteration took",str(datetime.timedelta(seconds=int(itertime))),"(hh:mm:ss)")
 
         # get parameter ranges, lows and highs
         self.getpars()
@@ -441,6 +442,7 @@ class Scanner:
         if update:
             details.write("    new optimal value = " + f"{self.vxOpt:1.1f}" + "\n")
             details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
+        details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
         details.write("\n")
         details.close()
 
