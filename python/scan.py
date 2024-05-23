@@ -118,9 +118,9 @@ class Scan:
         print("\nAnalyzing prescan with",nprescan,"points")
 
         # get parser from prescan
-        scanparser = Parse(filename=prescantsv,
-                           masses=self.masses,
-                           decay=self.decay)
+        self.prescanparser = Parse(filename=prescantsv,
+                                   masses=self.masses,
+                                   decay=self.decay)
 
         # if the prescan ranges are more than 5% away from
         # the boundaries, change the boundaries to restrict
@@ -137,8 +137,8 @@ class Scan:
         for var in varnames:
 
             # get min and max from prescan
-            newMin = scanparser.getmin(var)
-            newMax = scanparser.getmax(var)
+            newMin = self.prescanparser.getmin(var)
+            newMax = self.prescanparser.getmax(var)
 
             # check min value
             if newMin > self.params.min(var) + abs(self.params.min(var)) * tolerance:
@@ -158,7 +158,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = scanparser.getmaxpoint()
+        self.optPoint = self.prescanparser.getmaxpoint()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
