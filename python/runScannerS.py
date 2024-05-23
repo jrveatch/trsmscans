@@ -5,7 +5,9 @@ import shutil
 import time
 import math
 from blessings import Terminal
+import tsvutils
 
+# method to run ScannerS
 def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
 
     # if only one process needed, just use subprocess
@@ -16,6 +18,7 @@ def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
     else:
         return runParallelProcesses(ininame,npoints,model,njobs)
 
+# run job as a single process
 def runSingleProcess(ininame,npoints,model="TRSMBroken"):
 
     # simple information message
@@ -32,11 +35,12 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
         return result
 
     # simple information message
-    print("Finished running process. Continuing...")
+    print("Finished running process")
 
     # return number of points used
     return npoints
 
+# run multiple processes in parallel
 def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
 
     # get number of available CPUs
@@ -57,8 +61,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # of workers, limit number of processes to number of workers
     elif njobs > nworkers:
         num_processes = nworkers
-    # otherwise set the number of processes to the requested
-    # number of jobs
+    # otherwise set the number of processes to the requested number of jobs
     else:
         num_processes = njobs
 
@@ -122,11 +125,12 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,model+".tsv",points_per_job)
+    concatenate_files(directories,model+".tsv")
 
     # return number of points that are actually used
     return npoints
 
+# run a process for multiprocessing
 def run_process(process, directory, counter, num_processes):
 
     # create temporary directory if it doesn't exist
@@ -139,12 +143,13 @@ def run_process(process, directory, counter, num_processes):
     subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # get Terminal for nicer outputs
-    term  = Terminal()
+    term = Terminal()
 
     # increment the counter and print out how many processes are finished
     counter.value += 1
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
+# run a python subprocess for a single job
 def run_subprocess(process,model="TRSMBroken"):
 
     # output file name
@@ -189,41 +194,18 @@ def run_subprocess(process,model="TRSMBroken"):
     # successful run
     return 0
 
-def concatenate_files(directories,filename,points_per_job):
+# concatenate outputs from parallel processes into a single .tsv file
+def concatenate_files(directories,filename):
 
-    # flag indicating whether header has already been written
-    header_written = False
+    # loop over temporary directories
+    for directory in directories:
 
-    # open output file
-    with open(filename,"w") as outfile:
+        # write/append .tsv from directory to output file
+        tsvutils.saveTSVOutput(inputfile=directory+"/"+filename,
+                               outputfile=filename)
 
-        # loop over temporary directories
-        for dir_number, directory in enumerate(directories):
-
-            # open .tsv file in the directory
-            with open(directory+"/"+filename,"r") as infile:
-
-                # if the header has not already been written, write it
-                if not header_written:
-                    header = infile.readline()
-                    outfile.write(header)
-                    header_written = True
-
-                # if header has already been written, skip it in future files
-                else:
-                    # skip the header line
-                    next(infile)
-
-                # loop over all non-header lines in file
-                for line in infile:
-
-                    # replace the index with a unique value
-                    parts = line.strip().split('\t')
-                    parts[0] = str(int(parts[0]) + dir_number * points_per_job)
-                    outfile.write('\t'.join(parts) + '\n')
-
-            # delete the temporary directory
-            shutil.rmtree(directory)
+        # delete the temporary directory
+        shutil.rmtree(directory)
 
 if __name__ == "__main__":
     runScannerS(ininame="TRSMBroken_baseline.ini",npoints=200,njobs=4)
