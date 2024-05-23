@@ -217,4 +217,11 @@ def concatenate_files(directories,filename):
         shutil.rmtree(directory)
 
 if __name__ == "__main__":
-    runScannerS(ininame="TRSMBroken_baseline.ini",npoints=200,njobs=4)
+
+    model = "TRSMBroken"
+
+    # get baseline .ini from data directory
+    ininame = os.environ['DATADIR'] + "models/" + model + "_baseline.ini"
+
+    # run ScannerS using baseline .ini
+    runScannerS(ininame=ininame,npoints=200,njobs=4)
