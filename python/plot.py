@@ -8,27 +8,24 @@ import argparse
 from masses import Masses
 
 # Main Function
-def main(decay, xmass, smass):
+def main(decay, masses: 'Masses'):
 
     # Iterate through all files in the given directory
-    all_files = iterate_directory(decay, xmass, smass)
+    all_files = iterate_directory(decay, masses)
 
     # CHECK IF PRESCAN EXISTS -- If it does, make it the first file to plot
-    prescan = "output/prescan/X"+xmass+"_S"+smass+"/TRSMBroken_prescan.tsv"
+    prescan = "output/prescan/"+masses.massString+"/TRSMBroken_prescan.tsv"
     if ((os.path.exists(prescan))):
         all_files.insert(0, prescan)
 
     # Using Iterate Directory - Plot all files and variables
-    plot(all_files, smass, decay, xmass)
+    plot(all_files, decay, masses)
 
 #Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
-def plot(file_array, smass, decay, xmass):
-
-    #Create a masses object
-    masses = Masses(mX=float(xmass),mS=float(smass), mH=125)
+def plot(file_array, decay, masses: 'Masses'):
     
     # Create Directory
-    output_dir = "output/plots/" + decay + "/X" + xmass + "_S" + smass + "/" 
+    output_dir = "output/plots/" + decay + "/" + masses.massString + "/" 
     mkdir_p(output_dir) #pass directory to the make directory function
 
     #Initialize variable 2D-lists to store each variable list from all files
@@ -102,13 +99,13 @@ def plot(file_array, smass, decay, xmass):
             plt.close()
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
-def iterate_directory(decay, xmass, smass):
+def iterate_directory(decay, masses: 'Masses'):
 
     # Empty array that will hold the files found
     file_array = []
 
     # Directory for the scan outputs
-    directory = "./output/scan/"+decay+"/X"+xmass+"_S"+smass+"/files/"
+    directory = "./output/scan/"+decay+"/"+masses.massString+"/files/"
 
     # Iterate through the directory
     for file in os.listdir(directory):
@@ -142,12 +139,16 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-D", "--Decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=str)
-    argparser.add_argument("-S", "--SMass", required=True, type=str)
+    argparser.add_argument("-X", "--XMass", required=True, type=int)
+    argparser.add_argument("-S", "--SMass", required=True, type=int)
+    argparser.add_argument("-H", "--HMass", default=125, type=int)
     args = vars(argparser.parse_args())
 
     decay = args["Decay"]
     xmass = args["XMass"]
     smass = args["SMass"]
+    hmass = args["HMass"]
 
-    main(decay, xmass, smass)
+    masses = Masses(mX=xmass,mS=smass,mH=hmass)
+
+    main(decay, masses)
