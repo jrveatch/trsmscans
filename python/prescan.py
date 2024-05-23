@@ -57,10 +57,10 @@ def runPrescan(masses: 'Masses',
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = Params(masses)
+    params = Params(masses)
 
     # write .ini file from template
-    pars.writeini(templateini,ininame)
+    params.writeini(templateini,ininame)
 
     # get number of pre-existing prescan points
     nexisting = checkPrescan(masses,base)
