@@ -34,10 +34,6 @@ def runScan(masses: 'Masses',
     # get scan start time
     scanstart = time.time()
 
-    # get masses
-    XMass = masses.mX
-    SMass = masses.mS
-
     # check to make sure decay mode is supported
     supported = isValidDecay(decay)
     if not supported:
@@ -63,8 +59,12 @@ def runScan(masses: 'Masses',
     # get scan directory
     scandir = os.environ['SCANDIR']
 
+    # get mass string
+    # TODO: Is there a way to define a casting to do this?
+    massString = masses.massString
+
     # directory where we want the output to go
-    dir = scandir+decay+"/X"+str(XMass)+"_S"+str(SMass)+"/"
+    dir = scandir+decay+"/"+massString+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir):
@@ -83,13 +83,13 @@ def runScan(masses: 'Masses',
         shutil.copy(templateini,dir)
 
     # create summary file
-    summaryname = dir+"scansummary_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
+    summaryname = dir+"scansummary_"+decay+"_"+massString+".txt"
     summary = open(summaryname,"w")
     summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
     summary.close()
 
     # create details file
-    detailsname = dir+"scandetails_"+decay+"_X"+str(XMass)+"_S"+str(SMass)+".txt"
+    detailsname = dir+"scandetails_"+decay+"_"+massString+".txt"
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
@@ -108,7 +108,7 @@ def runScan(masses: 'Masses',
 
     # location of prescan outputs
     prescandir = os.environ['PRESCANDIR']
-    prescantsv = prescandir + "/X" + str(XMass) + "_S" + str(SMass) + "/" + base + "_prescan.tsv"
+    prescantsv = prescandir + "/" + massString + "/" + base + "_prescan.tsv"
 
     # call prescan
     prescan.runPrescan(masses=masses,

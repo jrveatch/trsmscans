@@ -22,10 +22,6 @@ def runPrescan(masses: 'Masses',
     # get scan start time
     scanstart = time.time()
 
-    # get masses
-    XMass = masses.mX
-    SMass = masses.mS
-
     # TODO: Add check to make sure overwrite is wanted
 
     # names of .ini and .tsv files
@@ -39,8 +35,12 @@ def runPrescan(masses: 'Masses',
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
+    # get mass string
+    # TODO: Is there a way to define a casting to do this?
+    massString = masses.massString
+
     # directory where we want the output to go
-    dir = prescandir+"X"+str(XMass)+"_S"+str(SMass)+"/"
+    dir = prescandir+massString+"/"
 
     # print starting message
     print("\nAttempting to run prescan in",dir)
