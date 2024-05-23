@@ -70,13 +70,13 @@ class Scan:
         shutil.copy(os.environ['RUNDIR']+self.base+"_template.ini",self.outdir)
 
         # create summary file
-        self.summaryname = dir+"scansummary_"+self.decay+"_"+str(self.masses)+".txt"
+        self.summaryname = self.outdir+"scansummary_"+self.decay+"_"+str(self.masses)+".txt"
         summary = open(self.summaryname,"w")
         summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
         summary.close()
 
         # create details file
-        self.detailsname = dir+"scandetails_"+self.decay+"_"+str(self.masses)+".txt"
+        self.detailsname = self.outdir+"scandetails_"+self.decay+"_"+str(self.masses)+".txt"
         details = open(self.detailsname,"w")
         details.write("Scan details\n\n")
         details.close()
@@ -178,12 +178,12 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summaryname,"a")
         summary.write("Pre")
-        summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
+        summary.write(" " + f"{Decimal(self.optPoint.xb):.4E}")
         for var in varnames:
             if var in thetaVars:
-                summary.write(" " + f"{getattr(optPoint,var):1.4f}")
+                summary.write(" " + f"{getattr(self.optPoint,var):1.4f}")
             if var in vevVars:
-                summary.write(" " + f"{getattr(optPoint,var):1.1f}")
+                summary.write(" " + f"{getattr(self.optPoint,var):1.1f}")
         summary.write("\n")
         summary.close()
 
@@ -255,226 +255,6 @@ class Scan:
         details.close()
 
         return
-
-def runScan(masses: 'Masses',
-            decay,
-            npoints,
-            niter,
-            maxwidth,
-            zoom: 'Zoom',
-            use_multiprocessing=False):
-
-    # get scan start time
-    scanstart = time.time()
-
-    # check to make sure decay mode is supported
-    supported = isValidDecay(decay)
-    if not supported:
-        print("Unrecognized decay",decay)
-        print("Quitting...")
-        quit()
-
-    # make sure we use the minimum number of points
-    minpoints = 100
-    if npoints < minpoints:
-        npoints = minpoints
-
-    # make instance of params
-    # this automatically initializes the parameters
-    params = Params(masses)
-
-    # get scan directory
-    scandir = os.environ['SCANDIR']
-
-    # directory where we want the output to go
-    dir = scandir+decay+"/"+str(masses)+"/"
-
-    # remove previous directory if set to overwrite
-    if os.path.exists(dir):
-        shutil.rmtree(dir)
-
-    # make working directory
-    os.makedirs(dir)
-
-    # directory to store all of the output files
-    os.makedirs(dir+"/files")
-
-    # base name for all files
-    base = "TRSMBroken"
-
-    # name of template .ini file
-    templateini = base + "_template.ini"
-
-    # copy template .ini into dir
-    shutil.copy(os.environ['RUNDIR']+templateini,dir)
-
-    # create summary file
-    summaryname = dir+"scansummary_"+decay+"_"+str(masses)+".txt"
-    summary = open(summaryname,"w")
-    summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
-    summary.close()
-
-    # create details file
-    detailsname = dir+"scandetails_"+decay+"_"+str(masses)+".txt"
-    details = open(detailsname,"w")
-    details.write("Scan details\n\n")
-    details.close()
-
-    # use prescan to help constrain scan parameters
-    # TODO: Factorize this out into a separate function
-
-    # TODO: Add the ability to reapply width and bounds filters to prescan
-
-    # location of prescan outputs
-    prescandir = os.environ['PRESCANDIR']
-    prescantsv = prescandir + "/" + str(masses) + "/" + base + "_prescan.tsv"
-
-    # call prescan and get result
-    result = prescan.runPrescan(masses=masses,
-                                npoints=npoints,
-                                maxwidth=maxwidth,
-                                use_multiprocessing=use_multiprocessing)
-    
-    # if prescan fails, remove directory and return
-    if result < 0:
-        
-        # inform user
-        print("Removing directory",dir)
-
-        # delete directory
-        shutil.rmtree(dir)
-
-        # return result from process
-        return result
-
-    # count the number of prescan points available
-    with open(prescantsv, "r") as f:
-        nprescan = sum(1 for _ in f)
-
-    # info message about prescan
-    print("\nAnalyzing prescan with",nprescan,"points")
-
-    # get parser from prescan
-    scanparser = Parse(filename=prescantsv,
-                       masses=masses,
-                       decay=decay)
-
-    # if the prescan ranges are more than 5% away from
-    # the boundaries, change the boundaries to restrict
-    # scan range and minimize scan points that are wasted
-    # TODO: figure out a more robust way to constrain min and max
-
-    # set tolerance from boundaries
-    tolerance = 0.05
-
-    # print header about prescan ranges to the screen
-    print("Found the following ranges from the prescan:")
-
-    # loop over variables and adjust min and max values
-    for var in varnames:
-
-        # get min and max from prescan
-        newMin = scanparser.getmin(var)
-        newMax = scanparser.getmax(var)
-
-        # check min value
-        if newMin > params.min(var) + abs(params.min(var)) * tolerance:
-            params.set_min(var,newMin)
-
-        # check max value
-        if newMax < params.max(var) - abs(params.max(var)) * tolerance:
-            params.set_max(var,newMax)
-
-        # print min and max to the screen after prescan
-        if var in thetaVars:
-            print(var+": ["+f"{params.min(var):1.4f}"+","+f"{params.max(var):1.4f}"+"]")
-        if var in vevVars:
-            print(var+": ["+f"{params.min(var):1.1f}"+","+f"{params.max(var):1.1f}"+"]")
-    
-    # get scan density
-    density = nprescan / params.volume()
-    
-    # get new points
-    optPoint = scanparser.getmaxpoint()
-
-    # write scan details to details file
-    details = open(detailsname,"a")
-    details.write("Prescan\n")
-    details.write("Number of prescan points = " + str(nprescan) + "\n")
-    details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-    details.write("Max xsec*BR = " + f"{Decimal(optPoint.xb):.4E}" + "\n")
-    for var in thetaVars:
-        details.write(var+": value = " + f"{getattr(optPoint,var):1.4f}" + "\n")
-        details.write("     range = [" + f"{params.low(var):1.4f}" + "," + f"{params.high(var):1.4f}" + "]\n")
-    for var in vevVars:
-        details.write(var+": value = " + f"{getattr(optPoint,var):1.2f}" + "\n")
-        details.write("    range = [" + f"{params.low(var):1.1f}" + "," + f"{params.high(var):1.1f}" + "]\n")
-    details.write("\n")
-    details.close()
-
-    # write scan results to summary file
-    summary = open(summaryname,"a")
-    summary.write("Pre")
-    summary.write(" " + f"{Decimal(optPoint.xb):.4E}")
-    for var in varnames:
-        if var in thetaVars:
-            summary.write(" " + f"{getattr(optPoint,var):1.4f}")
-        if var in vevVars:
-            summary.write(" " + f"{getattr(optPoint,var):1.1f}")
-    summary.write("\n")
-    summary.close()
-
-    # get new theta ranges
-    tHSrange = params.range("tHS")
-    tHXrange = params.range("tHX")
-    tSXrange = params.range("tSX")
-
-    # get new vev ranges
-    vsrange = params.range("vs")
-    vxrange = params.range("vx")
-
-    # set new low and high values
-    params.set_params("tHS",optPoint.tHS,tHSrange)
-    params.set_params("tHX",optPoint.tHX,tHXrange)
-    params.set_params("tSX",optPoint.tSX,tSXrange)
-    params.set_params("vs",optPoint.vs,vsrange)
-    params.set_params("vx",optPoint.vx,vxrange)
-
-    # move into the working directory for scans
-    os.chdir(dir)
-
-    # TODO: Need to find a optPoint for each scanner range
-    myscanner = Scanner(npoints=npoints,
-                        params=params,
-                        optPoint=optPoint,
-                        detailsname=detailsname,
-                        summaryname=summaryname,
-                        zoom=zoom,
-                        dir=dir,
-                        label="test")
-
-    # run multiple scan iterations
-    for iter in range(niter):
-
-        # run scanner
-        myscanner.run(iter,use_multiprocessing)
-
-        ##### TODO: Add early stopping conditions
-
-        ##### TODO: Add functionality to concatenate all outputs into a single large output
-
-    # get total scan time
-    scanend = time.time()
-    scantime = (scanend - scanstart)
-
-    # print out scan time
-    print("\nDone!")
-    print("Scan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)\n")
-
-    # write time info to details file
-    details = open(detailsname,"a")
-    details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
-    details.close()
 
 def isValidDecay(decaymode):
 
@@ -810,10 +590,12 @@ if __name__ == "__main__":
     # whether multiprocessing should be used
     use_multiprocessing = args['multiprocessing']
 
-    runScan(masses=masses,
-            decay=decay,
-            npoints=npoints,
-            niter=niter,
-            maxwidth=maxwidth,
-            zoom=zoom,
-            use_multiprocessing=use_multiprocessing)
+    # creaate scan object
+    myScan = Scan(masses=masses,
+                  decay=decay,
+                  maxwidth=maxwidth)
+    
+    # run scan using scan object
+    myScan.runScan(npoints=npoints,
+                   zoom=zoom,
+                   use_multiprocessing=use_multiprocessing)
