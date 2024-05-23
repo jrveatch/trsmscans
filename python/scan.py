@@ -208,6 +208,7 @@ class Scan:
 
     def runScan(self,
                 npoints,
+                niter,
                 zoom: 'Zoom',
                 use_multiprocessing=False):
 
@@ -597,5 +598,6 @@ if __name__ == "__main__":
     
     # run scan using scan object
     myScan.runScan(npoints=npoints,
+                   niter=niter,
                    zoom=zoom,
                    use_multiprocessing=use_multiprocessing)
