@@ -29,7 +29,7 @@ class Scan:
                  masses: 'Masses',
                  decay,
                  maxwidth,
-                 base="TRSMBroken"):
+                 model="TRSMBroken"):
         
         # store masses and decay information
         self.masses = masses
@@ -65,11 +65,12 @@ class Scan:
         # directory to store all of the output files
         os.makedirs(self.outdir+"/files")
 
-        # store base name
-        self.base = base
+        # store mode name
+        self.model = model
 
         # copy template .ini into dir
-        shutil.copy(os.environ['RUNDIR']+self.base+"_template.ini",self.outdir)
+        # TODO: Copy from the data/models directory
+        shutil.copy(os.environ['RUNDIR']+self.model+"_template.ini",self.outdir)
 
         # create summary file
         self.summaryname = self.outdir+"scansummary_"+self.decay+"_"+str(self.masses)+".txt"
@@ -91,13 +92,13 @@ class Scan:
                    use_multiprocessing=False):
 
         # location of prescan outputs
-        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.base + "_prescan.tsv"
+        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.model + "_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
                                     npoints=npoints,
                                     maxwidth=self.maxwidth,
-                                    base=self.base,
+                                    model=self.model,
                                     use_multiprocessing=use_multiprocessing)
     
         # if prescan fails, remove directory and quit
@@ -293,7 +294,7 @@ class Scanner:
                  zoom: 'Zoom',
                  outdir,
                  label="",
-                 base="TRSMBroken"):
+                 model="TRSMBroken"):
 
         # some basic scanner information
         self.detailsname = detailsname
@@ -304,7 +305,7 @@ class Scanner:
         self.optPoint = optPoint
         self.outdir = outdir
         self.label = label
-        self.base = base
+        self.model = model
 
         # zoom rates
         self.zoom = zoom
@@ -313,7 +314,7 @@ class Scanner:
         self.minpoints = 100
 
         # name of template .ini file
-        self.templateini = self.outdir + self.base + "_template.ini"
+        self.templateini = self.outdir + self.model + "_template.ini"
 
         # create parse object without a filename
         self.scanparser = Parse(masses=self.params.masses,
@@ -337,7 +338,7 @@ class Scanner:
         print("Running scanner with identifier",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.base + "_" + identifier
+        outname = self.outdir + "files/" + self.model + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 
@@ -360,7 +361,7 @@ class Scanner:
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(self.base + ".tsv",
+        nwidth, nbounds, npass = filters.applyFilters(self.model + ".tsv",
                                                       output_file=tsvname,
                                                       maxwidth=maxwidth,
                                                       masses=self.params.masses)
