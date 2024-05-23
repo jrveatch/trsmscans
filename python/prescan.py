@@ -11,6 +11,7 @@ from params import Params
 import filters
 import runScannerS
 from masses import Masses
+import tsvutils
 
 def runPrescan(masses: 'Masses',
                npoints,
@@ -33,13 +34,12 @@ def runPrescan(masses: 'Masses',
 
     # names of .ini and .tsv files
     templateini = base + "_template.ini"
-    outbase = "./" + base
-    ininame = outdir + outbase + ".ini"
-    tsvname_initial = outbase + ".tsv"
-    tsvname = outbase + "_prescan.tsv"
+    ininame = outdir + base + ".ini"
+    tsvname_initial = outdir + base + ".tsv"
+    tsvname = outdir + base + "_prescan.tsv"
 
     # print starting message
-    print("\nAttempting to run prescan in",outdir)
+    print("\nRunning a prescan with",npoints,"points in",outdir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
@@ -58,10 +58,10 @@ def runPrescan(masses: 'Masses',
 
     # make instance of params
     # this automatically initializes the parameters
-    pars = Params(masses)
+    params = Params(masses)
 
     # write .ini file from template
-    pars.writeini(templateini,ininame)
+    params.writeini(templateini,ininame)
 
     # get number of pre-existing prescan points
     nexisting = checkPrescan(masses,base)
@@ -123,13 +123,14 @@ def runPrescan(masses: 'Masses',
                 return result
 
             # increment the count of points done
-            points_done += countNPointsInFile(tsvname_initial)
+            points_done += tsvutils.countPointsInTSV(tsvname_initial)
 
             # initialize filter columns
             filters.initializeFilters(tsvname_initial)
 
             # save output to tsvname
-            saveOutput(tsvname_initial,tsvname)
+            tsvutils.saveTSVOutput(inputfile=tsvname_initial,
+                                   outputfile=tsvname)
 
     # apply width and bounds filters
     # this also renames the output .tsv file
@@ -142,6 +143,7 @@ def runPrescan(masses: 'Masses',
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
+    # return after a successful run
     return 0
 
 # function to check previous prescan
@@ -154,7 +156,7 @@ def checkPrescan(masses: Masses,base):
     filename = prescandir+"/"+str(masses)+"/"+base+"_prescan.tsv"
 
     # get number of points in file
-    npoints = countNPointsInFile(filename)
+    npoints = tsvutils.countPointsInTSV(filename)
 
     return npoints
 
@@ -176,41 +178,8 @@ def countNPointsInFile(filename):
     # get the number of previously scanned points
     npoints = int(output.split()[0]) - 1
 
+    # return number of points
     return npoints
-
-# function to save output
-def saveOutput(inputfile,outputfile):
-
-    # get number of points already in output file
-    nexisting = countNPointsInFile(outputfile)
-
-    # if output file doesn't exist or is empty, simply rename input file
-    if nexisting <= 0:
-        os.rename(inputfile,outputfile)
-        return
-
-    # otherwise append the contents of inputfile to outputfile
-    with open(inputfile,'r') as source_file:
-        # skip the first line
-        next(source_file)
-
-        # open output .tsv file for appending
-        with open(outputfile,'a') as destination_file:
-
-            # get each line in the new .tsv file
-            for line in source_file:
-
-                # replace the index with a unique value
-                parts = line.strip().split('\t')
-                parts[0] = str(int(parts[0]) + nexisting)
-
-                # append each line to final .tsv file
-                destination_file.write('\t'.join(parts) + '\n')
-
-    # delete input .tsv file
-    os.remove(inputfile)
-
-    return
 
 if __name__ == "__main__":
 

@@ -17,10 +17,12 @@ import runScannerS
 from masses import Masses
 import prescan
 
+# make lists of parameters to scan over
 thetaVars = ["tHS","tHX","tSX"]
 vevVars = ["vs","vx"]
 varnames = thetaVars + vevVars
 
+# class to organize and run a complete scan
 class Scan:
 
     def __init__(self,
@@ -225,11 +227,12 @@ class Scan:
         # TODO: Need to find a optPoint for each scanner range
         myscanner = Scanner(npoints=npoints,
                             params=self.params,
+                            decay=self.decay,
                             optPoint=self.optPoint,
                             detailsname=self.detailsname,
                             summaryname=self.summaryname,
                             zoom=zoom,
-                            dir=self.outdir,
+                            outdir=self.outdir,
                             label="test")
 
         # run multiple scan iterations
@@ -277,16 +280,18 @@ def isValidDecay(decaymode):
     # if it isn't found, return False
     return False
 
+# class that keeps track of a single scan procedure
 class Scanner:
 
     def __init__(self,
                  detailsname,
                  summaryname,
                  params: 'Params',
+                 decay,
                  npoints,
                  optPoint: 'Point',
                  zoom: 'Zoom',
-                 dir,
+                 outdir,
                  label="",
                  base="TRSMBroken"):
 
@@ -294,9 +299,10 @@ class Scanner:
         self.detailsname = detailsname
         self.summaryname = summaryname
         self.params = params
+        self.decay = decay
         self.npoints = npoints
         self.optPoint = optPoint
-        self.dir = dir
+        self.outdir = outdir
         self.label = label
         self.base = base
 
@@ -307,11 +313,11 @@ class Scanner:
         self.minpoints = 100
 
         # name of template .ini file
-        self.templateini = self.dir + self.base + "_template.ini"
+        self.templateini = self.outdir + self.base + "_template.ini"
 
         # create parse object without a filename
-        self.scanparser = Parse(masses=masses,
-                                decay=decay)
+        self.scanparser = Parse(masses=self.params.masses,
+                                decay=self.decay)
 
         # TODO: Names of details and summary files
 
@@ -331,7 +337,7 @@ class Scanner:
         print("Running scanner with identifier",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = self.dir + "files/" + self.base + "_" + identifier
+        outname = self.outdir + "files/" + self.base + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 
@@ -531,6 +537,7 @@ class Scanner:
         self.vxOpt = self.optPoint.vx
         self.xbOpt = self.optPoint.xb
 
+# class to hold onto range decay and density growth rates
 class Zoom:
 
     def __init__(self,

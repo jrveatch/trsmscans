@@ -1,4 +1,6 @@
 
+# class to hold onto masses and handle translation
+# between X/S/H and H1/H2/H3 bases
 class Masses:
 
     def __init__(self,mX,mS,mH):
