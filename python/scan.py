@@ -21,6 +21,23 @@ thetaVars = ["tHS","tHX","tSX"]
 vevVars = ["vs","vx"]
 varnames = thetaVars + vevVars
 
+class Scan:
+
+    def __init__(self,
+                 masses: 'Masses',
+                 decay):
+        
+        # store masses and decay information
+        self.masses = masses
+        self.decay = decay
+
+        # check whether decay is valid
+        supported = isValidDecay(self.decay)
+        if not supported:
+            print("Unrecognized decay",self.decay)
+            print("Quitting...")
+            quit()
+
 def runScan(masses: 'Masses',
             decay,
             npoints,
