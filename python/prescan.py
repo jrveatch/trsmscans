@@ -29,32 +29,32 @@ def runPrescan(masses: 'Masses',
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
-    dir = prescandir+str(masses)+"/"
+    outdir = prescandir+str(masses)+"/"
 
     # names of .ini and .tsv files
     templateini = base + "_template.ini"
     outbase = "./" + base
-    ininame = dir + outbase + ".ini"
+    ininame = outdir + outbase + ".ini"
     tsvname_initial = outbase + ".tsv"
     tsvname = outbase + "_prescan.tsv"
 
     # print starting message
-    print("\nAttempting to run prescan in",dir)
+    print("\nAttempting to run prescan in",outdir)
 
     # remove previous directory if set to overwrite
-    if os.path.exists(dir) and overwrite:
-        shutil.rmtree(dir)
+    if os.path.exists(outdir) and overwrite:
+        shutil.rmtree(outdir)
 
     # check if directory exists, if not make it
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
     # copy template .ini into dir if it doesn't already exist
-    if not os.path.exists(dir+templateini):
-        shutil.copy(templateini,dir)
+    if not os.path.exists(outdir+templateini):
+        shutil.copy(templateini,outdir)
 
     # move into working directory for prescan
-    os.chdir(dir)
+    os.chdir(outdir)
 
     # make instance of params
     # this automatically initializes the parameters
@@ -114,10 +114,10 @@ def runPrescan(masses: 'Masses',
             if result < 0:
 
                 # inform user
-                print("Removing directory",dir)
+                print("Removing directory",outdir)
 
                 # delete directory
-                shutil.rmtree(dir)
+                shutil.rmtree(outdir)
 
                 # return result from process
                 return result
