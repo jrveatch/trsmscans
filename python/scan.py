@@ -17,10 +17,12 @@ import runScannerS
 from masses import Masses
 import prescan
 
+# make lists of parameters to scan over
 thetaVars = ["tHS","tHX","tSX"]
 vevVars = ["vs","vx"]
 varnames = thetaVars + vevVars
 
+# class to organize and run a complete scan
 class Scan:
 
     def __init__(self,
@@ -278,6 +280,7 @@ def isValidDecay(decaymode):
     # if it isn't found, return False
     return False
 
+# class that keeps track of a single scan procedure
 class Scanner:
 
     def __init__(self,
@@ -534,6 +537,7 @@ class Scanner:
         self.vxOpt = self.optPoint.vx
         self.xbOpt = self.optPoint.xb
 
+# class to hold onto range decay and density growth rates
 class Zoom:
 
     def __init__(self,

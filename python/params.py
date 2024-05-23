@@ -3,6 +3,7 @@ import math
 
 from masses import Masses
 
+# class to hold and update full set of parameters used in a scan
 class Params:
 
     def __init__(self,
