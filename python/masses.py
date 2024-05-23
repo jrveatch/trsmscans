@@ -8,9 +8,6 @@ class Masses:
         self.mS = mS
         self.mH = mH
 
-        # mass string for directory and file names
-        self.massString = "X"+str(self.mX)+"_S"+str(self.mS)
-
         # logic to set H1/H2/H3
 
         # if mX is the largest, it is H3
@@ -82,3 +79,6 @@ class Masses:
                 self.mH1 = self.mX
                 self.XName = "H1"
         """
+
+    def __str__(self):
+        return "X"+str(self.mX)+"_S"+str(self.mS)
