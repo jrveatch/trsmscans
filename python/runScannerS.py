@@ -65,11 +65,14 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     else:
         num_processes = njobs
 
-    # get number of points per job, rounded up
-    points_per_job = math.ceil(npoints/num_processes)
-
     # minimum number of points per job
     min_points = 10
+
+    # subtract min points from npoints to account for test process
+    npoints -= min_points
+
+    # get number of points per job, rounded up
+    points_per_job = math.ceil(npoints/num_processes)
 
     # if points_per_job is less than min_points, reduce the number of jobs
     if points_per_job < min_points:
@@ -81,8 +84,11 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
         print("Only 1 process needed, running as a single process")
         return runSingleProcess(ininame,npoints,model)
 
+    # print out some information
+    print("Running test job with",min_points,"points")
+
     # define test process with 10 points
-    test_process = [model, "--config", ininame, "scan", "-n", "10"]
+    test_process = [model, "--config", ininame, "scan", "-n", str(min_points)]
 
     # run test process
     test_result = run_subprocess(test_process,model)
@@ -91,6 +97,9 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     if test_result < 0:
         print("Test job timed out. Exiting.")
         return test_result
+
+    # print out some information
+    print("Test job was successful")
 
     # reset npoints to reflect how many are actually used
     npoints = points_per_job * num_processes

@@ -39,7 +39,7 @@ def runPrescan(masses: 'Masses',
     tsvname = outdir + base + "_prescan.tsv"
 
     # print starting message
-    print("\nAttempting to run prescan in",outdir)
+    print("\nRunning a prescan with",npoints,"points in",outdir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
