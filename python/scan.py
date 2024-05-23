@@ -59,12 +59,8 @@ def runScan(masses: 'Masses',
     # get scan directory
     scandir = os.environ['SCANDIR']
 
-    # get mass string
-    # TODO: Is there a way to define a casting to do this?
-    massString = masses.massString
-
     # directory where we want the output to go
-    dir = scandir+decay+"/"+massString+"/"
+    dir = scandir+decay+"/"+str(masses)+"/"
 
     # remove previous directory if set to overwrite
     if os.path.exists(dir):
@@ -83,13 +79,13 @@ def runScan(masses: 'Masses',
         shutil.copy(templateini,dir)
 
     # create summary file
-    summaryname = dir+"scansummary_"+decay+"_"+massString+".txt"
+    summaryname = dir+"scansummary_"+decay+"_"+str(masses)+".txt"
     summary = open(summaryname,"w")
     summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
     summary.close()
 
     # create details file
-    detailsname = dir+"scandetails_"+decay+"_"+massString+".txt"
+    detailsname = dir+"scandetails_"+decay+"_"+str(masses)+".txt"
     details = open(detailsname,"w")
     details.write("Scan details\n\n")
     details.close()
@@ -108,7 +104,7 @@ def runScan(masses: 'Masses',
 
     # location of prescan outputs
     prescandir = os.environ['PRESCANDIR']
-    prescantsv = prescandir + "/" + massString + "/" + base + "_prescan.tsv"
+    prescantsv = prescandir + "/" + str(masses) + "/" + base + "_prescan.tsv"
 
     # call prescan
     prescan.runPrescan(masses=masses,
