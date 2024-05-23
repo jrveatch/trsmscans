@@ -99,7 +99,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
+    process = [model, "--config", ininame, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()

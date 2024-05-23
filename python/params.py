@@ -18,6 +18,9 @@ class Params:
                  vxmin=0.0,
                  vxmax=1000.0):
 
+        # store masses
+        self.masses = masses
+
         # set H1/2/3 mass values
         self.mH1 = masses.mH1
         self.mH2 = masses.mH2
@@ -105,6 +108,8 @@ class Params:
         return newHigh
 
     # functions to set new low and high parameters
+    # TODO: Give option to not pass in range and just use range that already exists
+    # TODO: Use full range, not truncated range
     def set_params(self,varname,val,range):
         setattr(self,varname+"val",val)
         setattr(self,varname+"range",range)

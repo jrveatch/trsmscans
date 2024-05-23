@@ -17,6 +17,7 @@ def runPrescan(masses: 'Masses',
                maxwidth,
                overwrite=False,
                use_multiprocessing=False,
+               base="TRSMBroken",
                stepsize=10000):
 
     # get scan start time
@@ -24,37 +25,36 @@ def runPrescan(masses: 'Masses',
 
     # TODO: Add check to make sure overwrite is wanted
 
-    # names of .ini and .tsv files
-    base = "TRSMBroken"
-    templateini = base + "_template.ini"
-    outbase = "./" + base
-    ininame = outbase + ".ini"
-    tsvname_initial = outbase + ".tsv"
-    tsvname = outbase + "_prescan.tsv"
-
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # directory where we want the output to go
-    dir = prescandir+str(masses)+"/"
+    outdir = prescandir+str(masses)+"/"
+
+    # names of .ini and .tsv files
+    templateini = base + "_template.ini"
+    outbase = "./" + base
+    ininame = outdir + outbase + ".ini"
+    tsvname_initial = outbase + ".tsv"
+    tsvname = outbase + "_prescan.tsv"
 
     # print starting message
-    print("\nAttempting to run prescan in",dir)
+    print("\nAttempting to run prescan in",outdir)
 
     # remove previous directory if set to overwrite
-    if os.path.exists(dir) and overwrite:
-        shutil.rmtree(dir)
+    if os.path.exists(outdir) and overwrite:
+        shutil.rmtree(outdir)
 
     # check if directory exists, if not make it
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
     # copy template .ini into dir if it doesn't already exist
-    if not os.path.exists(dir+templateini):
-        shutil.copy(templateini,dir)
+    if not os.path.exists(outdir+templateini):
+        shutil.copy(templateini,outdir)
 
-    # go into the run directory
-    os.chdir(dir)
+    # move into working directory for prescan
+    os.chdir(outdir)
 
     # make instance of params
     # this automatically initializes the parameters
@@ -64,7 +64,7 @@ def runPrescan(masses: 'Masses',
     pars.writeini(templateini,ininame)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(masses)
+    nexisting = checkPrescan(masses,base)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting >= 0:
@@ -114,10 +114,10 @@ def runPrescan(masses: 'Masses',
             if result < 0:
 
                 # inform user
-                print("Removing directory",dir)
+                print("Removing directory",outdir)
 
                 # delete directory
-                shutil.rmtree(dir)
+                shutil.rmtree(outdir)
 
                 # return result from process
                 return result
@@ -145,13 +145,13 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(masses: Masses):
+def checkPrescan(masses: Masses,base):
 
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # prescan file name
-    filename = prescandir+"/X"+str(masses.mX)+"_S"+str(masses.mS)+"/TRSMBroken_prescan.tsv"
+    filename = prescandir+"/"+str(masses)+"/"+base+"_prescan.tsv"
 
     # get number of points in file
     npoints = countNPointsInFile(filename)
