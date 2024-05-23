@@ -33,10 +33,9 @@ def runPrescan(masses: 'Masses',
 
     # names of .ini and .tsv files
     templateini = base + "_template.ini"
-    outbase = "./" + base
-    ininame = outdir + outbase + ".ini"
-    tsvname_initial = outbase + ".tsv"
-    tsvname = outbase + "_prescan.tsv"
+    ininame = outdir + base + ".ini"
+    tsvname_initial = outdir + base + ".tsv"
+    tsvname = outdir + base + "_prescan.tsv"
 
     # print starting message
     print("\nAttempting to run prescan in",outdir)
