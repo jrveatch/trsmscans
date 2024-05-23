@@ -64,7 +64,7 @@ def runPrescan(masses: 'Masses',
     pars.writeini(templateini,ininame)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(masses)
+    nexisting = checkPrescan(masses,base)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting >= 0:
@@ -145,13 +145,13 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(masses: Masses):
+def checkPrescan(masses: Masses,base):
 
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # prescan file name
-    filename = prescandir+"/X"+str(masses.mX)+"_S"+str(masses.mS)+"/TRSMBroken_prescan.tsv"
+    filename = prescandir+"/"+str(masses)+"/"+base+"_prescan.tsv"
 
     # get number of points in file
     npoints = countNPointsInFile(filename)
