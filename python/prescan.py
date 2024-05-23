@@ -17,6 +17,7 @@ def runPrescan(masses: 'Masses',
                maxwidth,
                overwrite=False,
                use_multiprocessing=False,
+               base="TRSMBroken",
                stepsize=10000):
 
     # get scan start time
@@ -31,7 +32,6 @@ def runPrescan(masses: 'Masses',
     dir = prescandir+str(masses)+"/"
 
     # names of .ini and .tsv files
-    base = "TRSMBroken"
     templateini = base + "_template.ini"
     outbase = "./" + base
     ininame = dir + outbase + ".ini"

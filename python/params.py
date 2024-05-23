@@ -108,6 +108,8 @@ class Params:
         return newHigh
 
     # functions to set new low and high parameters
+    # TODO: Give option to not pass in range and just use range that already exists
+    # TODO: Use full range, not truncated range
     def set_params(self,varname,val,range):
         setattr(self,varname+"val",val)
         setattr(self,varname+"range",range)
