@@ -141,6 +141,7 @@ def runPrescan(masses: 'Masses',
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
+    # return after a successful run
     return 0
 
 # function to check previous prescan
