@@ -27,12 +27,8 @@ def runPrescan(masses: 'Masses',
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
-    # get mass string
-    # TODO: Is there a way to define a casting to do this?
-    massString = masses.massString
-
     # directory where we want the output to go
-    dir = prescandir+massString+"/"
+    dir = prescandir+str(masses)+"/"
 
     # names of .ini and .tsv files
     base = "TRSMBroken"
