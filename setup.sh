@@ -7,10 +7,10 @@ source scripts/venv.sh
 export PATH="${PWD}/ScannerS/build:$PATH"
 
 # set data directory as environment variable
-export RUNDIR="${PWD}/"
+export DATADIR="${PWD}/data/"
 
-# set data directory as environment variable
-export DATADIR="${RUNDIR}/data/"
+# set run directory as environment variable
+export RUNDIR="${PWD}/run/"
 
 # set output directory as environment variable
 export OUTPUTDIR="${RUNDIR}/output/"
