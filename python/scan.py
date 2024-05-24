@@ -15,7 +15,6 @@ from params import Params
 import filters
 import runScannerS
 from masses import Masses
-from model import Model
 import prescan
 
 # make lists of parameters to scan over
@@ -32,8 +31,8 @@ class Scan:
                  maxwidth,
                  modelname="TRSMBroken"):
 
-        # create model object
-        self.model = Model(modelname)
+        # store model name
+        self.modelname = modelname
         
         # store masses and decay information
         self.masses = masses
@@ -51,7 +50,7 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(masses)
+        self.params = Params(modelname,masses)
 
         # make dummy optimal point
         self.optPoint = Point()
@@ -70,13 +69,13 @@ class Scan:
         os.makedirs(self.outdir+"/files")
 
         # create summary file
-        self.summaryname = self.outdir+"scansummary_"+self.model.name+"_"+self.decay+"_"+str(self.masses)+".txt"
+        self.summaryname = self.outdir+"scansummary_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
         summary = open(self.summaryname,"w")
         summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
         summary.close()
 
         # create details file
-        self.detailsname = self.outdir+"scandetails_"+self.model.name+"_"+self.decay+"_"+str(self.masses)+".txt"
+        self.detailsname = self.outdir+"scandetails_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
         details = open(self.detailsname,"w")
         details.write("Scan details\n\n")
         details.close()
@@ -89,13 +88,13 @@ class Scan:
                    use_multiprocessing=False):
 
         # location of prescan outputs
-        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.model.name + "_prescan.tsv"
+        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.modelname + "_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
                                     npoints=npoints,
                                     maxwidth=self.maxwidth,
-                                    modelname=self.model.name,
+                                    modelname=self.modelname,
                                     use_multiprocessing=use_multiprocessing)
     
         # if prescan fails, remove directory and quit
@@ -224,7 +223,6 @@ class Scan:
 
         # TODO: Need to find a optPoint for each scanner range
         myscanner = Scanner(npoints=npoints,
-                            model=self.model,
                             params=self.params,
                             decay=self.decay,
                             optPoint=self.optPoint,
@@ -285,7 +283,6 @@ class Scanner:
     def __init__(self,
                  detailsname,
                  summaryname,
-                 model: 'Model',
                  params: 'Params',
                  decay,
                  npoints,
@@ -303,7 +300,7 @@ class Scanner:
         self.optPoint = optPoint
         self.outdir = outdir
         self.label = label
-        self.model = model
+        self.modelname = params.model.name
 
         # zoom rates
         self.zoom = zoom
@@ -333,12 +330,12 @@ class Scanner:
         print("Running scanner with identifier",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.model.name + "_" + identifier
+        outname = self.outdir + "files/" + self.modelname + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 
         # write new .ini file from template and parameters
-        self.params.writeini(self.model.templateini,ininame)
+        self.params.writeini(ininame)
 
         # run ScannerS
         if use_multiprocessing:
@@ -356,7 +353,7 @@ class Scanner:
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(self.model.name + ".tsv",
+        nwidth, nbounds, npass = filters.applyFilters(self.modelname + ".tsv",
                                                       output_file=tsvname,
                                                       maxwidth=maxwidth,
                                                       masses=self.params.masses)

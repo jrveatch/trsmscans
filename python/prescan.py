@@ -12,7 +12,6 @@ import filters
 import runScannerS
 from masses import Masses
 import tsvutils
-from model import Model
 
 def runPrescan(masses: 'Masses',
                npoints,
@@ -29,9 +28,6 @@ def runPrescan(masses: 'Masses',
 
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
-
-    # create model object
-    model = Model(modelname)
 
     # directory where we want the output to go
     outdir = prescandir+str(masses)+"/"
@@ -57,10 +53,10 @@ def runPrescan(masses: 'Masses',
 
     # make instance of params
     # this automatically initializes the parameters
-    params = Params(masses)
+    params = Params(modelname,masses)
 
     # write .ini file from template
-    params.writeini(model.templateini,ininame)
+    params.writeini(ininame)
 
     # get number of pre-existing prescan points
     nexisting = checkPrescan(masses,modelname)

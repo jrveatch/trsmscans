@@ -2,22 +2,14 @@
 import math
 
 from masses import Masses
+from model import Model
 
 # class to hold and update full set of parameters used in a scan
 class Params:
 
     def __init__(self,
-                 masses: Masses,
-                 tHSmin=-1*math.pi/2,
-                 tHSmax=math.pi/2,
-                 tHXmin=-1*math.pi/2,
-                 tHXmax=math.pi/2,
-                 tSXmin=-1*math.pi/2,
-                 tSXmax=math.pi/2,
-                 vsmin=0.0,
-                 vsmax=1000.0,
-                 vxmin=0.0,
-                 vxmax=1000.0):
+                 modelname,
+                 masses: Masses):
 
         # store masses
         self.masses = masses
@@ -27,21 +19,22 @@ class Params:
         self.mH2 = masses.mH2
         self.mH3 = masses.mH3
 
+        # get model using modelname
+        self.model = Model(modelname)
+
         # set min and max theta values
-        # these should not be changed once initialized
-        self.tHSmin = tHSmin
-        self.tHSmax = tHSmax
-        self.tHXmin = tHXmin
-        self.tHXmax = tHXmax
-        self.tSXmin = tSXmin
-        self.tSXmax = tSXmax
+        self.tHSmin = self.model.min('tHS')
+        self.tHSmax = self.model.max('tHS')
+        self.tHXmin = self.model.min('tHX')
+        self.tHXmax = self.model.max('tHX')
+        self.tSXmin = self.model.min('tSX')
+        self.tSXmax = self.model.max('tSX')
 
         # set min and max vev values
-        # these should not be changed once initialized
-        self.vsmin = vsmin
-        self.vsmax = vsmax
-        self.vxmin = vxmin
-        self.vxmax = vxmax
+        self.vsmin = self.model.min('vs')
+        self.vsmax = self.model.max('vs')
+        self.vxmin = self.model.min('vx')
+        self.vxmax = self.model.max('vx')
 
         # initialize high and low values from max and min values
         self.tHSlow = self.tHSmin
@@ -157,10 +150,10 @@ class Params:
         return getattr(self,varname+"range")
     
     # function to write .ini file with parameters
-    def writeini(self,templateini,ininame):
+    def writeini(self,ininame):
 
         # read in template .ini file
-        template = open(templateini,"r")
+        template = open(self.model.templateini,"r")
         filedata = template.read()
         template.close()
 
