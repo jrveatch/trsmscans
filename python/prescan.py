@@ -12,13 +12,14 @@ import filters
 import runScannerS
 from masses import Masses
 import tsvutils
+from model import Model
 
 def runPrescan(masses: 'Masses',
                npoints,
                maxwidth,
                overwrite=False,
                use_multiprocessing=False,
-               model="TRSMBroken",
+               modelname="TRSMBroken",
                stepsize=10000):
 
     # get scan start time
@@ -29,17 +30,16 @@ def runPrescan(masses: 'Masses',
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
-    # get model directory
-    modeldir = os.environ['DATADIR'] + "/models/"
+    # create model object
+    model = Model(modelname)
 
     # directory where we want the output to go
     outdir = prescandir+str(masses)+"/"
 
     # names of .ini and .tsv files
-    templateini = model + "_template.ini"
-    ininame = outdir + model + ".ini"
-    tsvname_initial = outdir + model + ".tsv"
-    tsvname = outdir + model + "_prescan.tsv"
+    ininame = outdir + modelname + ".ini"
+    tsvname_initial = outdir + modelname + ".tsv"
+    tsvname = outdir + modelname + "_prescan.tsv"
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points in",outdir)
@@ -52,11 +52,6 @@ def runPrescan(masses: 'Masses',
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    # copy template .ini into dir if it doesn't already exist
-    # TODO: Copy template .ini from data/models directory
-    if not os.path.exists(outdir+templateini):
-        shutil.copy(modeldir+templateini,outdir)
-
     # move into working directory for prescan
     os.chdir(outdir)
 
@@ -65,10 +60,10 @@ def runPrescan(masses: 'Masses',
     params = Params(masses)
 
     # write .ini file from template
-    params.writeini(outdir+templateini,ininame)
+    params.writeini(model.templateini,ininame)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(masses,model)
+    nexisting = checkPrescan(masses,modelname)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting >= 0:
@@ -151,13 +146,13 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(masses: Masses,model):
+def checkPrescan(masses: Masses,modelname):
 
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
     # prescan file name
-    filename = prescandir+"/"+str(masses)+"/"+model+"_prescan.tsv"
+    filename = prescandir+"/"+str(masses)+"/"+modelname+"_prescan.tsv"
 
     # get number of points in file
     npoints = tsvutils.countPointsInTSV(filename)
