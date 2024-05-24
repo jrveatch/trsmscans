@@ -29,6 +29,9 @@ def runPrescan(masses: 'Masses',
     # get prescan directory
     prescandir = os.environ['PRESCANDIR']
 
+    # get model directory
+    modeldir = os.environ['DATADIR'] + "/models/"
+
     # directory where we want the output to go
     outdir = prescandir+str(masses)+"/"
 
@@ -52,7 +55,7 @@ def runPrescan(masses: 'Masses',
     # copy template .ini into dir if it doesn't already exist
     # TODO: Copy template .ini from data/models directory
     if not os.path.exists(outdir+templateini):
-        shutil.copy(templateini,outdir)
+        shutil.copy(modeldir+templateini,outdir)
 
     # move into working directory for prescan
     os.chdir(outdir)
@@ -62,7 +65,7 @@ def runPrescan(masses: 'Masses',
     params = Params(masses)
 
     # write .ini file from template
-    params.writeini(templateini,ininame)
+    params.writeini(outdir+templateini,ininame)
 
     # get number of pre-existing prescan points
     nexisting = checkPrescan(masses,model)

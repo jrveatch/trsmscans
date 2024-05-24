@@ -69,8 +69,7 @@ class Scan:
         self.model = model
 
         # copy template .ini into dir
-        # TODO: Copy from the data/models directory
-        shutil.copy(os.environ['RUNDIR']+self.model+"_template.ini",self.outdir)
+        shutil.copy(os.environ['DATADIR']+"/models/"+self.model+"_template.ini",self.outdir)
 
         # create summary file
         self.summaryname = self.outdir+"scansummary_"+self.decay+"_"+str(self.masses)+".txt"
