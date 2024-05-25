@@ -49,7 +49,6 @@ class Params:
         return abs(high - low) / 2
 
     # set new value, range, low and high
-    # TODO: Update this to use a point instead of newVal
     def updateParams(self,
                      newPoint: 'Point'=None,
                      rangeScale=1.0):
@@ -186,7 +185,6 @@ class Parameter:
             self.range = self.getRange()
     
     # set new value, range, low and high
-    # TODO: Update this to use a point instead of newVal
     def updateParam(self,newVal=None,rangeScale=1.0):
 
         # if both newVal is None and rangeScale is 1.0, complain and return existing low
