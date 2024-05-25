@@ -135,8 +135,8 @@ class Scan:
         for par in self.params.parnames:
 
             # get min and max from prescan
-            newMin = self.prescanparser.getmin(par)
-            newMax = self.prescanparser.getmax(par)
+            newMin = self.prescanparser.getMin(par)
+            newMax = self.prescanparser.getMax(par)
 
             # check min value
             if newMin > self.params.min(par) + abs(self.params.min(par)) * tolerance:
@@ -153,7 +153,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.getmaxpoint()
+        self.optPoint = self.prescanparser.getMaxPoint()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
@@ -366,7 +366,7 @@ class Scanner:
         self.scanparser.readFile(filename=tsvname)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.getmaxpoint()
+        newPoint = self.scanparser.getMaxPoint()
 
         # flag to indicate whether optimal point needs to be updated
         update = False

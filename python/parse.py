@@ -33,6 +33,9 @@ class Parse:
         # initialize model name
         self.modelname = modelname
 
+        # initialize model
+        self.model = Model(modelname)
+
         # initialize HName and SName
         self.HName = masses.HName
         self.SName = masses.SName
@@ -67,40 +70,34 @@ class Parse:
         self.filters = np.multiply(self.arr.data['filt_width'],self.arr.data['filt_bounds'])
 
     # find the point that maximizes xb
-    def getmaxpoint(self):
+    def getMaxPoint(self):
 
         # get index of maximum xsec times BR
         maxidx = np.argmax(self.xb)
 
         # get max xsec times BR
         maxxb = self.xb[maxidx]
+        
+        # make dictionary for parameter values for maxxb
+        self.maxDict = {}
 
-        # get theta and vev values that maximize xsec times BR
-        maxthS = self.tHS[maxidx]
-        maxthX = self.tHX[maxidx]
-        maxtSX = self.tSX[maxidx]
-        maxvs = self.vs[maxidx]
-        maxvx = self.vx[maxidx]
-
-        maxDict = {'tHS': maxthS,
-                   'tHX': maxthX,
-                   'tSX': maxtSX,
-                   'vs': maxvs,
-                   'vx': maxvx}
+        # loop over parameter arrays
+        for par, array in self.parArrays.items():
+            self.maxDict[par] = array[maxidx]
 
         # return a point object holding xb and other parameters
         return Point(xb=maxxb,
                      modelname=self.modelname,
-                     parvals=maxDict)
+                     parvals=self.maxDict)
 
     # get the maximum xb
-    def getxb(self,decay):
+    def getXB(self,decay):
 
         # get production cross section
-        xb_prod = self.getxbprod()
+        xb_prod = self.getXBProd()
 
         # get branching ratio
-        xb_decay = self.getxbdecay(decay)
+        xb_decay = self.getXBDecay(decay)
 
         # get total xsec times BR
         xb = np.multiply(xb_prod,xb_decay)
@@ -108,7 +105,7 @@ class Parse:
         return xb
 
     # get maximum xb for the production
-    def getxbprod(self):
+    def getXBProd(self):
 
         # TODO: take decay as argument for other production modes
 
@@ -118,7 +115,7 @@ class Parse:
         return xb_prod
 
     # get maximum xb for the decay
-    def getxbdecay(self,decay):
+    def getXBDecay(self,decay):
 
         # get appropriate BR for decay mode
         match decay:
@@ -216,14 +213,14 @@ class Parse:
         # return the decay BR
         return xb_decay
 
-    def getmin(self,varname):
-        return np.min(getattr(self,varname))
+    def getMin(self,varname):
+        return np.min(self.parArrays[varname])
 
-    def getmax(self,varname):
-        return np.max(getattr(self,varname))
+    def getMax(self,varname):
+        return np.max(self.parArrays[varname])
     
-    def getvars(self):
-        return self.tHS, self.tHX, self.tSX, self.vs, self.vx
+    def getVars(self):
+        return self.parArrays['tHS'], self.parArrays['tHX'], self.parArrays['tSX'], self.parArrays['vs'], self.parArrays['vx']
 
     # apply filters as mask
     def getFilteredArrays(self):
@@ -231,7 +228,17 @@ class Parse:
         # get array of filters to use as a mask
         self.getFilters()
 
+        ##############################
         # create local arrays by applying filter mask
+        ##############################
+
+        # dictionary for parameter arrays
+        self.parArrays = {}
+
+        # loop over parameters
+        for name, par in self.model.params.items():
+            # populate dictionary of parameter arrays
+            self.parArrays[name] = self.arr.data[par['fullname']][self.filters != 0]
 
         # theta and vev values
         self.tHS = self.arr.data['thetahS'][self.filters != 0]
@@ -259,7 +266,7 @@ class Parse:
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
 
         # cross-section times branching ratio
-        self.xb = self.getxb(self.decay)
+        self.xb = self.getXB(self.decay)
 
     # function that checks whether xb is unimodal in a parameter
     def isBimodal(self,param_name):
