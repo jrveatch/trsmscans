@@ -410,6 +410,7 @@ class Scanner:
         details.write("\n\n")
         details.close()
 
+        # if a new optimal point is found
         if update is True:
             # write scan results to summary file
             summary = open(self.summaryname,"a")
@@ -489,6 +490,7 @@ if __name__ == "__main__":
     parameter_rate = args['parameter_rate']
     density_growth_rate = args['density_growth']
 
+    # zoom object to hold onto rates
     zoom = Zoom(parameter_rate=parameter_rate,
                 density_growth_rate=density_growth_rate)
 
