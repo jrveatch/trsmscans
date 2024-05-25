@@ -48,9 +48,9 @@ class Params:
         return abs(high - low) / 2
 
     # set new value, range, low and high
-    # TODO: Update this to use a point and range rate
-    def updateParam(self,parname,newVal=None,newRange=None):
-        self.parameters[parname].updateParam(newVal=newVal,newRange=newRange)
+    # TODO: Update this to use a point instead of newVal
+    def updateParam(self,parname,newVal=None,rangeScale=1.0):
+        self.parameters[parname].updateParam(newVal=newVal,rangeScale=rangeScale)
 
     # function to calculate volume of parameter space
     def volume(self):
@@ -165,21 +165,20 @@ class Parameter:
             self.range = self.getRange()
     
     # set new value, range, low and high
-    # TODO: Update this to use a point and range rate
-    def updateParam(self,newVal=None,newRange=None):
+    # TODO: Update this to use a point instead of newVal
+    def updateParam(self,newVal=None,rangeScale=1.0):
 
-        # if both newVal and newRange are none, complain and return existing low
-        if newVal is None and newRange is None:
-            print("Attempting to set a new low with no new information... returning...")
+        # if both newVal is None and rangeScale is 1.0, complain and return existing low
+        if newVal is None and rangeScale is 1.0:
+            print("Attempting to update parameter with no new information... returning...")
             return
 
         # if a new val is given, update stored val
         if newVal:
             self.val = newVal
 
-        # if a new range is given, update stored range
-        if newRange:
-            self.range = newRange
+        # scale range by given value
+        self.range *= rangeScale
 
         # find new low and high using the half range
         self.low = self.val - self.range / 2

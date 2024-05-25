@@ -186,22 +186,12 @@ class Scan:
         summary.write("\n")
         summary.close()
 
-        # get new theta ranges
-        tHSrange = self.params.range("tHS")
-        tHXrange = self.params.range("tHX")
-        tSXrange = self.params.range("tSX")
-
-        # get new vev ranges
-        vsrange = self.params.range("vs")
-        vxrange = self.params.range("vx")
-
         # set new low and high values
-        # TODO: Skip getting and passing ranges back when functionality is implemented
-        self.params.updateParam("tHS",self.optPoint.tHS,tHSrange)
-        self.params.updateParam("tHX",self.optPoint.tHX,tHXrange)
-        self.params.updateParam("tSX",self.optPoint.tSX,tSXrange)
-        self.params.updateParam("vs",self.optPoint.vs,vsrange)
-        self.params.updateParam("vx",self.optPoint.vx,vxrange)
+        self.params.updateParam("tHS",self.optPoint.tHS)
+        self.params.updateParam("tHX",self.optPoint.tHX)
+        self.params.updateParam("tSX",self.optPoint.tSX)
+        self.params.updateParam("vs",self.optPoint.vs)
+        self.params.updateParam("vx",self.optPoint.vx)
 
         return
 
@@ -470,21 +460,15 @@ class Scanner:
             summary.write("\n")
             summary.close()
 
-        # step down theta ranges
-        self.tHSrange *= 1.0 - self.zoom.thetaRate
-        self.tHXrange *= 1.0 - self.zoom.thetaRate
-        self.tSXrange *= 1.0 - self.zoom.thetaRate
-
-        # step down vev ranges
-        self.vsrange *= 1.0 - self.zoom.vevRate
-        self.vxrange *= 1.0 - self.zoom.vevRate
+        # parameter scaling factor
+        rangeScale = 1.0 - self.zoom.thetaRate
 
         # set new low and high values
-        self.params.updateParam("tHS",self.tHSOpt,self.tHSrange)
-        self.params.updateParam("tHX",self.tHXOpt,self.tHXrange)
-        self.params.updateParam("tSX",self.tSXOpt,self.tSXrange)
-        self.params.updateParam("vs",self.vsOpt,self.vsrange)
-        self.params.updateParam("vx",self.vxOpt,self.vxrange)
+        self.params.updateParam("tHS",self.tHSOpt,rangeScale)
+        self.params.updateParam("tHX",self.tHXOpt,rangeScale)
+        self.params.updateParam("tSX",self.tSXOpt,rangeScale)
+        self.params.updateParam("vs",self.vsOpt,rangeScale)
+        self.params.updateParam("vx",self.vxOpt,rangeScale)
 
         # get new volume
         volumeNew = self.params.volume()
@@ -500,13 +484,6 @@ class Scanner:
         return
 
     def getparams(self):
-
-        # get parameter ranges
-        self.tHSrange = self.params.range("tHS")
-        self.tHXrange = self.params.range("tHX")
-        self.tSXrange = self.params.range("tSX")
-        self.vsrange = self.params.range("vs")
-        self.vxrange = self.params.range("vx")
 
         # get parameter low values
         self.tHSlow = self.params.low("tHS")
