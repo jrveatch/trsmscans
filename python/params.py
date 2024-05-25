@@ -22,62 +22,24 @@ class Params:
         # get model using modelname
         self.model = Model(modelname)
 
-        # set min and max theta values
-        self.tHSmin = self.model.min('tHS')
-        self.tHSmax = self.model.max('tHS')
-        self.tHXmin = self.model.min('tHX')
-        self.tHXmax = self.model.max('tHX')
-        self.tSXmin = self.model.min('tSX')
-        self.tSXmax = self.model.max('tSX')
+        # get list of parameter names
+        self.parnames = self.model.parameterList()
 
-        # set min and max vev values
-        self.vsmin = self.model.min('vs')
-        self.vsmax = self.model.max('vs')
-        self.vxmin = self.model.min('vx')
-        self.vxmax = self.model.max('vx')
-
-        # initialize high and low values from max and min values
-        self.tHSlow = self.tHSmin
-        self.tHShigh = self.tHSmax
-        self.tHXlow = self.tHXmin
-        self.tHXhigh = self.tHXmax
-        self.tSXlow = self.tSXmin
-        self.tSXhigh = self.tSXmax
-        self.vslow = self.vsmin
-        self.vshigh = self.vsmax
-        self.vxlow = self.vxmin
-        self.vxhigh = self.vxmax
-
-        # initialize parameter values to midpoint of range
-        self.tHSval = self.getMidPoint(low=self.tHSlow,high=self.tHShigh)
-        self.tHXval = self.getMidPoint(low=self.tHXlow,high=self.tHXhigh)
-        self.tSXval = self.getMidPoint(low=self.tSXlow,high=self.tSXhigh)
-        self.vsval = self.getMidPoint(low=self.vslow,high=self.vshigh)
-        self.vxval = self.getMidPoint(low=self.vxlow,high=self.vxhigh)
-
-        # initialize parameter ranges
-        self.tHSrange = self.getRange(low=self.tHSlow,high=self.tHShigh)
-        self.tHXrange = self.getRange(low=self.tHXlow,high=self.tHXhigh)
-        self.tSXrange = self.getRange(low=self.tSXlow,high=self.tSXhigh)
-        self.vsrange = self.getRange(low=self.vslow,high=self.vshigh)
-        self.vxrange = self.getRange(low=self.vxlow,high=self.vxhigh)
+        # create dictionary of parameters
+        self.parameters = {}
+        for key in self.parnames:
+            self.parameters[key] = Parameter(key,self.model.params[key])
 
     # functions to set min and max values
     # if the current high or low values are beyond
     # the new min or max, set them
-    # this also sets new range values
+    # these also set new range values
 
-    def set_min(self,varname,val):
-        setattr(self,varname+"min",val)
-        if getattr(self,varname+"low") < getattr(self,varname+"min"):
-            setattr(self,varname+"low",getattr(self,varname+"min"))
-            setattr(self,varname+"range",self.getRange(low=getattr(self,varname+"low"),high=getattr(self,varname+"high")))
+    def setMin(self,parname,newMin):
+        self.parameters[parname].setMin(newMin)
 
-    def set_max(self,varname,val):
-        setattr(self,varname+"max",val)
-        if getattr(self,varname+"high") > getattr(self,varname+"max"):
-            setattr(self,varname+"high",getattr(self,varname+"max"))
-            setattr(self,varname+"range",self.getRange(low=getattr(self,varname+"low"),high=getattr(self,varname+"high")))
+    def setMax(self,parname,newMax):
+        self.parameters[parname].setMax(newMax)
 
     # function to calculate parameter value
     def getMidPoint(self,low,high):
@@ -86,68 +48,52 @@ class Params:
     # function to calculate parameter ranges
     def getRange(self,low,high):
         return abs(high - low) / 2
-    
-    # function to get new low value
-    def getNewLow(self,val,range,min):
-        newLow = val - range
-        if newLow < min:
-            newLow = min
-        return newLow
-    
-    # function to get new high value
-    def getNewHigh(self,val,range,max):
-        newHigh = val + range
-        if newHigh > max:
-            newHigh = max
-        return newHigh
 
-    # functions to set new low and high parameters
-    # TODO: Give option to not pass in range and just use range that already exists
-    # TODO: Use full range, not truncated range
-    def set_params(self,varname,val,range):
-        setattr(self,varname+"val",val)
-        setattr(self,varname+"range",range)
-        setattr(self,varname+"low",self.getNewLow(val,range,getattr(self,varname+"min")))
-        setattr(self,varname+"high",self.getNewHigh(val,range,getattr(self,varname+"max")))
+    # set new value, range, low and high
+    # TODO: Update this to use a point and range rate
+    def updateParam(self,parname,newVal=None,newRange=None):
+        self.parameters[parname].updateParam(newVal=newVal,newRange=newRange)
 
-    # function to calculate volume
+    # function to calculate volume of parameter space
     def volume(self):
+
+        # initialize volume to 1
         volume = 1.0
-        if abs(self.tHShigh - self.tHSlow) > 1e-13:
-            volume *= abs(self.tHShigh - self.tHSlow)
-        if abs(self.tHXhigh - self.tHXlow) > 1e-13:
-            volume *= abs(self.tHXhigh - self.tHXlow)
-        if abs(self.tSXhigh - self.tSXlow) > 1e-13:
-            volume *= abs(self.tSXhigh - self.tSXlow)
-        if abs(self.vshigh - self.vslow) > 1e-13:
-            volume *= abs(self.vshigh - self.vslow)
-        if abs(self.vxhigh - self.vxlow) > 1e-13:
-            volume *= abs(self.vxhigh - self.vxlow)
+
+        # loop over parameters
+        for par in self.parameters.values():
+        
+            # make sure range is non-zero
+            if par.range > 1e-13:
+        
+                # multiply volume by parameter range
+                volume *= par.range
+        
         return volume
 
     # function to get min value
-    def min(self,varname):
-        return getattr(self,varname+"min")
+    def min(self,parname):
+        return self.parameters[parname].min
 
     # function to get max value
-    def max(self,varname):
-        return getattr(self,varname+"max")
+    def max(self,parname):
+        return self.parameters[parname].max
 
     # function to get low value
-    def low(self,varname):
-        return getattr(self,varname+"low")
+    def low(self,parname):
+        return self.parameters[parname].low
 
     # function to get high value
-    def high(self,varname):
-        return getattr(self,varname+"high")
+    def high(self,parname):
+        return self.parameters[parname].high
     
     # function to get parameter values
-    def val(self,varname):
-        return getattr(self,varname+"val")
+    def val(self,parname):
+        return self.parameters[parname].val
     
     # function to get parameter ranges
-    def range(self,varname):
-        return getattr(self,varname+"range")
+    def range(self,parname):
+        return self.parameters[parname].range
     
     # function to write .ini file with parameters
     def writeini(self,ininame):
@@ -161,19 +107,96 @@ class Params:
         filedata = filedata.replace("MH1",str(self.mH1))
         filedata = filedata.replace("MH2",str(self.mH2))
         filedata = filedata.replace("MH3",str(self.mH3))
-        # TODO: These probably need to be ordered by mass
-        filedata = filedata.replace("tHS_LOW",str(self.tHSlow))
-        filedata = filedata.replace("tHS_HIGH",str(self.tHShigh))
-        filedata = filedata.replace("tHX_LOW",str(self.tHXlow))
-        filedata = filedata.replace("tHX_HIGH",str(self.tHXhigh))
-        filedata = filedata.replace("tSX_LOW",str(self.tSXlow))
-        filedata = filedata.replace("tSX_HIGH",str(self.tSXhigh))
-        filedata = filedata.replace("vs_LOW",str(self.vslow))
-        filedata = filedata.replace("vs_HIGH",str(self.vshigh))
-        filedata = filedata.replace("vx_LOW",str(self.vxlow))
-        filedata = filedata.replace("vx_HIGH",str(self.vxhigh))
+        # loop over parameters and fill low/high values
+        for par in self.parameters.values():
+            filedata = filedata.replace(par.name+"_LOW",str(par.low))
+            filedata = filedata.replace(par.name+"_HIGH",str(par.high))
 
         # write to .ini file
         outfile = open(ininame,"w")
         outfile.write(filedata)
         outfile.close()
+
+# class to hold and update a single model parameter
+class Parameter:
+
+    def __init__(self,name,dict):
+
+        # initialize parameter name
+        self.name = name
+
+        # initialize values from dictionary
+        self.fullname = dict['fullname']
+        self.precision = dict['precision']
+        self.min = dict['min']
+        self.max = dict['max']
+
+        # initialize low and high from min and max
+        self.low = self.min
+        self.high = self.max
+
+        # initialize value as the midpoint
+        self.val = self.getMidPoint()
+
+        # initialize range
+        self.range = self.getRange()
+
+    # get the midpoint given current low and high
+    def getMidPoint(self):
+        return (self.low + self.high) / 2
+
+    # get range given current low and high
+    # TODO: Remove the /2 to get full range instead of the half range
+    def getRange(self):
+        return abs(self.high - self.low) / 2
+
+    # functions to set min and max values
+    # if the current high or low values are beyond
+    # the new min or max, set them
+    # this also sets new range values
+
+    def setMin(self,newMin):
+        self.min = newMin
+        if self.low < self.min:
+            self.low = self.min
+            self.range = self.getRange()
+
+    def setMax(self,newMax):
+        self.max = newMax
+        if self.high > self.max:
+            self.high = self.max
+            self.range = self.getRange()
+    
+    # set new value, range, low and high
+    # TODO: Update this to use a point and range rate
+    def updateParam(self,newVal=None,newRange=None):
+
+        # if both newVal and newRange are none, complain and return existing low
+        if newVal is None and newRange is None:
+            print("Attempting to set a new low with no new information... returning...")
+            return
+
+        # if a new val is given, update stored val
+        if newVal:
+            self.val = newVal
+
+        # if a new range is given, update stored range
+        if newRange:
+            self.range = newRange
+
+        # find new low and high
+        # TODO: Fix this to use full range (divide it by 2)
+        self.low = self.val - self.range
+        self.high = self.val + self.range
+
+        # adjust low based on min
+        # TODO: Fix this to use full range - find overage and add it to the other side
+        if self.low < self.min:
+            self.low = self.min
+
+        # adjust high based on max
+        # TODO: Fix this to use full range - find overage and add it to the other side
+        if self.high > self.max:
+            self.high = self.max
+
+        return

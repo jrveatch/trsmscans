@@ -141,11 +141,11 @@ class Scan:
 
             # check min value
             if newMin > self.params.min(var) + abs(self.params.min(var)) * tolerance:
-                self.params.set_min(var,newMin)
+                self.params.setMin(var,newMin)
 
             # check max value
             if newMax < self.params.max(var) - abs(self.params.max(var)) * tolerance:
-                self.params.set_max(var,newMax)
+                self.params.setMax(var,newMax)
 
             # print min and max to the screen after prescan
             if var in thetaVars:
@@ -197,11 +197,11 @@ class Scan:
 
         # set new low and high values
         # TODO: Skip getting and passing ranges back when functionality is implemented
-        self.params.set_params("tHS",self.optPoint.tHS,tHSrange)
-        self.params.set_params("tHX",self.optPoint.tHX,tHXrange)
-        self.params.set_params("tSX",self.optPoint.tSX,tSXrange)
-        self.params.set_params("vs",self.optPoint.vs,vsrange)
-        self.params.set_params("vx",self.optPoint.vx,vxrange)
+        self.params.updateParam("tHS",self.optPoint.tHS,tHSrange)
+        self.params.updateParam("tHX",self.optPoint.tHX,tHXrange)
+        self.params.updateParam("tSX",self.optPoint.tSX,tSXrange)
+        self.params.updateParam("vs",self.optPoint.vs,vsrange)
+        self.params.updateParam("vx",self.optPoint.vx,vxrange)
 
         return
 
@@ -480,11 +480,11 @@ class Scanner:
         self.vxrange *= 1.0 - self.zoom.vevRate
 
         # set new low and high values
-        self.params.set_params("tHS",self.tHSOpt,self.tHSrange)
-        self.params.set_params("tHX",self.tHXOpt,self.tHXrange)
-        self.params.set_params("tSX",self.tSXOpt,self.tSXrange)
-        self.params.set_params("vs",self.vsOpt,self.vsrange)
-        self.params.set_params("vx",self.vxOpt,self.vxrange)
+        self.params.updateParam("tHS",self.tHSOpt,self.tHSrange)
+        self.params.updateParam("tHX",self.tHXOpt,self.tHXrange)
+        self.params.updateParam("tSX",self.tSXOpt,self.tSXrange)
+        self.params.updateParam("vs",self.vsOpt,self.vsrange)
+        self.params.updateParam("vx",self.vxOpt,self.vxrange)
 
         # get new volume
         volumeNew = self.params.volume()
