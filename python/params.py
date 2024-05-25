@@ -169,7 +169,7 @@ class Parameter:
     def updateParam(self,newVal=None,rangeScale=1.0):
 
         # if both newVal is None and rangeScale is 1.0, complain and return existing low
-        if newVal is None and rangeScale is 1.0:
+        if newVal is None and rangeScale == 1.0:
             print("Attempting to update parameter with no new information... returning...")
             return
 
