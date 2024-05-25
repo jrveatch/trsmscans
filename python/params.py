@@ -135,6 +135,10 @@ class Params:
         outfile.write(filedata)
         outfile.close()
 
+    # print min and max for a parameter
+    def printMinMax(self,parname):
+        self.parameters[parname].printMinMax()
+
 # class to hold and update a single model parameter
 class Parameter:
 
@@ -236,3 +240,16 @@ class Parameter:
             self.high = self.max
 
         return
+
+    # print min and max
+    def printMinMax(self):
+        print(self.name+": ["+f"{self.min:1.{self.precision}f}"+","+f"{self.max:1.{self.precision}f}"+"]")
+
+    # get formatted string showing range
+    def formatRange(self):
+        stringRange = "range = ["
+        stringRange += f"{self.low:1.{self.precision}f}"
+        stringRange += ","
+        stringRange += f"{self.high:1.{self.precision}f}"
+        stringRange += "]"
+        return stringRange

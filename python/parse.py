@@ -17,6 +17,9 @@ from masses import Masses
 # import model class to initialize Point class
 from model import Model
 
+# import decimal class for nicely formatted strings
+from decimal import Decimal
+
 # class to parse arrays and provide details about data
 class Parse:
 
@@ -24,7 +27,11 @@ class Parse:
     def __init__(self,
                  masses: Masses,
                  decay,
+                 modelname,
                  filename = ""):
+        
+        # initialize model name
+        self.modelname = modelname
 
         # initialize HName and SName
         self.HName = masses.HName
@@ -83,6 +90,7 @@ class Parse:
 
         # return a point object holding xb and other parameters
         return Point(xb=maxxb,
+                     modelname=self.modelname,
                      parvals=maxDict)
 
     # get the maximum xb
@@ -296,22 +304,20 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 modelname="",
+                 modelname,
                  parvals=None,
                  xb=0):
         
-        # make sure parvals or modelname are given
-        if modelname == "" and parvals is None:
-            print("Either a model name or a dictionary of parameter values needed to make a Point")
+        # get model
+        self.model = Model(modelname)
 
         # if parvals exists, store it
         if parvals:
             self.parvals = parvals
         # otherwise create default dictionary from model
         else:
-            # create model and get list of parameters
-            model = Model(modelname)
-            parlist = model.parameterList()
+            # get list of parameters from model
+            parlist = self.model.parameterList()
 
             # create empty dictionary
             self.parvals = {}
@@ -332,13 +338,29 @@ class Point:
             return self.parvals[varname]
 
     # get difference between two values of varname
-    def diff(self,other: 'Point',varname):
-        return self.getVal(varname) - other.getVal(varname)
+    def diff(self, other: 'Point', parname):
+        return self.getVal(parname) - other.getVal(parname)
 
     # get fractional difference between two values of varname
     # TODO: Add divide-by-zero protection
-    def diffFrac(self,other,varname):
-        return self.diff(other,varname) / abs(self.getVal(varname))
+    def diffFrac(self, other: 'Point', parname):
+        return self.diff(other,parname) / abs(self.getVal(parname))
+    
+    # get formatted string of xb
+    def formatXB(self):
+        return f"{Decimal(self.xb):.3E}"
+    
+    # get formatted string of parameter
+    def formatParam(self, parname):
+        return "value = " + f"{self.getVal(parname):1.{self.model.params[parname]['precision']}f}"
+    
+    # get formatted string of parameter diff w.r.t. another point
+    def formatDiff(self, other: 'Point', parname):
+        return "diff. = " + f"{self.diff(other,parname):1.{self.model.params[parname]['precision']}f}"
+    
+    # get formatted string of parameter fractional diff w.r.t. another point
+    def formatDiffFrac(self, other: 'Point', parname):
+        return "rel. diff. = " + f"{self.diffFrac(other,parname):1.2f}"
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
