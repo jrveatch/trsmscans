@@ -53,7 +53,7 @@ class Scan:
         self.params = Params(modelname,masses)
 
         # make dummy optimal point
-        self.optPoint = Point()
+        self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
         self.outdir = os.environ['SCANDIR']+decay+"/"+str(masses)+"/"
@@ -166,10 +166,10 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + f"{Decimal(self.optPoint.xb):.4E}" + "\n")
         for var in thetaVars:
-            details.write(var+": value = " + f"{getattr(self.optPoint,var):1.4f}" + "\n")
+            details.write(var+": value = " + f"{self.optPoint.getVal(var):1.4f}" + "\n")
             details.write("     range = [" + f"{self.params.low(var):1.4f}" + "," + f"{self.params.high(var):1.4f}" + "]\n")
         for var in vevVars:
-            details.write(var+": value = " + f"{getattr(self.optPoint,var):1.2f}" + "\n")
+            details.write(var+": value = " + f"{self.optPoint.getVal(var):1.2f}" + "\n")
             details.write("    range = [" + f"{self.params.low(var):1.1f}" + "," + f"{self.params.high(var):1.1f}" + "]\n")
         details.write("\n")
         details.close()
@@ -180,18 +180,18 @@ class Scan:
         summary.write(" " + f"{Decimal(self.optPoint.xb):.4E}")
         for var in varnames:
             if var in thetaVars:
-                summary.write(" " + f"{getattr(self.optPoint,var):1.4f}")
+                summary.write(" " + f"{self.optPoint.getVal(var):1.4f}")
             if var in vevVars:
-                summary.write(" " + f"{getattr(self.optPoint,var):1.1f}")
+                summary.write(" " + f"{self.optPoint.getVal(var):1.1f}")
         summary.write("\n")
         summary.close()
 
         # set new low and high values
-        self.params.updateParam("tHS",self.optPoint.tHS)
-        self.params.updateParam("tHX",self.optPoint.tHX)
-        self.params.updateParam("tSX",self.optPoint.tSX)
-        self.params.updateParam("vs",self.optPoint.vs)
-        self.params.updateParam("vx",self.optPoint.vx)
+        self.params.updateParam("tHS",self.optPoint.getVal('tHS'))
+        self.params.updateParam("tHX",self.optPoint.getVal('tHX'))
+        self.params.updateParam("tSX",self.optPoint.getVal('tSX'))
+        self.params.updateParam("vs",self.optPoint.getVal('vs'))
+        self.params.updateParam("vx",self.optPoint.getVal('vx'))
 
         return
 
@@ -500,11 +500,11 @@ class Scanner:
         self.vxhigh = self.params.high("vx")
 
         # get optimal values
-        self.tHSOpt = self.optPoint.tHS
-        self.tHXOpt = self.optPoint.tHX
-        self.tSXOpt = self.optPoint.tSX
-        self.vsOpt = self.optPoint.vs
-        self.vxOpt = self.optPoint.vx
+        self.tHSOpt = self.optPoint.getVal('tHS')
+        self.tHXOpt = self.optPoint.getVal('tHX')
+        self.tSXOpt = self.optPoint.getVal('tSX')
+        self.vsOpt = self.optPoint.getVal('vs')
+        self.vxOpt = self.optPoint.getVal('vx')
         self.xbOpt = self.optPoint.xb
 
 # class to hold onto range decay and density growth rates

@@ -14,6 +14,9 @@ import math
 # import masses class to handle mass orderings
 from masses import Masses
 
+# import model class to initialize Point class
+from model import Model
+
 # class to parse arrays and provide details about data
 class Parse:
 
@@ -72,13 +75,15 @@ class Parse:
         maxvs = self.vs[maxidx]
         maxvx = self.vx[maxidx]
 
+        maxDict = {'tHS': maxthS,
+                   'tHX': maxthX,
+                   'tSX': maxtSX,
+                   'vs': maxvs,
+                   'vx': maxvx}
+
         # return a point object holding xb and other parameters
         return Point(xb=maxxb,
-                     tHS=maxthS,
-                     tHX=maxthX,
-                     tSX=maxtSX,
-                     vs=maxvs,
-                     vx=maxvx)
+                     parvals=maxDict)
 
     # get the maximum xb
     def getxb(self,decay):
@@ -290,26 +295,50 @@ class Parse:
 class Point:
 
     # initialize point parameters
-    def __init__(self,xb=0,tHS=0,tHX=0,tSX=0,vs=0,vx=0):
+    def __init__(self,
+                 modelname="",
+                 parvals=None,
+                 xb=0):
+        
+        # make sure parvals or modelname are given
+        if modelname == "" and parvals is None:
+            print("Either a model name or a dictionary of parameter values needed to make a Point")
+
+        # if parvals exists, store it
+        if parvals:
+            self.parvals = parvals
+        # otherwise create default dictionary from model
+        else:
+            # create model and get list of parameters
+            model = Model(modelname)
+            parlist = model.parameterList()
+
+            # create empty dictionary
+            self.parvals = {}
+            # loop over list of parameters and make default dictionary
+            for par in parlist:
+                self.parvals[par] = 0
+
+        # store xb value
         self.xb = xb
-        self.tHS = tHS
-        self.tHX = tHX
-        self.tSX = tSX
-        self.vs = vs
-        self.vx = vx
 
     # wrapper function to get attribute
-    def get_attribute(self,attr_name):
-        return getattr(self,attr_name)
+    def getVal(self,varname):
+        # if xb is requested, return it
+        if varname == "xb":
+            return self.xb
+        # otherwise return value from parvals
+        else:
+            return self.parvals[varname]
 
     # get difference between two values of varname
     def diff(self,other: 'Point',varname):
-        return self.get_attribute(varname) - other.get_attribute(varname)
+        return self.getVal(varname) - other.getVal(varname)
 
     # get fractional difference between two values of varname
     # TODO: Add divide-by-zero protection
     def diffFrac(self,other,varname):
-        return self.diff(other,varname) / abs(self.get_attribute(varname))
+        return self.diff(other,varname) / abs(self.getVal(varname))
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
