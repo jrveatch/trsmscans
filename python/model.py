@@ -21,11 +21,14 @@ class Model():
         with open(filename,'r') as file:
             self.params = yaml.safe_load(file)[self.name]
 
+    # get list of parameter name
     def parameterList(self):
         return self.params.keys()
 
+    # get parameter min
     def min(self,parname):
         return self.params[parname]['min']
 
+    # get parameter max
     def max(self,parname):
         return self.params[parname]['max']
