@@ -144,9 +144,8 @@ class Parameter:
         return (self.low + self.high) / 2
 
     # get range given current low and high
-    # TODO: Remove the /2 to get full range instead of the half range
     def getRange(self):
-        return abs(self.high - self.low) / 2
+        return abs(self.high - self.low)
 
     # functions to set min and max values
     # if the current high or low values are beyond
@@ -182,19 +181,40 @@ class Parameter:
         if newRange:
             self.range = newRange
 
-        # find new low and high
-        # TODO: Fix this to use full range (divide it by 2)
-        self.low = self.val - self.range
-        self.high = self.val + self.range
+        # find new low and high using the half range
+        self.low = self.val - self.range / 2
+        self.high = self.val + self.range / 2
 
-        # adjust low based on min
-        # TODO: Fix this to use full range - find overage and add it to the other side
+        # adjust low and high based on min
         if self.low < self.min:
+            
+            # calculate how much the new low is below min
+            overage = self.min - self.low
+
+            # add overage to high
+            self.high += overage
+
+            # if new high is above max, set it to max
+            if self.high > self.max:
+                self.high = self.max
+
+            # set low to min
             self.low = self.min
 
-        # adjust high based on max
-        # TODO: Fix this to use full range - find overage and add it to the other side
+        # adjust high and low based on max
         if self.high > self.max:
+
+            # calculate how much the new high is above max
+            overage = self.high - self.max
+
+            # subtract overage from low
+            self.low -= overage
+
+            # if new low is below min, set it to min
+            if self.low < self.min:
+                self.low = self.min
+            
+            # set high to max
             self.high = self.max
 
         return
