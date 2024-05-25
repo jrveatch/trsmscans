@@ -8,27 +8,32 @@ from blessings import Terminal
 import tsvutils
 
 # method to run ScannerS
-def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
+def runScannerS(ininame,npoints,modelname,njobs=-1):
 
     # if only one process needed, just use subprocess
     if njobs == 1:
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
 
     # otherwise use multiprocessing
     else:
-        return runParallelProcesses(ininame,npoints,model,njobs)
+        return runParallelProcesses(ininame=ininame,
+                                    npoints=npoints,
+                                    modelname=modelname,
+                                    njobs=njobs)
 
 # run job as a single process
-def runSingleProcess(ininame,npoints,model="TRSMBroken"):
+def runSingleProcess(ininame,npoints,modelname):
 
     # simple information message
     print(f"Running ScannerS as a single process.")
 
     # define process
-    process = [model, "--config", ininame, "scan", "-n", str(npoints)]
+    process = [modelname, "--config", ininame, "scan", "-n", str(npoints)]
 
     # run the process
-    result = run_subprocess(process,model)
+    result = run_subprocess(process,modelname)
 
     # pass failed job error up the line
     if result < 0:
@@ -41,7 +46,7 @@ def runSingleProcess(ininame,npoints,model="TRSMBroken"):
     return npoints
 
 # run multiple processes in parallel
-def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
+def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
 
     # get number of available CPUs
     ncpu = mp.cpu_count()
@@ -49,7 +54,9 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # if there is only 1 CPU available, run a single process
     if ncpu == 1:
         print("Only 1 CPU available, running as a single process")
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
 
     # set number of workers to 80% of the available cores
     nworkers = int(ncpu * 0.8)
@@ -82,16 +89,18 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # if there is only 1 CPU available, run a single process
     if num_processes == 1:
         print("Only 1 process needed, running as a single process")
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
 
     # print out some information
     print("Running test job with",min_points,"points")
 
     # define test process with 10 points
-    test_process = [model, "--config", ininame, "scan", "-n", str(min_points)]
+    test_process = [modelname, "--config", ininame, "scan", "-n", str(min_points)]
 
     # run test process
-    test_result = run_subprocess(test_process,model)
+    test_result = run_subprocess(test_process,modelname)
 
     # if test_result indicates a timeout, complain and exit
     if test_result < 0:
@@ -111,7 +120,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [modelname, "--config", ininame, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -134,7 +143,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,model+".tsv")
+    concatenate_files(directories,modelname+".tsv")
 
     # return number of points that are actually used
     return npoints
@@ -159,10 +168,10 @@ def run_process(process, directory, counter, num_processes):
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python subprocess for a single job
-def run_subprocess(process,model="TRSMBroken"):
+def run_subprocess(process,modelname):
 
     # output file name
-    outfile = model + ".tsv"
+    outfile = modelname + ".tsv"
 
     # launch process
     process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -218,10 +227,13 @@ def concatenate_files(directories,filename):
 
 if __name__ == "__main__":
 
-    model = "TRSMBroken"
+    modelname = "TRSMBroken"
 
     # get baseline .ini from data directory
-    ininame = os.environ['DATADIR'] + "models/" + model + "_baseline.ini"
+    ininame = os.environ['DATADIR'] + "models/" + modelname + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ininame=ininame,npoints=200,njobs=4)
+    runScannerS(ininame=ininame,
+                modelname=modelname,
+                npoints=200,
+                njobs=4)

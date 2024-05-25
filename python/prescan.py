@@ -14,11 +14,11 @@ from masses import Masses
 import tsvutils
 
 def runPrescan(masses: 'Masses',
+               modelname,
                npoints,
                maxwidth,
                overwrite=False,
                use_multiprocessing=False,
-               modelname="TRSMBroken",
                stepsize=10000):
 
     # get scan start time
@@ -101,9 +101,13 @@ def runPrescan(masses: 'Masses',
 
             # run ScannerS for the next set of points
             if use_multiprocessing:
-                result = runScannerS.runParallelProcesses(ininame,points_to_run)
+                result = runScannerS.runParallelProcesses(ininame=ininame,
+                                                          modelname=modelname,
+                                                          npoints=points_to_run)
             else:
-                result = runScannerS.runSingleProcess(ininame,points_to_run)
+                result = runScannerS.runSingleProcess(ininame=ininame,
+                                                      modelname=modelname,
+                                                      npoints=points_to_run)
 
             # if a process returns a negative result, delete directory and return result
             if result < 0:
@@ -183,6 +187,7 @@ if __name__ == "__main__":
     argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
@@ -198,6 +203,9 @@ if __name__ == "__main__":
     # create masses object
     masses = Masses(mX=xmass,mS=smass,mH=hmass)
 
+    # model name
+    modelname = args['model']
+
     # number of points to run
     npoints = args["npoints"]
 
@@ -212,6 +220,7 @@ if __name__ == "__main__":
     use_multiprocessing = args["multiprocessing"]
 
     runPrescan(masses=masses,
+               modelname=modelname,
                npoints=npoints,
                maxwidth=maxwidth,
                overwrite=overwrite,

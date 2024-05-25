@@ -22,9 +22,9 @@ class Scan:
 
     def __init__(self,
                  masses: 'Masses',
+                 modelname,
                  decay,
-                 maxwidth,
-                 modelname="TRSMBroken"):
+                 maxwidth):
 
         # store model name
         self.modelname = modelname
@@ -320,10 +320,14 @@ class Scanner:
         # run ScannerS
         if use_multiprocessing:
             print("Using multiprocessing")
-            self.npoints = runScannerS.runParallelProcesses(ininame,self.npoints)
+            self.npoints = runScannerS.runParallelProcesses(ininame=ininame,
+                                                            modelname=modelname,
+                                                            npoints=self.npoints)
         else:
             print("Using single processing")
-            self.npoints = runScannerS.runSingleProcess(ininame,self.npoints)
+            self.npoints = runScannerS.runSingleProcess(ininame=ininame,
+                                                        modelname=modelname,
+                                                        npoints=self.npoints)
 
         # TODO: Figure out what to do if process returns negative value
 
@@ -457,6 +461,7 @@ if __name__ == "__main__":
     argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
@@ -473,6 +478,9 @@ if __name__ == "__main__":
 
     # create masses object
     masses = Masses(mX=xmass,mS=smass,mH=hmass)
+
+    # model name
+    modelname = args['model']
 
     # decay mode
     decay = args["decaymode"]
@@ -499,6 +507,7 @@ if __name__ == "__main__":
 
     # creaate scan object
     myScan = Scan(masses=masses,
+                  modelname=modelname,
                   decay=decay,
                   maxwidth=maxwidth)
     
