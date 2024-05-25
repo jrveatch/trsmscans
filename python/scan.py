@@ -17,19 +17,17 @@ import runScannerS
 from masses import Masses
 import prescan
 
-# make lists of parameters to scan over
-thetaVars = ["tHS","tHX","tSX"]
-vevVars = ["vs","vx"]
-varnames = thetaVars + vevVars
-
 # class to organize and run a complete scan
 class Scan:
 
     def __init__(self,
                  masses: 'Masses',
+                 modelname,
                  decay,
-                 maxwidth,
-                 base="TRSMBroken"):
+                 maxwidth):
+
+        # store model name
+        self.modelname = modelname
         
         # store masses and decay information
         self.masses = masses
@@ -47,10 +45,10 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(masses)
+        self.params = Params(modelname,masses)
 
         # make dummy optimal point
-        self.optPoint = Point()
+        self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
         self.outdir = os.environ['SCANDIR']+decay+"/"+str(masses)+"/"
@@ -65,20 +63,17 @@ class Scan:
         # directory to store all of the output files
         os.makedirs(self.outdir+"/files")
 
-        # store base name
-        self.base = base
-
-        # copy template .ini into dir
-        shutil.copy(os.environ['RUNDIR']+self.base+"_template.ini",self.outdir)
-
         # create summary file
-        self.summaryname = self.outdir+"scansummary_"+self.decay+"_"+str(self.masses)+".txt"
+        self.summaryname = self.outdir+"scansummary_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
         summary = open(self.summaryname,"w")
-        summary.write("Iter xbmax thetaHS thetaHX thetaSX vs vx\n")
+        summary.write("Iter xbmax")
+        for par in self.params.parameters.values():
+            summary.write(" "+par.fullname)
+        summary.write("\n")
         summary.close()
 
         # create details file
-        self.detailsname = self.outdir+"scandetails_"+self.decay+"_"+str(self.masses)+".txt"
+        self.detailsname = self.outdir+"scandetails_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
         details = open(self.detailsname,"w")
         details.write("Scan details\n\n")
         details.close()
@@ -91,13 +86,13 @@ class Scan:
                    use_multiprocessing=False):
 
         # location of prescan outputs
-        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.base + "_prescan.tsv"
+        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.modelname + "_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
                                     npoints=npoints,
                                     maxwidth=self.maxwidth,
-                                    base=self.base,
+                                    modelname=self.modelname,
                                     use_multiprocessing=use_multiprocessing)
     
         # if prescan fails, remove directory and quit
@@ -122,6 +117,7 @@ class Scan:
         # get parser from prescan
         self.prescanparser = Parse(filename=prescantsv,
                                    masses=self.masses,
+                                   modelname=self.modelname,
                                    decay=self.decay)
 
         # if the prescan ranges are more than 5% away from
@@ -135,79 +131,61 @@ class Scan:
         # print header about prescan ranges to the screen
         print("Found the following ranges from the prescan:")
 
-        # loop over variables and adjust min and max values
-        for var in varnames:
+        # loop over parameters
+        for par in self.params.parnames:
 
             # get min and max from prescan
-            newMin = self.prescanparser.getmin(var)
-            newMax = self.prescanparser.getmax(var)
+            newMin = self.prescanparser.getMin(par)
+            newMax = self.prescanparser.getMax(par)
 
             # check min value
-            if newMin > self.params.min(var) + abs(self.params.min(var)) * tolerance:
-                self.params.set_min(var,newMin)
+            if newMin > self.params.min(par) + abs(self.params.min(par)) * tolerance:
+                self.params.setMin(par,newMin)
 
             # check max value
-            if newMax < self.params.max(var) - abs(self.params.max(var)) * tolerance:
-                self.params.set_max(var,newMax)
+            if newMax < self.params.max(par) - abs(self.params.max(par)) * tolerance:
+                self.params.setMax(par,newMax)
 
-            # print min and max to the screen after prescan
-            if var in thetaVars:
-                print(var+": ["+f"{self.params.min(var):1.4f}"+","+f"{self.params.max(var):1.4f}"+"]")
-            if var in vevVars:
-                print(var+": ["+f"{self.params.min(var):1.1f}"+","+f"{self.params.max(var):1.1f}"+"]")
+            # print min and max to screen after prescan
+            self.params.printMinMax(par)
 
         # get scan density
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.getmaxpoint()
+        self.optPoint = self.prescanparser.getMaxPoint()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
         details.write("Prescan\n")
+        details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + f"{Decimal(self.optPoint.xb):.4E}" + "\n")
-        for var in thetaVars:
-            details.write(var+": value = " + f"{getattr(self.optPoint,var):1.4f}" + "\n")
-            details.write("     range = [" + f"{self.params.low(var):1.4f}" + "," + f"{self.params.high(var):1.4f}" + "]\n")
-        for var in vevVars:
-            details.write(var+": value = " + f"{getattr(self.optPoint,var):1.2f}" + "\n")
-            details.write("    range = [" + f"{self.params.low(var):1.1f}" + "," + f"{self.params.high(var):1.1f}" + "]\n")
-        details.write("\n")
+        details.write("Max xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("--------------------\n")
+        for par in self.params.parnames:
+            details.write(par+":\n")
+            details.write("  "+self.optPoint.formatParam(par)+"\n")
+            details.write("  "+self.params.parameters[par].formatRange()+"\n")
+        details.write("--------------------\n")
+        details.write("\n\n")
         details.close()
 
         # write scan results to summary file
         summary = open(self.summaryname,"a")
         summary.write("Pre")
-        summary.write(" " + f"{Decimal(self.optPoint.xb):.4E}")
-        for var in varnames:
-            if var in thetaVars:
-                summary.write(" " + f"{getattr(self.optPoint,var):1.4f}")
-            if var in vevVars:
-                summary.write(" " + f"{getattr(self.optPoint,var):1.1f}")
+        summary.write(" " + self.optPoint.formatXB())
+        for name, par in self.params.parameters.items():
+            summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision}f}")
         summary.write("\n")
         summary.close()
 
-        # get new theta ranges
-        tHSrange = self.params.range("tHS")
-        tHXrange = self.params.range("tHX")
-        tSXrange = self.params.range("tSX")
-
-        # get new vev ranges
-        vsrange = self.params.range("vs")
-        vxrange = self.params.range("vx")
-
         # set new low and high values
-        # TODO: Skip getting and passing ranges back when functionality is implemented
-        self.params.set_params("tHS",self.optPoint.tHS,tHSrange)
-        self.params.set_params("tHX",self.optPoint.tHX,tHXrange)
-        self.params.set_params("tSX",self.optPoint.tSX,tSXrange)
-        self.params.set_params("vs",self.optPoint.vs,vsrange)
-        self.params.set_params("vx",self.optPoint.vx,vxrange)
+        self.params.updateParams(self.optPoint)
 
         return
 
+    # run the full scan
     def runScan(self,
                 npoints,
                 niter,
@@ -292,8 +270,7 @@ class Scanner:
                  optPoint: 'Point',
                  zoom: 'Zoom',
                  outdir,
-                 label="",
-                 base="TRSMBroken"):
+                 label=""):
 
         # some basic scanner information
         self.detailsname = detailsname
@@ -304,7 +281,7 @@ class Scanner:
         self.optPoint = optPoint
         self.outdir = outdir
         self.label = label
-        self.base = base
+        self.modelname = params.model.name
 
         # zoom rates
         self.zoom = zoom
@@ -312,11 +289,9 @@ class Scanner:
         # set minimum number of points per iteration
         self.minpoints = 100
 
-        # name of template .ini file
-        self.templateini = self.outdir + self.base + "_template.ini"
-
         # create parse object without a filename
         self.scanparser = Parse(masses=self.params.masses,
+                                modelname=self.modelname,
                                 decay=self.decay)
 
         # TODO: Names of details and summary files
@@ -334,23 +309,25 @@ class Scanner:
             identifier = self.label + "_" + identifier
         print("\nIteration:",identifier)
 
-        print("Running scanner with identifier",identifier)
-
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.base + "_" + identifier
+        outname = self.outdir + "files/" + self.modelname + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
 
         # write new .ini file from template and parameters
-        self.params.writeini(self.templateini,ininame)
+        self.params.writeini(ininame)
 
         # run ScannerS
         if use_multiprocessing:
             print("Using multiprocessing")
-            self.npoints = runScannerS.runParallelProcesses(ininame,self.npoints)
+            self.npoints = runScannerS.runParallelProcesses(ininame=ininame,
+                                                            modelname=modelname,
+                                                            npoints=self.npoints)
         else:
             print("Using single processing")
-            self.npoints = runScannerS.runSingleProcess(ininame,self.npoints)
+            self.npoints = runScannerS.runSingleProcess(ininame=ininame,
+                                                        modelname=modelname,
+                                                        npoints=self.npoints)
 
         # TODO: Figure out what to do if process returns negative value
 
@@ -360,7 +337,8 @@ class Scanner:
 
         # apply width and bounds filters
         # this also renames the output .tsv file
-        nwidth, nbounds, npass = filters.applyFilters(self.base + ".tsv",
+        # TODO: This will probably be model dependent
+        nwidth, nbounds, npass = filters.applyFilters(self.modelname + ".tsv",
                                                       output_file=tsvname,
                                                       maxwidth=maxwidth,
                                                       masses=self.params.masses)
@@ -388,8 +366,9 @@ class Scanner:
         self.scanparser.readFile(filename=tsvname)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.getmaxpoint()
+        newPoint = self.scanparser.getMaxPoint()
 
+        # flag to indicate whether optimal point needs to be updated
         update = False
 
         # store the previous point
@@ -400,105 +379,64 @@ class Scanner:
             update = True
             self.optPoint = newPoint
 
-        # parameter differences
-        tHSdiff = 9e9
-        tHXdiff = 9e9
-        tSXdiff = 9e9
-
-        vsdiff = 9e9
-        vxdiff = 9e9
-
-        # calculate difference w.r.t. previous optimal point if new point is found
-        if update:
-            tHSdiff = self.optPoint.diff(optPointOld,"tHS")
-            tHXdiff = self.optPoint.diff(optPointOld,"tHX")
-            tSXdiff = self.optPoint.diff(optPointOld,"tSX")
-            vsdiff = self.optPoint.diff(optPointOld,"vs")
-            vxdiff = self.optPoint.diff(optPointOld,"vx")
-
         # get iteration end time
         iterend = time.time()
         itertime = iterend - iterstart
 
         # print iteration time to screen
-        #print("Iteration took",f"{itertime:1.1f}","seconds to complete")
         print("Iteration took",str(datetime.timedelta(seconds=int(itertime))),"(hh:mm:ss)")
-
-        # get parameter ranges, lows and highs
-        self.getparams()
 
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
         details = open(self.detailsname,"a")
         details.write("Iteration = " + str(identifier) + "\n")
+        details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("It took " + f"{itertime:1.1f}" + " seconds\n")
         details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
-        details.write("Found new max xsec*BR = " + f"{Decimal(newPoint.xb):.4E}" + "\n")
+        details.write("--------------------\n")
+        details.write("Found new max xsec*BR = " + newPoint.formatXB() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + f"{Decimal(self.xbOpt):.4E}" + "\n")
-        details.write("thetaHS: range = [" + f"{self.tHSlow:1.4f}" + "," + f"{self.tHShigh:1.4f}" + "]\n")
-        if update:
-            details.write("         new optimal value = " + f"{self.tHSOpt:1.4f}" + "\n")
-            details.write("         rel. diff w.r.t. previous = " + f"{tHSdiff:1.3f}" + "\n")
-        details.write("thetaHX: range = [" + f"{self.tHXlow:1.4f}" + "," + f"{self.tHXhigh:1.4f}" + "]\n")
-        if update:
-            details.write("         new optimal value = " + f"{self.tHXOpt:1.4f}" + "\n")
-            details.write("         rel. diff w.r.t. previous = " + f"{tHXdiff:1.3f}" + "\n")
-        details.write("thetaSX: range = [" + f"{self.tSXlow:1.4f}" + "," + f"{self.tSXhigh:1.4f}" + "]\n")
-        if update:
-            details.write("         new optimal value = " + f"{self.tSXOpt:1.4f}" + "\n")
-            details.write("         rel. diff w.r.t. previous = " + f"{tSXdiff:1.3f}" + "\n")
-        details.write("vs: range = [" + f"{self.vslow:1.1f}" + "," + f"{self.vshigh:1.1f}" + "]\n")
-        if update:
-            details.write("    new optimal value = " + f"{self.vsOpt:1.1f}" + "\n")
-            details.write("    rel. diff w.r.t. previous = " + f"{vsdiff:1.3f}" + "\n")
-        details.write("vx: range = [" + f"{self.vxlow:1.1f}" + "," + f"{self.vxhigh:1.1f}" + "]\n")
-        if update:
-            details.write("    new optimal value = " + f"{self.vxOpt:1.1f}" + "\n")
-            details.write("    rel. diff w.r.t. previous = " + f"{vxdiff:1.3f}" + "\n")
+        details.write("Optimal point xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("--------------------\n")
+        for par in self.params.parnames:
+            details.write(par+":\n")
+            details.write("  "+self.params.parameters[par].formatRange()+"\n")
+            if update:
+                details.write("  new optimal "+self.optPoint.formatParam(par)+"\n")
+                details.write("  "+self.optPoint.formatDiff(optPointOld,par)+"\n")
+                details.write("  "+self.optPoint.formatDiffFrac(optPointOld,par)+"\n")
+        details.write("--------------------\n")
         details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
-        details.write("\n")
+        details.write("\n\n")
         details.close()
 
+        # if a new optimal point is found
         if update is True:
             # write scan results to summary file
             summary = open(self.summaryname,"a")
             summary.write(identifier)
-            summary.write(" " + f"{Decimal(self.xbOpt):.4E}")
-            for var in varnames:
-                if var in thetaVars:
-                    summary.write(" " + f"{getattr(self.optPoint,var):1.4f}")
-                if var in vevVars:
-                    summary.write(" " + f"{getattr(self.optPoint,var):1.1f}")
+            summary.write(" " + self.optPoint.formatXB())
+            for name, par in self.params.parameters.items():
+                summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision}f}")
             summary.write("\n")
             summary.close()
 
-        # step down theta ranges
-        self.tHSrange *= 1.0 - self.zoom.thetaRate
-        self.tHXrange *= 1.0 - self.zoom.thetaRate
-        self.tSXrange *= 1.0 - self.zoom.thetaRate
-
-        # step down vev ranges
-        self.vsrange *= 1.0 - self.zoom.vevRate
-        self.vxrange *= 1.0 - self.zoom.vevRate
+        # parameter scaling factor
+        rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
-        self.params.set_params("tHS",self.tHSOpt,self.tHSrange)
-        self.params.set_params("tHX",self.tHXOpt,self.tHXrange)
-        self.params.set_params("tSX",self.tSXOpt,self.tSXrange)
-        self.params.set_params("vs",self.vsOpt,self.vsrange)
-        self.params.set_params("vx",self.vxOpt,self.vxrange)
+        self.params.updateParams(self.optPoint,rangeScale)
 
         # get new volume
         volumeNew = self.params.volume()
         volumeRatio = volumeNew/volume
 
         # step down npoints
-        self.npoints = int(self.npoints * volumeRatio * (1 + self.zoom.densityRate))
+        self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -506,47 +444,14 @@ class Scanner:
 
         return
 
-    def getparams(self):
-
-        # get parameter ranges
-        self.tHSrange = self.params.range("tHS")
-        self.tHXrange = self.params.range("tHX")
-        self.tSXrange = self.params.range("tSX")
-        self.vsrange = self.params.range("vs")
-        self.vxrange = self.params.range("vx")
-
-        # get parameter low values
-        self.tHSlow = self.params.low("tHS")
-        self.tHXlow = self.params.low("tHX")
-        self.tSXlow = self.params.low("tSX")
-        self.vslow = self.params.low("vs")
-        self.vxlow = self.params.low("vx")
-
-        # get parameter high values
-        self.tHShigh = self.params.high("tHS")
-        self.tHXhigh = self.params.high("tHX")
-        self.tSXhigh = self.params.high("tSX")
-        self.vshigh = self.params.high("vs")
-        self.vxhigh = self.params.high("vx")
-
-        # get optimal values
-        self.tHSOpt = self.optPoint.tHS
-        self.tHXOpt = self.optPoint.tHX
-        self.tSXOpt = self.optPoint.tSX
-        self.vsOpt = self.optPoint.vs
-        self.vxOpt = self.optPoint.vx
-        self.xbOpt = self.optPoint.xb
-
 # class to hold onto range decay and density growth rates
 class Zoom:
 
     def __init__(self,
-                 theta_range_shrink_rate,
-                 vev_range_shrink_rate,
+                 parameter_rate,
                  density_growth_rate):
         
-        self.thetaRate = theta_range_shrink_rate
-        self.vevRate = vev_range_shrink_rate
+        self.parRate = parameter_rate
         self.densityRate = density_growth_rate
 
 if __name__ == "__main__":
@@ -556,13 +461,13 @@ if __name__ == "__main__":
     argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
-    argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
-    argparser.add_argument("-g", "--densitygrowth", default=0.2, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
+    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
@@ -573,6 +478,9 @@ if __name__ == "__main__":
 
     # create masses object
     masses = Masses(mX=xmass,mS=smass,mH=hmass)
+
+    # model name
+    modelname = args['model']
 
     # decay mode
     decay = args["decaymode"]
@@ -587,12 +495,11 @@ if __name__ == "__main__":
     niter = args["iterations"]
 
     # point density growth and parameter range shrink rates
-    theta_range_shrink_rate = args['theta_range_shrink']
-    vev_range_shrink_rate = args['vev_range_shrink']
-    density_growth_rate = args['densitygrowth']
+    parameter_rate = args['parameter_rate']
+    density_growth_rate = args['density_growth']
 
-    zoom = Zoom(theta_range_shrink_rate=theta_range_shrink_rate,
-                vev_range_shrink_rate=vev_range_shrink_rate,
+    # zoom object to hold onto rates
+    zoom = Zoom(parameter_rate=parameter_rate,
                 density_growth_rate=density_growth_rate)
 
     # whether multiprocessing should be used
@@ -600,6 +507,7 @@ if __name__ == "__main__":
 
     # creaate scan object
     myScan = Scan(masses=masses,
+                  modelname=modelname,
                   decay=decay,
                   maxwidth=maxwidth)
     

@@ -40,9 +40,9 @@ def plot(file_array, decay, masses: 'Masses'):
     for file in file_array:
 
         #Retrieve the variables from the list
-        parser = parse.Parse(filename=file, masses=masses, decay=decay) 
-        thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
-        xb = parser.getxb(decay)
+        parser = parse.Parse(filename=file, masses=masses, decay=decay, modelname="TRSMBroken") 
+        thetahS, thetahX, thetaSX, vs, vx = parser.getVars()
+        xb = parser.getXB(decay)
         
         #Append each variable list from the file to its 2D-Variable array
         thetahS_list.append(thetahS)
