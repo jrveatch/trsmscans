@@ -102,6 +102,7 @@ class Parse:
         # get total xsec times BR
         xb = np.multiply(xb_prod,xb_decay)
 
+        # return total xsec time BR
         return xb
 
     # get maximum xb for the production
@@ -213,13 +214,17 @@ class Parse:
         # return the decay BR
         return xb_decay
 
+    # get minimum value of a parameter
     def getMin(self,varname):
         return np.min(self.parArrays[varname])
 
+    # get maximum value of a parameter
     def getMax(self,varname):
         return np.max(self.parArrays[varname])
-    
+
+    # get arrays of all parameters
     def getVars(self):
+        # TODO: Move this to returning a dictionary
         return self.parArrays['tHS'], self.parArrays['tHX'], self.parArrays['tSX'], self.parArrays['vs'], self.parArrays['vx']
 
     # apply filters as mask
@@ -239,13 +244,6 @@ class Parse:
         for name, par in self.model.params.items():
             # populate dictionary of parameter arrays
             self.parArrays[name] = self.arr.data[par['fullname']][self.filters != 0]
-
-        # theta and vev values
-        self.tHS = self.arr.data['thetahS'][self.filters != 0]
-        self.tHX = self.arr.data['thetahX'][self.filters != 0]
-        self.tSX = self.arr.data['thetaSX'][self.filters != 0]
-        self.vs = self.arr.data['vs'][self.filters != 0]
-        self.vx = self.arr.data['vx'][self.filters != 0]
 
         # H1 xsec and BR values
         self.b_H_bb = self.arr.data['b_'+self.HName+'_bb'][self.filters != 0]
