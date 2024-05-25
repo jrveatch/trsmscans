@@ -21,6 +21,9 @@ class Model():
         with open(filename,'r') as file:
             self.params = yaml.safe_load(file)[self.name]
 
+    def parameterList(self):
+        return self.params.keys()
+
     def min(self,parname):
         return self.params[parname]['min']
 
