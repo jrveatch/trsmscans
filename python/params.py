@@ -1,6 +1,7 @@
 
 from masses import Masses
 from model import Model
+from parse import Point
 
 # class to hold and update full set of parameters used in a scan
 class Params:
@@ -49,8 +50,28 @@ class Params:
 
     # set new value, range, low and high
     # TODO: Update this to use a point instead of newVal
-    def updateParam(self,parname,newVal=None,rangeScale=1.0):
-        self.parameters[parname].updateParam(newVal=newVal,rangeScale=rangeScale)
+    def updateParams(self,
+                     newPoint: 'Point'=None,
+                     rangeScale=1.0):
+
+        # if both newPoint is None and rangeScale is 1.0, complain and return existing low
+        if newPoint is None and rangeScale == 1.0:
+            print("Attempting to update parameter with no new information... returning...")
+            return
+
+        # loop over parameters
+        for parname in self.parnames:
+
+            # initialize new value to be None
+            newVal = None
+
+            # if new point is provided, get new value from it
+            if newPoint:
+                newVal = newPoint.getVal(parname)
+
+            # update parameter with new value and range scale
+            self.parameters[parname].updateParam(newVal=newVal,
+                                                 rangeScale=rangeScale)
 
     # function to calculate volume of parameter space
     def volume(self):

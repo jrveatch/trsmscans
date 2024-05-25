@@ -187,11 +187,7 @@ class Scan:
         summary.close()
 
         # set new low and high values
-        self.params.updateParam("tHS",self.optPoint.getVal('tHS'))
-        self.params.updateParam("tHX",self.optPoint.getVal('tHX'))
-        self.params.updateParam("tSX",self.optPoint.getVal('tSX'))
-        self.params.updateParam("vs",self.optPoint.getVal('vs'))
-        self.params.updateParam("vx",self.optPoint.getVal('vx'))
+        self.params.updateParams(self.optPoint)
 
         return
 
@@ -454,9 +450,9 @@ class Scanner:
             summary.write(" " + f"{Decimal(self.xbOpt):.4E}")
             for var in varnames:
                 if var in thetaVars:
-                    summary.write(" " + f"{getattr(self.optPoint,var):1.4f}")
+                    summary.write(" " + f"{self.optPoint.getVal(var):1.4f}")
                 if var in vevVars:
-                    summary.write(" " + f"{getattr(self.optPoint,var):1.1f}")
+                    summary.write(" " + f"{self.optPoint.getVal(var):1.1f}")
             summary.write("\n")
             summary.close()
 
@@ -464,11 +460,7 @@ class Scanner:
         rangeScale = 1.0 - self.zoom.thetaRate
 
         # set new low and high values
-        self.params.updateParam("tHS",self.tHSOpt,rangeScale)
-        self.params.updateParam("tHX",self.tHXOpt,rangeScale)
-        self.params.updateParam("tSX",self.tSXOpt,rangeScale)
-        self.params.updateParam("vs",self.vsOpt,rangeScale)
-        self.params.updateParam("vx",self.vxOpt,rangeScale)
+        self.params.updateParams(self.optPoint,rangeScale)
 
         # get new volume
         volumeNew = self.params.volume()
