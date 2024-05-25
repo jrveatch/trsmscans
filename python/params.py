@@ -1,6 +1,4 @@
 
-import math
-
 from masses import Masses
 from model import Model
 
