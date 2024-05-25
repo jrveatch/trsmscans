@@ -421,7 +421,7 @@ class Scanner:
             summary.close()
 
         # parameter scaling factor
-        rangeScale = 1.0 - self.zoom.thetaRate
+        rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
         self.params.updateParams(self.optPoint,rangeScale)
@@ -431,7 +431,7 @@ class Scanner:
         volumeRatio = volumeNew/volume
 
         # step down npoints
-        self.npoints = int(self.npoints * volumeRatio * (1 + self.zoom.densityRate))
+        self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -443,12 +443,10 @@ class Scanner:
 class Zoom:
 
     def __init__(self,
-                 theta_range_shrink_rate,
-                 vev_range_shrink_rate,
+                 parameter_rate,
                  density_growth_rate):
         
-        self.thetaRate = theta_range_shrink_rate
-        self.vevRate = vev_range_shrink_rate
+        self.parRate = parameter_rate
         self.densityRate = density_growth_rate
 
 if __name__ == "__main__":
@@ -462,9 +460,8 @@ if __name__ == "__main__":
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-t", "--theta_range_shrink", default=0.05, type=float, help="Rate at which theta range should shrink")
-    argparser.add_argument("-v", "--vev_range_shrink", default=0.1, type=float, help="Rate at which vev range should shrink")
-    argparser.add_argument("-g", "--densitygrowth", default=0.2, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
+    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = vars(argparser.parse_args())
 
@@ -489,12 +486,10 @@ if __name__ == "__main__":
     niter = args["iterations"]
 
     # point density growth and parameter range shrink rates
-    theta_range_shrink_rate = args['theta_range_shrink']
-    vev_range_shrink_rate = args['vev_range_shrink']
-    density_growth_rate = args['densitygrowth']
+    parameter_rate = args['parameter_rate']
+    density_growth_rate = args['density_growth']
 
-    zoom = Zoom(theta_range_shrink_rate=theta_range_shrink_rate,
-                vev_range_shrink_rate=vev_range_shrink_rate,
+    zoom = Zoom(parameter_rate=parameter_rate,
                 density_growth_rate=density_growth_rate)
 
     # whether multiprocessing should be used
