@@ -1,3 +1,4 @@
+
 import subprocess
 import multiprocessing as mp
 import os
@@ -6,6 +7,7 @@ import time
 import math
 from blessings import Terminal
 import tsvutils
+import argparse
 
 # method to run ScannerS
 def runScannerS(ininame,npoints,modelname,njobs=-1):
@@ -227,7 +229,18 @@ def concatenate_files(directories,filename):
 
 if __name__ == "__main__":
 
-    modelname = "TRSMBroken"
+    # Parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
+    args = vars(argparser.parse_args())
+
+    modelname = args["model"]
+
+    npoints = args["npoints"]
+
+    njobs = args["njobs"]
 
     # get baseline .ini from data directory
     ininame = os.environ['DATADIR'] + "models/" + modelname + "_baseline.ini"
@@ -235,5 +248,5 @@ if __name__ == "__main__":
     # run ScannerS using baseline .ini
     runScannerS(ininame=ininame,
                 modelname=modelname,
-                npoints=200,
-                njobs=4)
+                npoints=npoints,
+                njobs=njobs)
