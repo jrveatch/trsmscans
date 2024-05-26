@@ -11,7 +11,7 @@ source scripts/outputdirs.sh
 
 # set up submodules
 echo "Setting up submodules"
-source scripts/setupsubmodules.sh
+source scripts/setup_submodules.sh
 
 # set up python virtual environment if it doesn't exist
 if [ ! -d trsm_venv ]; then
