@@ -51,7 +51,7 @@ class Scan:
         self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
-        self.outdir = os.environ['SCANDIR']+decay+"/"+str(masses)+"/"
+        self.outdir = os.environ['OUTPUTDIR']+modelname+"/scan/"+decay+"/"+str(masses)+"/"
 
         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir):
@@ -86,7 +86,7 @@ class Scan:
                    use_multiprocessing=False):
 
         # location of prescan outputs
-        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.modelname + "_prescan.tsv"
+        prescantsv = os.environ['OUTPUTDIR']+self.modelname+"/prescan/"+str(self.masses)+"/"+self.modelname+"_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,

@@ -27,7 +27,7 @@ def runPrescan(masses: 'Masses',
     # TODO: Add check to make sure overwrite is wanted
 
     # get prescan directory
-    prescandir = os.environ['PRESCANDIR']
+    prescandir = os.environ['OUTPUTDIR'] + modelname + "/prescan/"
 
     # directory where we want the output to go
     outdir = prescandir+str(masses)+"/"
@@ -149,7 +149,7 @@ def runPrescan(masses: 'Masses',
 def checkPrescan(masses: Masses,modelname):
 
     # get prescan directory
-    prescandir = os.environ['PRESCANDIR']
+    prescandir = os.environ['OUTPUTDIR'] + modelname + "/prescan/"
 
     # prescan file name
     filename = prescandir+"/"+str(masses)+"/"+modelname+"_prescan.tsv"
