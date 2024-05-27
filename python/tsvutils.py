@@ -3,7 +3,7 @@ import os
 import subprocess
 
 # function to get number of points in a file
-# returns -1 if file does not exist
+# returns 0 if file does not exist
 # otherwise returns number of existing points in file
 def countPointsInTSV(filename):
 
