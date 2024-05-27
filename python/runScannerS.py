@@ -31,6 +31,11 @@ def runSingleProcess(ininame,npoints,modelname):
     # simple information message
     print(f"Running ScannerS as a single process.")
 
+    # complain and exit if .ini doesn't exist
+    if not os.path.exists(ininame):
+        print(ininame,"doesn't exist. Exiting.")
+        quit()
+
     # define process
     process = [modelname, "--config", ininame, "scan", "-n", str(npoints)]
 
@@ -49,6 +54,11 @@ def runSingleProcess(ininame,npoints,modelname):
 
 # run multiple processes in parallel
 def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
+
+    # complain and exit if .ini doesn't exist
+    if not os.path.exists(ininame):
+        print(ininame,"doesn't exist. Exiting.")
+        quit()
 
     # get number of available CPUs
     ncpu = mp.cpu_count()
