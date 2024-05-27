@@ -88,7 +88,7 @@ def initializeColumn(filename,column_header,value):
         # read the header
         header = f_in.readline().strip().split('\t')
         
-        # add new column headers if needed
+        # add new column header if needed
         if not has_column:
             header.append(column_header)
         
