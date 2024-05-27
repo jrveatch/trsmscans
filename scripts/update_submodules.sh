@@ -1,46 +1,83 @@
 
 #!/bin/bash
 
-# List of submodule paths (relative to the root of the repository)
-SUBMODULE_PATHS=("higgstools" "ScannerS")
-
 # Print some information for user
 echo "Checking for submodule updates"
+
+# Function to get the current commit hash and path of each submodule
+get_submodule_hashes() {
+  git submodule foreach --quiet 'echo $sm_path $(git rev-parse HEAD)'
+}
+
+# Save the current state of submodule hashes
+before_update=$(mktemp)
+get_submodule_hashes > "$before_update"
 
 # Update submodules
 git submodule update --remote --recursive
 
-# Loop through each submodule
-for SUBMODULE_PATH in "${SUBMODULE_PATHS[@]}"; do
-    echo "Checking submodule: $SUBMODULE_PATH"
+# Save the state of submodule hashes after the update
+after_update=$(mktemp)
+get_submodule_hashes > "$after_update"
 
-    # Check if the submodule has been updated
-    cd $SUBMODULE_PATH
-    if [ -n "$(git diff --name-only HEAD@{1} HEAD)" ]; then
-        echo "$SUBMODULE_PATH submodule has been updated."
+# Compare the hashes before and after the update
+updated_submodules=()
+while IFS= read -r before; do
+    # Get path to submodule
+    submodule_path=$(echo "$before" | awk '{ print $1 }')
 
-        if [ -d build ]; then
+    # Get hashes before and after the update
+    before_hash=$(echo "$before" | awk '{ print $2 }')
+    after_hash=$(grep "$submodule_path" "$after_update" | awk '{ print $2 }')
 
-            rm -rf build
+    echo "$submodule_path"
 
+    # If hash has changed, then compile
+    if [ "$before_hash" != "$after_hash" ]; then
+        # Store list of updated submodules
+        updated_submodules+=("$submodule_path")
+
+        # If higgstools or ScannerS is updated, recompile it
+        if [[ "$submodule_path" == "higgstools" || "$submodule_path" == "ScannerS" ]]; then
+            # Go into the submodule directory
+            pushd $submodule_path || return 1
+
+            # If build directory exists, remove it
+            if [ -d build ]; then
+                rm -rf build
+            fi
+
+            # Make build directory and recompile
+            mkdir build
+            cd build
+            cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
+            make
+            cd ..
+
+            # If higgstools is updated, pip install it as well
+            if [[ "$submodule_path" == "higgstools" ]]; then
+                rm -rf _skbuild
+                pip install .
+            fi
+
+            # Return to base directory
+            popd || return 1
         fi
 
-        # Make build directory and recompile
-        mkdir build
-        cd build
-        cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
-        make
-        cd ..
-
-        # If higgstools is updated, pip install it as well
-        if [[ $SUBMODULE_PATH == "higgstools" ]]; then
-            pip install .
-        fi
-
-    else
-        echo "Submodule $SUBMODULE_PATH has not been updated"
     fi
-    cd ..
-done
+done < "$before_update"
+
+# Print the results
+if [ ${#updated_submodules[@]} -eq 0 ]; then
+  echo "No submodules were updated."
+else
+  echo "The following submodules were updated:"
+  for submodule in "${updated_submodules[@]}"; do
+    echo "- $submodule"
+  done
+fi
+
+# Cleanup temporary files
+rm -rf "$before_update" "$after_update"
 
 echo "All submodules are updated to the latest commit"
