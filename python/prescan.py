@@ -24,8 +24,6 @@ def runPrescan(masses: 'Masses',
     # get scan start time
     scanstart = time.time()
 
-    # TODO: Add check to make sure overwrite is wanted
-
     # get prescan directory
     prescandir = os.environ['OUTPUTDIR'] + modelname + "/prescan/"
 
@@ -41,9 +39,22 @@ def runPrescan(masses: 'Masses',
     print("\nRunning a prescan with",npoints,"points for",str(masses))
     print("Running in",outdir)
 
+    # get number of pre-existing prescan points
+    nexisting = checkPrescan(tsvname)
+
+    # if requested points are < 20% of existing points, request confirmation to overwrite
+    if overwrite and npoints < nexisting * 0.2:
+        print("You are requesting",npoints,"points but there are already",nexisting,"points")
+        print("Are you sure you want to overwrite the existing prescan?")
+        # TODO: Request user for confirmation
+        # TODO: If user says no, return 0
+
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
+        # remove directory
         shutil.rmtree(outdir)
+        # reset nexisting to 0
+        nexisting = 0
 
     # check if directory exists, if not make it
     if not os.path.exists(outdir):
@@ -59,11 +70,8 @@ def runPrescan(masses: 'Masses',
     # write .ini file from template
     params.writeini(ininame)
 
-    # get number of pre-existing prescan points
-    nexisting = checkPrescan(masses,modelname)
-
     # if prescan exists, adjust the number of prescan points to run
-    if nexisting >= 0:
+    if nexisting > 0:
 
         # if enough points already exist, exit
         if nexisting >= npoints:
@@ -147,18 +155,10 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(masses: Masses,modelname):
-
-    # get prescan directory
-    prescandir = os.environ['OUTPUTDIR'] + modelname + "/prescan/"
-
-    # prescan file name
-    filename = prescandir+"/"+str(masses)+"/"+modelname+"_prescan.tsv"
+def checkPrescan(tsvname):
 
     # get number of points in file
-    npoints = tsvutils.countPointsInTSV(filename)
-
-    return npoints
+    return tsvutils.countPointsInTSV(tsvname)
 
 # function to get number of points in a file
 # returns -1 if file does not exist

@@ -9,7 +9,7 @@ def countPointsInTSV(filename):
 
     # if file doesn't exist, return -1
     if not os.path.exists(filename):
-        return -1
+        return 0
 
     # run wc -l to get the number of lines
     result = subprocess.run(["wc", "-l", filename], capture_output=True, text=True)
