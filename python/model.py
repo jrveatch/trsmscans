@@ -16,8 +16,12 @@ class Model():
         # template .ini filename
         self.templateini = self.modeldir + self.name + "_template.ini"
 
-        # read in model yaml file
+        # model yaml file
         filename = self.modeldir + self.name + "_params.yml"
+
+        # TODO: Check to make sure .ini template and yaml exist
+
+        # read in model yaml file
         with open(filename,'r') as file:
             self.params = yaml.safe_load(file)[self.name]
 
