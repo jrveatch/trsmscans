@@ -30,17 +30,19 @@ while IFS= read -r before; do
     before_hash=$(echo "$before" | awk '{ print $2 }')
     after_hash=$(grep "$submodule_path" "$after_update" | awk '{ print $2 }')
 
-    echo "$submodule_path"
-
     # If hash has changed, then compile
     if [ "$before_hash" != "$after_hash" ]; then
+
+        # Print info to screen
+        echo "Updating $submodule_path"
+
         # Store list of updated submodules
         updated_submodules+=("$submodule_path")
 
         # If higgstools or ScannerS is updated, recompile it
         if [[ "$submodule_path" == "higgstools" || "$submodule_path" == "ScannerS" ]]; then
             # Go into the submodule directory
-            pushd $submodule_path || return 1
+            pushd $submodule_path > /dev/null || return 1
 
             # If build directory exists, remove it
             if [ -d build ]; then
@@ -49,10 +51,10 @@ while IFS= read -r before; do
 
             # Make build directory and recompile
             mkdir build
-            cd build
+            pushd build > /dev/null || return 1
             cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
             make
-            cd ..
+            popd > /dev/null || return 1
 
             # If higgstools is updated, pip install it as well
             if [[ "$submodule_path" == "higgstools" ]]; then
@@ -61,7 +63,7 @@ while IFS= read -r before; do
             fi
 
             # Return to base directory
-            popd || return 1
+            popd > /dev/null || return 1
         fi
 
     fi
@@ -69,7 +71,7 @@ done < "$before_update"
 
 # Print the results
 if [ ${#updated_submodules[@]} -eq 0 ]; then
-  echo "No submodules were updated."
+  echo "No submodules were updated"
 else
   echo "The following submodules were updated:"
   for submodule in "${updated_submodules[@]}"; do
