@@ -1,20 +1,20 @@
 
 import numpy as np
 
-import arrays
-
-import filters
+from arrays import Arrays
+import tsvutils
 
 def filterwidths(filename, maxwidth):
 
     # TODO: accept different widths for each H
 
-    # check whether filt_width column exists, if not initialize it
-    if not filters.column_exists(filename,"filt_width"):
-        filters.initializeFilters(filename)
+    # initialize column in case it doesn't exist
+    tsvutils.initializeColumn(filename=filename,
+                              column_header="filt_width",
+                              value=1)
 
     # load in arrays from .tsv file
-    arrs = arrays.Arrays(filename)
+    arrs = Arrays(filename)
     arrs.loadArrays()
 
     # get arrays of widths

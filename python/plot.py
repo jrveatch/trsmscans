@@ -14,7 +14,7 @@ def main(decay, masses: 'Masses'):
     all_files = iterate_directory(decay, masses)
 
     # CHECK IF PRESCAN EXISTS -- If it does, make it the first file to plot
-    prescan = "output/prescan/"+str(masses)+"/TRSMBroken_prescan.tsv"
+    prescan = "output/TRSMBroken/prescan/"+str(masses)+"/TRSMBroken_prescan.tsv"
     if ((os.path.exists(prescan))):
         all_files.insert(0, prescan)
 
@@ -25,7 +25,7 @@ def main(decay, masses: 'Masses'):
 def plot(file_array, decay, masses: 'Masses'):
     
     # Create Directory
-    output_dir = "output/plots/" + decay + "/" + str(masses) + "/" 
+    output_dir = "output/TRSMBroken/plots/" + decay + "/" + str(masses) + "/" 
     mkdir_p(output_dir) #pass directory to the make directory function
 
     #Initialize variable 2D-lists to store each variable list from all files
@@ -105,7 +105,7 @@ def iterate_directory(decay, masses: 'Masses'):
     file_array = []
 
     # Directory for the scan outputs
-    directory = "./output/scan/" + decay + "/" + str(masses) + "/files/"
+    directory = "./output/TRSMBroken/scan/" + decay + "/" + str(masses) + "/files/"
 
     # Iterate through the directory
     for file in os.listdir(directory):
@@ -139,9 +139,9 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-D", "--Decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=int)
-    argparser.add_argument("-S", "--SMass", required=True, type=int)
-    argparser.add_argument("-H", "--HMass", default=125, type=int)
+    argparser.add_argument("-X", "--XMass", required=True, type=float)
+    argparser.add_argument("-S", "--SMass", required=True, type=float)
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float)
     args = vars(argparser.parse_args())
 
     decay = args["Decay"]

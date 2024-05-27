@@ -6,6 +6,7 @@ class Arrays:
 
     def __init__(self,filename):
 
+        # store filename
         self.filename = filename
 
         # load tsv column headers
@@ -57,6 +58,7 @@ class Arrays:
 
     # write arrays to a new file
     def writeFile(self,filename):
+        # open output file
         with open(filename,'w') as f:
             # write headers
             f.write('\t'.join(self.headers) + '\n')

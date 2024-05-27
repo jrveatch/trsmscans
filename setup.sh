@@ -3,6 +3,9 @@
 # start python virtual environment
 source scripts/venv.sh
 
+# update submodules
+source scripts/update_submodules.sh
+
 # add path to executable to PATH
 export PATH="${PWD}/ScannerS/build:$PATH"
 
@@ -14,12 +17,3 @@ export RUNDIR="${PWD}/run/"
 
 # set output directory as environment variable
 export OUTPUTDIR="${RUNDIR}output/"
-
-# set prescan directory as environment variable
-export PRESCANDIR="${OUTPUTDIR}prescan/"
-
-# set scan directory as environment variable
-export SCANDIR="${OUTPUTDIR}scan/"
-
-# set plot directory as environment variable
-export PLOTDIR="${OUTPUTDIR}plots/"

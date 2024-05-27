@@ -223,9 +223,13 @@ class Parse:
         return np.max(self.parArrays[varname])
 
     # get arrays of all parameters
+    # TODO: Remove this method when it is no longer used in plot.py
     def getVars(self):
-        # TODO: Move this to returning a dictionary
         return self.parArrays['tHS'], self.parArrays['tHX'], self.parArrays['tSX'], self.parArrays['vs'], self.parArrays['vx']
+    
+    # get arrays of all parameter as a dictionary
+    def getParameters(self):
+        return self.parArrays
 
     # apply filters as mask
     def getFilteredArrays(self):

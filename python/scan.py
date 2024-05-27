@@ -51,7 +51,7 @@ class Scan:
         self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
-        self.outdir = os.environ['SCANDIR']+decay+"/"+str(masses)+"/"
+        self.outdir = os.environ['OUTPUTDIR']+modelname+"/scan/"+decay+"/"+str(masses)+"/"
 
         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir):
@@ -86,7 +86,7 @@ class Scan:
                    use_multiprocessing=False):
 
         # location of prescan outputs
-        prescantsv = os.environ['PRESCANDIR'] + "/" + str(self.masses) + "/" + self.modelname + "_prescan.tsv"
+        prescantsv = os.environ['OUTPUTDIR']+self.modelname+"/prescan/"+str(self.masses)+"/"+self.modelname+"_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
@@ -313,6 +313,7 @@ class Scanner:
         outname = self.outdir + "files/" + self.modelname + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
+        temptsv = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
         self.params.writeini(ininame)
@@ -331,15 +332,15 @@ class Scanner:
 
         # TODO: Figure out what to do if process returns negative value
 
+        # rename output .tsv file to tsvname
+        shutil.move(temptsv,tsvname)
+
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.npoints / volume
 
         # apply width and bounds filters
-        # this also renames the output .tsv file
-        # TODO: This will probably be model dependent
-        nwidth, nbounds, npass = filters.applyFilters(self.modelname + ".tsv",
-                                                      output_file=tsvname,
+        nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
                                                       maxwidth=maxwidth,
                                                       masses=self.params.masses)
 
@@ -458,9 +459,9 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
