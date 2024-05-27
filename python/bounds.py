@@ -2,12 +2,13 @@
 from twors_higgstools_setup import *
 
 from arrays import Arrays
-import filters
+import tsvutils
 
 import argparse
 
 from masses import Masses
 
+# TODO: Make this work for other models
 def filterbounds(filename,
                  masses: Masses,
                  debug=False):
@@ -21,9 +22,10 @@ def filterbounds(filename,
     SName = masses.SName
     XName = masses.XName
 
-    # check whether filt_width column exists, if not initialize it
-    if not filters.column_exists(filename,"filt_bounds"):
-        filters(filename)
+    # initialize column in case it doesn't exist
+    tsvutils.initializeColumn(filename=filename,
+                              column_header="filt_bounds",
+                              value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)

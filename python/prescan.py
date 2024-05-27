@@ -92,57 +92,57 @@ def runPrescan(masses: 'Masses',
     # this approach takes a slightly longer time but allows
     # progress to be captured at smaller increments in case
     # the longer prescan runs get interrupted
-    if stepsize > 0:
 
-        # number of points that have already been run
-        points_done = 0
+    # number of points that have already been run
+    points_done = 0
 
-        # keep going while fewer than npoints have been done so far
-        while points_done < npoints:
+    # keep going while fewer than npoints have been done so far
+    while points_done < npoints:
 
-            # if there is space, run another set of stepsize
-            if npoints - points_done > stepsize:
-                points_to_run = stepsize
+        # if there is space, run another set of stepsize
+        if npoints - points_done > stepsize:
+            points_to_run = stepsize
 
-            # otherwise run the remaining points
-            else:
-                points_to_run = npoints - points_done
+        # otherwise run the remaining points
+        else:
+            points_to_run = npoints - points_done
 
-            # run ScannerS for the next set of points
-            if use_multiprocessing:
-                result = runScannerS.runParallelProcesses(ininame=ininame,
-                                                          modelname=modelname,
-                                                          npoints=points_to_run)
-            else:
-                result = runScannerS.runSingleProcess(ininame=ininame,
-                                                      modelname=modelname,
-                                                      npoints=points_to_run)
+        # run ScannerS for the next set of points
+        if use_multiprocessing:
+            result = runScannerS.runParallelProcesses(ininame=ininame,
+                                                        modelname=modelname,
+                                                        npoints=points_to_run)
+        else:
+            result = runScannerS.runSingleProcess(ininame=ininame,
+                                                    modelname=modelname,
+                                                    npoints=points_to_run)
 
-            # if a process returns a negative result, delete directory and return result
-            if result < 0:
+        # if a process returns a negative result, delete directory and return result
+        if result < 0:
 
-                # inform user
-                print("Removing directory",outdir)
+            # inform user
+            print("Removing directory",outdir)
 
-                # delete directory
-                shutil.rmtree(outdir)
+            # delete directory
+            shutil.rmtree(outdir)
 
-                # return result from process
-                return result
+            # return result from process
+            return result
 
-            # increment the count of points done
-            points_done += tsvutils.countPointsInTSV(tsvname_initial)
+        # increment the count of points done
+        points_done += tsvutils.countPointsInTSV(tsvname_initial)
 
-            # initialize filter columns
-            filters.initializeFilters(tsvname_initial)
+        # initialize filter columns
+        filters.initializeFilters(tsvname_initial)
 
-            # save output to tsvname
-            tsvutils.saveTSVOutput(inputfile=tsvname_initial,
-                                   outputfile=tsvname)
+        # save output to tsvname
+        tsvutils.saveTSVOutput(inputfile=tsvname_initial,
+                               outputfile=tsvname)
 
     # apply width and bounds filters
-    # this also renames the output .tsv file
-    filters.applyFilters(tsvname,maxwidth=maxwidth,masses=masses)
+    filters.applyFilters(filename=tsvname,
+                         maxwidth=maxwidth,
+                         masses=masses)
 
     # get total time taken
     scanend = time.time()

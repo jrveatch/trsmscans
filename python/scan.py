@@ -313,6 +313,7 @@ class Scanner:
         outname = self.outdir + "files/" + self.modelname + "_" + identifier
         ininame = outname + ".ini"
         tsvname = outname + ".tsv"
+        temptsv = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
         self.params.writeini(ininame)
@@ -331,15 +332,15 @@ class Scanner:
 
         # TODO: Figure out what to do if process returns negative value
 
+        # rename output .tsv file to tsvname
+        shutil.move(temptsv,tsvname)
+
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.npoints / volume
 
         # apply width and bounds filters
-        # this also renames the output .tsv file
-        # TODO: This will probably be model dependent
-        nwidth, nbounds, npass = filters.applyFilters(self.modelname + ".tsv",
-                                                      output_file=tsvname,
+        nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
                                                       maxwidth=maxwidth,
                                                       masses=self.params.masses)
 
