@@ -21,16 +21,20 @@ for SUBMODULE_PATH in "${SUBMODULE_PATHS[@]}"; do
 
         if [ -d build ]; then
 
-            # Move into build directory and recompile
-            cd build
-            make
-            cd ..
+            rm -rf build
 
-            # If higgstools is updated, pip install it as well
-            if [[ $SUBMODULE_PATH == "higgstools" ]]; then
-                pip install .
-            fi
+        fi
 
+        # Make build directory and recompile
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
+        make
+        cd ..
+
+        # If higgstools is updated, pip install it as well
+        if [[ $SUBMODULE_PATH == "higgstools" ]]; then
+            pip install .
         fi
 
     else
