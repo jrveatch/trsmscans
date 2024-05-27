@@ -139,9 +139,9 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-D", "--Decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=int)
-    argparser.add_argument("-S", "--SMass", required=True, type=int)
-    argparser.add_argument("-H", "--HMass", default=125, type=int)
+    argparser.add_argument("-X", "--XMass", required=True, type=float)
+    argparser.add_argument("-S", "--SMass", required=True, type=float)
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float)
     args = vars(argparser.parse_args())
 
     decay = args["Decay"]

@@ -458,9 +458,9 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")

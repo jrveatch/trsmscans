@@ -38,7 +38,8 @@ def runPrescan(masses: 'Masses',
     tsvname = outdir + modelname + "_prescan.tsv"
 
     # print starting message
-    print("\nRunning a prescan with",npoints,"points in",outdir)
+    print("\nRunning a prescan with",npoints,"points for",str(masses))
+    print("Running in",outdir)
 
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
@@ -184,9 +185,9 @@ if __name__ == "__main__":
 
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", required=True, type=int, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125, type=int, help="Mass of scalar H in GeV")
+    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")

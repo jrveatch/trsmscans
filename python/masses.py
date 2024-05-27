@@ -83,4 +83,4 @@ class Masses:
         """
 
     def __str__(self):
-        return "X"+str(self.mX)+"_S"+str(self.mS)
+        return "X"+str(int(self.mX))+"_S"+str(int(self.mS))
