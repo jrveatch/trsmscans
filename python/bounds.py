@@ -148,7 +148,7 @@ def filterbounds(filename,
         if debug is True:
             print ("widths are ",w_H,w_S,w_X)
 
-        if w_H > 1.e-13 :
+        if w_H > 1e-13 :
             H.setBr('bb', 0.)
             H.setBr('tautau', 0.)
             H.setBr('mumu', 0.)
@@ -193,7 +193,7 @@ def filterbounds(filename,
             # add H->ZZ BR
             H.setBr('ZZ',b_H_ZZ)
 
-        if w_S != 0: # TODO: Should this be > e-13?
+        if w_S > 1e-13:
             S.setBr('bb', 0.)
             S.setBr('tautau', 0.)
             S.setBr('mumu', 0.)
@@ -237,7 +237,7 @@ def filterbounds(filename,
             # add S->ZZ BR
             S.setBr('ZZ',b_S_ZZ)
 
-        if w_X != 0: # TODO: Should this be > e-13?
+        if w_X > 1e-13:
             X.setBr('bb', 0.)
             X.setBr('tautau', 0.)
             X.setBr('mumu', 0.)
