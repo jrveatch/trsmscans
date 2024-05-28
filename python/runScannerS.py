@@ -44,7 +44,10 @@ def runSingleProcess(ininame,npoints,modelname):
 
     # pass failed job error up the line
     if result < 0:
+        print("Single process timed out. Exiting.")
         return result
+    
+    print(npoints)
 
     # simple information message
     print("Finished running process")
@@ -87,19 +90,16 @@ def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
     # minimum number of points per job
     min_points = 10
 
-    # subtract min points from npoints to account for test process
-    npoints -= min_points
-
     # get number of points per job, rounded up
     points_per_job = math.ceil(npoints/num_processes)
 
     # if points_per_job is less than min_points, reduce the number of jobs
     if points_per_job < min_points:
-        num_processes = math.ceil(npoints/min_points)
+        num_processes = math.ceil(npoints/min_points) - 1
         points_per_job = min_points
 
-    # if there is only 1 CPU available, run a single process
-    if num_processes == 1:
+    # if fewer than 2 processes are needed, run a single process
+    if num_processes < 2:
         print("Only 1 process needed, running as a single process")
         return runSingleProcess(ininame=ininame,
                                 npoints=npoints,
