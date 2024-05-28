@@ -201,40 +201,19 @@ if __name__ == "__main__":
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     argparser.add_argument("-t", "--stepsize", default=10000, type=int, help="Step size to save progress")
-    args = vars(argparser.parse_args())
-
-    # masses
-    xmass = args["XMass"]
-    smass = args["SMass"]
-    hmass = args["HMass"]
+    args = argparser.parse_args()
 
     # create masses object
-    masses = Masses(mX=xmass,mS=smass,mH=hmass)
-
-    # model name
-    modelname = args['model']
-
-    # number of points to run
-    npoints = args["npoints"]
-
-    # progress saving step size
-    stepsize = args["stepsize"]
-
-    # get maximum width
-    maxwidth = args["widthmax"]
-
-    # run options
-    overwrite = args["overwrite"]
-    use_multiprocessing = args["multiprocessing"]
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
     runPrescan(masses=masses,
-               modelname=modelname,
-               npoints=npoints,
-               maxwidth=maxwidth,
-               overwrite=overwrite,
-               use_multiprocessing=use_multiprocessing,
-               stepsize=stepsize)
+               modelname=args.model,
+               npoints=args.npoints,
+               maxwidth=args.maxwidth,
+               overwrite=args.overwrite,
+               use_multiprocessing=args.multiprocessing,
+               stepsize=args.stepsize)

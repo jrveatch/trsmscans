@@ -206,6 +206,7 @@ class Scan:
         myscanner = Scanner(npoints=npoints,
                             params=self.params,
                             decay=self.decay,
+                            maxwidth=self.maxwidth,
                             optPoint=self.optPoint,
                             detailsname=self.detailsname,
                             summaryname=self.summaryname,
@@ -266,6 +267,7 @@ class Scanner:
                  summaryname,
                  params: 'Params',
                  decay,
+                 maxwidth,
                  npoints,
                  optPoint: 'Point',
                  zoom: 'Zoom',
@@ -277,6 +279,7 @@ class Scanner:
         self.summaryname = summaryname
         self.params = params
         self.decay = decay
+        self.maxwidth = maxwidth
         self.npoints = npoints
         self.optPoint = optPoint
         self.outdir = outdir
@@ -322,12 +325,12 @@ class Scanner:
         if use_multiprocessing:
             print("Using multiprocessing")
             self.npoints = runScannerS.runParallelProcesses(ininame=ininame,
-                                                            modelname=modelname,
+                                                            modelname=self.modelname,
                                                             npoints=self.npoints)
         else:
             print("Using single processing")
             self.npoints = runScannerS.runSingleProcess(ininame=ininame,
-                                                        modelname=modelname,
+                                                        modelname=self.modelname,
                                                         npoints=self.npoints)
 
         # TODO: Figure out what to do if process returns negative value
@@ -341,7 +344,7 @@ class Scanner:
 
         # apply width and bounds filters
         nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
-                                                      maxwidth=maxwidth,
+                                                      maxwidth=self.maxwidth,
                                                       masses=self.params.masses)
 
         # TODO: Figure out whether these are needed and what return values to use
@@ -395,7 +398,7 @@ class Scanner:
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("It took " + f"{itertime:1.1f}" + " seconds\n")
-        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(maxwidth) + "\n")
+        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
         details.write("--------------------\n")
@@ -463,57 +466,30 @@ if __name__ == "__main__":
     argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-d", "--decaymode", required=True, type=str, help="Decay mode")
+    argparser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    args = vars(argparser.parse_args())
-
-    # masses
-    xmass = args["XMass"]
-    smass = args["SMass"]
-    hmass = args["HMass"]
+    args = argparser.parse_args()
 
     # create masses object
-    masses = Masses(mX=xmass,mS=smass,mH=hmass)
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    # model name
-    modelname = args['model']
-
-    # decay mode
-    decay = args["decaymode"]
-
-    # maximum allowed width
-    maxwidth = args["widthmax"]
-
-    # number of scan points
-    npoints = args["npoints"]
-
-    # number of iterations
-    niter = args["iterations"]
-
-    # point density growth and parameter range shrink rates
-    parameter_rate = args['parameter_rate']
-    density_growth_rate = args['density_growth']
-
-    # zoom object to hold onto rates
-    zoom = Zoom(parameter_rate=parameter_rate,
-                density_growth_rate=density_growth_rate)
-
-    # whether multiprocessing should be used
-    use_multiprocessing = args['multiprocessing']
+    # create zoom object to hold onto rates
+    zoom = Zoom(parameter_rate=args.parameter_rate,
+                density_growth_rate=args.density_growth)
 
     # creaate scan object
     myScan = Scan(masses=masses,
-                  modelname=modelname,
-                  decay=decay,
-                  maxwidth=maxwidth)
+                  modelname=args.model,
+                  decay=args.decay,
+                  maxwidth=args.maxwidth)
     
     # run scan using scan object
-    myScan.runScan(npoints=npoints,
-                   niter=niter,
+    myScan.runScan(npoints=args.npoints,
+                   niter=args.iterations,
                    zoom=zoom,
-                   use_multiprocessing=use_multiprocessing)
+                   use_multiprocessing=args.multiprocessing)

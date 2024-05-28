@@ -339,15 +339,9 @@ if __name__ == "__main__":
     argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    args = vars(argparser.parse_args())
-
-    # get arguments
-    filename = args["filename"]
-    xmass = args["XMass"]
-    smass = args["SMass"]
-    hmass = args["HMass"]
+    args = argparser.parse_args()
 
     # create masses
-    masses = Masses(mX=xmass,mS=smass,mH=hmass)
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    filterbounds(filename=filename,masses=masses,debug=True)
+    filterbounds(filename=args.filename,masses=masses,debug=True)

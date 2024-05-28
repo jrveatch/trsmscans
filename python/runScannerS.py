@@ -241,22 +241,16 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
     argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
-    args = vars(argparser.parse_args())
-
-    modelname = args["model"]
-
-    npoints = args["npoints"]
-
-    njobs = args["njobs"]
+    args = argparser.parse_args()
 
     # get baseline .ini from data directory
-    ininame = os.environ['DATADIR'] + "models/" + modelname + "_baseline.ini"
+    ininame = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
     runScannerS(ininame=ininame,
-                modelname=modelname,
-                npoints=npoints,
-                njobs=njobs)
+                modelname=args.model,
+                npoints=args.npoints,
+                njobs=args.njobs)
