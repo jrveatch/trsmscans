@@ -45,9 +45,20 @@ def runPrescan(masses: 'Masses',
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and npoints < nexisting * 0.2:
         print("You are requesting",npoints,"points but there are already",nexisting,"points")
-        print("Are you sure you want to overwrite the existing prescan?")
-        # TODO: Request user for confirmation
-        # TODO: If user says no, return 0
+        while True:
+            # get user response
+            response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
+            # if yes, print message and break out of while loop
+            if response in ["yes", "y"]:
+                print("Overwriting existing prescan")
+                break
+            # if no, print message and return
+            elif response in ["no", "n"]:
+                print("Exiting prescan")
+                return 0
+            # complain if response is neither yes nor no
+            else:
+                print("Please enter 'yes' or 'no'.")
 
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
@@ -190,40 +201,19 @@ if __name__ == "__main__":
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     argparser.add_argument("-t", "--stepsize", default=10000, type=int, help="Step size to save progress")
-    args = vars(argparser.parse_args())
-
-    # masses
-    xmass = args["XMass"]
-    smass = args["SMass"]
-    hmass = args["HMass"]
+    args = argparser.parse_args()
 
     # create masses object
-    masses = Masses(mX=xmass,mS=smass,mH=hmass)
-
-    # model name
-    modelname = args['model']
-
-    # number of points to run
-    npoints = args["npoints"]
-
-    # progress saving step size
-    stepsize = args["stepsize"]
-
-    # get maximum width
-    maxwidth = args["widthmax"]
-
-    # run options
-    overwrite = args["overwrite"]
-    use_multiprocessing = args["multiprocessing"]
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
     runPrescan(masses=masses,
-               modelname=modelname,
-               npoints=npoints,
-               maxwidth=maxwidth,
-               overwrite=overwrite,
-               use_multiprocessing=use_multiprocessing,
-               stepsize=stepsize)
+               modelname=args.model,
+               npoints=args.npoints,
+               maxwidth=args.maxwidth,
+               overwrite=args.overwrite,
+               use_multiprocessing=args.multiprocessing,
+               stepsize=args.stepsize)

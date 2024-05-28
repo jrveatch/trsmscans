@@ -47,24 +47,14 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-n", "--npoints", default=50000, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-s", "--single_process", action="store_true", help="Use if multiprocessing should not be used")
-    args = vars(argparser.parse_args())
-
-    # number of points to run
-    npoints = args["npoints"]
-
-    # get maximum width
-    maxwidth = args["widthmax"]
-
-    # run options
-    overwrite = args["overwrite"]
-    use_single_process = args["single_process"]
+    args = argparser.parse_args()
 
     # run all prescans
-    runAllPrescans(npoints=npoints,
-                   maxwidth=maxwidth,
-                   overwrite=overwrite,
-                   use_multiprocessing=not use_single_process)
+    runAllPrescans(npoints=args.npoints,
+                   maxwidth=args.maxwidth,
+                   overwrite=args.overwrite,
+                   use_multiprocessing=not args.single_process)
     

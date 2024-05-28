@@ -54,13 +54,7 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--filename", help="Name of file to apply filters to")
-    argparser.add_argument("-w", "--widthmax", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    args = vars(argparser.parse_args())
+    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
+    args = argparser.parse_args()
 
-    # filename
-    filename = args["filename"]
-
-    # maximum allowed width
-    maxwidth = args["widthmax"]
-
-    applyFilters(filename=filename,maxwidth=maxwidth)
+    applyFilters(filename=args.filename,maxwidth=args.maxwidth)
