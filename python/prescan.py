@@ -45,9 +45,20 @@ def runPrescan(masses: 'Masses',
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and npoints < nexisting * 0.2:
         print("You are requesting",npoints,"points but there are already",nexisting,"points")
-        print("Are you sure you want to overwrite the existing prescan?")
-        # TODO: Request user for confirmation
-        # TODO: If user says no, return 0
+        while True:
+            # get user response
+            response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
+            # if yes, print message and break out of while loop
+            if response in ["yes", "y"]:
+                print("Overwriting existing prescan")
+                break
+            # if no, print message and return
+            elif response in ["no", "n"]:
+                print("Exiting prescan")
+                return 0
+            # complain if response is neither yes nor no
+            else:
+                print("Please enter 'yes' or 'no'.")
 
     # remove previous directory if set to overwrite
     if os.path.exists(outdir) and overwrite:
