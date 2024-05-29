@@ -8,27 +8,24 @@ import argparse
 from masses import Masses
 
 # Main Function
-def main(decay, xmass, smass):
+def main(decay, masses: 'Masses'):
 
     # Iterate through all files in the given directory
-    all_files = iterate_directory(decay, xmass, smass)
+    all_files = iterate_directory(decay, masses)
 
     # CHECK IF PRESCAN EXISTS -- If it does, make it the first file to plot
-    prescan = "output/prescan/X"+xmass+"_S"+smass+"/TRSMBroken_prescan.tsv"
+    prescan = "output/TRSMBroken/prescan/"+str(masses)+"/TRSMBroken_prescan.tsv"
     if ((os.path.exists(prescan))):
         all_files.insert(0, prescan)
 
     # Using Iterate Directory - Plot all files and variables
-    plot(all_files, smass, decay, xmass)
+    plot(all_files, decay, masses)
 
 #Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
-def plot(file_array, smass, decay, xmass):
-
-    #Create a masses object
-    masses = Masses(mX=float(xmass),mS=float(smass), mH=125)
+def plot(file_array, decay, masses: 'Masses'):
     
     # Create Directory
-    output_dir = "output/plots/" + decay + "/X" + xmass + "_S" + smass + "/" 
+    output_dir = "output/TRSMBroken/plots/" + decay + "/" + str(masses) + "/" 
     mkdir_p(output_dir) #pass directory to the make directory function
 
     #Initialize variable 2D-lists to store each variable list from all files
@@ -46,9 +43,9 @@ def plot(file_array, smass, decay, xmass):
     for file in file_array:
 
         #Retrieve the variables from the list
-        parser = parse.Parse(filename=file, masses=masses, decay=decay) 
-        thetahS, thetahX, thetaSX, vs, vx = parser.getvars()
-        xb = parser.getxb(decay)
+        parser = parse.Parse(filename=file, masses=masses, decay=decay, modelname="TRSMBroken") 
+        thetahS, thetahX, thetaSX, vs, vx = parser.getVars()
+        xb = parser.getXB(decay)
 
         #Retrive maximum point based on the file's variables
         maxpoint = parser.getmaxpoint()
@@ -168,13 +165,13 @@ def select_colors():
     return color1, color2
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
-def iterate_directory(decay, xmass, smass):
+def iterate_directory(decay, masses: 'Masses'):
 
     #Empty array that will hold the files found
     file_array = []
 
-    #Directory for the scan outputs
-    directory = "./output/scan/"+decay+"/X"+xmass+"_S"+smass+"/files/"
+    # Directory for the scan outputs
+    directory = "./output/TRSMBroken/scan/" + decay + "/" + str(masses) + "/files/"
 
     #Iterate through the directory
     for file in os.listdir(directory):
@@ -208,12 +205,16 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
     argparser.add_argument("-D", "--Decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=str)
-    argparser.add_argument("-S", "--SMass", required=True, type=str)
+    argparser.add_argument("-X", "--XMass", required=True, type=float)
+    argparser.add_argument("-S", "--SMass", required=True, type=float)
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float)
     args = vars(argparser.parse_args())
 
     decay = args["Decay"]
     xmass = args["XMass"]
     smass = args["SMass"]
+    hmass = args["HMass"]
 
-    main(decay, xmass, smass)
+    masses = Masses(mX=xmass,mS=smass,mH=hmass)
+
+    main(decay, masses)

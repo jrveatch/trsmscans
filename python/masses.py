@@ -1,4 +1,6 @@
 
+# class to hold onto masses and handle translation
+# between X/S/H and H1/H2/H3 bases
 class Masses:
 
     def __init__(self,mX,mS,mH):
@@ -79,3 +81,6 @@ class Masses:
                 self.mH1 = self.mX
                 self.XName = "H1"
         """
+
+    def __str__(self):
+        return "X"+str(int(self.mX))+"_S"+str(int(self.mS))

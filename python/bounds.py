@@ -2,12 +2,13 @@
 from twors_higgstools_setup import *
 
 from arrays import Arrays
-import filters
+import tsvutils
 
 import argparse
 
 from masses import Masses
 
+# TODO: Make this work for other models
 def filterbounds(filename,
                  masses: Masses,
                  debug=False):
@@ -21,9 +22,10 @@ def filterbounds(filename,
     SName = masses.SName
     XName = masses.XName
 
-    # check whether filt_width column exists, if not initialize it
-    if not filters.column_exists(filename,"filt_bounds"):
-        filters(filename)
+    # initialize column in case it doesn't exist
+    tsvutils.initializeColumn(filename=filename,
+                              column_header="filt_bounds",
+                              value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)
@@ -148,7 +150,7 @@ def filterbounds(filename,
         if debug is True:
             print ("widths are ",w_H,w_S,w_X)
 
-        if w_H > 1.e-13 :
+        if w_H > 1e-13 :
             H.setBr('bb', 0.)
             H.setBr('tautau', 0.)
             H.setBr('mumu', 0.)
@@ -193,7 +195,7 @@ def filterbounds(filename,
             # add H->ZZ BR
             H.setBr('ZZ',b_H_ZZ)
 
-        if w_S != 0: # TODO: Should this be > e-13?
+        if w_S > 1e-13:
             S.setBr('bb', 0.)
             S.setBr('tautau', 0.)
             S.setBr('mumu', 0.)
@@ -237,7 +239,7 @@ def filterbounds(filename,
             # add S->ZZ BR
             S.setBr('ZZ',b_S_ZZ)
 
-        if w_X != 0: # TODO: Should this be > e-13?
+        if w_X > 1e-13:
             X.setBr('bb', 0.)
             X.setBr('tautau', 0.)
             X.setBr('mumu', 0.)
@@ -334,11 +336,12 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--filename", required=True, help="Name of tsvfile to run over")
-    argparser.add_argument("-S", "--SMass", required=True, type=int, help="Mass of scalar S in GeV")
-    args = vars(argparser.parse_args())
+    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
+    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    args = argparser.parse_args()
 
-    # get arguments
-    filename = args["filename"]
-    smass = args["SMass"]
+    # create masses
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    filterbounds(filename=filename,SMass=smass,debug=True)
+    filterbounds(filename=args.filename,masses=masses,debug=True)

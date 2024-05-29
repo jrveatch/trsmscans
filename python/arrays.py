@@ -6,33 +6,46 @@ class Arrays:
 
     def __init__(self,filename):
 
-        self.headers = []
-
+        # store filename
         self.filename = filename
 
-        self.loadHeaders(filename)
+        # load tsv column headers
+        self.loadHeaders()
 
-    def loadHeaders(self,filename):
+        # load tsv data into arrays
+        self.loadArrays()
 
-        with open(filename,'r') as file:
+    # load tsv column headers into a list
+    def loadHeaders(self):
+        
+        # empty headers list
+        self.headers = []
+
+        # read column headers into list
+        with open(self.filename,'r') as file:
             header_line = file.readline().strip()
             self.headers = header_line.split('\t')
 
+        # make sure first column has 'idx' as header
         if self.headers[0] != 'idx':
             self.headers.insert(0, 'idx')
 
     def getHeaders(self):
         return self.headers
 
+    # load tsv columns into a numpy array
     def loadArrays(self,filename=""):
 
+        # if a new filename is provided, store it as class object
         if filename:
             self.filename = filename
 
+        # if headers have not be loaded, load them now
         if not self.headers:
             print("Headers were not loaded, loading now")
-            self.loadHeaders(self.filename)
+            self.loadHeaders()
 
+        # create numpy array from the tsv
         self.data = np.genfromtxt(self.filename, delimiter='\t', dtype=None, names=self.headers, encoding=None, skip_header=1)
 
     # get an array
@@ -45,6 +58,7 @@ class Arrays:
 
     # write arrays to a new file
     def writeFile(self,filename):
+        # open output file
         with open(filename,'w') as f:
             # write headers
             f.write('\t'.join(self.headers) + '\n')

@@ -1,3 +1,4 @@
+
 import subprocess
 import multiprocessing as mp
 import os
@@ -5,39 +6,62 @@ import shutil
 import time
 import math
 from blessings import Terminal
+import tsvutils
+import argparse
 
-def runScannerS(ininame,npoints,model="TRSMBroken",njobs=-1):
+# method to run ScannerS
+def runScannerS(ininame,npoints,modelname,njobs=-1):
 
     # if only one process needed, just use subprocess
     if njobs == 1:
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
 
     # otherwise use multiprocessing
     else:
-        return runParallelProcesses(ininame,npoints,model,njobs)
+        return runParallelProcesses(ininame=ininame,
+                                    npoints=npoints,
+                                    modelname=modelname,
+                                    njobs=njobs)
 
-def runSingleProcess(ininame,npoints,model="TRSMBroken"):
+# run job as a single process
+def runSingleProcess(ininame,npoints,modelname):
 
     # simple information message
     print(f"Running ScannerS as a single process.")
 
+    # complain and exit if .ini doesn't exist
+    if not os.path.exists(ininame):
+        print(ininame,"doesn't exist. Exiting.")
+        quit()
+
     # define process
-    process = [model, "--config", ininame, "scan", "-n", str(npoints)]
+    process = [modelname, "--config", ininame, "scan", "-n", str(npoints)]
 
     # run the process
-    result = run_subprocess(process,model)
+    result = run_subprocess(process,modelname)
 
     # pass failed job error up the line
     if result < 0:
+        print("Single process timed out. Exiting.")
         return result
+    
+    print(npoints)
 
     # simple information message
-    print("Finished running process. Continuing...")
+    print("Finished running process")
 
     # return number of points used
     return npoints
 
-def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
+# run multiple processes in parallel
+def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
+
+    # complain and exit if .ini doesn't exist
+    if not os.path.exists(ininame):
+        print(ininame,"doesn't exist. Exiting.")
+        quit()
 
     # get number of available CPUs
     ncpu = mp.cpu_count()
@@ -45,7 +69,9 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # if there is only 1 CPU available, run a single process
     if ncpu == 1:
         print("Only 1 CPU available, running as a single process")
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
 
     # set number of workers to 80% of the available cores
     nworkers = int(ncpu * 0.8)
@@ -57,37 +83,44 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     # of workers, limit number of processes to number of workers
     elif njobs > nworkers:
         num_processes = nworkers
-    # otherwise set the number of processes to the requested
-    # number of jobs
+    # otherwise set the number of processes to the requested number of jobs
     else:
         num_processes = njobs
-
-    # get number of points per job, rounded up
-    points_per_job = math.ceil(npoints/num_processes)
 
     # minimum number of points per job
     min_points = 10
 
+    # get number of points per job, rounded up
+    points_per_job = math.ceil(npoints/num_processes)
+
     # if points_per_job is less than min_points, reduce the number of jobs
     if points_per_job < min_points:
-        num_processes = math.ceil(npoints/min_points)
+        num_processes = math.ceil(npoints/min_points) - 1
         points_per_job = min_points
 
-    # if there is only 1 CPU available, run a single process
-    if num_processes == 1:
+    # if fewer than 2 processes are needed, run a single process
+    if num_processes < 2:
         print("Only 1 process needed, running as a single process")
-        return runSingleProcess(ininame,npoints,model)
+        return runSingleProcess(ininame=ininame,
+                                npoints=npoints,
+                                modelname=modelname)
+
+    # print out some information
+    print("Running test job with",min_points,"points")
 
     # define test process with 10 points
-    test_process = [model, "--config", ininame, "scan", "-n", "10"]
+    test_process = [modelname, "--config", ininame, "scan", "-n", str(min_points)]
 
     # run test process
-    test_result = run_subprocess(test_process,model)
+    test_result = run_subprocess(test_process,modelname)
 
     # if test_result indicates a timeout, complain and exit
     if test_result < 0:
         print("Test job timed out. Exiting.")
         return test_result
+
+    # print out some information
+    print("Test job was successful")
 
     # reset npoints to reflect how many are actually used
     npoints = points_per_job * num_processes
@@ -99,7 +132,7 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model, "--config", "../"+ininame, "scan", "-n", str(points_per_job)]
+    process = [modelname, "--config", ininame, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -122,11 +155,12 @@ def runParallelProcesses(ininame,npoints,model="TRSMBroken",njobs=-1):
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,model+".tsv",points_per_job)
+    concatenate_files(directories,modelname+".tsv")
 
     # return number of points that are actually used
     return npoints
 
+# run a process for multiprocessing
 def run_process(process, directory, counter, num_processes):
 
     # create temporary directory if it doesn't exist
@@ -139,16 +173,17 @@ def run_process(process, directory, counter, num_processes):
     subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # get Terminal for nicer outputs
-    term  = Terminal()
+    term = Terminal()
 
     # increment the counter and print out how many processes are finished
     counter.value += 1
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
-def run_subprocess(process,model="TRSMBroken"):
+# run a python subprocess for a single job
+def run_subprocess(process,modelname):
 
     # output file name
-    outfile = model + ".tsv"
+    outfile = modelname + ".tsv"
 
     # launch process
     process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -189,41 +224,33 @@ def run_subprocess(process,model="TRSMBroken"):
     # successful run
     return 0
 
-def concatenate_files(directories,filename,points_per_job):
+# concatenate outputs from parallel processes into a single .tsv file
+def concatenate_files(directories,filename):
 
-    # flag indicating whether header has already been written
-    header_written = False
+    # loop over temporary directories
+    for directory in directories:
 
-    # open output file
-    with open(filename,"w") as outfile:
+        # write/append .tsv from directory to output file
+        tsvutils.saveTSVOutput(inputfile=directory+"/"+filename,
+                               outputfile=filename)
 
-        # loop over temporary directories
-        for dir_number, directory in enumerate(directories):
-
-            # open .tsv file in the directory
-            with open(directory+"/"+filename,"r") as infile:
-
-                # if the header has not already been written, write it
-                if not header_written:
-                    header = infile.readline()
-                    outfile.write(header)
-                    header_written = True
-
-                # if header has already been written, skip it in future files
-                else:
-                    # skip the header line
-                    next(infile)
-
-                # loop over all non-header lines in file
-                for line in infile:
-
-                    # replace the index with a unique value
-                    parts = line.strip().split('\t')
-                    parts[0] = str(int(parts[0]) + dir_number * points_per_job)
-                    outfile.write('\t'.join(parts) + '\n')
-
-            # delete the temporary directory
-            shutil.rmtree(directory)
+        # delete the temporary directory
+        shutil.rmtree(directory)
 
 if __name__ == "__main__":
-    runScannerS(ininame="TRSMBroken_baseline.ini",npoints=200,njobs=4)
+
+    # Parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
+    args = argparser.parse_args()
+
+    # get baseline .ini from data directory
+    ininame = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
+
+    # run ScannerS using baseline .ini
+    runScannerS(ininame=ininame,
+                modelname=args.model,
+                npoints=args.npoints,
+                njobs=args.njobs)
