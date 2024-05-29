@@ -36,6 +36,9 @@ def plot(file_array, decay, masses: 'Masses'):
     vx_list = []
     xb_list = []
 
+    #Initialize list that will hold all the maximum points for each file iteration
+    maxpoint_list = []
+
     #Iterate through each file
     for file in file_array:
 
@@ -43,6 +46,9 @@ def plot(file_array, decay, masses: 'Masses'):
         parser = parse.Parse(filename=file, masses=masses, decay=decay, modelname="TRSMBroken") 
         thetahS, thetahX, thetaSX, vs, vx = parser.getVars()
         xb = parser.getXB(decay)
+
+        #Retrive maximum point based on the file's variables
+        maxpoint = parser.getmaxpoint()
         
         #Append each variable list from the file to its 2D-Variable array
         thetahS_list.append(thetahS)
@@ -52,13 +58,19 @@ def plot(file_array, decay, masses: 'Masses'):
         vx_list.append(vx)
         xb_list.append(xb)
 
+        #Append the maximum point in to its respective list
+        maxpoint_list.append(maxpoint)
+
+    #Find the Maximum point from the maximum points
+    maximum = get_max_point(maxpoint_list)
+
     #Create a list containing all of the variable lists
     var_list = [thetahS_list, thetahX_list, thetaSX_list, vs_list, vx_list, xb_list]
     var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
+    point_vars = ["tHS", "tHX", "tSX", "vs", "vx", "xb"] #List with all the variable names based on the Point class
 
-    # Define default start and end colors using RGB values directly
-    start_rgb = (0, 0, 1)  # Blue
-    end_rgb = (1, 0, 0)    # Red
+    #Set the start and end colors by random RGB values
+    start_rgb, end_rgb = select_colors()
 
     #Iterate through the list of all variables to plot each variable combination from each file
     for v in range(len(var_list)-1):
@@ -85,8 +97,33 @@ def plot(file_array, decay, masses: 'Masses'):
 
                 #Plot the variables by file
                 plt.scatter(var1[i], var2[i], s=15, c=color, alpha=opac)
-                opac+=op #adjust the opacity
                 
+                #Adjust the opacity
+                opac+=op 
+
+            #Reset opacity for star points
+            opac = op
+            opac += 0.19
+            
+            for q in range(len(thetahS_list)):
+
+                #Initialize both variables to be retrieved from the Point
+                variable1 = point_vars[v]
+                variable2 = point_vars[j]
+
+                #Get and store the max points for each variable
+                point1 = maxpoint_list[q].get_attribute(variable1)
+                point2 = maxpoint_list[q].get_attribute(variable2)
+
+                #Plot the max point from the scatterplot [star]
+                if(maxpoint_list[q] != maximum): #Make sure the point is not the maximum point
+                    plt.scatter(point1, point2, s=25, c="yellow", alpha=opac, marker="*") #plot normally
+                else: #If point is maximum point plot as a bigger star
+                    plt.scatter(point1, point2, s=60, c="gold", alpha=0.999, marker="*")
+
+                #Adjust the opacity
+                opac+=op
+
             #Initialize scatterplot labels
             plt.title(f"{var_names[v]} vs {var_names[j]}")
             plt.xlabel(f"{var_names[v]}")
@@ -98,16 +135,45 @@ def plot(file_array, decay, masses: 'Masses'):
             #Close the figure
             plt.close()
 
+#Function that returns the maximum point from all maximum point objects
+def get_max_point(points):
+
+    #Initialize the maximum point as the first point
+    maxpoint = points[0]
+
+    #Iterate to decipher the maximum point from the list
+    for i in range(len(points)-1):
+        if maxpoint < points[i+1]:
+            maxpoint = points[i+1]
+
+    #Return maximum point
+    return maxpoint
+
+#Function that defines colors to plot using random RGB values
+def select_colors():
+
+    #Set random RGB values
+    r = random.random()
+    g = random.random()
+    b = random.random()
+
+    #Define two different colors with the given RGB values
+    color1 = (r, g, b)
+    color2 = (g, b, r)
+
+    #Return the values to call
+    return color1, color2
+
 #Function that iterates through a directory to find all tsv files pertaining to the input
 def iterate_directory(decay, masses: 'Masses'):
 
-    # Empty array that will hold the files found
+    #Empty array that will hold the files found
     file_array = []
 
     # Directory for the scan outputs
     directory = "./output/TRSMBroken/scan/" + decay + "/" + str(masses) + "/files/"
 
-    # Iterate through the directory
+    #Iterate through the directory
     for file in os.listdir(directory):
 
         file_name = file
@@ -121,7 +187,7 @@ def iterate_directory(decay, masses: 'Masses'):
     return file_array
 
 
-#Create a function that will determine if the directory is already made, else it will create it
+# Create a function that will determine if the directory is already made, else it will create it
 def mkdir_p(mypath):
     '''Creates a directory. equivalent to using mkdir -p on the command line'''
 
