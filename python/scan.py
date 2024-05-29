@@ -397,7 +397,6 @@ class Scanner:
         details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("It took " + f"{itertime:1.1f}" + " seconds\n")
         details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
