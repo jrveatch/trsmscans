@@ -1,3 +1,4 @@
+
 # import various modules to help with logistics
 import os
 import shutil
@@ -121,12 +122,12 @@ def runPrescan(masses: 'Masses',
         # run ScannerS for the next set of points
         if use_multiprocessing:
             result = runScannerS.runParallelProcesses(ininame=ininame,
-                                                        modelname=modelname,
-                                                        npoints=points_to_run)
+                                                      modelname=modelname,
+                                                      npoints=points_to_run)
         else:
             result = runScannerS.runSingleProcess(ininame=ininame,
-                                                    modelname=modelname,
-                                                    npoints=points_to_run)
+                                                  modelname=modelname,
+                                                  npoints=points_to_run)
 
         # if a process returns a negative result, delete directory and return result
         if result < 0:
