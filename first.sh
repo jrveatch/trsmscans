@@ -6,9 +6,6 @@ if [ $ret -ne 0 ]; then
     return 1
 fi
 
-# make output directory structure
-source scripts/outputdirs.sh
-
 # set up submodules
 echo "Setting up submodules"
 source scripts/setup_submodules.sh
