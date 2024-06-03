@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # start python virtual environment
-source scripts/venv.sh
+source scripts/start_venv.sh
 
 # update submodules
 source scripts/update_submodules.sh
