@@ -13,9 +13,7 @@ source scripts/setup_submodules.sh
 # set up python virtual environment if it doesn't exist
 if [ ! -d trsm_venv ]; then
     echo "Setting up python virtual environment"
-    python3 -m venv trsm_venv
-    source trsm_venv/bin/activate
-    pip install -r python/requirements.txt
+    source scripts/setup_venv.sh
 fi
 
 # source setup.sh to make sure all vars are set
