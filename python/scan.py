@@ -85,12 +85,19 @@ class Scan:
                    npoints,
                    use_multiprocessing=False):
 
+        # default number of prescan points set to 10000
+        nprescan = 10000
+
+        # if fewer points are requested than nprescan, only use that many
+        if npoints < nprescan:
+            nprescan = npoints
+
         # location of prescan outputs
         prescantsv = os.environ['OUTPUTDIR']+self.modelname+"/prescan/"+str(self.masses)+"/"+self.modelname+"_prescan.tsv"
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
-                                    npoints=npoints,
+                                    npoints=nprescan,
                                     maxwidth=self.maxwidth,
                                     modelname=self.modelname,
                                     use_multiprocessing=use_multiprocessing)
