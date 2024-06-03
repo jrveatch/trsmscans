@@ -5,8 +5,11 @@ python3_default_version=$(python3 --version 2>&1 | cut -d' ' -f2)
 
 # prompt user for input
 echo "Your default python3 executable is $python3_default_exe (version $python3_default_version)."
-echo "Enter the python3 executable you want to use (leave blank for default):"
-read python3_exe
+if [ -n "$ZSH_VERSION" ]; then
+    echo "Enter the python3 executable you want to use (leave blank for default):"
+    read python3_exe
+else
+    read -p "Enter the python3 executable you want to use (leave blank for default): " python3_exe
 
 # check if the user entered something
 if [ -z "$python3_exe" ]; then
