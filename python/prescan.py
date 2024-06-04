@@ -8,12 +8,12 @@ import time
 import datetime
 import argparse
 
-# import tools
-from params import Params
+# import package tools
 import filters
 import runScannerS
-from masses import Masses
 import tsvutils
+from params import Params
+from masses import Masses
 
 def runPrescan(masses: 'Masses',
                modelname,
