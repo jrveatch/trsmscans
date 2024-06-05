@@ -3,11 +3,11 @@
 import argparse
 import numpy as np
 
-from . import width
-from . import bounds
-from . import tsvutils
-from .arrays import Arrays
-from .masses import Masses
+import width
+import bounds
+import tsvutils
+from arrays import Arrays
+from masses import Masses
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"

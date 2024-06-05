@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import random as random
 import os as os
 import os.path
-from . import parse
+import parse
 import argparse
-from .masses import Masses
+from masses import Masses
 
 # Main Function
 def main(decay, masses: 'Masses'):
