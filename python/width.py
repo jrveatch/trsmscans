@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
 
 import numpy as np
+import argparse
 
-from arrays import Arrays
-import tsvutils
+from .arrays import Arrays
+from . import tsvutils
 
 def filterwidths(filename, maxwidth):
 
@@ -42,3 +44,14 @@ def filterwidths(filename, maxwidth):
     # number of entries that pass
     npass = filt_width.sum()
     return npass
+
+# filter a .tsv file if called as a standalone script
+if __name__ == "__main__":
+
+    # parse command line arguments
+    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("-f", "--filename", required=True, help="Name of tsvfile to run over")
+    argparser.add_argument("-w", "--maxwidth", required=True, type=float, help="Maximum allowed width for any scalar")
+    args = argparser.parse_args()
+
+    filterwidths(filename=args.filename,maxwidth=args.maxwidth)

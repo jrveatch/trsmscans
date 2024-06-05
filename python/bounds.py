@@ -1,12 +1,11 @@
-
-from twors_higgstools_setup import *
-
-from arrays import Arrays
-import tsvutils
+#!/usr/bin/env python3
 
 import argparse
 
-from masses import Masses
+from .twors_higgstools_setup import *
+from .arrays import Arrays
+from .masses import Masses
+from . import tsvutils
 
 # TODO: Make this work for other models
 def filterbounds(filename,

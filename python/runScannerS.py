@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import subprocess
 import multiprocessing as mp
@@ -6,8 +7,9 @@ import shutil
 import time
 import math
 from blessings import Terminal
-import tsvutils
 import argparse
+
+from . import tsvutils
 
 # method to run ScannerS
 def runScannerS(ininame,npoints,modelname,njobs=-1):

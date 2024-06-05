@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 # import various modules to help with logistics
 import os
@@ -7,12 +8,12 @@ import time
 import datetime
 import argparse
 
-# import tools
-from params import Params
-import filters
-import runScannerS
-from masses import Masses
-import tsvutils
+# import package tools
+from . import filters
+from . import runScannerS
+from . import tsvutils
+from .params import Params
+from .masses import Masses
 
 def runPrescan(masses: 'Masses',
                modelname,
