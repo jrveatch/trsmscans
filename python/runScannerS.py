@@ -47,8 +47,6 @@ def runSingleProcess(ininame,npoints,modelname):
     if result < 0:
         print("Single process timed out. Exiting.")
         return result
-    
-    print(npoints)
 
     # simple information message
     print("Finished running process")
