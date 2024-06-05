@@ -9,11 +9,11 @@ import datetime
 import argparse
 
 # import package tools
-import filters
-import runScannerS
-import tsvutils
-from params import Params
-from masses import Masses
+from . import filters
+from . import runScannerS
+from . import tsvutils
+from .params import Params
+from .masses import Masses
 
 def runPrescan(masses: 'Masses',
                modelname,

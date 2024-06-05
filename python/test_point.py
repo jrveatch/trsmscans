@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from twors_higgstools_setup import *
+from .twors_higgstools_setup import *
 
-from test_point_utils import *
+from .test_point_utils import *
 
 # SETUP STARTS HERE
 

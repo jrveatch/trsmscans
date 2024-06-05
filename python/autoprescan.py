@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import prescan
 import argparse
+
+from . import prescan
 
 def runAllPrescans(npoints,
                    maxwidth,
