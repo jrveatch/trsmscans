@@ -91,7 +91,11 @@ class Parse:
                      parvals=self.maxDict)
 
     # get the maximum xb
-    def getXB(self,decay):
+    def getXB(self,decay=""):
+
+        # if no decay mode is provided, use stored decay mode
+        if not decay:
+            decay = self.decay
 
         # get production cross section
         xb_prod = self.getXBProd()
@@ -116,7 +120,11 @@ class Parse:
         return xb_prod
 
     # get maximum xb for the decay
-    def getXBDecay(self,decay):
+    def getXBDecay(self,decay=""):
+
+        # if no decay mode is provided, use stored decay mode
+        if not decay:
+            decay = self.decay
 
         # get appropriate BR for decay mode
         match decay:
@@ -268,7 +276,7 @@ class Parse:
         self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
 
         # cross-section times branching ratio
-        self.xb = self.getXB(self.decay)
+        self.xb = self.getXB()
 
     # function that checks whether xb is unimodal in a parameter
     def isBimodal(self,param_name):
