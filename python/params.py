@@ -1,7 +1,7 @@
 
-from .masses import Masses
-from .model import Model
-from .parse import Point
+from masses import Masses
+from model import Model
+from parse import Point
 
 # class to hold and update full set of parameters used in a scan
 class Params:
