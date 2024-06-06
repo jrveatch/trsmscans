@@ -11,12 +11,12 @@ import argparse
 from decimal import Decimal
 
 # import tools
-from .parse import Parse, Point
-from .params import Params
-from .masses import Masses
-from . import filters
-from . import runScannerS
-from . import prescan
+from parse import Parse, Point
+from params import Params
+import filters
+import runScannerS
+from masses import Masses
+import prescan
 
 # class to organize and run a complete scan
 class Scan:

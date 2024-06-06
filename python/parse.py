@@ -2,23 +2,23 @@
 # import numpy library as np
 import numpy as np
 
+# import list of arrays
+import arrays
+
 # import dip test for unimodality
 import diptest
 
 # import math for useful functions
 import math
 
-# import decimal class for nicely formatted strings
-from decimal import Decimal
-
-# import list of arrays
-from . import arrays
-
 # import masses class to handle mass orderings
-from .masses import Masses
+from masses import Masses
 
 # import model class to initialize Point class
-from .model import Model
+from model import Model
+
+# import decimal class for nicely formatted strings
+from decimal import Decimal
 
 # class to parse arrays and provide details about data
 class Parse:

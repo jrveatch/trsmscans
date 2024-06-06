@@ -7,9 +7,8 @@ import shutil
 import time
 import math
 from blessings import Terminal
+import tsvutils
 import argparse
-
-from . import tsvutils
 
 # method to run ScannerS
 def runScannerS(ininame,npoints,modelname,njobs=-1):
@@ -48,8 +47,6 @@ def runSingleProcess(ininame,npoints,modelname):
     if result < 0:
         print("Single process timed out. Exiting.")
         return result
-    
-    print(npoints)
 
     # simple information message
     print("Finished running process")
