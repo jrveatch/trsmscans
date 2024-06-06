@@ -27,7 +27,7 @@ class Model():
 
     # get list of parameter name
     def parameterList(self):
-        return self.params.keys()
+        return list(self.params.keys())
 
     # get parameter min
     def min(self,parname):

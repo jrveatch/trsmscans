@@ -6,80 +6,92 @@ import os.path
 import parse
 import argparse
 from masses import Masses
+from model import Model
+from params import Params
 
 # Main Function
-def main(decay, masses: 'Masses'):
+def main(decay, masses: 'Masses', modelname):
 
     # Iterate through all files in the given directory
-    all_files = iterate_directory(decay, masses)
+    all_files = iterate_directory(decay, masses, modelname)
 
     # CHECK IF PRESCAN EXISTS -- If it does, make it the first file to plot
-    prescan = "output/TRSMBroken/prescan/"+str(masses)+"/TRSMBroken_prescan.tsv"
+    prescan = "output/"+modelname+"/prescan/"+str(masses)+"/"+modelname+"_prescan.tsv"
     if ((os.path.exists(prescan))):
         all_files.insert(0, prescan)
 
     # Using Iterate Directory - Plot all files and variables
-    plot(all_files, decay, masses)
+    plot(all_files, decay, masses, modelname)
 
 #Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
-def plot(file_array, decay, masses: 'Masses'):
+def plot(file_array, decay, masses: 'Masses', modelname):
     
     # Create Directory
-    output_dir = "output/TRSMBroken/plots/" + decay + "/" + str(masses) + "/" 
+    output_dir = "output/" + modelname + "/plots/" + decay + "/" + str(masses) + "/" 
     mkdir_p(output_dir) #pass directory to the make directory function
 
-    #Initialize variable 2D-lists to store each variable list from all files
-    thetahS_list = []
-    thetahX_list = []
-    thetaSX_list = []
-    vs_list = []
-    vx_list = []
-    xb_list = []
+    #Create a model object
+    model = Model(modelname)
 
     #Initialize list that will hold all the maximum points for each file iteration
     maxpoint_list = []
 
-    #Iterate through each file
+    # Initialize a dictionary to store variable lists
+    var_list = {}
+
+    # Iterate through each file
     for file in file_array:
 
-        #Retrieve the variables from the list
+        # Retrieve the variables from the list
         parser = parse.Parse(filename=file, masses=masses, decay=decay, modelname="TRSMBroken") 
-        thetahS, thetahX, thetaSX, vs, vx = parser.getVars()
+        allParams = parser.getParameters()
         xb = parser.getXB(decay)
 
-        #Retrive maximum point based on the file's variables
-        maxpoint = parser.getmaxpoint()
-        
-        #Append each variable list from the file to its 2D-Variable array
-        thetahS_list.append(thetahS)
-        thetahX_list.append(thetahX)
-        thetaSX_list.append(thetaSX)
-        vs_list.append(vs)
-        vx_list.append(vx)
-        xb_list.append(xb)
+        # Retrieve maximum point based on the file's variables
+        maxpoint = parser.getMaxPoint()
 
-        #Append the maximum point in to its respective list
+        #Retrieve the variable names for the model
+        var_names = model.parameterList()
+
+        #Iterate through the information of each paramater
+        for name, par in allParams.items():
+        # Ensure the variable list exists for the parameter name
+            
+            #Check the paramater name
+            if name not in var_list:
+                var_list[name] = []
+
+            #Append the variable value to the corresponding list
+            var_list[name].append(par)
+            
+        #Check if xb exists in the variable list
+        if 'xb' not in var_list:
+            var_list['xb'] = []
+
+        #Append xb to the corresponding list
+        var_list['xb'].append(xb)
+
+        # Append the maximum point to the list
         maxpoint_list.append(maxpoint)
 
-    #Find the Maximum point from the maximum points
+    #Check if xb exists in the variable name list, if not append
+    if 'xb' not in var_names:
+        var_names.append('xb')
+    
+    # Find the Maximum point from the maximum points
     maximum = get_max_point(maxpoint_list)
-
-    #Create a list containing all of the variable lists
-    var_list = [thetahS_list, thetahX_list, thetaSX_list, vs_list, vx_list, xb_list]
-    var_names = ["thetahS", "thetahX", "thetaSX", "vs", "vx", "xb"] #List with all the variable names
-    point_vars = ["tHS", "tHX", "tSX", "vs", "vx", "xb"] #List with all the variable names based on the Point class
 
     #Set the start and end colors by random RGB values
     start_rgb, end_rgb = select_colors()
 
     #Iterate through the list of all variables to plot each variable combination from each file
-    for v in range(len(var_list)-1):
+    for v in range(len(var_names)-1):
 
-        var1 = var_list[v] #Get the first variable 2D-list from the all variable list
+        var1 = var_list[var_names[v]] #Get the first variable 2D-list from the all variable list
         
-        for j in range(v+1, len(var_list)):
+        for j in range(v+1, len(var_names)):
 
-            var2 = var_list[j] #Get the second variable 2D-List from the all variable list
+            var2 = var_list[var_names[j]] #Get the second variable 2D-List from the all variable list
 
             #Set the opacity to be between values 0.19 and 1 depending on amount of files
             op = (0.8 / len(file_array))
@@ -89,7 +101,7 @@ def plot(file_array, decay, masses: 'Masses'):
             plt.figure()
     
             #Iterate through both variable 2D-Lists to plot the info from each file
-            for i in range(len(thetahS_list)):
+            for i in range(len(var_list[name])):
 
                 #Decipher the color used for the scatterplot
                 t = i / len(file_array)
@@ -105,15 +117,15 @@ def plot(file_array, decay, masses: 'Masses'):
             opac = op
             opac += 0.19
             
-            for q in range(len(thetahS_list)):
+            for q in range(len(var_list[name])):
 
                 #Initialize both variables to be retrieved from the Point
-                variable1 = point_vars[v]
-                variable2 = point_vars[j]
+                variable1 = var_names[v]
+                variable2 = var_names[j]
 
                 #Get and store the max points for each variable
-                point1 = maxpoint_list[q].get_attribute(variable1)
-                point2 = maxpoint_list[q].get_attribute(variable2)
+                point1 = maxpoint_list[q].getVal(variable1)
+                point2 = maxpoint_list[q].getVal(variable2)
 
                 #Plot the max point from the scatterplot [star]
                 if(maxpoint_list[q] != maximum): #Make sure the point is not the maximum point
@@ -165,13 +177,13 @@ def select_colors():
     return color1, color2
 
 #Function that iterates through a directory to find all tsv files pertaining to the input
-def iterate_directory(decay, masses: 'Masses'):
+def iterate_directory(decay, masses: 'Masses', modelname):
 
     #Empty array that will hold the files found
     file_array = []
 
     # Directory for the scan outputs
-    directory = "./output/TRSMBroken/scan/" + decay + "/" + str(masses) + "/files/"
+    directory = "./output/"+modelname+"/scan/" + decay + "/" + str(masses) + "/files/"
 
     #Iterate through the directory
     for file in os.listdir(directory):
@@ -185,7 +197,6 @@ def iterate_directory(decay, masses: 'Masses'):
     #Sort the array so files are in order
     file_array.sort()
     return file_array
-
 
 # Create a function that will determine if the directory is already made, else it will create it
 def mkdir_p(mypath):
@@ -208,13 +219,15 @@ if __name__ == '__main__':
     argparser.add_argument("-X", "--XMass", required=True, type=float)
     argparser.add_argument("-S", "--SMass", required=True, type=float)
     argparser.add_argument("-H", "--HMass", default=125.09, type=float)
+    argparser.add_argument("-M", "--model", default="TRSMBroken", type=str)
     args = vars(argparser.parse_args())
 
     decay = args["Decay"]
     xmass = args["XMass"]
     smass = args["SMass"]
     hmass = args["HMass"]
+    modelname = args["model"]
 
     masses = Masses(mX=xmass,mS=smass,mH=hmass)
 
-    main(decay, masses)
+    main(decay, masses, modelname)

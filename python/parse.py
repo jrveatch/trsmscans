@@ -229,11 +229,6 @@ class Parse:
     # get maximum value of a parameter
     def getMax(self,varname):
         return np.max(self.parArrays[varname])
-
-    # get arrays of all parameters
-    # TODO: Remove this method when it is no longer used in plot.py
-    def getVars(self):
-        return self.parArrays['tHS'], self.parArrays['tHX'], self.parArrays['tSX'], self.parArrays['vs'], self.parArrays['vx']
     
     # get arrays of all parameter as a dictionary
     def getParameters(self):
