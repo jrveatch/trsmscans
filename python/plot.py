@@ -51,7 +51,7 @@ def plot(file_array, decay, masses: 'Masses', modelname):
         maxpoint = parser.getMaxPoint()
 
         #Retrieve the variable names for the model
-        var_names = list(model.parameterList())
+        var_names = model.parameterList()
 
         #Iterate through the information of each paramater
         for name, par in allParams.items():
@@ -91,7 +91,6 @@ def plot(file_array, decay, masses: 'Masses', modelname):
         
         for j in range(v+1, len(var_names)):
 
-            #if(point_vars[j] != 'xb'):
             var2 = var_list[var_names[j]] #Get the second variable 2D-List from the all variable list
 
             #Set the opacity to be between values 0.19 and 1 depending on amount of files
