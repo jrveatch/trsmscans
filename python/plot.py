@@ -1,13 +1,12 @@
-import numpy as np
+#!/usr/bin/env python3
+
 import matplotlib.pyplot as plt
-import random as random
-import os as os
-import os.path
+import random
+import os
 import parse
 import argparse
 from masses import Masses
 from model import Model
-from params import Params
 
 # Main Function
 def main(decay, masses: 'Masses', modelname):
@@ -220,14 +219,8 @@ if __name__ == '__main__':
     argparser.add_argument("-S", "--SMass", required=True, type=float)
     argparser.add_argument("-H", "--HMass", default=125.09, type=float)
     argparser.add_argument("-M", "--model", default="TRSMBroken", type=str)
-    args = vars(argparser.parse_args())
+    args = argparser.parse_args()
 
-    decay = args["Decay"]
-    xmass = args["XMass"]
-    smass = args["SMass"]
-    hmass = args["HMass"]
-    modelname = args["model"]
+    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    masses = Masses(mX=xmass,mS=smass,mH=hmass)
-
-    main(decay, masses, modelname)
+    main(decay=args.Decay, masses=masses, modelname=args.model)
