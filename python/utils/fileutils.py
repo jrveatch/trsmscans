@@ -16,4 +16,4 @@ def prescanDir(modelname,
 # get prescan .tsv file
 def prescanTSV(modelname,
                masses: 'Masses'):
-    return prescanDir(modelname=modelname,masses=masses)+"/"+modelname+"_prescan.tsv"
+    return prescanDir(modelname=modelname,masses=masses)+modelname+"_prescan.tsv"
