@@ -17,6 +17,7 @@ import filters
 import runScannerS
 from masses import Masses
 import prescan
+import utils
 
 # class to organize and run a complete scan
 class Scan:
@@ -52,7 +53,7 @@ class Scan:
         self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
-        self.outdir = os.environ['OUTPUTDIR']+modelname+"/scan/"+decay+"/"+str(masses)+"/"
+        self.outdir = utils.scanDir(modelname=modelname,decay=decay,masses=masses)
 
         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir):
@@ -94,7 +95,7 @@ class Scan:
             nprescan = npoints
 
         # location of prescan outputs
-        prescantsv = os.environ['OUTPUTDIR']+self.modelname+"/prescan/"+str(self.masses)+"/"+self.modelname+"_prescan.tsv"
+        prescantsv = utils.prescanTSV(modelname=self.modelname,masses=self.masses)
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
