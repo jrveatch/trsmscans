@@ -11,8 +11,8 @@ import argparse
 # import package tools
 import filters
 import runScannerS
-import tsvutils
-import utils
+from utils import tsvutils
+from utils import fileutils
 from params import Params
 from masses import Masses
 
@@ -28,7 +28,7 @@ def runPrescan(masses: 'Masses',
     scanstart = time.time()
 
     # directory where we want the output to go
-    outdir = utils.prescanDir(modelname=modelname,masses=masses)
+    outdir = fileutils.prescanDir(modelname=modelname,masses=masses)
 
     # names of .ini and .tsv files
     ininame = outdir + modelname + ".ini"
