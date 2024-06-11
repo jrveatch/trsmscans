@@ -17,3 +17,9 @@ def prescanDir(modelname,
 def prescanTSV(modelname,
                masses: 'Masses'):
     return prescanDir(modelname=modelname,masses=masses)+modelname+"_prescan.tsv"
+
+# get plots directory
+def plotsDir(modelname,
+             decay,
+             masses: 'Masses'):
+    return os.environ['OUTPUTDIR']+modelname+"/plots/"+decay+"/"+str(masses)+"/"
