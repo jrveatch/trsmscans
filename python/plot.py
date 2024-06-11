@@ -16,7 +16,7 @@ class Plot:
                  decay,
                  masses: 'Masses',
                  modelname):
-        
+
         # Save arguments as class members
         self.decay = decay
         self.masses = masses
@@ -54,7 +54,8 @@ class Plot:
 
         # Store number of files for easy access
         self.nfiles = len(self.all_files)
-    
+
+    # Function to load data from files
     def loadData(self):
 
         # Retrieve the variable names for the model
@@ -84,17 +85,17 @@ class Plot:
             # Retrieve maximum point based on the file's variables
             maxpoint = parser.getMaxPoint()
 
-            #Iterate through the information of each paramater
+            # Iterate through the information of each paramater
             for name, par in allParams.items():
             # Ensure the variable list exists for the parameter name
-                
-                #Check the paramater name
+
+                #Check the parameter name
                 if name not in self.var_list:
                     self.var_list[name] = []
 
                 # Append the variable value to the corresponding list
                 self.var_list[name].append(par)
-                
+
             # Check if xb exists in the variable list
             if 'xb' not in self.var_list:
                 self.var_list['xb'] = []
@@ -104,29 +105,32 @@ class Plot:
 
             # Append the maximum point to the list
             self.maxpoint_list.append(maxpoint)
+
         return
 
     # Plot multiple function with the help of AI -- find a way to make the process more efficient and faster !!
     def makeScanPlots(self):
-        
-        #Create plot output directory
+
+        # Create plot output directory
         output_dir = fileutils.plotsDir(modelname=self.model.name,decay=self.decay,masses=self.masses)
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # Find the Maximum point from the maximum points
         maximum = max(self.maxpoint_list)
 
         # Set the start and end colors by random RGB values
-        start_rgb, end_rgb = select_colors()
+        start_rgb, end_rgb = self.select_colors()
 
         # Iterate through the list of all variables to plot each variable combination from each file
         for v in range(self.nvars-1):
 
-            var1 = self.var_list[self.var_names[v]] #Get the first variable 2D-list from the all variable list
+            # Get the first variable 2D-list from the all variable list
+            var1 = self.var_list[self.var_names[v]]
             
             for j in range(v+1, self.nvars):
 
-                var2 = self.var_list[self.var_names[j]] #Get the second variable 2D-List from the all variable list
+                # Get the second variable 2D-List from the all variable list
+                var2 = self.var_list[self.var_names[j]]
 
                 # Set the opacity to be between values 0.19 and 1 depending on the number of files
                 op = (0.8 / self.nfiles)
@@ -134,24 +138,24 @@ class Plot:
 
                 # Create a new scatter figure
                 plt.figure()
-        
+
                 # Iterate through both variable 2D-Lists to plot the info from each file
                 for i in range(len(self.var_list['xb'])):
 
-                    # Decipher the color used for the scatterplot
+                    # Decipher the color used for the scatter plot
                     t = i / self.nfiles
                     color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
                     # Plot the variables by file
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opac)
-                    
+
                     # Adjust the opacity
                     opac+=op 
 
                 # Reset opacity for star points
                 opac = op
                 opac += 0.19
-                
+
                 for q in range(len(self.var_list['xb'])):
 
                     # Initialize both variables to be retrieved from the Point
@@ -182,19 +186,19 @@ class Plot:
                 # Close the figure
                 plt.close()
 
-    #Function that defines colors to plot using random RGB values
-    def select_colors():
+    # Function that defines colors to plot using random RGB values
+    def select_colors(self):
 
-        #Set random RGB values
+        # Set random RGB values
         r = random.random()
         g = random.random()
         b = random.random()
 
-        #Define two different colors with the given RGB values
+        # Define two different colors with the given RGB values
         color1 = (r, g, b)
         color2 = (g, b, r)
 
-        #Return the values to call
+        # Return the values to call
         return color1, color2
 
 if __name__ == '__main__':
