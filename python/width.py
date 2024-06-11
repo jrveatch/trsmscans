@@ -4,7 +4,7 @@ import numpy as np
 import argparse
 
 from arrays import Arrays
-import tsvutils
+from utils import tsvutils
 
 def filterwidths(filename, maxwidth):
 

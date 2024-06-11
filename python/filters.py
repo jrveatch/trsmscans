@@ -5,7 +5,7 @@ import numpy as np
 
 import width
 import bounds
-import tsvutils
+from utils import tsvutils
 from arrays import Arrays
 from masses import Masses
 
