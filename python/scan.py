@@ -18,6 +18,8 @@ import runScannerS
 from masses import Masses
 import prescan
 
+import copy
+
 # class to organize and run a complete scan
 class Scan:
 
@@ -210,9 +212,46 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
+        #Make copies of the params object
+        params_1 = copy.deepcopy(self.params)
+        params_2 = copy.deepcopy(self.params)
+
+        print("Now printing params 1 ...")
+        for par in params_1.parnames:
+
+            p_min = params_1.low(par)
+            p_max = params_1.high(par)
+            p_mid = params_1.getMidPoint(p_min, p_max)
+            #p_mid = (p_min + p_max) / 2
+
+            print(f'min: {p_min}')
+            print(f'max: {p_max}')
+            print(f'mid: {p_mid}')
+
+            params_1.setMin(par, p_min)
+            params_1.setMax(par, p_mid)
+
+            params_1.printMinMax(par)
+
+        print("Now printing params 2 ...")
+        for par in params_2.parnames:
+
+            p_min = params_2.low(par)
+            p_max = params_2.high(par)
+            p_mid = (p_min + p_max) / 2
+
+            print(f'min: {p_min}')
+            print(f'max: {p_max}')
+            print(f'mid: {p_mid}')
+
+            params_2.setMin(par, p_mid)
+            params_2.setMax(par, p_max)
+
+            params_2.printMinMax(par)
+
         # TODO: Need to find a optPoint for each scanner range
         myscanner = Scanner(npoints=npoints,
-                            params=self.params,
+                            params=params_1,
                             decay=self.decay,
                             maxwidth=self.maxwidth,
                             optPoint=self.optPoint,
@@ -220,13 +259,26 @@ class Scan:
                             summaryname=self.summaryname,
                             zoom=zoom,
                             outdir=self.outdir,
-                            label="test")
+                            label="test-1")
+
+        secondScanner = Scanner(npoints=npoints,
+                            params=params_2,
+                            decay=self.decay,
+                            maxwidth=self.maxwidth,
+                            optPoint=self.optPoint,
+                            detailsname=self.detailsname,
+                            summaryname=self.summaryname,
+                            zoom=zoom,
+                            outdir=self.outdir,
+                            label="test-2")
 
         # run multiple scan iterations
         for iter in range(niter):
 
             # run scanner
             myscanner.run(iter,use_multiprocessing)
+
+            secondScanner.run(iter,use_multiprocessing)
 
             ##### TODO: Add early stopping conditions
 
