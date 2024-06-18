@@ -213,45 +213,10 @@ class Scan:
         os.chdir(self.outdir)
 
         #Make copies of the params object
-        params_1 = copy.deepcopy(self.params)
-        params_2 = copy.deepcopy(self.params)
+        s1_params = copy.deepcopy(self.params)
 
-        print("Now printing params 1 ...")
-        for par in params_1.parnames:
-
-            p_min = params_1.low(par)
-            p_max = params_1.high(par)
-            p_mid = params_1.getMidPoint(p_min, p_max)
-            #p_mid = (p_min + p_max) / 2
-
-            print(f'min: {p_min}')
-            print(f'max: {p_max}')
-            print(f'mid: {p_mid}')
-
-            params_1.setMin(par, p_min)
-            params_1.setMax(par, p_mid)
-
-            params_1.printMinMax(par)
-
-        print("Now printing params 2 ...")
-        for par in params_2.parnames:
-
-            p_min = params_2.low(par)
-            p_max = params_2.high(par)
-            p_mid = (p_min + p_max) / 2
-
-            print(f'min: {p_min}')
-            print(f'max: {p_max}')
-            print(f'mid: {p_mid}')
-
-            params_2.setMin(par, p_mid)
-            params_2.setMax(par, p_max)
-
-            params_2.printMinMax(par)
-
-        # TODO: Need to find a optPoint for each scanner range
-        myscanner = Scanner(npoints=npoints,
-                            params=params_1,
+        scanner1 = Scanner(npoints=npoints,
+                            params=s1_params,
                             decay=self.decay,
                             maxwidth=self.maxwidth,
                             optPoint=self.optPoint,
@@ -259,30 +224,94 @@ class Scan:
                             summaryname=self.summaryname,
                             zoom=zoom,
                             outdir=self.outdir,
-                            label="test-1")
+                            label="s-1")
+        
+        all_scanners = [scanner1]
 
-        secondScanner = Scanner(npoints=npoints,
-                            params=params_2,
-                            decay=self.decay,
-                            maxwidth=self.maxwidth,
-                            optPoint=self.optPoint,
-                            detailsname=self.detailsname,
-                            summaryname=self.summaryname,
-                            zoom=zoom,
-                            outdir=self.outdir,
-                            label="test-2")
+        #param_dict = {scanner1.params.parnames: scanner1}
 
+        for par in scanner1.params.parnames:
+
+            if scanner1.scanparser.isBimodal(par):
+
+                params_1 = copy.deepcopy(self.params)
+                params_2 = copy.deepcopy(self.params)
+
+                print("Now printing params 1 ...")
+                for par in params_1.parnames:
+
+                    p_min = params_1.low(par)
+                    p_max = params_1.high(par)
+                    p_mid = params_1.getMidPoint(p_min, p_max)
+
+                    params_1.setMin(par, p_min)
+                    params_1.setMax(par, p_mid)
+
+                    params_1.printMinMax(par)
+
+                print("Now printing params 2 ...")
+                for par in params_2.parnames:
+
+                    p_min = params_2.low(par)
+                    p_max = params_2.high(par)
+                    p_mid = (p_min + p_max) / 2
+
+                    params_2.setMin(par, p_mid)
+                    params_2.setMax(par, p_max)
+
+                    params_2.printMinMax(par)
+
+            # TODO: Need to find an optPoint for each scanner range
+            firstscanner = Scanner(npoints=npoints,
+                                params=params_1,
+                                decay=self.decay,
+                                maxwidth=self.maxwidth,
+                                optPoint=self.optPoint,
+                                detailsname=self.detailsname,
+                                summaryname=self.summaryname,
+                                zoom=zoom,
+                                outdir=self.outdir,
+                                label="test-1")
+
+            secondScanner = Scanner(npoints=npoints,
+                                params=params_2,
+                                decay=self.decay,
+                                maxwidth=self.maxwidth,
+                                optPoint=self.optPoint,
+                                detailsname=self.detailsname,
+                                summaryname=self.summaryname,
+                                zoom=zoom,
+                                outdir=self.outdir,
+                                label="test-2")
+            
+            all_scanners.extend([firstscanner, secondScanner])
+
+        count = 0
+        all_optpoints = []
         # run multiple scan iterations
         for iter in range(niter):
 
             # run scanner
             myscanner.run(iter,use_multiprocessing)
 
+            #check_all(myscanner)
+
             secondScanner.run(iter,use_multiprocessing)
 
             ##### TODO: Add early stopping conditions
+            #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
+            '''
+            if iter > 0:
+                p1 = all_optpoints[iter - 1]
+                p2 = all_optpoints[iter]
 
+                thresh = p1 * 0.05
+
+                if abs(p2-p1) <= thresh:
+                    break
+            '''
             ##### TODO: Add functionality to concatenate all outputs into a single large output
+            
 
         # get total scan time
         scanend = time.time()
@@ -298,6 +327,25 @@ class Scan:
         details.close()
 
         return
+    
+'''def check_all(scan):
+    
+    for par, names in '''
+
+def updateParams(all_params):
+
+    #Needs to be used dynamically - this is fixed 
+    for par in all_params.parnames:
+
+            p_min = all_params.low(par)
+            p_max = all_params.high(par)
+            p_mid = all_params.getMidPoint(p_min, p_max)
+
+            all_params.setMin(par, p_min)
+            all_params.setMax(par, p_mid)
+
+            all_params.printMinMax(par)
+
 
 def isValidDecay(decaymode):
 
