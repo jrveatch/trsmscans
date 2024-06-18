@@ -6,7 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import stats
 
-file = "/Users/yukomaeda/TRSM/trsmscans/run/output/TRSMBroken/scan/SbbHtautau/X1000_S300/files/TRSMBroken_test_0000.tsv"
+file = "/Users/yukomaeda/TRSM/trsmscans/run/data/5000 pts/TRSMBroken_test_0000.tsv"
+
 masses = Masses(mX=1000, mS=300, mH=125.09)
 parse = Parse(masses=masses, decay="SbbHtautau", modelname="TRSMBroken", filename=file)
 
@@ -20,6 +21,9 @@ df = pd.DataFrame(np.hstack(list(reshaped_data.values())), columns=features.keys
 # Add the target column
 df['xb'] = target
 print(df.head())
+print()
+print(f"Found {len(df)} points!!!!!")
+print()
 
 # Pairplot
 sns.pairplot(df)
