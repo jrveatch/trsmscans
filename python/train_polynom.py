@@ -6,14 +6,24 @@ from sklearn.model_selection import train_test_split
 #import torch
 #from torch.utils.data import DataLoader, TensorDataset
 
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# load dataset
 
+# load dataset
 file = "/Users/yukomaeda/TRSM/trsmscans/run/data/10k/TRSMBroken_test_0000.tsv"
 
+# set values for random seed, train/test/validation split here
+random_seed = 42
+train_size = 0.7
+val_size = 0.2
+test_size = 1 - train_size - val_size
+
+#***********************************************************************************************
+
+# Using Masses and Parse object to filter out only the points that fit the criteria in the tsv
 masses = Masses(mX=1000, mS=300, mH=125.09)
 parse = Parse(masses=masses, decay="SbbHtautau", modelname="TRSMBroken", filename=file)
 
@@ -34,23 +44,25 @@ print(f"Found {len(df)} points!!!!!")
 if not len(df) == len(df_target):
     print("Value mismatch: features and target")
 
-# set values for random seed, train/test/validation split here
-random_seed = 42
-train_size = 0.7
-val_size = 0.2
-test_size = 1 - train_size - val_size
+# Normalize ... or maybe scale???
+scaler = MinMaxScaler()
+X = scaler.fit_transform(df)
+normalized_df = pd.DataFrame(X, columns=df.columns)
 
-# normalize!!!!
-
+# if standardizing... (ie, instead of normalizing)
+standard_scaler = StandardScaler()
+X = standard_scaler.fit_transform(df)
+standardized_df = pd.DataFrame(X, columns=df.columns)
 
 # Split into train 
-X_train, X_temp, y_train, y_temp = train_test_split(df, df_target, train_size=train_size, random_state=random_seed)
+X_train, X_temp, y_train, y_temp = train_test_split(normalized_df, df_target, train_size=train_size, random_state=random_seed)
+#X_train, X_temp, y_train, y_temp = train_test_split(standardized_df, df_target, train_size=train_size, random_state=random_seed)
+
 # Split rest into test and validation (did I do my math right?)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=(test_size/(val_size + test_size)), random_state=random_seed)
 
-
 # Generate polynomial features
-degree = 1  # Degree of the polynomial features
+degree = 2  # Degree of the polynomial features
 poly = PolynomialFeatures(degree)
 X_train_poly = poly.fit_transform(X_train)
 X_val_poly = poly.transform(X_val)
@@ -86,15 +98,15 @@ feature_names = poly.get_feature_names_out(df.columns)
 coefficients = model.coef_
 intercept = model.intercept_
 
-#expression = f"{intercept:.4f}"
-expression = "%.2f" % intercept
+#expression = "%.2f" % intercept
+#print("expression: ", expression)
 for coef, name in zip(coefficients, feature_names):
     print("coef: ",coef)
     print("name: ", name)
-    expression += " + " + coef +" * " + name
+    #expression += " + " + coef +" * " + name
 
-print("Polynomial expression:")
-print(expression)
+#print("Polynomial expression:")
+#print(expression)
 
 
 
