@@ -14,8 +14,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 
 # load dataset
-file = "/Users/yukomaeda/TRSM/trsmscans/run/data/10k/TRSMBroken_test_0000.tsv"
-
 ROOT = os.path.dirname(__file__)
 
 file = os.path.abspath(os.path.join("../run/data/10k/TRSMBroken_test_0000.tsv"))
