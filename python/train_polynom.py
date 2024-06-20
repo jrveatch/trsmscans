@@ -1,3 +1,4 @@
+import os
 from parse import Parse
 from masses import Masses
 import numpy as np
@@ -14,6 +15,10 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 # load dataset
 file = "/Users/yukomaeda/TRSM/trsmscans/run/data/10k/TRSMBroken_test_0000.tsv"
+
+ROOT = os.path.dirname(__file__)
+
+file = os.path.abspath(os.path.join("../run/data/10k/TRSMBroken_test_0000.tsv"))
 
 # set values for random seed, train/test/validation split here
 random_seed = 42
@@ -48,6 +53,8 @@ if not len(df) == len(df_target):
 scaler = MinMaxScaler()
 X = scaler.fit_transform(df)
 normalized_df = pd.DataFrame(X, columns=df.columns)
+
+print(normalized_df)
 
 # if standardizing... (ie, instead of normalizing)
 standard_scaler = StandardScaler()
@@ -107,6 +114,3 @@ for coef, name in zip(coefficients, feature_names):
 
 #print("Polynomial expression:")
 #print(expression)
-
-
-
