@@ -118,6 +118,9 @@ for coef, name in zip(coefficients, feature_names):
 variable_str = ["1", "a", "b", "c", "d", "s", "a^2", "ab", "ac", "ad", "as", "b^2", "bc", "bd", "bs", "c^2", "cd", "cs", "d^2", "ds", "s^2"]
 
 f_str = "y = "
+f_str_mult = "y = "
+
+mult_coef_df = coefficients * 10000000
 
 for i in range(len(coefficients[0])):
 	if i > 0:
@@ -127,9 +130,24 @@ for i in range(len(coefficients[0])):
 			f_str += " - "
 	f_str += f"{np.abs(coefficients[0][i]):.32f}{variable_str[i] if i > 0 else ''}"
 
-print("!!Danger: set to .32 bit precision base 10 float digits print format!!")
+for i in range(len(coefficients[0])):
+        if i > 0:
+                if coefficients[0][i] >= 0:
+                        f_str_mult += " + "
+                else:
+                        f_str_mult += " - "
+        f_str_mult += f"{np.abs(mult_coef_df[0][i]):.32f}{variable_str[i] if i > 0 else ''}"
+
+print(X_train.columns)
+
+print("!!Danger: set to 32 bit precision base 10 float digits print format!!")
+print("Function string")
 print(f_str)
 print(f_str.replace("y", "f(a,b,c,d,s)"))
+
+print("Function string, coeffs multiplied by 10,000,000")
+print(f_str_mult)
+print(f_str_mult.replace("y", "f(a,b,c,d,s)"))
 
 # Plot output and validation data
 
@@ -140,3 +158,4 @@ print(f_str.replace("y", "f(a,b,c,d,s)"))
 #print(concat_normalized_target.columns)
 #concat_normalized_target.plot.scatter(x='tHS', y='xb')
 #plt.savefig("matplotlib.png")
+
