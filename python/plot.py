@@ -281,7 +281,7 @@ class Plot:
 if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("-D", "--Decay", required=True, type=str)
+    argparser.add_argument("-d", "--decay", required=True, type=str)
     argparser.add_argument("-X", "--XMass", required=True, type=float)
     argparser.add_argument("-S", "--SMass", required=True, type=float)
     argparser.add_argument("-H", "--HMass", default=125.09, type=float)
@@ -290,6 +290,6 @@ if __name__ == '__main__':
 
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    plotter = Plot(decay=args.Decay, masses=masses, modelname=args.model)
+    plotter = Plot(decay=args.decay, masses=masses, modelname=args.model)
     plotter.makeScanPlots()
     plotter.makeMaxXBPlots()
