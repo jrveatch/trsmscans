@@ -7,7 +7,7 @@ import shutil
 import time
 import math
 from blessings import Terminal
-import tsvutils
+from utils import tsvutils
 import argparse
 
 # method to run ScannerS

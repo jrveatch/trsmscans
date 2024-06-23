@@ -3,7 +3,7 @@
 from twors_higgstools_setup import *
 
 from arrays import Arrays
-import tsvutils
+from utils import tsvutils
 
 import argparse
 
