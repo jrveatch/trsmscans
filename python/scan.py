@@ -203,21 +203,38 @@ class Scan:
                 zoom: 'Zoom',
                 use_multiprocessing=False):
 
-        # get scan start time
         scanstart = time.time()
 
         # run prescan
         self.runPrescan(npoints=npoints,
                         use_multiprocessing=use_multiprocessing)
-
+        
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        #Make copies of the params object
-        s1_params = copy.deepcopy(self.params)
+        all_scanners = []
 
-        scanner1 = Scanner(npoints=npoints,
-                            params=s1_params,
+        #Iterate through the prescan to determine if multiple scanners are needed
+        for par in self.params.parnames:
+          
+            if self.prescanparser.isBimodal(par):
+                print("Bimodal - Breaking into 2 scanners")
+                
+                params_1 = copy.deepcopy(self.params)
+                params_2 = copy.deepcopy(self.params)
+                            
+                p_min = params_1.low(par)
+                p_max = params_1.high(par)
+                p_mid = (p_min + p_max) / 2.0
+                
+                params_1.setMin(par, p_min)
+                params_1.setMax(par, p_mid)
+                
+                params_2.setMin(par, p_mid)
+                params_2.setMax(par, p_max)
+
+                firstScanner = Scanner(npoints=npoints,
+                            params=params_1,
                             decay=self.decay,
                             maxwidth=self.maxwidth,
                             optPoint=self.optPoint,
@@ -225,94 +242,82 @@ class Scan:
                             summaryname=self.summaryname,
                             zoom=zoom,
                             outdir=self.outdir,
-                            label="s-1")
+                            label=f'{par}-1')
+                
+                secondScanner = Scanner(npoints=npoints,
+                            params=params_2,
+                            decay=self.decay,
+                            maxwidth=self.maxwidth,
+                            optPoint=self.optPoint,
+                            detailsname=self.detailsname,
+                            summaryname=self.summaryname,
+                            zoom=zoom,
+                            outdir=self.outdir,
+                            label=f'{par}-2')
+                
+                all_scanners.extend([firstScanner, secondScanner])
+            else:
+                #Make copies of the params object
+                s1_params = copy.deepcopy(self.params)
+
+                scanner1 = Scanner(npoints=npoints,
+                                    params=s1_params,
+                                    decay=self.decay,
+                                    maxwidth=self.maxwidth,
+                                    optPoint=self.optPoint,
+                                    detailsname=self.detailsname,
+                                    summaryname=self.summaryname,
+                                    zoom=zoom,
+                                    outdir=self.outdir,
+                                    label=f'{par}')
+                all_scanners.append(scanner1)
         
-        all_scanners = [scanner1]
+        #curr_opt = all_scanners[0].scanparser.getMaxPoint()
 
-        #param_dict = {scanner1.params.parnames: scanner1}
-
-        for par in scanner1.params.parnames:
-
-            if scanner1.scanparser.isBimodal(par):
-
-                params_1 = copy.deepcopy(self.params)
-                params_2 = copy.deepcopy(self.params)
-
-                print("Now printing params 1 ...")
-                for par in params_1.parnames:
-
-                    p_min = params_1.low(par)
-                    p_max = params_1.high(par)
-                    p_mid = params_1.getMidPoint(p_min, p_max)
-
-                    params_1.setMin(par, p_min)
-                    params_1.setMax(par, p_mid)
-
-                    params_1.printMinMax(par)
-
-                print("Now printing params 2 ...")
-                for par in params_2.parnames:
-
-                    p_min = params_2.low(par)
-                    p_max = params_2.high(par)
-                    p_mid = (p_min + p_max) / 2
-
-                    params_2.setMin(par, p_mid)
-                    params_2.setMax(par, p_max)
-
-                    params_2.printMinMax(par)
-
-            # TODO: Need to find an optPoint for each scanner range
-            firstscanner = Scanner(npoints=npoints,
-                                params=params_1,
-                                decay=self.decay,
-                                maxwidth=self.maxwidth,
-                                optPoint=self.optPoint,
-                                detailsname=self.detailsname,
-                                summaryname=self.summaryname,
-                                zoom=zoom,
-                                outdir=self.outdir,
-                                label="test-1")
-
-            secondScanner = Scanner(npoints=npoints,
-                                params=params_2,
-                                decay=self.decay,
-                                maxwidth=self.maxwidth,
-                                optPoint=self.optPoint,
-                                detailsname=self.detailsname,
-                                summaryname=self.summaryname,
-                                zoom=zoom,
-                                outdir=self.outdir,
-                                label="test-2")
-            
-            all_scanners.extend([firstscanner, secondScanner])
-
-        count = 0
-        all_optpoints = []
-        # run multiple scan iterations
         for iter in range(niter):
 
-            # run scanner
-            myscanner.run(iter,use_multiprocessing)
+            for scans in all_scanners:
 
-            #check_all(myscanner)
+                scans.run(iter, use_multiprocessing)
 
-            secondScanner.run(iter,use_multiprocessing)
+                '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
+                diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
+
+                if diff <= thresh:
+                    break
+                
+                curr_opt = scans.scanparser.getMaxPoint()'''
+
+        
             ##### TODO: Add early stopping conditions
             #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
-            '''
-            if iter > 0:
-                p1 = all_optpoints[iter - 1]
-                p2 = all_optpoints[iter]
-
-                thresh = p1 * 0.05
-
-                if abs(p2-p1) <= thresh:
-                    break
-            '''
+           
             ##### TODO: Add functionality to concatenate all outputs into a single large output
+
+        if bimodal:
+
+            all_tsvs = []
+
+            for file in self.outdir:
+
+                if ".tsv" in file:
+                    all_tsvs.append(file)
             
+            inp = ""
+            outp = ""
+            combine = False
+            for tsv in all_tsvs:
+                
+                if "MultScanner-1" in tsv:
+                    inp = tsv
+                
+                if "MultScanner-2" in tsv:
+                    outp = tsv
+                    combine = True
+
+                if combine:
+                    tsvutils.saveTSVOutput(outp, inp)
 
         # get total scan time
         scanend = time.time()
@@ -326,12 +331,8 @@ class Scan:
         details = open(self.detailsname,"a")
         details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
         details.close()
-
+        
         return
-    
-'''def check_all(scan):
-    
-    for par, names in '''
 
 def updateParams(all_params):
 
