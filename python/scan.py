@@ -18,6 +18,7 @@ import runScannerS
 from masses import Masses
 import prescan
 from utils import fileutils
+from utils import tsvutils
 
 import copy
 
@@ -28,7 +29,8 @@ class Scan:
                  masses: 'Masses',
                  modelname,
                  decay,
-                 maxwidth):
+                 maxwidth,
+                 overwrite=False):
 
         # store model name
         self.modelname = modelname
@@ -58,14 +60,14 @@ class Scan:
         self.outdir = fileutils.scanDir(modelname=modelname,decay=decay,masses=masses)
 
         # remove previous directory if set to overwrite
-        if os.path.exists(self.outdir):
+        if os.path.exists(self.outdir) and overwrite:
+            # remove directory
             shutil.rmtree(self.outdir)
 
-        # make working directory
-        os.makedirs(self.outdir)
-
-        # directory to store all of the output files
-        os.makedirs(self.outdir+"/files")
+        # check if directory exists, if not make it
+        if not os.path.exists(self.outdir):
+            os.makedirs(self.outdir)
+            os.makedirs(self.outdir+"/files")
 
         # create summary file
         self.summaryname = self.outdir+"scansummary_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
@@ -214,6 +216,14 @@ class Scan:
 
         all_scanners = []
 
+        length = len(self.params.parnames)
+
+        scan = []
+
+        for ind in range(length):
+            pass
+
+
         #Iterate through the prescan to determine if multiple scanners are needed
         for par in self.params.parnames:
           
@@ -278,7 +288,7 @@ class Scan:
 
             for scans in all_scanners:
 
-                scans.run(iter, use_multiprocessing)
+                #scans.run(iter, use_multiprocessing)
 
                 '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
@@ -295,7 +305,20 @@ class Scan:
            
             ##### TODO: Add functionality to concatenate all outputs into a single large output
 
-        if bimodal:
+        self.combine_files()
+        all_tsvs = []
+
+        direct = self.outdir + "/files"
+
+        for file in os.listdir(direct):
+
+            if ".tsv" in file:
+                all_tsvs.append(file)
+        
+
+
+
+        '''if bimodal:
 
             all_tsvs = []
 
@@ -317,7 +340,7 @@ class Scan:
                     combine = True
 
                 if combine:
-                    tsvutils.saveTSVOutput(outp, inp)
+                    tsvutils.saveTSVOutput(outp, inp)'''
 
         # get total scan time
         scanend = time.time()
@@ -333,6 +356,33 @@ class Scan:
         details.close()
         
         return
+    
+    
+    def combine_files(self):
+        self.all_tsvs = []
+
+        direct = self.outdir + "/files"
+
+        for file in os.listdir(direct):
+
+            if ".tsv" in file:
+                self.all_tsvs.append(file)
+
+        self.all_tsvs.sort()
+
+        it_1 = (self.all_tsvs[0].split('_')[-1].split('.')[0])
+        tsvutils.saveTSVOutput(self.all_tsvs[0], "TRSMBROKEN_"+it_1+".tsv")
+
+        for ind in range(self.all_tsvs)-2:
+
+            tsv_1 = self.all_tsvs[ind+1]
+            tsv_2 = self.all_tsvs[ind+2]
+
+            iter_1 = (tsv_1.split('_')[-1].split('.')[0])  
+            iter_2 = (tsv_2.split('_')[-1].split('.')[0])  
+
+            #if iter_1 == iter_2:
+                #tsvutils.saveTSVOutput(tsv_2, "TRSMBROKEN_"+iter_1+".tsv")
 
 def updateParams(all_params):
 
@@ -582,6 +632,7 @@ if __name__ == "__main__":
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     args = argparser.parse_args()
 
     # create masses object
@@ -595,7 +646,8 @@ if __name__ == "__main__":
     myScan = Scan(masses=masses,
                   modelname=args.model,
                   decay=args.decay,
-                  maxwidth=args.maxwidth)
+                  maxwidth=args.maxwidth,
+                  overwrite=args.overwrite)
     
     # run scan using scan object
     myScan.runScan(npoints=args.npoints,
