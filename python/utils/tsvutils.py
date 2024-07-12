@@ -27,6 +27,15 @@ def countPointsInTSV(filename):
 # function to save output tsv file
 def saveTSVOutput(inputfile,outputfile):
 
+    # Normalize paths to absolute paths for comparison
+    inputfile = os.path.abspath(inputfile)
+    outputfile = os.path.abspath(outputfile)
+    
+    # Check if inputfile and outputfile point to the same file
+    if os.path.samefile(inputfile, outputfile):
+        print(f"Error: Input file '{inputfile}' and output file '{outputfile}' point to the same file.")
+        return
+    
     # get number of points already in output file
     nexisting = countPointsInTSV(outputfile)
 
