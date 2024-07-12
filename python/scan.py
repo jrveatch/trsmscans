@@ -21,6 +21,8 @@ from utils import fileutils
 from utils import tsvutils
 
 import copy
+import itertools 
+import glob
 
 # class to organize and run a complete scan
 class Scan:
@@ -214,7 +216,7 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        all_scanners = []
+        all_scanners = self.run_check(npoints)
 
         length = len(self.params.parnames)
 
@@ -222,65 +224,6 @@ class Scan:
 
         for ind in range(length):
             pass
-
-
-        #Iterate through the prescan to determine if multiple scanners are needed
-        for par in self.params.parnames:
-          
-            if self.prescanparser.isBimodal(par):
-                print("Bimodal - Breaking into 2 scanners")
-                
-                params_1 = copy.deepcopy(self.params)
-                params_2 = copy.deepcopy(self.params)
-                            
-                p_min = params_1.low(par)
-                p_max = params_1.high(par)
-                p_mid = (p_min + p_max) / 2.0
-                
-                params_1.setMin(par, p_min)
-                params_1.setMax(par, p_mid)
-                
-                params_2.setMin(par, p_mid)
-                params_2.setMax(par, p_max)
-
-                firstScanner = Scanner(npoints=npoints,
-                            params=params_1,
-                            decay=self.decay,
-                            maxwidth=self.maxwidth,
-                            optPoint=self.optPoint,
-                            detailsname=self.detailsname,
-                            summaryname=self.summaryname,
-                            zoom=zoom,
-                            outdir=self.outdir,
-                            label=f'{par}-1')
-                
-                secondScanner = Scanner(npoints=npoints,
-                            params=params_2,
-                            decay=self.decay,
-                            maxwidth=self.maxwidth,
-                            optPoint=self.optPoint,
-                            detailsname=self.detailsname,
-                            summaryname=self.summaryname,
-                            zoom=zoom,
-                            outdir=self.outdir,
-                            label=f'{par}-2')
-                
-                all_scanners.extend([firstScanner, secondScanner])
-            else:
-                #Make copies of the params object
-                s1_params = copy.deepcopy(self.params)
-
-                scanner1 = Scanner(npoints=npoints,
-                                    params=s1_params,
-                                    decay=self.decay,
-                                    maxwidth=self.maxwidth,
-                                    optPoint=self.optPoint,
-                                    detailsname=self.detailsname,
-                                    summaryname=self.summaryname,
-                                    zoom=zoom,
-                                    outdir=self.outdir,
-                                    label=f'{par}')
-                all_scanners.append(scanner1)
         
         #curr_opt = all_scanners[0].scanparser.getMaxPoint()
 
@@ -288,7 +231,7 @@ class Scan:
 
             for scans in all_scanners:
 
-                #scans.run(iter, use_multiprocessing)
+                scans.run(iter, use_multiprocessing)
 
                 '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
@@ -305,42 +248,10 @@ class Scan:
            
             ##### TODO: Add functionality to concatenate all outputs into a single large output
 
-        self.combine_files()
+        #self.combine_files()
         all_tsvs = []
 
         direct = self.outdir + "/files"
-
-        for file in os.listdir(direct):
-
-            if ".tsv" in file:
-                all_tsvs.append(file)
-        
-
-
-
-        '''if bimodal:
-
-            all_tsvs = []
-
-            for file in self.outdir:
-
-                if ".tsv" in file:
-                    all_tsvs.append(file)
-            
-            inp = ""
-            outp = ""
-            combine = False
-            for tsv in all_tsvs:
-                
-                if "MultScanner-1" in tsv:
-                    inp = tsv
-                
-                if "MultScanner-2" in tsv:
-                    outp = tsv
-                    combine = True
-
-                if combine:
-                    tsvutils.saveTSVOutput(outp, inp)'''
 
         # get total scan time
         scanend = time.time()
@@ -358,31 +269,87 @@ class Scan:
         return
     
     
-    def combine_files(self):
-        self.all_tsvs = []
+    def combine_files(input_directory, output_directory):
+        try:
+            # Create a dictionary to store output files based on the last 4 digits
+            output_files = defaultdict(list)
+            
+            # Iterate over input files in the input directory
+            for inputfile in sorted(glob.glob(os.path.join(input_directory, "*.tsv"))):
+                # Extract last 4 digits from the filename
+                last_digits = os.path.basename(inputfile)[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
+                
+                # Create output file path based on last 4 digits
+                outputfile = os.path.join(output_directory, f"Output_{last_digits}.tsv")
+                
+                # Save contents of current input file to respective output file
+                tsvutils.saveTSVOutput(inputfile, outputfile)
+                
+                # Append output file to the list in the dictionary
+                output_files[last_digits].append(outputfile)
+            
+            # Optionally, delete input files after successful combination
+            # for inputfile in glob.glob(os.path.join(input_directory, "*.tsv")):
+            #     os.remove(inputfile)
+            
+        except FileNotFoundError:
+            print(f"Error: Directory '{input_directory}' not found.")
+        except IOError as e:
+            print(f"Error: {e}")
+    
+    # Manipulations are done directly on files in input_directory and output_directory
+    # No explicit return value is needed
 
-        direct = self.outdir + "/files"
+    def run_check(self, npoints):
 
-        for file in os.listdir(direct):
+        bimodal_params = []
+        non_bimodal_params = []
+        
+        #Append non-bimodal and bimodal params to their respective list
+        for par in self.params.parnames:
+            if True:
+                bimodal_params.append(par)
+            else:
+                non_bimodal_params.append(par)
 
-            if ".tsv" in file:
-                self.all_tsvs.append(file)
+        # Generate combinations of bimodal parameters
+        bimodal_configs = []
+        for par in bimodal_params:
+            p_min = self.params.low(par)
+            p_max = self.params.high(par)
+            p_mid = (p_min + p_max) / 2.0
+            bimodal_configs.append([(p_min, p_mid), (p_mid, p_max)])
 
-        self.all_tsvs.sort()
+        # Generate all combinations of bimodal and non-bimodal parameters
+        all_param_combinations = []
+        for bimodal_values in itertools.product(*bimodal_configs):
+            params_copy = copy.deepcopy(self.params)
+            
+            for i, par in enumerate(bimodal_params):
+                params_copy.setMin(par, bimodal_values[i][0])
+                params_copy.setMax(par, bimodal_values[i][1])
+            
+            all_param_combinations.append(params_copy)
 
-        it_1 = (self.all_tsvs[0].split('_')[-1].split('.')[0])
-        tsvutils.saveTSVOutput(self.all_tsvs[0], "TRSMBROKEN_"+it_1+".tsv")
 
-        for ind in range(self.all_tsvs)-2:
+        # Initialize scanners for each parameter combination
+        all_scanners = []
+        for i, params in enumerate(all_param_combinations):
+            scanner = Scanner(
+                npoints=npoints,
+                params=params,
+                decay=self.decay,
+                maxwidth=self.maxwidth,
+                optPoint=self.optPoint,
+                detailsname=self.detailsname,
+                summaryname=self.summaryname,
+                zoom=zoom,
+                outdir=self.outdir,
+                label=f'Configuration-{i}'
+            )
+            all_scanners.append(scanner)
 
-            tsv_1 = self.all_tsvs[ind+1]
-            tsv_2 = self.all_tsvs[ind+2]
-
-            iter_1 = (tsv_1.split('_')[-1].split('.')[0])  
-            iter_2 = (tsv_2.split('_')[-1].split('.')[0])  
-
-            #if iter_1 == iter_2:
-                #tsvutils.saveTSVOutput(tsv_2, "TRSMBROKEN_"+iter_1+".tsv")
+        return all_scanners
 
 def updateParams(all_params):
 
@@ -480,6 +447,7 @@ class Scanner:
 
         # write new .ini file from template and parameters
         self.params.writeini(ininame)
+        return
 
         # run ScannerS
         if use_multiprocessing:
@@ -632,7 +600,7 @@ if __name__ == "__main__":
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
+    argparser.add_argument("-o", "--overwrite", default=False, help="Overwrite previous prescan")
     args = argparser.parse_args()
 
     # create masses object
