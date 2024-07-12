@@ -188,7 +188,7 @@ def run_subprocess(process,modelname):
     process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     # time in seconds at which process will be killed if nothing is printed out
-    timeout = 10
+    timeout = 30
 
     # get start time
     start_time = time.time()
