@@ -129,13 +129,9 @@ class Scan:
                                    modelname=self.modelname,
                                    decay=self.decay)
 
-        # if the prescan ranges are more than 5% away from
-        # the boundaries, change the boundaries to restrict
+        # if the prescan ranges are more than 1% of the max range  
+        # away from the boundaries, change the boundaries to restrict
         # scan range and minimize scan points that are wasted
-        # TODO: figure out a more robust way to constrain min and max
-
-        # set tolerance from boundaries
-        tolerance = 0.05
 
         # print header about prescan ranges to the screen
         print("Found the following ranges from the prescan:")
@@ -143,17 +139,20 @@ class Scan:
         # loop over parameters
         for par in self.params.parnames:
 
+            # getting 1% of min and max from the model
+            one_percent = (self.params.model.max(par) - self.params.model.min(par)) / 100
+
             # get min and max from prescan
             newMin = self.prescanparser.getMin(par)
             newMax = self.prescanparser.getMax(par)
 
             # check min value
-            if newMin > self.params.min(par) + abs(self.params.min(par)) * tolerance:
-                self.params.setMin(par,newMin)
+            if newMin - one_percent > self.params.min(par):
+                self.params.setMin(par,newMin - one_percent)
 
             # check max value
-            if newMax < self.params.max(par) - abs(self.params.max(par)) * tolerance:
-                self.params.setMax(par,newMax)
+            if newMax + one_percent < self.params.max(par):
+                self.params.setMax(par,newMax + one_percent)
 
             # print min and max to screen after prescan
             self.params.printMinMax(par)
