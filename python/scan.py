@@ -301,43 +301,44 @@ class Scan:
     # No explicit return value is needed
 
     def run_check(self, npoints):
+        param_dict = {}
 
-        bimodal_params = []
-        non_bimodal_params = []
-        
-        #Append non-bimodal and bimodal params to their respective list
+        # Populate param_dict with parameter information
         for par in self.params.parnames:
-            if True:
-                bimodal_params.append(par)
+            is_bimodal = self.prescanparser.isBimodal(par)
+            min_val = self.params.low(par)
+            max_val = self.params.high(par)
+            
+            if is_bimodal:
+                mid_val = (min_val + max_val) / 2.0
+                param_dict[par] = [
+                    {'min': min_val, 'max': mid_val},
+                    {'min': mid_val, 'max': max_val}
+                ]
             else:
-                non_bimodal_params.append(par)
+                param_dict[par] = [{'min': min_val, 'max': max_val}]
 
-        # Generate combinations of bimodal parameters
-        bimodal_configs = []
-        for par in bimodal_params:
-            p_min = self.params.low(par)
-            p_max = self.params.high(par)
-            p_mid = (p_min + p_max) / 2.0
-            bimodal_configs.append([(p_min, p_mid), (p_mid, p_max)])
-
-        # Generate all combinations of bimodal and non-bimodal parameters
         all_param_combinations = []
-        for bimodal_values in itertools.product(*bimodal_configs):
-            params_copy = copy.deepcopy(self.params)
-            
-            for i, par in enumerate(bimodal_params):
-                params_copy.setMin(par, bimodal_values[i][0])
-                params_copy.setMax(par, bimodal_values[i][1])
-            
-            all_param_combinations.append(params_copy)
 
+        # Generate all parameter combinations
+        for param_values in itertools.product(*param_dict.values()):
+            params_copy = copy.deepcopy(self.params)
+            param_combination_data = {}
+
+            for par, values in zip(param_dict.keys(), param_values):
+                params_copy.setMin(par, values['min'])
+                params_copy.setMax(par, values['max'])
+                param_combination_data[par] = values
+
+            all_param_combinations.append((params_copy, param_combination_data))
+
+        all_scanners = []
 
         # Initialize scanners for each parameter combination
-        all_scanners = []
-        for i, params in enumerate(all_param_combinations):
+        for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
             scanner = Scanner(
                 npoints=npoints,
-                params=params,
+                params=params_copy,
                 decay=self.decay,
                 maxwidth=self.maxwidth,
                 optPoint=self.optPoint,
