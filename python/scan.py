@@ -32,7 +32,10 @@ class Scan:
                  modelname,
                  decay,
                  maxwidth,
-                 overwrite=False):
+                 overwrite=False, 
+                 run=False):
+
+        self.run = run
 
         # store model name
         self.modelname = modelname
@@ -63,11 +66,13 @@ class Scan:
 
         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:
+            self.run = True
             # remove directory
             shutil.rmtree(self.outdir)
 
         # check if directory exists, if not make it
         if not os.path.exists(self.outdir):
+            self.run = True
             os.makedirs(self.outdir)
             os.makedirs(self.outdir+"/files")
 
@@ -221,32 +226,31 @@ class Scan:
         length = len(self.params.parnames)
 
         scan = []
-
-        for ind in range(length):
-            pass
         
         #curr_opt = all_scanners[0].scanparser.getMaxPoint()
 
-        for iter in range(niter):
+        if self.run:
 
-            for scans in all_scanners:
+            for iter in range(niter):
 
-                scans.run(iter, use_multiprocessing)
+                for scans in all_scanners:
 
-                '''thresh = scans.scanparser.getMaxPoint() * 0.05
+                    scans.run(iter, use_multiprocessing)
 
-                diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
+                    '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
-                if diff <= thresh:
-                    break
-                
-                curr_opt = scans.scanparser.getMaxPoint()'''
+                    diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
 
-        
-            ##### TODO: Add early stopping conditions
-            #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
-           
-            ##### TODO: Add functionality to concatenate all outputs into a single large output
+                    if diff <= thresh:
+                        break
+                    
+                    curr_opt = scans.scanparser.getMaxPoint()'''
+
+            
+                ##### TODO: Add early stopping conditions
+                #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
+            
+                ##### TODO: Add functionality to concatenate all outputs into a single large output
 
         #self.combine_files()
         all_tsvs = []
@@ -448,7 +452,7 @@ class Scanner:
 
         # write new .ini file from template and parameters
         self.params.writeini(ininame)
-        return
+        #return
 
         # run ScannerS
         if use_multiprocessing:
@@ -602,6 +606,7 @@ if __name__ == "__main__":
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", default=False, help="Overwrite previous prescan")
+    argparser.add_argument("-u", "--run", default=False, help="Overwrite previous prescan")
     args = argparser.parse_args()
 
     # create masses object
@@ -616,7 +621,8 @@ if __name__ == "__main__":
                   modelname=args.model,
                   decay=args.decay,
                   maxwidth=args.maxwidth,
-                  overwrite=args.overwrite)
+                  overwrite=args.overwrite, 
+                  run=args.run)
     
     # run scan using scan object
     myScan.runScan(npoints=args.npoints,
