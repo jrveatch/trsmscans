@@ -11,6 +11,7 @@ from masses import Masses
 
 # TODO: Make this work for other models
 def filterbounds(filename,
+                 modelname,
                  masses: Masses,
                  debug=False):
 
@@ -18,11 +19,8 @@ def filterbounds(filename,
     bounds = getHiggsBounds()
     signals = getHiggsSignals()
 
-    # add X and S neutral scalars
-    neutralScalars = [('X','even'),('S','even')]
-
     # get Higgs predictions
-    pred = getHiggsPredictions(neutralScalars=neutralScalars)
+    pred = getHiggsPredictions(modelname=modelname)
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)

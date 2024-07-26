@@ -14,11 +14,8 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
     bounds = getHiggsBounds()
     signals = getHiggsSignals()
 
-    # add X and S neutral scalars
-    neutralScalars = [('X','even'),('S','even')]
-
     # get Higgs predictions
-    pred = getHiggsPredictions(neutralScalars=neutralScalars)
+    pred = getHiggsPredictions(modelname="TRSMBroken")
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)

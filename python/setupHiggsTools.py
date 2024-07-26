@@ -2,37 +2,44 @@ import Higgs.predictions as HP
 import Higgs.bounds as HB
 import Higgs.signals as HS
 
+from model import Model
+
 import os
 
-def getHiggsPredictions(neutralScalars: list[(str,str)] = [],
-                        chargedScalars: list[str] = [],
-                        doublyChargedScalars: list[str] = []):
+def getHiggsPredictions(modelname: str):
+
+    # create model object
+    model = Model(modelname)
 
     # create the model predictions
     pred = HP.Predictions()
 
     # add a SM-like Higgs boson with SM-like couplings
-    H = pred.addParticle(HP.NeutralScalar("H", "even"))
+    H = pred.addParticle(HP.NeutralScalar(model.SMHiggs, "even"))
 
-    # SM Higgs mass and VEV
+    # SM Higgs mass
     mH = 125.09
 
     # set the SM Higgs mass
     H.setMass(mH)
 
-    # get the SM chi-squared for HiggsSignals
+    # TODO: Is this necessary?
     HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
 
-    # add BSM neutral scalars
-    for scalar in neutralScalars:
-        pred.addParticle(HP.NeutralScalar(scalar[0], scalar[1]))
+    # add BSM CP-even neutral scalars
+    for scalar in model.particles['neutralScalarsCPEven']:
+        pred.addParticle(HP.NeutralScalar(scalar, 'even'))
+
+    # add BSM CP-odd neutral scalars
+    for scalar in model.particles['neutralScalarsCPOdd']:
+        pred.addParticle(HP.NeutralScalar(scalar, 'odd'))
 
     # add BSM charged scalars
-    for scalar in chargedScalars:
+    for scalar in model.particles['chargedScalars']:
         pred.addParticle(HP.ChargedScalar(scalar))
 
     # add BSM doubly charged scalars
-    for scalar in doublyChargedScalars:
+    for scalar in model.particles['doublyChargedScalars']:
         pred.addParticle(HP.DoublyChargedScalar(scalar))
 
     return pred
