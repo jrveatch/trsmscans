@@ -168,8 +168,11 @@ def run_process(process, directory, counter, num_processes):
     # change to the temporary directory
     os.chdir(directory)
 
+    # log file
+    log = open("ScannerS.log", "w")
+
     # run the process with arguments and suppress output
-    subprocess.run(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    subprocess.run(process, stdout=log, stderr=log)
 
     # get Terminal for nicer outputs
     term = Terminal()
@@ -184,8 +187,11 @@ def run_subprocess(process,modelname):
     # output file name
     outfile = modelname + ".tsv"
 
+    # log file
+    log = open("ScannerS.log", "w")
+
     # launch process
-    process = subprocess.Popen(process, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(process, stdout=log, stderr=log)
 
     # time in seconds at which process will be killed if nothing is printed out
     timeout = 30
