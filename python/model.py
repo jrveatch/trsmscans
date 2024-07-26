@@ -13,16 +13,22 @@ class Model():
         # directory where model information is stored
         self.modeldir = os.environ['DATADIR']+"models/"
 
+        # model yaml file
+        self.ymlfile = self.modeldir + self.name + "_params.yml"
+
         # template .ini filename
         self.templateini = self.modeldir + self.name + "_template.ini"
 
-        # model yaml file
-        filename = self.modeldir + self.name + "_params.yml"
+        # make sure .yml file exists
+        if not os.path.isfile(self.ymlfile):
+            raise FileNotFoundError("YAML file " + self.ymlfile + " does not exist. Exiting.")
 
-        # TODO: Check to make sure .ini template and yaml exist
+        # make sure template .ini file exists
+        if not os.path.isfile(self.templateini):
+            raise FileNotFoundError("Template .ini file " + self.templateini + " does not exist. Exiting.")
 
         # read in model yaml file
-        with open(filename,'r') as file:
+        with open(self.ymlfile,'r') as file:
             self.params = yaml.safe_load(file)[self.name]
 
     # get list of parameter name
