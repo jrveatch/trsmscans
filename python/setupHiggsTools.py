@@ -4,22 +4,15 @@ import Higgs.signals as HS
 
 import os
 
-def setupHiggsTools():
-
-    # get signals dataset
-    signals = getHiggsSignals()
+def getHiggsPredictions(neutralScalars: list[(str,str)] = [],
+                        chargedScalars: list[str] = [],
+                        doublyChargedScalars: list[str] = []):
 
     # create the model predictions
     pred = HP.Predictions()
 
     # add a SM-like Higgs boson with SM-like couplings
     H = pred.addParticle(HP.NeutralScalar("H", "even"))
-
-    # add BSM boson S that decays to SM particles
-    S = pred.addParticle(HP.NeutralScalar("S", "even"))
-
-    # add BSM boson X that decays two H+S
-    X = pred.addParticle(HP.NeutralScalar("X", "even"))
 
     # SM Higgs mass and VEV
     mH = 125.09
@@ -29,20 +22,20 @@ def setupHiggsTools():
 
     # get the SM chi-squared for HiggsSignals
     HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
-    ress_SM = signals(pred)
-    #print("HiggsSignals chi-sq. for SM =", ress_SM)
 
-    return pred, H, S, X, ress_SM
+    # add BSM neutral scalars
+    for scalar in neutralScalars:
+        pred.addParticle(HP.NeutralScalar(scalar[0], scalar[1]))
 
-def getHiggsData():
+    # add BSM charged scalars
+    for scalar in chargedScalars:
+        pred.addParticle(HP.ChargedScalar(scalar))
 
-    # get HB dataset
-    bounds = getHiggsBounds()
+    # add BSM doubly charged scalars
+    for scalar in doublyChargedScalars:
+        pred.addParticle(HP.DoublyChargedScalar(scalar))
 
-    # get HS dataset
-    signals = getHiggsSignals()
-
-    return bounds, signals
+    return pred
 
 def getHiggsSignals():
 
@@ -63,4 +56,3 @@ def getHiggsBounds():
     bounds = HB.Bounds(datadir+'hbdataset')
 
     return bounds
-

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from twors_higgstools_setup import *
+from setupHiggsTools import *
 
 from utils.test_point_utils import *
 
@@ -10,8 +10,23 @@ from utils.test_point_utils import *
 # INPUT IS MH, sintheta and l112, the Scalar-Higgs-Higgs coupling
 def check_singlet_point(MX, sintheta, l112, debug=False):
 
-    bounds, signals = getHiggsData()
-    pred, H, S, X, ress_SM = setupHiggsTools()
+    # get bounds and signals data
+    bounds = getHiggsBounds()
+    signals = getHiggsSignals()
+
+    # add X and S neutral scalars
+    neutralScalars = [('X','even'),('S','even')]
+
+    # get Higgs predictions
+    pred = getHiggsPredictions(neutralScalars=neutralScalars)
+
+    # get HiggsSignals Chi^2 for SM
+    ress_SM = signals(pred)
+    print("HiggsSignals chi-sq. for SM =", ress_SM)
+
+    # get H and X particles
+    H = pred.particle('H')
+    X = pred.particle('X')
 
     # get the cosine of theta:
     costheta = math.sqrt(1-sintheta**2)
@@ -128,10 +143,14 @@ def testpoint(mX,sintheta,tanb):
     # SM Higgs mass and VEV
     mH = 125.09
     v = 246.
-
-    print('mH, mX, sintheta, v, tanb =', mH, mX, sintheta, v, tanb)
     l112 = tanb_to_lambda112(mH, mX, sintheta, v, tanb)
-    print('l112=', l112)
+
+    print('mH =', mH)
+    print('mX =', mX)
+    print('sintheta =', sintheta)
+    print('v =', v)
+    print('tanb =', tanb)
+    print('l112 =', l112)
     
     # check this example point:
     print('HiggsBounds Allowed, HiggsSignals chi-sq. =', check_singlet_point(mX, sintheta, l112, debug=True))
