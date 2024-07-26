@@ -33,7 +33,7 @@ def saveTSVOutput(inputfile,outputfile):
     
     # check if inputfile and outputfile point to the same file
     if inputfile==outputfile:
-        print(f"Error: Input file '{inputfile}' and output file '{outputfile}' point to the same file.")
+        print(f"Error: Input file path '{inputfile}' and output file path '{outputfile}' are the same.")
         return
 
     # get number of points already in output file
