@@ -33,11 +33,9 @@ class Scan:
                  modelname,
                  decay,
                  maxwidth,
-                 overwrite=False, 
+                 overwrite=False):
                  run=False):
-
-        self.run = run
-
+          
         # store model name
         self.modelname = modelname
         
@@ -65,15 +63,14 @@ class Scan:
         # directory where we want the output to go
         self.outdir = fileutils.scanDir(modelname=modelname,decay=decay,masses=masses)
 
-        # remove previous directory if set to overwrite
+         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:
-            self.run = True
+
             # remove directory
             shutil.rmtree(self.outdir)
 
         # check if directory exists, if not make it
         if not os.path.exists(self.outdir):
-            self.run = True
             os.makedirs(self.outdir)
             os.makedirs(self.outdir+"/files")
 
@@ -627,8 +624,8 @@ if __name__ == "__main__":
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    argparser.add_argument("-o", "--overwrite", default=False, help="Overwrite previous prescan")
-    argparser.add_argument("-u", "--run", default=False, help="Overwrite previous prescan")
+    argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    
     args = argparser.parse_args()
 
     # create masses object
@@ -643,8 +640,7 @@ if __name__ == "__main__":
                   modelname=args.model,
                   decay=args.decay,
                   maxwidth=args.maxwidth,
-                  overwrite=args.overwrite, 
-                  run=args.run)
+                  overwrite=args.overwrite)
     
     # run scan using scan object
     myScan.runScan(npoints=args.npoints,

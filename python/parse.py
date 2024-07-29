@@ -298,9 +298,6 @@ class Parse:
 
         # get set of parameter values with xb in selected percentile
         param_selected = self.parArrays[param_name][self.xb > threshold_value] 
-        '''
-        CHANGED THE LINE ABOVE FROM GETATTR
-        '''
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)

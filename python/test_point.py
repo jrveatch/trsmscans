@@ -2,7 +2,7 @@
 
 from twors_higgstools_setup import *
 
-from test_point_utils import *
+from utils.test_point_utils import *
 
 # SETUP STARTS HERE
 
@@ -129,7 +129,7 @@ def testpoint(mX,sintheta,tanb):
     mH = 125.09
     v = 246.
 
-    print('mH, mX, sintheta, v, tanb=', mH, mX, sintheta, v, tanb)
+    print('mH, mX, sintheta, v, tanb =', mH, mX, sintheta, v, tanb)
     l112 = tanb_to_lambda112(mH, mX, sintheta, v, tanb)
     print('l112=', l112)
     
