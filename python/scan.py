@@ -23,6 +23,7 @@ from utils import tsvutils
 import copy
 import itertools 
 import glob
+from collections import defaultdict
 
 # class to organize and run a complete scan
 class Scan:
@@ -254,7 +255,8 @@ class Scan:
 
         all_tsvs = []
 
-        direct = self.outdir + "/files"
+        direct = self.outdir + "files"
+
         self.combine_files(direct, direct)
 
         # get total scan time
@@ -272,22 +274,31 @@ class Scan:
         
         return
     
-    
     def combine_files(self, input_directory, output_directory):
 
         try:
-            defaultdict = {}
+            # Ensure the output directory exists
+            if not os.path.exists(output_directory):
+                os.makedirs(output_directory)
+            
             # Create a dictionary to store output files based on the last 4 digits
             output_files = defaultdict(list)
+
+            # List all .tsv files in the input directory
+            input_files = glob.glob(os.path.join(input_directory, "*.tsv"))
+
+            # Sort files by filename to ensure the correct order
+            input_files.sort()
             
-            # Iterate over input files in the input directory
-            for inputfile in sorted(glob.glob(os.path.join(input_directory, "*.tsv"))):
+            # Iterate over input files in the correct order
+            for inputfile in input_files:
                 # Extract last 4 digits from the filename
-                last_digits = os.path.basename(inputfile)[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
+                basename = os.path.basename(inputfile)
+                last_digits = basename[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
                 
+
                 # Create output file path based on last 4 digits
                 outputfile = os.path.join(output_directory, f"Output_{last_digits}.tsv")
-                
                 # Save contents of current input file to respective output file
                 tsvutils.saveTSVOutput(inputfile, outputfile)
                 
@@ -295,13 +306,15 @@ class Scan:
                 output_files[last_digits].append(outputfile)
             
             # Optionally, delete input files after successful combination
-            # for inputfile in glob.glob(os.path.join(input_directory, "*.tsv")):
+            # for inputfile in input_files:
             #     os.remove(inputfile)
             
         except FileNotFoundError:
             print(f"Error: Directory '{input_directory}' not found.")
         except IOError as e:
             print(f"Error: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
     
     # Manipulations are done directly on files in input_directory and output_directory
     # No explicit return value is needed
