@@ -235,7 +235,7 @@ class Scan:
 
                 for scans in all_scanners:
 
-                    scans.run(iter, use_multiprocessing)
+                    #scans.run(iter, use_multiprocessing)
 
                     '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
@@ -252,10 +252,10 @@ class Scan:
             
                 ##### TODO: Add functionality to concatenate all outputs into a single large output
 
-        #self.combine_files()
         all_tsvs = []
 
         direct = self.outdir + "/files"
+        self.combine_files(direct, direct)
 
         # get total scan time
         scanend = time.time()
@@ -273,8 +273,10 @@ class Scan:
         return
     
     
-    def combine_files(input_directory, output_directory):
+    def combine_files(self, input_directory, output_directory):
+
         try:
+            defaultdict = {}
             # Create a dictionary to store output files based on the last 4 digits
             output_files = defaultdict(list)
             
@@ -338,10 +340,18 @@ class Scan:
 
         all_scanners = []
 
+        points_per_scanner = max(npoints // len(all_param_combinations), 1)
+
         # Initialize scanners for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
+
+            # Distribute points among scanners
+            points = points_per_scanner
+            if i == len(all_param_combinations) - 1:  # Ensure the last scanner gets any remaining points
+                points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
+
             scanner = Scanner(
-                npoints=npoints,
+                npoints=points,
                 params=params_copy,
                 decay=self.decay,
                 maxwidth=self.maxwidth,
