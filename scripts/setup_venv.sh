@@ -10,6 +10,7 @@ if [ -n "$ZSH_VERSION" ]; then
     read python3_exe
 else
     read -p "Enter the python3 executable you want to use (leave blank for default): " python3_exe
+fi
 
 # check if the user entered something
 if [ -z "$python3_exe" ]; then

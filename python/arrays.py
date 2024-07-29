@@ -1,6 +1,8 @@
 
 # import numpy library as np
 import numpy as np
+import random
+from io import StringIO
 
 class Arrays:
 
@@ -34,7 +36,7 @@ class Arrays:
         return self.headers
 
     # load tsv columns into a numpy array
-    def loadArrays(self,filename=""):
+    def loadArrays(self,filename="", num_lines=-1):
 
         # if a new filename is provided, store it as class object
         if filename:
@@ -45,12 +47,26 @@ class Arrays:
             print("Headers were not loaded, loading now")
             self.loadHeaders()
 
-        # create numpy array from the tsv
-        self.data = np.genfromtxt(self.filename, delimiter='\t', dtype=None, names=self.headers, encoding=None, skip_header=1)
+        with open(self.filename, 'r') as f:
+            _ = f.readline()
+            lines = f.readlines()
+
+        if num_lines != -1:
+            selected_lines = random.sample(lines, num_lines)
+            selected_lines_str = ''.join(selected_lines)
+
+            self.data = np.genfromtxt(StringIO(selected_lines_str), delimiter='\t', dtype=None, names=self.headers, encoding=None)
+        else:
+            # create numpy array from the tsv
+            self.data = np.genfromtxt(self.filename, delimiter='\t', dtype=None, names=self.headers, encoding=None, skip_header=1)
 
     # get an array
     def getArray(self,arr_name):
         return self.data[arr_name]
+    
+    # get all arrays
+    def getArraysAll(self):
+        return self.data
 
     # set the values of an array
     def setArray(self,arr_name,new_array):
