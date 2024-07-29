@@ -34,7 +34,6 @@ class Scan:
                  decay,
                  maxwidth,
                  overwrite=False):
-                 run=False):
           
         # store model name
         self.modelname = modelname
@@ -226,28 +225,26 @@ class Scan:
         
         #curr_opt = all_scanners[0].scanparser.getMaxPoint()
 
-        if self.run:
+        for iter in range(niter):
 
-            for iter in range(niter):
+            for scans in all_scanners:
 
-                for scans in all_scanners:
+                #scans.run(iter, use_multiprocessing)
 
-                    #scans.run(iter, use_multiprocessing)
+                '''thresh = scans.scanparser.getMaxPoint() * 0.05
 
-                    '''thresh = scans.scanparser.getMaxPoint() * 0.05
+                diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
 
-                    diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
+                if diff <= thresh:
+                    break
+                
+                curr_opt = scans.scanparser.getMaxPoint()'''
 
-                    if diff <= thresh:
-                        break
-                    
-                    curr_opt = scans.scanparser.getMaxPoint()'''
-
-            
-                ##### TODO: Add early stopping conditions
-                #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
-            
-                ##### TODO: Add functionality to concatenate all outputs into a single large output
+        
+            ##### TODO: Add early stopping conditions
+            #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
+        
+            ##### TODO: Add functionality to concatenate all outputs into a single large output
 
         all_tsvs = []
 
