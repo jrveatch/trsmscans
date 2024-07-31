@@ -3,43 +3,42 @@ import os
 import yaml
 
 # class that holds information about the model being used
-class Model():
+class Model:
 
-    def __init__(self,name):
+    def __init__(self,
+                 name: str):
 
         # name of the model
-        self.name = name
+        self.__name = name
 
         # directory where model information is stored
-        self.modeldir = os.environ['DATADIR']+"models/"
+        self.__modeldir = os.environ['DATADIR']+"models/"
 
         # model yaml file
-        self.ymlfile = self.modeldir + self.name + "_params.yml"
+        self.__ymlname = self.__modeldir + self.__name + "_params.yml"
 
         # template .ini filename
-        self.templateini = self.modeldir + self.name + "_template.ini"
+        self.__templateini = self.__modeldir + self.__name + "_template.ini"
 
-        # make sure .yml file exists
-        if not os.path.isfile(self.ymlfile):
-            raise FileNotFoundError("YAML file " + self.ymlfile + " does not exist. Exiting.")
-
-        # make sure template .ini file exists
-        if not os.path.isfile(self.templateini):
-            raise FileNotFoundError("Template .ini file " + self.templateini + " does not exist. Exiting.")
-
-        self.readYaml()
+        self.read_yaml()
 
     # read .yml file
-    def readYaml(self):
+    def read_yaml(self):
+      
+        # create empty particles dictionary
+        self.particles = {}
+
+        # create empty __model_params dictionary
+        self.__model_params = {}
 
         # read in model yaml file
-        with open(self.ymlfile,'r') as file:
+        with open(self.__ymlname,'r') as file:
             # read yaml data for model
-            yaml_data = yaml.safe_load(file)[self.name]
+            yaml_data = yaml.safe_load(file)[self.__name]
             # read particles
             self.particles = yaml_data['particles']
             # read parameters
-            self.params = yaml_data['parameters']
+            self.__model_params = yaml_data['parameters']
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
@@ -65,14 +64,30 @@ class Model():
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
-    # get list of parameter name
-    def parameterList(self):
-        return list(self.params.keys())
+    # get dictionary of model parameters
+    def model_parameters(self) -> dict:
+        return self.__model_params
 
-    # get parameter min
-    def min(self,parname):
-        return self.params[parname]['min']
+    # get a single model parameter
+    def model_parameter(self,parname) -> dict:
+        return self.__model_params[parname]
 
-    # get parameter max
-    def max(self,parname):
-        return self.params[parname]['max']
+    # get list of model parameter names
+    def model_parameter_names(self) -> list:
+        return list(self.__model_params.keys())
+
+    # get model parameter starting min
+    def starting_min(self,parname) -> float:
+        return self.__model_params[parname]['min']
+
+    # get model parameter starting max
+    def starting_max(self,parname) -> float:
+        return self.__model_params[parname]['max']
+
+    # get model name
+    def model_name(self) -> str:
+        return self.__name
+
+    # get model template .ini file
+    def template_ini(self) -> str:
+        return self.__templateini
