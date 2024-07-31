@@ -25,7 +25,7 @@ class Plot:
         self.model = Model(modelname)
 
         # Create plot output directory
-        self.output_dir = fileutils.plotsDir(modelname=self.model.name,decay=self.decay,masses=self.masses)
+        self.output_dir = fileutils.plotsDir(modelname=self.model.model_name(),decay=self.decay,masses=self.masses)
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
@@ -41,7 +41,7 @@ class Plot:
         self.all_files = []
 
         # Directory for the scan outputs
-        directory = fileutils.scanDir(modelname=self.model.name,decay=self.decay,masses=self.masses) + "files/"
+        directory = fileutils.scanDir(modelname=self.model.model_name(),decay=self.decay,masses=self.masses) + "files/"
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -54,7 +54,7 @@ class Plot:
         self.all_files.sort()
 
         # If prescan exists, make it the first file to plot
-        prescan = fileutils.prescanTSV(modelname=self.model.name,masses=self.masses)
+        prescan = fileutils.prescanTSV(modelname=self.model.model_name(),masses=self.masses)
         if os.path.exists(prescan):
             self.all_files.insert(0, prescan)
 
@@ -65,7 +65,7 @@ class Plot:
     def loadData(self):
 
         # Retrieve the variable names for the model
-        self.var_names = self.model.parameterList()
+        self.var_names = self.model.model_parameter_names()
 
         # Check if xb exists in the variable name list, if not append
         if 'xb' not in self.var_names:
@@ -84,7 +84,7 @@ class Plot:
         for file in self.all_files:
 
             # Retrieve the variables from the list
-            parser = parse.Parse(filename=file, masses=self.masses, decay=self.decay, modelname=self.model.name) 
+            parser = parse.Parse(filename=file, masses=self.masses, decay=self.decay, modelname=self.model.model_name())
             allParams = parser.getParameters()
             xb = parser.getXB(self.decay)
 

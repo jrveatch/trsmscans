@@ -19,15 +19,27 @@ class Params:
         self.mH3 = masses.mH3
 
         # get model using modelname
-        self.model = Model(modelname)
+        self.__model = Model(modelname)
 
         # get list of parameter names
-        self.parnames = self.model.parameterList()
+        self.parnames = self.__model.model_parameter_names()
 
         # create dictionary of parameters
         self.parameters = {}
-        for key in self.parnames:
-            self.parameters[key] = Parameter(key,self.model.params[key])
+        for par in self.parnames:
+            self.parameters[par] = Parameter(par,self.__model.model_parameter(par))
+
+    # get starting min value from model
+    def starting_min(self,parname) -> float:
+        return self.__model.starting_min(parname)
+
+    # get starting max value from model
+    def starting_max(self,parname) -> float:
+        return self.__model.starting_max(parname)
+    
+    # get model name
+    def model_name(self) -> str:
+        return self.__model.model_name()
 
     # functions to set min and max values
     # if the current high or low values are beyond
@@ -117,22 +129,23 @@ class Params:
     def writeini(self,ininame):
 
         # read in template .ini file
-        template = open(self.model.templateini,"r")
-        filedata = template.read()
+        template = open(self.__model.template_ini(),"r")
+        inidata = template.read()
         template.close()
 
-        # create filedata with parameters
-        filedata = filedata.replace("MH1",str(self.mH1))
-        filedata = filedata.replace("MH2",str(self.mH2))
-        filedata = filedata.replace("MH3",str(self.mH3))
+        # create inidata with parameters
+        inidata = inidata.replace("MH1",str(self.mH1))
+        inidata = inidata.replace("MH2",str(self.mH2))
+        inidata = inidata.replace("MH3",str(self.mH3))
+
         # loop over parameters and fill low/high values
         for par in self.parameters.values():
-            filedata = filedata.replace(par.name+"_LOW",str(par.low))
-            filedata = filedata.replace(par.name+"_HIGH",str(par.high))
+            inidata = inidata.replace(par.name+"_LOW",str(par.low))
+            inidata = inidata.replace(par.name+"_HIGH",str(par.high))
 
         # write to .ini file
         outfile = open(ininame,"w")
-        outfile.write(filedata)
+        outfile.write(inidata)
         outfile.close()
 
     # print min and max for a parameter
