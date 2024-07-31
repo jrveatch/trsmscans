@@ -19,27 +19,27 @@ class Params:
         self.mH3 = masses.mH3
 
         # get model using modelname
-        self.model = Model(modelname)
+        self.__model = Model(modelname)
 
         # get list of parameter names
-        self.parnames = self.model.model_parameter_names()
+        self.parnames = self.__model.model_parameter_names()
 
         # create dictionary of parameters
         self.parameters = {}
         for par in self.parnames:
-            self.parameters[par] = Parameter(par,self.model.model_parameter(par))
+            self.parameters[par] = Parameter(par,self.__model.model_parameter(par))
 
     # get starting min value from model
     def starting_min(self,parname) -> float:
-        return self.model.starting_min(parname)
+        return self.__model.starting_min(parname)
 
     # get starting max value from model
     def starting_max(self,parname) -> float:
-        return self.model.starting_max(parname)
+        return self.__model.starting_max(parname)
     
     # get model name
     def model_name(self) -> str:
-        return self.model.model_name()
+        return self.__model.model_name()
 
     # functions to set min and max values
     # if the current high or low values are beyond
@@ -129,7 +129,7 @@ class Params:
     def writeini(self,ininame):
 
         # read in template .ini file
-        template = open(self.model.template_ini(),"r")
+        template = open(self.__model.template_ini(),"r")
         inidata = template.read()
         template.close()
 
