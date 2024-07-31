@@ -6,6 +6,7 @@ import shutil
 import time
 import datetime
 import argparse
+import numpy as np
 
 # import decimal
 from decimal import Decimal
@@ -148,11 +149,11 @@ class Scan:
 
             # check min value
             if newMin - one_percent > self.params.min(par):
-                self.params.setMin(par,newMin - one_percent)
+                self.params.setLowerBound(par,newMin - one_percent)
 
             # check max value
             if newMax + one_percent < self.params.max(par):
-                self.params.setMax(par,newMax + one_percent)
+                self.params.setUpperBound(par,newMax + one_percent)
 
             # print min and max to screen after prescan
             self.params.printMinMax(par)
@@ -188,8 +189,8 @@ class Scan:
         summary.write("\n")
         summary.close()
 
-        # set new low and high values
-        self.params.updateParams(self.optPoint)
+        # scale new low and high values
+        self.params.scaleRanges(self.optPoint)
 
         return
 
@@ -436,18 +437,41 @@ class Scanner:
             summary.write("\n")
             summary.close()
 
+        
+        paramArrays = self.scanparser.getParameters()
+
+        xb_array = self.scanparser.getXB()
+        percentile = 98 # test new values (ex: 95, 90)
+        threshold = np.percentile(xb_array, percentile)
+
+        lowdict = {}
+        highdict = {}
+
+        for param, values in paramArrays.items():
+            new_array = values[xb_array > threshold]
+            lowdict[param] = new_array.min()
+            highdict[param] = new_array.max()
+
+        # use plot
+
+        self.params.updateLowHigh(lowdict, highdict)
+
+        # TODO: reinclude old scaling as an alternative
         # parameter scaling factor
-        rangeScale = 1.0 - self.zoom.parRate
+        #rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
-        self.params.updateParams(self.optPoint,rangeScale)
+        #self.params.scaleRanges(self.optPoint,rangeScale)
 
+        # TODO: include these two lines in old scaling alternative
         # get new volume
-        volumeNew = self.params.volume()
-        volumeRatio = volumeNew/volume
+        #volumeNew = self.params.volume()
+        #volumeRatio = volumeNew/volume
 
         # step down npoints
-        self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate)) # test without
+        VolumeRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * VolumeRatio * (1.0 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -478,7 +502,7 @@ if __name__ == "__main__":
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
+    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow") # test
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = argparser.parse_args()
 

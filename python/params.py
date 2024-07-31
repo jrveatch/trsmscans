@@ -34,22 +34,14 @@ class Params:
     # the new min or max, set them
     # these also set new range values
 
-    def setMin(self,parname,newMin):
+    def setLowerBound(self,parname,newMin):
         self.parameters[parname].setMin(newMin)
 
-    def setMax(self,parname,newMax):
+    def setUpperBound(self,parname,newMax):
         self.parameters[parname].setMax(newMax)
 
-    # function to calculate parameter value
-    def getMidPoint(self,low,high):
-        return (low + high) / 2
-
-    # function to calculate parameter ranges
-    def getRange(self,low,high):
-        return abs(high - low) / 2
-
     # set new value, range, low and high
-    def updateParams(self,
+    def scaleRanges(self,
                      newPoint: 'Point'=None,
                      rangeScale=1.0):
 
@@ -69,8 +61,33 @@ class Params:
                 newVal = newPoint.getVal(parname)
 
             # update parameter with new value and range scale
-            self.parameters[parname].updateParam(newVal=newVal,
+            self.parameters[parname].scaleRange(newVal=newVal,
                                                  rangeScale=rangeScale)
+
+    # update both low and high of each parameter using dictionaries
+    def updateLowHigh(self, lowdict:dict=None, highdict:dict=None):
+
+        # check to see if lowdict exists
+        if lowdict is not None:
+
+            # loop over parameters
+            for parname, newlow in lowdict.items():
+                if parname in self.parameters:
+                    # use lowdict to update the low for each parameter
+                    self.parameters[parname].updateLow(newlow)
+                else:
+                    print(f"Warning: {parname} is not known")
+            
+        # check to see if highdict exists
+        if highdict is not None:
+
+            # loop over parameters
+            for parname, newhigh in highdict.items():
+                if parname in self.parameters:
+                    # use highdict to update the high for each parameter
+                    self.parameters[parname].updateHigh(newhigh)
+                else:
+                    print(f"Warning: {parname} is not known")
 
     # function to calculate volume of parameter space
     def volume(self):
@@ -82,10 +99,10 @@ class Params:
         for par in self.parameters.values():
         
             # make sure range is non-zero
-            if par.range > 1e-13:
+            if par.high - par.low > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.range
+                volume *= par.high - par.low
         
         return volume
 
@@ -189,7 +206,7 @@ class Parameter:
             self.range = self.getRange()
     
     # set new value, range, low and high
-    def updateParam(self,newVal=None,rangeScale=1.0):
+    def scaleRange(self,newVal=None,rangeScale=1.0):
 
         # if both newVal is None and rangeScale is 1.0, complain and return existing low
         if newVal is None and rangeScale == 1.0:
@@ -240,7 +257,38 @@ class Parameter:
             self.high = self.max
 
         return
+    
+    # update the low to a new value
+    def updateLow(self, newval):
 
+        # check if newval is higher than previous low
+        if newval < self.min:
+            self.setLow(self.min)
+            return
+
+        # update low to our newval
+        self.setLow(newval)
+    
+    # update the high to a new value
+    def updateHigh(self, newval):
+
+        # check if newval is lower than previous high
+        if newval > self.max:
+            self.setHigh(self.max)
+            return
+
+        # update high to our newval
+        self.setHigh(newval)
+
+    # set the new low and update the range to reflect the new low
+    def setLow(self, newval):
+        self.low = newval
+        self.range = self.getRange()
+    
+    def setHigh(self, newval):
+        self.high = newval
+        self.range = self.getRange()
+    
     # print min and max
     def printMinMax(self):
         print(self.name+": ["+f"{self.min:1.{self.precision}f}"+","+f"{self.max:1.{self.precision}f}"+"]")
