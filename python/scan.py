@@ -34,7 +34,6 @@ class Scan:
                  decay,
                  maxwidth,
                  overwrite=False):
-          
         # store model name
         self.modelname = modelname
         
@@ -64,7 +63,6 @@ class Scan:
 
          # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:
-
             # remove directory
             shutil.rmtree(self.outdir)
 
@@ -208,6 +206,7 @@ class Scan:
                 zoom: 'Zoom',
                 use_multiprocessing=False):
 
+        # get scan start time
         scanstart = time.time()
 
         # run prescan
@@ -217,36 +216,15 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        all_scanners = self.run_check(npoints)
-
-        length = len(self.params.parnames)
-
-        scan = []
-        
-        #curr_opt = all_scanners[0].scanparser.getMaxPoint()
+        all_scanners = self.createScanners(npoints)
 
         for iter in range(niter):
 
-            for scans in all_scanners:
+            for scanner in all_scanners:
 
-                #scans.run(iter, use_multiprocessing)
+                scanner.run(iter, use_multiprocessing)
 
-                '''thresh = scans.scanparser.getMaxPoint() * 0.05
-
-                diff = abs(scans.scanparser.getMaxPoint() - curr_opt)
-
-                if diff <= thresh:
-                    break
-                
-                curr_opt = scans.scanparser.getMaxPoint()'''
-
-        
             ##### TODO: Add early stopping conditions
-            #all_optpoints.append(myscanner.optPoint.getVal(params_1[varname=]))
-        
-            ##### TODO: Add functionality to concatenate all outputs into a single large output
-
-        all_tsvs = []
 
         direct = self.outdir + "files"
 
@@ -264,7 +242,6 @@ class Scan:
         details = open(self.detailsname,"a")
         details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
         details.close()
-        
         return
     
     def combine_files(self, input_directory, output_directory):
@@ -297,30 +274,30 @@ class Scan:
                 
                 # Append output file to the list in the dictionary
                 output_files[last_digits].append(outputfile)
-            
-            # Optionally, delete input files after successful combination
-            # for inputfile in input_files:
-            #     os.remove(inputfile)
-            
+
+        # Error exceptions
         except FileNotFoundError:
-            print(f"Error: Directory '{input_directory}' not found.")
+            print(f"Error: A file was not found.")
         except IOError as e:
             print(f"Error: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
     
-    # Manipulations are done directly on files in input_directory and output_directory
-    # No explicit return value is needed
+    # Function that creates needed scanners
+    def createScanners(self, npoints):
 
-    def run_check(self, npoints):
+        # Dictionary that will hold the values of the parameters
         param_dict = {}
 
         # Populate param_dict with parameter information
         for par in self.params.parnames:
+
+            #Check if bimodal and get the current low and high values
             is_bimodal = self.prescanparser.isBimodal(par)
             min_val = self.params.low(par)
             max_val = self.params.high(par)
             
+            # Split the scanner if bimodal and assign proper values
             if is_bimodal:
                 mid_val = (min_val + max_val) / 2.0
                 param_dict[par] = [
@@ -330,13 +307,15 @@ class Scan:
             else:
                 param_dict[par] = [{'min': min_val, 'max': max_val}]
 
+        # List that holds parameter value combinations
         all_param_combinations = []
 
         # Generate all parameter combinations
-        for param_values in itertools.product(*param_dict.values()):
-            params_copy = copy.deepcopy(self.params)
-            param_combination_data = {}
+        for param_values in itertools.product(*param_dict.values()): # Itertools.product serves as a way to get combinations of values
+            params_copy = copy.deepcopy(self.params) # Manipulate data locally
+            param_combination_data = {} # Dictionary to hold all combinations of values
 
+            # Zip the names and values together, assigning the data to each parameter
             for par, values in zip(param_dict.keys(), param_values):
                 params_copy.setMin(par, values['min'])
                 params_copy.setMax(par, values['max'])
@@ -344,8 +323,10 @@ class Scan:
 
             all_param_combinations.append((params_copy, param_combination_data))
 
+        # List that holds all the scanners created
         all_scanners = []
 
+        # Distribute points to be scanned to each scanner, rounding to the nearest whole number and having at least 1 point per scanner
         points_per_scanner = max(npoints // len(all_param_combinations), 1)
 
         # Initialize scanners for each parameter combination
@@ -356,6 +337,7 @@ class Scan:
             if i == len(all_param_combinations) - 1:  # Ensure the last scanner gets any remaining points
                 points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
 
+            # Create the Scanner
             scanner = Scanner(
                 npoints=points,
                 params=params_copy,
@@ -370,22 +352,8 @@ class Scan:
             )
             all_scanners.append(scanner)
 
+        # Return list of all scanners
         return all_scanners
-
-def updateParams(all_params):
-
-    #Needs to be used dynamically - this is fixed 
-    for par in all_params.parnames:
-
-            p_min = all_params.low(par)
-            p_max = all_params.high(par)
-            p_mid = all_params.getMidPoint(p_min, p_max)
-
-            all_params.setMin(par, p_min)
-            all_params.setMax(par, p_mid)
-
-            all_params.printMinMax(par)
-
 
 def isValidDecay(decaymode):
 
@@ -468,7 +436,6 @@ class Scanner:
 
         # write new .ini file from template and parameters
         self.params.writeini(ininame)
-        #return
 
         # run ScannerS
         if use_multiprocessing:
@@ -622,7 +589,6 @@ if __name__ == "__main__":
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
-    
     args = argparser.parse_args()
 
     # create masses object
