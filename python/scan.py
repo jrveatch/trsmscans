@@ -146,7 +146,7 @@ class Scan:
         for par in self.params.parnames:
 
             # getting 1% of min and max from the model
-            one_percent = (self.params.model.max(par) - self.params.model.min(par)) / 100
+            one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
 
             # get min and max from prescan
             newMin = self.prescanparser.getMin(par)
@@ -400,7 +400,7 @@ class Scanner:
         self.optPoint = optPoint
         self.outdir = outdir
         self.label = label
-        self.modelname = params.model.name
+        self.modelname = params.model_name()
 
         # zoom rates
         self.zoom = zoom
