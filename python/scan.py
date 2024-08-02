@@ -23,7 +23,6 @@ from utils import tsvutils
 import copy
 import itertools 
 import glob
-from collections import defaultdict
 
 # class to organize and run a complete scan
 class Scan:
@@ -220,15 +219,21 @@ class Scan:
 
         for iter in range(niter):
 
+            # Have a way to differentiate active scanners and inactive scanners during each iteration
+            # If scanners are differentiated, maybe have different loops to only scan from active scanners
+            # Consider if having a seperate function to check for the maximum is best
+
+            # trial_stopping_condition() #### Figure out why function is not able to be used
+
             for scanner in all_scanners:
 
                 scanner.run(iter, use_multiprocessing)
 
             ##### TODO: Add early stopping conditions
-
+            
         direct = self.outdir + "files"
 
-        self.combine_files(direct, direct)
+        self.combine_files(direct)
 
         # get total scan time
         scanend = time.time()
@@ -244,18 +249,21 @@ class Scan:
         details.close()
         return
     
-    def combine_files(self, input_directory, output_directory):
+    def trial_stopping_condition(self):
+
+        # Use this function to distinguish between the maximums
+        curr_max = 10
+        return
+    
+    def combine_files(self, directory):
 
         try:
             # Ensure the output directory exists
-            if not os.path.exists(output_directory):
-                os.makedirs(output_directory)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
             
-            # Create a dictionary to store output files based on the last 4 digits
-            output_files = defaultdict(list)
-
             # List all .tsv files in the input directory
-            input_files = glob.glob(os.path.join(input_directory, "*.tsv"))
+            input_files = glob.glob(os.path.join(directory, "*.tsv"))
 
             # Sort files by filename to ensure the correct order
             input_files.sort()
@@ -266,14 +274,10 @@ class Scan:
                 basename = os.path.basename(inputfile)
                 last_digits = basename[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
                 
-
                 # Create output file path based on last 4 digits
-                outputfile = os.path.join(output_directory, f"Output_{last_digits}.tsv")
+                outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
                 # Save contents of current input file to respective output file
                 tsvutils.saveTSVOutput(inputfile, outputfile)
-                
-                # Append output file to the list in the dictionary
-                output_files[last_digits].append(outputfile)
 
         # Error exceptions
         except FileNotFoundError:
