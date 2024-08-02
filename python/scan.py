@@ -18,6 +18,11 @@ import runScannerS
 from masses import Masses
 import prescan
 from utils import fileutils
+from utils import tsvutils
+
+import copy
+import itertools 
+import glob
 
 # class to organize and run a complete scan
 class Scan:
@@ -28,7 +33,7 @@ class Scan:
                  decay,
                  maxwidth,
                  overwrite=False):
-
+        
         # store model name
         self.modelname = modelname
         
@@ -207,31 +212,31 @@ class Scan:
         # run prescan
         self.runPrescan(npoints=npoints,
                         use_multiprocessing=use_multiprocessing)
-
+        
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        # TODO: Need to find a optPoint for each scanner range
-        myscanner = Scanner(npoints=npoints,
-                            params=self.params,
-                            decay=self.decay,
-                            maxwidth=self.maxwidth,
-                            optPoint=self.optPoint,
-                            detailsname=self.detailsname,
-                            summaryname=self.summaryname,
-                            zoom=zoom,
-                            outdir=self.outdir,
-                            label="test")
+        all_scanners = self.create_scanners(npoints)
 
-        # run multiple scan iterations
         for iter in range(niter):
 
-            # run scanner
-            myscanner.run(iter,use_multiprocessing)
+            # Have a way to differentiate active scanners and inactive scanners during each iteration
+            # If scanners are differentiated, maybe have different loops to only scan from active scanners
+            # Consider if having a seperate function to check for the maximum is best
+
+            # trial_stopping_condition() #### Figure out why function is not able to be used
+
+            for scanner in all_scanners:
+
+                scanner.run(iter, use_multiprocessing)
 
             ##### TODO: Add early stopping conditions
+            
+        # Initialize directory where tsv files exist
+        file_directory = self.outdir + "files"
 
-            ##### TODO: Add functionality to concatenate all outputs into a single large output
+        # Combine all the tsvs depending on their iteration (multiple scanners create multiple tsvs/iteration)
+        self.combine_files(file_directory)
 
         # get total scan time
         scanend = time.time()
@@ -245,8 +250,117 @@ class Scan:
         details = open(self.detailsname,"a")
         details.write("Scan took "+str(datetime.timedelta(seconds=int(scantime)))+" (hh:mm:ss)")
         details.close()
-
         return
+    
+    def trial_stopping_condition(self):
+
+        # Use this function to distinguish between the maximums
+        curr_max = 10
+        return
+    
+    def combine_files(self, directory):
+
+        try:
+            # Ensure the directory exists
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            
+            # List all .tsv files in the input directory
+            input_files = glob.glob(os.path.join(directory, "*.tsv"))
+
+            # Sort files by filename to ensure the correct order
+            input_files.sort()
+            
+            # Iterate over input files in the correct order
+            for inputfile in input_files:
+                # Extract last 4 digits from the filename
+                basename = os.path.basename(inputfile)
+                last_digits = basename[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
+
+                # Create output file path based on last 4 digits
+                outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
+                # Save contents of current input file to respective output file
+                tsvutils.saveTSVOutput(inputfile, outputfile)
+
+        # Error exceptions
+        except FileNotFoundError:
+            print(f"Error: A file was not found.")
+        except IOError as e:
+            print(f"Error: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+    
+    # Function that creates needed scanners
+    def create_scanners(self, npoints):
+
+        # Dictionary that will hold the values of the parameters
+        param_dict = {}
+
+        # Populate param_dict with parameter information
+        for par in self.params.parnames:
+
+            #Check if bimodal and get the current low and high values
+            is_bimodal = self.prescanparser.isBimodal(par)
+            min_val = self.params.low(par)
+            max_val = self.params.high(par)
+            
+            # Split the scanner if bimodal and assign proper values
+            if is_bimodal:
+                mid_val = (min_val + max_val) / 2.0
+                param_dict[par] = [
+                    {'min': min_val, 'max': mid_val},
+                    {'min': mid_val, 'max': max_val}
+                ]
+            else:
+                param_dict[par] = [{'min': min_val, 'max': max_val}]
+
+        # List that holds parameter value combinations
+        all_param_combinations = []
+
+        # Generate all parameter combinations
+        for param_values in itertools.product(*param_dict.values()): # Itertools.product serves as a way to get combinations of values
+            params_copy = copy.deepcopy(self.params) # Manipulate data locally
+            param_combination_data = {} # Dictionary to hold all combinations of values
+
+            # Zip the names and values together, assigning the data to each parameter
+            for par, values in zip(param_dict.keys(), param_values):
+                params_copy.setMin(par, values['min'])
+                params_copy.setMax(par, values['max'])
+                param_combination_data[par] = values
+
+            all_param_combinations.append((params_copy, param_combination_data))
+
+        # List that holds all the scanners created
+        all_scanners = []
+
+        # Distribute points to be scanned to each scanner, rounding to the nearest whole number and having at least 1 point per scanner
+        points_per_scanner = max(npoints // len(all_param_combinations), 1)
+
+        # Initialize scanners for each parameter combination
+        for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
+
+            # Distribute points among scanners
+            points = points_per_scanner
+            if i == len(all_param_combinations) - 1:  # Ensure the last scanner gets any remaining points
+                points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
+
+            # Create the Scanner
+            scanner = Scanner(
+                npoints=points,
+                params=params_copy,
+                decay=self.decay,
+                maxwidth=self.maxwidth,
+                optPoint=self.optPoint,
+                detailsname=self.detailsname,
+                summaryname=self.summaryname,
+                zoom=zoom,
+                outdir=self.outdir,
+                label=f'Configuration-{i}'
+            )
+            all_scanners.append(scanner)
+
+        # Return list of all scanners
+        return all_scanners
 
 def isValidDecay(decaymode):
 
