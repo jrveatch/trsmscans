@@ -7,6 +7,7 @@ import time
 import datetime
 import argparse
 import numpy as np
+import math
 
 # import decimal
 from decimal import Decimal
@@ -200,6 +201,7 @@ class Scan:
                 npoints,
                 niter,
                 zoom: 'Zoom',
+                percentile,
                 use_multiprocessing=False):
 
         # get scan start time
@@ -221,6 +223,7 @@ class Scan:
                             detailsname=self.detailsname,
                             summaryname=self.summaryname,
                             zoom=zoom,
+                            percentile=percentile,
                             outdir=self.outdir,
                             label="test")
 
@@ -281,6 +284,7 @@ class Scanner:
                  npoints,
                  optPoint: 'Point',
                  zoom: 'Zoom',
+                 percentile,
                  outdir,
                  label=""):
 
@@ -295,6 +299,7 @@ class Scanner:
         self.outdir = outdir
         self.label = label
         self.modelname = params.model_name()
+        self.percentile = percentile
 
         # zoom rates
         self.zoom = zoom
@@ -438,23 +443,34 @@ class Scanner:
             summary.write("\n")
             summary.close()
 
-        
+        # get paramaters to use for zooming in
         paramArrays = self.scanparser.getParameters()
 
-        xb_array = self.scanparser.getXB()
-        percentile = 98 # test new values (ex: 95, 90)
-        threshold = np.percentile(xb_array, percentile)
+        # minimum amount of points that need to be looked at before zooming in
+        min_points = 10
+        percentile_threshold = self.percentile
 
+        # get an array of xb results
+        xb_array = self.scanparser.getXB()
+
+        # ensure min_points are looked
+        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+
+        # create a threshold to look at the top 5% of xb points
+        threshold = np.percentile(xb_array, percentile_threshold)
+
+        # dictionaries to update low and high in parameters
         lowdict = {}
         highdict = {}
 
+        # save params arrays where xb_array is the top 5%
         for param, values in paramArrays.items():
             new_array = values[xb_array > threshold]
             lowdict[param] = new_array.min()
             highdict[param] = new_array.max()
 
-        # use plot
-
+        # update low and high using dictionaries
         self.params.updateLowHigh(lowdict, highdict)
 
         # TODO: reinclude old scaling as an alternative
@@ -470,9 +486,10 @@ class Scanner:
         #volumeRatio = volumeNew/volume
 
         # step down npoints
-        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate)) # test without
-        VolumeRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * VolumeRatio * (1.0 + self.zoom.densityRate))
+        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+        
+        heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * heightRatio * (1.0 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -503,9 +520,10 @@ if __name__ == "__main__":
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow") # test
+    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    argparser.add_argument("-p", "--percentile", default=95, type=int, help="Percentile cut for zooming in")
     args = argparser.parse_args()
 
     # create masses object
@@ -526,4 +544,5 @@ if __name__ == "__main__":
     myScan.runScan(npoints=args.npoints,
                    niter=args.iterations,
                    zoom=zoom,
+                   percentile=args.percentile,
                    use_multiprocessing=args.multiprocessing)
