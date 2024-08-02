@@ -33,6 +33,7 @@ class Scan:
                  decay,
                  maxwidth,
                  overwrite=False):
+        
         # store model name
         self.modelname = modelname
         
@@ -215,7 +216,7 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        all_scanners = self.createScanners(npoints)
+        all_scanners = self.create_scanners(npoints)
 
         for iter in range(niter):
 
@@ -231,9 +232,11 @@ class Scan:
 
             ##### TODO: Add early stopping conditions
             
-        direct = self.outdir + "files"
+        # Initialize directory where tsv files exist
+        file_directory = self.outdir + "files"
 
-        self.combine_files(direct)
+        # Combine all the tsvs depending on their iteration (multiple scanners create multiple tsvs/iteration)
+        self.combine_files(file_directory)
 
         # get total scan time
         scanend = time.time()
@@ -258,7 +261,7 @@ class Scan:
     def combine_files(self, directory):
 
         try:
-            # Ensure the output directory exists
+            # Ensure the directory exists
             if not os.path.exists(directory):
                 os.makedirs(directory)
             
@@ -273,7 +276,7 @@ class Scan:
                 # Extract last 4 digits from the filename
                 basename = os.path.basename(inputfile)
                 last_digits = basename[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
-                
+
                 # Create output file path based on last 4 digits
                 outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
                 # Save contents of current input file to respective output file
@@ -288,7 +291,7 @@ class Scan:
             print(f"Unexpected error: {e}")
     
     # Function that creates needed scanners
-    def createScanners(self, npoints):
+    def create_scanners(self, npoints):
 
         # Dictionary that will hold the values of the parameters
         param_dict = {}
