@@ -79,7 +79,7 @@ def runPrescan(masses: 'Masses',
     params = Params(modelname,masses)
 
     # write .ini file from template
-    params.writeini(ininame)
+    params.write_ini(ininame)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting > 0:
