@@ -3,8 +3,8 @@
 import argparse
 import numpy as np
 
-import width
-import bounds
+from utils import width
+from utils import bounds
 from utils import tsvutils
 from arrays import Arrays
 from masses import Masses
@@ -20,10 +20,10 @@ def applyFilters(filename,
     initializeFilters(filename)
 
     # apply width filter
-    nwidth = width.filterwidths(filename,maxwidth)
+    nwidth = width.filter_widths(filename,maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filterbounds(filename,masses)
+    nbounds = bounds.filter_bounds(filename,masses)
 
     # get arrays from output file
     arrs = Arrays(filename)

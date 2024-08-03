@@ -5,14 +5,12 @@ from twors_higgstools_setup import *
 from arrays import Arrays
 from utils import tsvutils
 
-import argparse
-
 from masses import Masses
 
 # TODO: Make this work for other models
-def filterbounds(filename,
-                 masses: Masses,
-                 debug=False):
+def filter_bounds(filename: str,
+                  masses: Masses,
+                  debug = False) -> int:
 
     # get data and tools
     bounds, signals = getHiggsData()
@@ -330,19 +328,3 @@ def filterbounds(filename,
     # number of entries that pass
     npass = filt_bounds.sum()
     return npass
-
-# filter a .tsv file if called as a standalone script
-if __name__ == "__main__":
-
-    # parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-f", "--filename", required=True, help="Name of tsvfile to run over")
-    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    args = argparser.parse_args()
-
-    # create masses
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
-
-    filterbounds(filename=args.filename,masses=masses,debug=True)
