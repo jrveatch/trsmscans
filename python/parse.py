@@ -248,7 +248,7 @@ class Parse:
         self.parArrays = {}
 
         # loop over parameters
-        for name, par in self.model.model_parameters().items():
+        for name, par in self.model.parameters().items():
             # populate dictionary of parameter arrays
             self.parArrays[name] = self.arr.data[par['fullname']][self.filters != 0]
 
@@ -332,7 +332,7 @@ class Point:
         # otherwise create default dictionary from model
         else:
             # get list of parameters from model
-            parlist = self.model.model_parameter_names()
+            parlist = self.model.parameter_names()
 
             # loop over list of parameters and make default dictionary
             for par in parlist:
@@ -365,11 +365,11 @@ class Point:
     
     # get formatted string of parameter
     def formatParam(self, parname):
-        return "value = " + f"{self.getVal(parname):1.{self.model.model_parameter(parname)['precision']}f}"
+        return "value = " + f"{self.getVal(parname):1.{self.model.parameter(parname)['precision']}f}"
     
     # get formatted string of parameter diff w.r.t. another point
     def formatDiff(self, other: 'Point', parname):
-        return "diff. = " + f"{self.diff(other,parname):1.{self.model.model_parameter(parname)['precision']}f}"
+        return "diff. = " + f"{self.diff(other,parname):1.{self.model.parameter(parname)['precision']}f}"
     
     # get formatted string of parameter fractional diff w.r.t. another point
     def formatDiffFrac(self, other: 'Point', parname):

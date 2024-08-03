@@ -22,12 +22,12 @@ class Params:
         self.__model = Model(modelname)
 
         # get list of parameter names
-        self.parnames = self.__model.model_parameter_names()
+        self.parnames = self.__model.parameter_names()
 
         # create dictionary of parameters
         self.parameters = {}
         for par in self.parnames:
-            self.parameters[par] = Parameter(par,self.__model.model_parameter(par))
+            self.parameters[par] = Parameter(par,self.__model.parameter(par))
 
     # get starting min value from model
     def starting_min(self,parname) -> float:
@@ -39,7 +39,7 @@ class Params:
     
     # get model name
     def model_name(self) -> str:
-        return self.__model.model_name()
+        return self.__model.name()
 
     # functions to set min and max values
     # if the current high or low values are beyond
