@@ -1,6 +1,6 @@
 
 # import model class to initialize Point class
-from model import Model
+from utils.model import Model
 
 # import decimal class for nicely formatted strings
 from decimal import Decimal

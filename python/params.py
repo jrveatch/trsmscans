@@ -1,6 +1,6 @@
 
 from masses import Masses
-from model import Model
+from utils.model import Model
 from utils.point import Point
 
 from typing import Optional, Dict

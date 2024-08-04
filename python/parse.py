@@ -21,7 +21,7 @@ import math
 from masses import Masses
 
 # import model class to initialize Point class
-from model import Model
+from utils.model import Model
 
 # class to parse arrays and provide details about data
 class Parse:

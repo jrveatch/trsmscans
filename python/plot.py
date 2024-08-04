@@ -9,7 +9,7 @@ import parse
 import argparse
 from utils import fileutils
 from masses import Masses
-from model import Model
+from utils.model import Model
 
 # Plot class
 class Plot:
