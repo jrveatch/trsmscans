@@ -26,14 +26,14 @@ def applyFilters(filename,
     nbounds = bounds.filter_bounds(filename,masses)
 
     # get arrays from output file
-    arrs = Arrays(filename)
-    arrs.loadArrays()
+    arrays = Arrays(filename)
+    arrays.load_arrays()
 
     # find how many points pass both filters
-    filt_width = arrs.data[header_width]
-    filt_bounds = arrs.data[header_bounds]
+    filt_width = arrays.data(header_width)
+    filt_bounds = arrays.data(header_bounds)
     filt_total = np.multiply(filt_width,filt_bounds)
-    npass = filt_total.sum()
+    npass: int = filt_total.sum()
 
     # return numbers of events passing each filter
     return nwidth, nbounds, npass

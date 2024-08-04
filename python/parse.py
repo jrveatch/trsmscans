@@ -1,9 +1,15 @@
 
 # import numpy library as np
 import numpy as np
+from numpy.typing import NDArray
+
+from typing import Dict
 
 # import list of arrays
-import arrays
+from arrays import Arrays
+
+# import point
+from utils.point import Point
 
 # import dip test for unimodality
 import diptest
@@ -17,18 +23,15 @@ from masses import Masses
 # import model class to initialize Point class
 from model import Model
 
-# import decimal class for nicely formatted strings
-from decimal import Decimal
-
 # class to parse arrays and provide details about data
 class Parse:
 
     # load new set of arrays
     def __init__(self,
                  masses: Masses,
-                 decay,
-                 modelname,
-                 filename = ""):
+                 decay: str,
+                 modelname: str,
+                 filename: str = ""):
         
         # initialize model name
         self.modelname = modelname
@@ -43,34 +46,33 @@ class Parse:
         # initialize decay mode
         self.decay = decay
 
+        # initialize dictionary of parameter arrays
+        self.__par_arrays: Dict[str,NDArray] = {}
+
         # get arrays if filename is provided
         if filename:
-            self.readFile(filename)
+            self.read_file(filename)
 
     # load new arrays
-    def readFile(self,filename):
+    def read_file(self,filename):
 
         # create arrays object if it does not exist
-        if not hasattr(self,"arr"):
-            self.arr = arrays.Arrays(filename)
+        if not hasattr(self,"arrays"):
+            self.arrays = Arrays(filename)
 
         # load arrays from new file if arrays object already exists
         else:
-            self.arr.loadArrays(filename)
+            self.arrays.load_arrays(filename)
 
         # get arrays masked by filters
-        self.getFilteredArrays()
-
-    # get the arrays
-    def getArrays(self):
-        return self.arr
+        self.get_filtered_arrays()
 
     # get arrays of the filters
-    def getFilters(self):
-        self.filters = np.multiply(self.arr.data['filt_width'],self.arr.data['filt_bounds'])
+    def set_filters(self) -> None:
+        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'))
 
     # find the point that maximizes xb
-    def getMaxPoint(self):
+    def get_max_point(self) -> 'Point':
 
         # get index of maximum xsec times BR
         maxidx = np.argmax(self.xb)
@@ -82,26 +84,27 @@ class Parse:
         self.maxDict = {}
 
         # loop over parameter arrays
-        for par, array in self.parArrays.items():
+        for par, array in self.__par_arrays.items():
             self.maxDict[par] = array[maxidx]
 
         # return a point object holding xb and other parameters
-        return Point(xb=maxxb,
-                     modelname=self.modelname,
-                     parvals=self.maxDict)
+        return Point(xb = maxxb,
+                     modelname = self.modelname,
+                     parvals = self.maxDict)
 
     # get the maximum xb
-    def getXB(self,decay=""):
+    def get_xb(self,
+               decay: str = "") -> NDArray:
 
         # if no decay mode is provided, use stored decay mode
         if not decay:
             decay = self.decay
 
         # get production cross section
-        xb_prod = self.getXBProd()
+        xb_prod = self.get_xb_prod()
 
         # get branching ratio
-        xb_decay = self.getXBDecay(decay)
+        xb_decay = self.get_xb_decay(decay)
 
         # get total xsec times BR
         xb = np.multiply(xb_prod,xb_decay)
@@ -110,7 +113,7 @@ class Parse:
         return xb
 
     # get maximum xb for the production
-    def getXBProd(self):
+    def get_xb_prod(self) -> NDArray:
 
         # TODO: take decay as argument for other production modes
 
@@ -120,7 +123,8 @@ class Parse:
         return xb_prod
 
     # get maximum xb for the decay
-    def getXBDecay(self,decay=""):
+    def get_xb_decay(self,
+                     decay: str = "") -> NDArray:
 
         # if no decay mode is provided, use stored decay mode
         if not decay:
@@ -223,58 +227,57 @@ class Parse:
         return xb_decay
 
     # get minimum value of a parameter
-    def getMin(self,varname):
-        return np.min(self.parArrays[varname])
+    def get_min(self,
+                varname: str) -> float:
+        return np.min(self.__par_arrays[varname])
 
     # get maximum value of a parameter
-    def getMax(self,varname):
-        return np.max(self.parArrays[varname])
+    def get_max(self,
+                varname: str) -> float:
+        return np.max(self.__par_arrays[varname])
     
     # get arrays of all parameter as a dictionary
-    def getParameters(self):
-        return self.parArrays
+    def get_parameter_arrays(self) -> Dict[str,NDArray]:
+        return self.__par_arrays
 
     # apply filters as mask
-    def getFilteredArrays(self):
+    def get_filtered_arrays(self):
         
         # get array of filters to use as a mask
-        self.getFilters()
+        self.set_filters()
 
         ##############################
         # create local arrays by applying filter mask
         ##############################
 
-        # dictionary for parameter arrays
-        self.parArrays = {}
-
         # loop over parameters
         for name, par in self.model.parameters().items():
             # populate dictionary of parameter arrays
-            self.parArrays[name] = self.arr.data[par['fullname']][self.filters != 0]
+            self.__par_arrays[name] = self.arrays.data(par['fullname'])[self.filters != 0]
 
         # H1 xsec and BR values
-        self.b_H_bb = self.arr.data['b_'+self.HName+'_bb'][self.filters != 0]
-        self.b_H_tautau = self.arr.data['b_'+self.HName+'_tautau'][self.filters != 0]
-        self.b_H_WW = self.arr.data['b_'+self.HName+'_WW'][self.filters != 0]
-        self.b_H_ZZ = self.arr.data['b_'+self.HName+'_ZZ'][self.filters != 0]
-        self.b_H_gamgam = self.arr.data['b_'+self.HName+'_gamgam'][self.filters != 0]
+        self.b_H_bb = self.arrays.data('b_'+self.HName+'_bb')[self.filters != 0]
+        self.b_H_tautau = self.arrays.data('b_'+self.HName+'_tautau')[self.filters != 0]
+        self.b_H_WW = self.arrays.data('b_'+self.HName+'_WW')[self.filters != 0]
+        self.b_H_ZZ = self.arrays.data('b_'+self.HName+'_ZZ')[self.filters != 0]
+        self.b_H_gamgam = self.arrays.data('b_'+self.HName+'_gamgam')[self.filters != 0]
 
         # H2 xsec and BR values
-        self.b_S_bb = self.arr.data['b_'+self.SName+'_bb'][self.filters != 0]
-        self.b_S_tautau = self.arr.data['b_'+self.SName+'_tautau'][self.filters != 0]
-        self.b_S_WW = self.arr.data['b_'+self.SName+'_WW'][self.filters != 0]
-        self.b_S_ZZ = self.arr.data['b_'+self.SName+'_ZZ'][self.filters != 0]
-        self.b_S_gamgam = self.arr.data['b_'+self.SName+'_gamgam'][self.filters != 0]
+        self.b_S_bb = self.arrays.data('b_'+self.SName+'_bb')[self.filters != 0]
+        self.b_S_tautau = self.arrays.data('b_'+self.SName+'_tautau')[self.filters != 0]
+        self.b_S_WW = self.arrays.data('b_'+self.SName+'_WW')[self.filters != 0]
+        self.b_S_ZZ = self.arrays.data('b_'+self.SName+'_ZZ')[self.filters != 0]
+        self.b_S_gamgam = self.arrays.data('b_'+self.SName+'_gamgam')[self.filters != 0]
 
         # H3 xsec and BR values
-        self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
-        self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
+        self.x_X_gg = self.arrays.data('x_H3_gg')[self.filters != 0]
+        self.b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
 
         # cross-section times branching ratio
-        self.xb = self.getXB()
+        self.xb = self.get_xb()
 
     # function that checks whether xb is unimodal in a parameter
-    def isBimodal(self,param_name):
+    def is_bimodal(self,param_name):
 
         # percentile threshold for xb
         percentile_threshold = 98
@@ -297,7 +300,7 @@ class Parse:
         threshold_value = np.percentile(self.xb, percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.parArrays[param_name][self.xb > threshold_value] 
+        param_selected = self.__par_arrays[param_name][self.xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -310,75 +313,3 @@ class Parse:
             return True
         else:
             return False
-
-# class that holds parameter and xb values for a single point
-class Point:
-
-    # initialize point parameters
-    def __init__(self,
-                 modelname,
-                 parvals={},
-                 xb=0.0):
-        
-        # get model
-        self.model = Model(modelname)
-
-        # initialize empty dictionary
-        self.parvals = {}
-
-        # if parvals exists, store it
-        if parvals:
-            self.parvals = parvals
-        # otherwise create default dictionary from model
-        else:
-            # get list of parameters from model
-            parlist = self.model.parameter_names()
-
-            # loop over list of parameters and make default dictionary
-            for par in parlist:
-                self.parvals[par] = 0.0
-
-        # store xb value
-        self.xb = xb
-
-    # wrapper function to get attribute
-    def getVal(self,varname):
-        # if xb is requested, return it
-        if varname == "xb":
-            return self.xb
-        # otherwise return value from parvals
-        else:
-            return self.parvals[varname]
-
-    # get difference between two values of varname
-    def diff(self, other: 'Point', parname):
-        return self.getVal(parname) - other.getVal(parname)
-
-    # get fractional difference between two values of varname
-    # TODO: Add divide-by-zero protection
-    def diffFrac(self, other: 'Point', parname):
-        return self.diff(other,parname) / abs(self.getVal(parname))
-    
-    # get formatted string of xb
-    def formatXB(self):
-        return f"{Decimal(self.xb):.3E}"
-    
-    # get formatted string of parameter
-    def formatParam(self, parname):
-        return "value = " + f"{self.getVal(parname):1.{self.model.parameter(parname)['precision']}f}"
-    
-    # get formatted string of parameter diff w.r.t. another point
-    def formatDiff(self, other: 'Point', parname):
-        return "diff. = " + f"{self.diff(other,parname):1.{self.model.parameter(parname)['precision']}f}"
-    
-    # get formatted string of parameter fractional diff w.r.t. another point
-    def formatDiffFrac(self, other: 'Point', parname):
-        return "rel. diff. = " + f"{self.diffFrac(other,parname):1.2f}"
-
-    # define the greater than (>) operator
-    def __gt__(self,other: 'Point'):
-        return self.xb > other.xb
-
-    # define the less than (<) operator
-    def __lt__(self,other: 'Point'):
-        return self.xb < other.xb

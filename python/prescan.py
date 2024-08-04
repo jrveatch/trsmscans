@@ -28,7 +28,8 @@ def runPrescan(masses: 'Masses',
     scanstart = time.time()
 
     # directory where we want the output to go
-    outdir = fileutils.prescanDir(modelname=modelname,masses=masses)
+    outdir = fileutils.prescan_dir(modelname=modelname,
+                                   masses=masses)
 
     # names of .ini and .tsv files
     ininame = outdir + modelname + ".ini"

@@ -11,7 +11,8 @@ import argparse
 from decimal import Decimal
 
 # import tools
-from parse import Parse, Point
+from parse import Parse
+from utils.point import Point
 from params import Params
 import filters
 import runScannerS
@@ -53,13 +54,16 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(modelname,masses)
+        self.params = Params(modelname=modelname,
+                             masses=masses)
 
         # make dummy optimal point
         self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
-        self.outdir = fileutils.scanDir(modelname=modelname,decay=decay,masses=masses)
+        self.outdir = fileutils.scan_dir(modelname=modelname,
+                                         decay=decay,
+                                         masses=masses)
 
          # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:
@@ -101,7 +105,8 @@ class Scan:
             nprescan = npoints
 
         # location of prescan outputs
-        prescantsv = fileutils.prescanTSV(modelname=self.modelname,masses=self.masses)
+        prescantsv = fileutils.prescan_tsv(modelname=self.modelname,
+                                           masses=self.masses)
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
@@ -149,8 +154,8 @@ class Scan:
             one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
 
             # get min and max from prescan
-            newMin = self.prescanparser.getMin(par)
-            newMax = self.prescanparser.getMax(par)
+            newMin = self.prescanparser.get_min(par)
+            newMax = self.prescanparser.get_max(par)
 
             # check min value
             if newMin - one_percent > self.params.min(par):
@@ -167,7 +172,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.getMaxPoint()
+        self.optPoint = self.prescanparser.get_max_point()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
@@ -175,11 +180,11 @@ class Scan:
         details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("Max xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
         for par in self.params.parnames():
             details.write(par+":\n")
-            details.write("  "+self.optPoint.formatParam(par)+"\n")
+            details.write("  "+self.optPoint.format_param(par)+"\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
         details.write("--------------------\n")
         details.write("\n\n")
@@ -188,9 +193,9 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summaryname,"a")
         summary.write("Pre")
-        summary.write(" " + self.optPoint.formatXB())
+        summary.write(" " + self.optPoint.format_xb())
         for name, par in self.params.parameters().items():
-            summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision()}f}")
+            summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
         summary.write("\n")
         summary.close()
 
@@ -300,7 +305,7 @@ class Scan:
         for par in self.params.parnames():
 
             #Check if bimodal and get the current low and high values
-            is_bimodal = self.prescanparser.isBimodal(par)
+            is_bimodal = self.prescanparser.is_bimodal(par)
             min_val = self.params.low(par)
             max_val = self.params.high(par)
             
@@ -490,10 +495,10 @@ class Scanner:
             return
         
         # read output tsv into parser
-        self.scanparser.readFile(filename=tsvname)
+        self.scanparser.read_file(filename=tsvname)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.getMaxPoint()
+        newPoint = self.scanparser.get_max_point()
 
         # flag to indicate whether optimal point needs to be updated
         update = False
@@ -524,17 +529,17 @@ class Scanner:
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
         details.write("--------------------\n")
-        details.write("Found new max xsec*BR = " + newPoint.formatXB() + "\n")
+        details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
         for par in self.params.parnames():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:
-                details.write("  new optimal "+self.optPoint.formatParam(par)+"\n")
-                details.write("  "+self.optPoint.formatDiff(optPointOld,par)+"\n")
-                details.write("  "+self.optPoint.formatDiffFrac(optPointOld,par)+"\n")
+                details.write("  new optimal "+self.optPoint.format_param(par)+"\n")
+                details.write("  "+self.optPoint.format_diff(optPointOld,par)+"\n")
+                details.write("  "+self.optPoint.format_diff_frac(optPointOld,par)+"\n")
         details.write("--------------------\n")
         details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
         details.write("\n\n")
@@ -545,9 +550,9 @@ class Scanner:
             # write scan results to summary file
             summary = open(self.summaryname,"a")
             summary.write(identifier)
-            summary.write(" " + self.optPoint.formatXB())
-            for name, par in self.params.parameters.items():
-                summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision}f}")
+            summary.write(" " + self.optPoint.format_xb())
+            for name, par in self.params.parameters().items():
+                summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
             summary.write("\n")
             summary.close()
 

@@ -1,53 +1,68 @@
 
-# import numpy library as np
 import numpy as np
+from numpy.typing import NDArray
 import random
 from io import StringIO
+from typing import List
 
 class Arrays:
 
-    def __init__(self,filename):
+    def __init__(self,
+                 filename: str):
 
         # store filename
-        self.filename = filename
+        self.__filename = filename
+    
+        # empty headers list
+        self.__headers: List[str] = []
+
+        # empty array data
+        self.__data: NDArray = None
 
         # load tsv column headers
-        self.loadHeaders()
+        self.load_headers()
 
         # load tsv data into arrays
-        self.loadArrays()
+        self.load_arrays()
+
+    # get array data
+    def data(self,
+             column: str = "") -> NDArray:
+        if column:
+            return self.__data[column]
+        else:
+            return self.__data
 
     # load tsv column headers into a list
-    def loadHeaders(self):
-        
-        # empty headers list
-        self.headers = []
+    def load_headers(self) -> None:
 
         # read column headers into list
-        with open(self.filename,'r') as file:
+        with open(self.__filename,'r') as file:
             header_line = file.readline().strip()
-            self.headers = header_line.split('\t')
+            self.__headers = header_line.split('\t')
 
         # make sure first column has 'idx' as header
-        if self.headers[0] != 'idx':
-            self.headers.insert(0, 'idx')
+        if self.__headers[0] != 'idx':
+            self.__headers.insert(0, 'idx')
 
-    def getHeaders(self):
-        return self.headers
+    def get_headers(self) -> List[str]:
+        return self.__headers
 
     # load tsv columns into a numpy array
-    def loadArrays(self,filename="", num_lines=-1):
+    def load_arrays(self,
+                    filename: str = "",
+                    num_lines: int = -1) -> None:
 
         # if a new filename is provided, store it as class object
         if filename:
-            self.filename = filename
+            self.__filename = filename
 
         # if headers have not be loaded, load them now
-        if not self.headers:
+        if not self.__headers:
             print("Headers were not loaded, loading now")
-            self.loadHeaders()
+            self.load_headers()
 
-        with open(self.filename, 'r') as f:
+        with open(self.__filename, 'r') as f:
             _ = f.readline()
             lines = f.readlines()
 
@@ -55,28 +70,32 @@ class Arrays:
             selected_lines = random.sample(lines, num_lines)
             selected_lines_str = ''.join(selected_lines)
 
-            self.data = np.genfromtxt(StringIO(selected_lines_str), delimiter='\t', dtype=None, names=self.headers, encoding=None)
+            self.__data = np.genfromtxt(StringIO(selected_lines_str), delimiter='\t', dtype=None, names=self.__headers, encoding=None)
         else:
             # create numpy array from the tsv
-            self.data = np.genfromtxt(self.filename, delimiter='\t', dtype=None, names=self.headers, encoding=None, skip_header=1)
+            self.__data = np.genfromtxt(self.__filename, delimiter='\t', dtype=None, names=self.__headers, encoding=None, skip_header=1)
 
     # get an array
-    def getArray(self,arr_name):
-        return self.data[arr_name]
+    def get_array(self,
+                  arr_name: str) -> NDArray:
+        return self.__data[arr_name]
     
     # get all arrays
-    def getArraysAll(self):
-        return self.data
+    def get_all_arrays(self) -> NDArray:
+        return self.__data
 
     # set the values of an array
-    def setArray(self,arr_name,new_array):
-        self.data[arr_name] = new_array
+    def set_array(self,
+                 arr_name: str,
+                 new_array: NDArray) -> None:
+        self.__data[arr_name] = new_array
 
     # write arrays to a new file
-    def writeFile(self,filename):
+    def write_file(self,
+                   filename: str) -> None:
         # open output file
         with open(filename,'w') as f:
             # write headers
-            f.write('\t'.join(self.headers) + '\n')
+            f.write('\t'.join(self.__headers) + '\n')
             # write data
-            np.savetxt(f, self.data, delimiter='\t', fmt='%s')
+            np.savetxt(f, self.__data, delimiter='\t', fmt='%s')

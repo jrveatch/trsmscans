@@ -1,7 +1,7 @@
 
 from masses import Masses
 from model import Model
-from parse import Point
+from utils.point import Point
 
 from typing import Optional, Dict
 
@@ -107,7 +107,7 @@ class Params:
 
             # if new point is provided, get new value from it
             if newPoint:
-                newVal = newPoint.getVal(parname)
+                newVal = newPoint.get_val(parname)
 
             # update parameter with new value and range scale
             self.__parameters[parname].update_param(newVal=newVal,

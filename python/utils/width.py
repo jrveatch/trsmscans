@@ -17,12 +17,12 @@ def filter_widths(filename: str,
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)
-    arrs.loadArrays()
+    arrs.load_arrays()
 
     # get arrays of widths
-    width_H1 = np.divide(arrs.getArray('w_H1'),arrs.getArray('mH1'))
-    width_H2 = np.divide(arrs.getArray('w_H2'),arrs.getArray('mH2'))
-    width_H3 = np.divide(arrs.getArray('w_H3'),arrs.getArray('mH3'))
+    width_H1 = np.divide(arrs.get_array('w_H1'),arrs.get_array('mH1'))
+    width_H2 = np.divide(arrs.get_array('w_H2'),arrs.get_array('mH2'))
+    width_H3 = np.divide(arrs.get_array('w_H3'),arrs.get_array('mH3'))
 
     # check whether each width is below the maxwidth
     mask1 = width_H1 < maxwidth
@@ -36,10 +36,10 @@ def filter_widths(filename: str,
     filt_width = mask.astype(int)
 
     # overwrite filt_width array with new array
-    arrs.setArray('filt_width',filt_width)
+    arrs.set_array('filt_width',filt_width)
 
     # write new data to file
-    arrs.writeFile(filename)
+    arrs.write_file(filename)
 
     # number of entries that pass
     npass = filt_width.sum()
