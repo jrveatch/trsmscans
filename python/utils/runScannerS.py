@@ -14,10 +14,10 @@ import argparse
 def runScannerS(ininame: str,
                 npoints: int,
                 modelname: str,
-                njobs=-1) -> int:
+                use_multiprocessing: bool) -> int:
 
-    # if only one process needed, just use subprocess
-    if njobs == 1:
+    # if only one process needed, use subprocess
+    if not use_multiprocessing:
         return runSingleProcess(ininame=ininame,
                                 npoints=npoints,
                                 modelname=modelname)
@@ -26,8 +26,7 @@ def runScannerS(ininame: str,
     else:
         return runParallelProcesses(ininame=ininame,
                                     npoints=npoints,
-                                    modelname=modelname,
-                                    njobs=njobs)
+                                    modelname=modelname)
 
 # run job as a single process
 def runSingleProcess(ininame: str,

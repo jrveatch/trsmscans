@@ -15,7 +15,7 @@ from parse import Parse
 from utils.point import Point
 from params import Params
 import filters
-import runScannerS
+from utils.runScannerS import runScannerS
 from masses import Masses
 import prescan
 from utils import fileutils
@@ -450,16 +450,10 @@ class Scanner:
         self.params.write_ini(ininame)
 
         # run ScannerS
-        if use_multiprocessing:
-            print("Using multiprocessing")
-            self.npoints = runScannerS.runParallelProcesses(ininame=ininame,
-                                                            modelname=self.modelname,
-                                                            npoints=self.npoints)
-        else:
-            print("Using single processing")
-            self.npoints = runScannerS.runSingleProcess(ininame=ininame,
-                                                        modelname=self.modelname,
-                                                        npoints=self.npoints)
+        self.npoints = runScannerS(ininame=ininame,
+                                   modelname=self.modelname,
+                                   npoints=self.npoints,
+                                   use_multiprocessing=use_multiprocessing)
 
         # TODO: Figure out what to do if process returns negative value
 

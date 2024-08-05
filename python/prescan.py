@@ -10,7 +10,7 @@ import argparse
 
 # import package tools
 import filters
-import runScannerS
+from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
 from params import Params
@@ -120,14 +120,10 @@ def runPrescan(masses: 'Masses',
             points_to_run = npoints - points_done
 
         # run ScannerS for the next set of points
-        if use_multiprocessing:
-            result = runScannerS.runParallelProcesses(ininame=ininame,
-                                                      modelname=modelname,
-                                                      npoints=points_to_run)
-        else:
-            result = runScannerS.runSingleProcess(ininame=ininame,
-                                                  modelname=modelname,
-                                                  npoints=points_to_run)
+        result = runScannerS(ininame=ininame,
+                             modelname=modelname,
+                             npoints=points_to_run,
+                             use_multiprocessing=use_multiprocessing)
 
         # if a process returns a negative result, delete directory and return result
         if result < 0:
