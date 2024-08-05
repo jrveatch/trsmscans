@@ -3,7 +3,10 @@
 # between X/S/H and H1/H2/H3 bases
 class Masses:
 
-    def __init__(self,mX,mS,mH):
+    def __init__(self,
+                 mX: float,
+                 mS: float,
+                 mH: float):
 
         # set X/S/H masses
         self.mX = mX

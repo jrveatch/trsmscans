@@ -16,7 +16,7 @@ from utils.point import Point
 from params import Params
 import filters
 from utils.runScannerS import runScannerS
-from masses import Masses
+from utils.masses import Masses
 import prescan
 from utils import fileutils
 from utils import tsvutils

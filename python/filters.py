@@ -7,7 +7,7 @@ from utils import width
 from utils import bounds
 from utils import tsvutils
 from arrays import Arrays
-from masses import Masses
+from utils.masses import Masses
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"

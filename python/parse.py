@@ -18,7 +18,7 @@ import diptest
 import math
 
 # import masses class to handle mass orderings
-from masses import Masses
+from utils.masses import Masses
 
 # import model class to initialize Point class
 from utils.model import Model

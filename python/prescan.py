@@ -14,7 +14,7 @@ from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
 from params import Params
-from masses import Masses
+from utils.masses import Masses
 
 def runPrescan(masses: 'Masses',
                modelname,

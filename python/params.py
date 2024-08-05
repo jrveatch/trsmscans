@@ -1,5 +1,5 @@
 
-from masses import Masses
+from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
 

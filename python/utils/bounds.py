@@ -5,7 +5,7 @@ from twors_higgstools_setup import *
 from arrays import Arrays
 from utils import tsvutils
 
-from masses import Masses
+from utils.masses import Masses
 
 # TODO: Make this work for other models
 def filter_bounds(filename: str,

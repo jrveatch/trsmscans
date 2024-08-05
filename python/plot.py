@@ -8,7 +8,7 @@ import os
 import parse
 import argparse
 from utils import fileutils
-from masses import Masses
+from utils.masses import Masses
 from utils.model import Model
 
 # Plot class

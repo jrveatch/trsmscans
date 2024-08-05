@@ -1,6 +1,6 @@
 
 import os
-from masses import Masses
+from utils.masses import Masses
 
 # get scan directory
 def scan_dir(modelname: str,
