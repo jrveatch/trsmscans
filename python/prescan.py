@@ -13,7 +13,7 @@ import filters
 from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
-from params import Params
+from utils.params import Params
 from utils.masses import Masses
 
 def runPrescan(masses: 'Masses',

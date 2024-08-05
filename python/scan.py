@@ -13,7 +13,7 @@ from decimal import Decimal
 # import tools
 from parse import Parse
 from utils.point import Point
-from params import Params
+from utils.params import Params
 import filters
 from utils.runScannerS import runScannerS
 from utils.masses import Masses
