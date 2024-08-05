@@ -172,7 +172,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.get_max_point()
+        self.optPoint = self.prescanparser.get_max_xb_point()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
@@ -498,7 +498,7 @@ class Scanner:
         self.scanparser.read_file(filename=tsvname)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.get_max_point()
+        newPoint = self.scanparser.get_max_xb_point()
 
         # flag to indicate whether optimal point needs to be updated
         update = False
