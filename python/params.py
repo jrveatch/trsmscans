@@ -3,7 +3,7 @@ from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
 
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 # class to hold and update full set of parameters used in a scan
 class Params:
@@ -24,7 +24,7 @@ class Params:
         self.__model = Model(modelname)
 
         # get list of parameter names
-        self.__parnames = self.__model.parameter_names()
+        self.__parnames: List[str] = self.__model.parameter_names()
 
         # create dictionary of parameters
         self.__parameters: Dict[str,'Parameter'] = {}
@@ -41,7 +41,7 @@ class Params:
         return self.__parameters[parname]
 
     # get parameter names
-    def parnames(self):
+    def parnames(self) -> List[str]:
         return self.__parnames
 
     # get masses
@@ -92,7 +92,7 @@ class Params:
     # set new value, range, low and high
     def update_params(self,
                       newPoint: Optional[Point] = None,
-                      rangeScale: float = 1.0):
+                      rangeScale: float = 1.0) -> None:
 
         # if both newPoint is None and rangeScale is 1.0, complain and return existing low
         if newPoint is None and rangeScale == 1.0:
@@ -258,13 +258,15 @@ class Parameter:
     # the new min or max, set them
     # this also sets new range values
 
-    def set_min(self,newMin):
+    def set_min(self,
+                newMin: float) -> None:
         self.__min = newMin
         if self.__low < self.__min:
             self.__low = self.__min
             self.__range = self.get_range()
 
-    def set_max(self,newMax):
+    def set_max(self,
+                newMax: float) -> None:
         self.__max = newMax
         if self.__high > self.__max:
             self.__high = self.__max
@@ -326,11 +328,11 @@ class Parameter:
         return
 
     # print min and max
-    def print_min_max(self):
+    def print_min_max(self) -> None:
         print(self.__name + ": ["+f"{self.__min:1.{self.__precision}f}"+","+f"{self.__max:1.{self.__precision}f}"+"]")
 
     # get formatted string showing range
-    def format_range(self):
+    def format_range(self) -> str:
         string_range = "range = ["
         string_range += f"{self.__low:1.{self.__precision}f}"
         string_range += ","
