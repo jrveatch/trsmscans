@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from arrays import Arrays
+from utils.arrays import Arrays
 from utils import tsvutils
 
 def filter_widths(filename: str,
@@ -17,7 +17,6 @@ def filter_widths(filename: str,
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)
-    arrs.load_arrays()
 
     # get arrays of widths
     width_H1 = np.divide(arrs.get_array('w_H1'),arrs.get_array('mH1'))

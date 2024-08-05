@@ -6,7 +6,7 @@ import numpy as np
 from utils import width
 from utils import bounds
 from utils import tsvutils
-from arrays import Arrays
+from utils.arrays import Arrays
 from utils.masses import Masses
 
 header_width = "filt_width"
@@ -27,7 +27,6 @@ def applyFilters(filename,
 
     # get arrays from output file
     arrays = Arrays(filename)
-    arrays.load_arrays()
 
     # find how many points pass both filters
     filt_width = arrays.data(header_width)

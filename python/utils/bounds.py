@@ -2,7 +2,7 @@
 
 from twors_higgstools_setup import *
 
-from arrays import Arrays
+from utils.arrays import Arrays
 from utils import tsvutils
 
 from utils.masses import Masses
@@ -28,7 +28,6 @@ def filter_bounds(filename: str,
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)
-    arrs.load_arrays()
 
     # get filt_bounds array
     filt_bounds = arrs.data('filt_bounds')

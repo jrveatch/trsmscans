@@ -20,7 +20,7 @@ class Arrays:
         self.__data: NDArray = None
 
         # load tsv column headers
-        self.load_headers()
+        self.__load_headers()
 
         # load tsv data into arrays
         self.load_arrays()
@@ -34,7 +34,7 @@ class Arrays:
             return self.__data
 
     # load tsv column headers into a list
-    def load_headers(self) -> None:
+    def __load_headers(self) -> None:
 
         # read column headers into list
         with open(self.__filename,'r') as file:
@@ -45,7 +45,8 @@ class Arrays:
         if self.__headers[0] != 'idx':
             self.__headers.insert(0, 'idx')
 
-    def get_headers(self) -> List[str]:
+    # get list of headers
+    def __get_headers(self) -> List[str]:
         return self.__headers
 
     # load tsv columns into a numpy array

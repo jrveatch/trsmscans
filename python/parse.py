@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from typing import Dict
 
 # import list of arrays
-from arrays import Arrays
+from utils.arrays import Arrays
 
 # import point
 from utils.point import Point
