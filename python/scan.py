@@ -328,8 +328,8 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for par, values in zip(param_dict.keys(), param_values):
-                params_copy.setMin(par, values['min'])
-                params_copy.setMax(par, values['max'])
+                params_copy.setLowerBound(par, values['min'])
+                params_copy.setUpperBound(par, values['max'])
                 param_combination_data[par] = values
 
             all_param_combinations.append((params_copy, param_combination_data))
