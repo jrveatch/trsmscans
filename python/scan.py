@@ -29,14 +29,16 @@ class Scan:
                  modelname,
                  decay,
                  maxwidth,
+                 percentile,
                  overwrite=False):
 
         # store model name
         self.modelname = modelname
         
-        # store masses and decay information
+        # store masses, decay, and percentile information
         self.masses = masses
         self.decay = decay
+        self.percentile = percentile
 
         # check whether decay is valid
         supported = isValidDecay(self.decay)
@@ -201,7 +203,6 @@ class Scan:
                 npoints,
                 niter,
                 zoom: 'Zoom',
-                percentile,
                 use_multiprocessing=False):
 
         # get scan start time
@@ -223,7 +224,7 @@ class Scan:
                             detailsname=self.detailsname,
                             summaryname=self.summaryname,
                             zoom=zoom,
-                            percentile=percentile,
+                            percentile=self.percentile,
                             outdir=self.outdir,
                             label="test")
 
@@ -455,32 +456,32 @@ class Scanner:
         # get an array of xb results
         xb_array = self.scanparser.getXB()
 
-        # if top 5% of xb of a previous iteration exists, add it to current xb_array
-        if self.top_percentile_xb is not None:
+        # if not the first iteration, add top_percentile_xb to current xb_array
+        if iter != 0:
             xb_array = np.append(xb_array, self.top_percentile_xb)
 
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
             percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
 
-        # create a threshold to look at the top 5% of xb points
+        # create a threshold to look at the top percentile of xb points
         threshold = np.percentile(xb_array, percentile_threshold)
+
+        # get top percentile of xb
+        self.top_percentile_xb = xb_array[xb_array > threshold]
 
         # dictionaries to update low and high in parameters
         lowdict = {}
         highdict = {}
 
-        # save params arrays where xb_array is the top 5%
+        # save params arrays where xb_array is the top percentile
         for param, values in paramArrays.items():
-            # first iteration populates self.top_percentile
-            if iter == 0:
-                self.top_percentile[param] = values[xb_array > threshold]
-                self.top_percentile_xb = xb_array[xb_array > threshold]
-            else:
-                # adds prev top 5% to current array, and takes the top 5% of that
-                new_array = np.append(values, self.top_percentile[param])
-                self.top_percentile[param] = new_array[xb_array > threshold]
-                self.top_percentile_xb = xb_array[xb_array > threshold]
+            # if not first iteration, add top_percentile to values
+            if iter != 0:
+                values = np.append(values, self.top_percentile[param])
+            # update top_percentile accounting for new values
+            self.top_percentile[param] = values[xb_array > threshold]
+            # set lows and highs of each parameter
             lowdict[param] = self.top_percentile[param].min()
             highdict[param] = self.top_percentile[param].max()
 
@@ -552,11 +553,11 @@ if __name__ == "__main__":
                   modelname=args.model,
                   decay=args.decay,
                   maxwidth=args.maxwidth,
+                  percentile=args.percentile,
                   overwrite=args.overwrite)
     
     # run scan using scan object
     myScan.runScan(npoints=args.npoints,
                    niter=args.iterations,
                    zoom=zoom,
-                   percentile=args.percentile,
                    use_multiprocessing=args.multiprocessing)
