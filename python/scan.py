@@ -300,6 +300,8 @@ class Scanner:
         self.label = label
         self.modelname = params.model_name()
         self.percentile = percentile
+        self.top_percentile = {}
+        self.top_percentile_xb = None
 
         # zoom rates
         self.zoom = zoom
@@ -453,6 +455,10 @@ class Scanner:
         # get an array of xb results
         xb_array = self.scanparser.getXB()
 
+        # if top 5% of xb of a previous iteration exists, add it to current xb_array
+        if self.top_percentile_xb is not None:
+            xb_array = np.append(xb_array, self.top_percentile_xb)
+
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
             percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
@@ -466,9 +472,17 @@ class Scanner:
 
         # save params arrays where xb_array is the top 5%
         for param, values in paramArrays.items():
-            new_array = values[xb_array > threshold]
-            lowdict[param] = new_array.min()
-            highdict[param] = new_array.max()
+            # first iteration populates self.top_percentile
+            if iter == 0:
+                self.top_percentile[param] = values[xb_array > threshold]
+                self.top_percentile_xb = xb_array[xb_array > threshold]
+            else:
+                # adds prev top 5% to current array, and takes the top 5% of that
+                new_array = np.append(values, self.top_percentile[param])
+                self.top_percentile[param] = new_array[xb_array > threshold]
+                self.top_percentile_xb = xb_array[xb_array > threshold]
+            lowdict[param] = self.top_percentile[param].min()
+            highdict[param] = self.top_percentile[param].max()
 
         # update low and high using dictionaries
         self.params.updateLowHigh(lowdict, highdict)
