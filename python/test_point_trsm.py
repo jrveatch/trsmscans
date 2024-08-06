@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setupHiggsTools import *
+from utils.setupHiggsTools import *
 
 from utils.test_point_utils import *
 

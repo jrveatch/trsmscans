@@ -15,7 +15,7 @@ class Model:
         self.__model_dir = os.environ['DATADIR']+"models/"
 
         # model yaml file
-        self.__ymlname = self.__modeldir + self.__name + "_params.yml"
+        self.__ymlname = self.__model_dir + self.__name + "_params.yml"
 
         # template .ini filename
         self.__templateini = self.__model_dir + self.__name + "_template.ini"
