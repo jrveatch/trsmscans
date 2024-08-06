@@ -482,7 +482,7 @@ class Scanner:
             details.write("\n\n")
             details.close()
             return
-        
+
         # read output tsv into parser
         self.scanparser.read_file(filename=tsvname)
 
