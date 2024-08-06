@@ -111,9 +111,9 @@ class Params:
 
             # loop over parameters
             for parname, newlow in lowdict.items():
-                if parname in self.parameters:
+                if parname in self.__parameters:
                     # use lowdict to update the low for each parameter
-                    self.parameters[parname].update_low(newlow)
+                    self.__parameters[parname].update_low(newlow)
                 else:
                     print(f"Warning: {parname} is not known")
             
@@ -122,9 +122,9 @@ class Params:
 
             # loop over parameters
             for parname, newhigh in highdict.items():
-                if parname in self.parameters:
+                if parname in self.__parameters:
                     # use highdict to update the high for each parameter
-                    self.parameters[parname].update_high(newhigh)
+                    self.__parameters[parname].update_high(newhigh)
                 else:
                     print(f"Warning: {parname} is not known")
 
@@ -138,10 +138,10 @@ class Params:
         for par in self.__parameters.values():
         
             # make sure range is non-zero
-            if par.range() > 1e-13:
+            if par.get_range() > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.range()
+                volume *= par.get_range()
         
         return volume
 
@@ -158,17 +158,12 @@ class Params:
     # function to get low value
     def low(self,
             parname: str) -> float:
-        return self.parameter(parname).low()
+        return self.parameter(parname).get_low()
 
     # function to get high value
     def high(self,
              parname: str) -> float:
-        return self.parameter(parname).high()
-    
-    # function to get parameter values
-    def val(self,
-            parname: str) -> float:
-        return self.parameter(parname).val()
+        return self.parameter(parname).get_high()
     
     # function to get parameter ranges
     def range(self,
@@ -191,8 +186,8 @@ class Params:
 
         # loop over parameters and fill low/high values
         for par in self.parameters().values():
-            ini_data = ini_data.replace(par.name()+"_LOW",str(par.low()))
-            ini_data = ini_data.replace(par.name()+"_HIGH",str(par.high()))
+            ini_data = ini_data.replace(par.name()+"_LOW",str(par.get_low()))
+            ini_data = ini_data.replace(par.name()+"_HIGH",str(par.get_high()))
 
         # write to .ini file
         outfile = open(ininame,"w")
@@ -200,9 +195,9 @@ class Params:
         outfile.close()
 
     # print min and max for a parameter
-    def print_min_max(self,
-                      parname: str) -> None:
-        self.parameter(parname).print_min_max()
+    def print_bounds(self,
+                     parname: str) -> None:
+        self.parameter(parname).print_bounds()
 
 # class to hold and update a single model parameter
 class Parameter:
@@ -233,16 +228,12 @@ class Parameter:
         return self.__name
 
     # get low
-    def low(self) -> float:
+    def get_low(self) -> float:
         return self.__low
 
     # get high
-    def high(self) -> float:
+    def get_high(self) -> float:
         return self.__high
-
-    # get range
-    def range(self) -> float:
-        return self.__range
 
     # get lower bound
     def lower_bound(self) -> float:

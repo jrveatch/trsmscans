@@ -97,7 +97,7 @@ class Plot:
             xb = parser.get_xb(self.decay)
 
             # Retrieve maximum point based on the file's variables
-            maxpoint = parser.get_max_point()
+            maxpoint = parser.get_max_xb_point()
 
             # Iterate through the information of each parameter
             for name, par in allParams.items():
@@ -184,8 +184,8 @@ class Plot:
                     variable2 = self.var_names[j]
 
                     # Get and store the max points for each variable
-                    point1 = self.maxpoint_list[q].getVal(variable1)
-                    point2 = self.maxpoint_list[q].getVal(variable2)
+                    point1 = self.maxpoint_list[q].get_val(variable1)
+                    point2 = self.maxpoint_list[q].get_val(variable2)
 
                     # Plot the max point from the scatterplot [star]
                     if(self.maxpoint_list[q] != maximum): #Make sure the point is not the maximum point

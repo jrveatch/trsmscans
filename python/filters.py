@@ -3,6 +3,8 @@
 import argparse
 import numpy as np
 
+from typing import Tuple
+
 from utils import width
 from utils import bounds
 from utils import tsvutils
@@ -12,13 +14,13 @@ from utils.masses import Masses
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 
-def applyFilters(filename,
-                 modelname,
-                 masses: Masses,
-                 maxwidth):
+def apply_filters(filename: str,
+                  modelname: str,
+                  masses: Masses,
+                  maxwidth: float) -> Tuple[int,int,int]:
 
     # initialize filter columns
-    initializeFilters(filename)
+    initialize_filters(filename)
 
     # apply width filter
     nwidth = width.filter_widths(filename=filename,
@@ -41,7 +43,7 @@ def applyFilters(filename,
     # return numbers of events passing each filter
     return nwidth, nbounds, npass
 
-def initializeFilters(filename):
+def initialize_filters(filename: str) -> None:
 
     # initialize both columns
     tsvutils.initializeColumn(filename=filename,

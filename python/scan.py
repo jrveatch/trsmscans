@@ -34,11 +34,11 @@ class Scan:
 
     def __init__(self,
                  masses: 'Masses',
-                 modelname,
-                 decay,
-                 maxwidth,
-                 percentile,
-                 overwrite=False):
+                 modelname: str,
+                 decay: str,
+                 maxwidth: float,
+                 percentile: float,
+                 overwrite: bool = False):
         
         # store model name
         self.modelname = modelname
@@ -96,12 +96,10 @@ class Scan:
         details.write("Scan details\n\n")
         details.close()
 
-        return
-
     # run a prescan to constrain scan parameter ranges
     def runPrescan(self,
-                   npoints,
-                   use_multiprocessing=False):
+                   npoints: int,
+                   use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = 10000
@@ -164,11 +162,11 @@ class Scan:
             newMax = self.prescanparser.get_max(par)
 
             # check min value
-            if newMin - one_percent > self.params.min(par):
+            if newMin - one_percent > self.params.lower_bound(par):
                 self.params.set_lower_bound(par,newMin - one_percent)
 
             # check max value
-            if newMax + one_percent < self.params.max(par):
+            if newMax + one_percent < self.params.upper_bound(par):
                 self.params.set_upper_bound(par,newMax + one_percent)
 
             # print min and max to screen after prescan
@@ -212,10 +210,10 @@ class Scan:
 
     # run the full scan
     def runScan(self,
-                npoints,
-                niter,
+                npoints: int,
+                niter: int,
                 zoom: 'Zoom',
-                use_multiprocessing=False):
+                use_multiprocessing: bool = False) -> None:
 
         # get scan start time
         scanstart = time.time()
@@ -377,7 +375,7 @@ class Scan:
         # Return list of all scanners
         return all_scanners
 
-def isValidDecay(decaymode):
+def isValidDecay(decaymode: str) -> bool:
 
     # decay mode file name
     filename = os.environ['DATADIR'] + "decaymodes.txt"
@@ -401,17 +399,17 @@ def isValidDecay(decaymode):
 class Scanner:
 
     def __init__(self,
-                 detailsname,
-                 summaryname,
+                 detailsname: str,
+                 summaryname: str,
                  params: 'Params',
-                 decay,
-                 maxwidth,
-                 npoints,
+                 decay: str,
+                 maxwidth: float,
+                 npoints: int,
                  optPoint: 'Point',
                  zoom: 'Zoom',
-                 percentile,
-                 outdir,
-                 label=""):
+                 percentile: float,
+                 outdir: str,
+                 label: str = ""):
 
         # some basic scanner information
         self.detailsname = detailsname
@@ -479,10 +477,10 @@ class Scanner:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
-                                                      masses=self.params.masses(),
-                                                      modelname=self.modelname,
-                                                      maxwidth=self.maxwidth)
+        nwidth, nbounds, npass = filters.apply_filters(filename=tsvname,
+                                                       masses=self.params.masses(),
+                                                       modelname=self.modelname,
+                                                       maxwidth=self.maxwidth)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
@@ -566,14 +564,14 @@ class Scanner:
             summary.close()
 
         # get paramaters to use for zooming in
-        paramArrays = self.scanparser.getParameters()
+        paramArrays = self.scanparser.get_parameter_arrays()
 
         # minimum amount of points that need to be looked at before zooming in
         min_points = 10
         percentile_threshold = self.percentile
 
         # get an array of xb results
-        xb_array = self.scanparser.getXB()
+        xb_array = self.scanparser.get_xb()
 
         # if not the first iteration, add top_percentile_xb to current xb_array
         if iter != 0:
@@ -582,6 +580,10 @@ class Scanner:
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
             percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+
+        # make sure percentile threshold is >= 0
+        if percentile_threshold < 0:
+            percentile_threshold = 0
 
         # create a threshold to look at the top percentile of xb points
         threshold = np.percentile(xb_array, percentile_threshold)
@@ -605,7 +607,7 @@ class Scanner:
             highdict[param] = self.top_percentile[param].max()
 
         # update low and high using dictionaries
-        self.params.updateLowHigh(lowdict, highdict)
+        self.params.update_low_high(lowdict, highdict)
 
         # TODO: reinclude old scaling as an alternative
         # parameter scaling factor

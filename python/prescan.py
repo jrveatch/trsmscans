@@ -17,12 +17,12 @@ from utils.params import Params
 from utils.masses import Masses
 
 def runPrescan(masses: 'Masses',
-               modelname,
-               npoints,
-               maxwidth,
-               overwrite=False,
-               use_multiprocessing=False,
-               stepsize=10000):
+               modelname: str,
+               npoints: int,
+               maxwidth: float,
+               overwrite: bool = False,
+               use_multiprocessing: bool = False,
+               stepsize: int = 10000):
 
     # get scan start time
     scanstart = time.time()
@@ -141,17 +141,17 @@ def runPrescan(masses: 'Masses',
         points_done += tsvutils.countPointsInTSV(tsvname_initial)
 
         # initialize filter columns
-        filters.initializeFilters(tsvname_initial)
+        filters.initialize_filters(tsvname_initial)
 
         # save output to tsvname
         tsvutils.saveTSVOutput(inputfile=tsvname_initial,
                                outputfile=tsvname)
 
     # apply width and bounds filters
-    filters.applyFilters(filename=tsvname,
-                         masses=masses,
-                         modelname=modelname,
-                         maxwidth=maxwidth)
+    filters.apply_filters(filename=tsvname,
+                          masses=masses,
+                          modelname=modelname,
+                          maxwidth=maxwidth)
 
     # get total time taken
     scanend = time.time()
@@ -164,7 +164,7 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(tsvname):
+def checkPrescan(tsvname: str) -> int:
 
     # get number of points in file
     return tsvutils.countPointsInTSV(tsvname)
@@ -172,7 +172,7 @@ def checkPrescan(tsvname):
 # function to get number of points in a file
 # returns -1 if file does not exist
 # otherwise returns number of existing points in file
-def countNPointsInFile(filename):
+def countNPointsInFile(filename: str) -> int:
 
     # if file doesn't exist, return -1
     if not os.path.exists(filename):

@@ -89,10 +89,10 @@ class Parse:
     def get_max_xb_point(self) -> 'Point':
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(self.xb)
+        maxidx = np.argmax(self.__xb)
 
         # get max xsec times BR
-        maxxb = self.xb[maxidx]
+        maxxb = self.__xb[maxidx]
         
         # make dictionary for parameter values for maxxb
         maxxb_parvals: Dict[str,float] = {}
@@ -121,11 +121,11 @@ class Parse:
         return self.__par_arrays
 
     # get xb array
-    def xb(self,
-           decay: str = "") -> NDArray:
+    def get_xb(self,
+               decay: str = "") -> NDArray:
         # if a decay mode is provided that is not the class member, return the corresponding xb
-        if decay != self.__decay:
-            return self.__get_xb(decay)
+        if decay and decay != self.__decay:
+            return self.__calc_xb(decay)
         # otherwise return the default xb
         else:
             return self.__xb
@@ -138,7 +138,7 @@ class Parse:
         percentile_threshold = 98
 
         # number of points available
-        npoints = len(self.xb)
+        npoints = len(self.__xb)
 
         # minimum number of points for test
         min_points = 200
@@ -152,10 +152,10 @@ class Parse:
             percentile_threshold = 0
 
         # get xb value that corresponds to percentile threshold
-        threshold_value = np.percentile(self.xb, percentile_threshold)
+        threshold_value = np.percentile(self.__xb, percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.__par_arrays[param_name][self.xb > threshold_value] 
+        param_selected = self.__par_arrays[param_name][self.__xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -170,8 +170,8 @@ class Parse:
             return False
 
     # get the maximum xb
-    def __get_xb(self,
-                 decay: str) -> NDArray:
+    def __calc_xb(self,
+                  decay: str) -> NDArray:
 
         # get production cross section
         xb_prod = self.__get_xb_prod()
@@ -333,4 +333,4 @@ class Parse:
         self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
 
         # cross-section times branching ratio
-        self.xb = self.__get_xb(self.__decay)
+        self.__xb = self.__calc_xb(self.__decay)
