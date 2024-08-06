@@ -156,19 +156,19 @@ class Params:
         return self.parameter(parname).upper_bound()
 
     # function to get low value
-    def low(self,
-            parname: str) -> float:
+    def get_low(self,
+                parname: str) -> float:
         return self.parameter(parname).get_low()
 
     # function to get high value
-    def high(self,
-             parname: str) -> float:
+    def get_high(self,
+                 parname: str) -> float:
         return self.parameter(parname).get_high()
     
     # function to get parameter ranges
     def range(self,
               parname: str) -> range:
-        return self.parameter(parname).range()
+        return self.parameter(parname).get_range()
     
     # function to write .ini file with parameters
     def write_ini(self,
@@ -360,12 +360,12 @@ class Parameter:
     # set the new low and update the range to reflect the new low
     def set_low(self,
                 newval: float) -> None:
-        self.low = newval
+        self.__low = newval
         self.range = self.get_range()
 
     def set_high(self,
                  newval: float) -> None:
-        self.high = newval
+        self.__high = newval
         self.range = self.get_range()
 
     # print min and max

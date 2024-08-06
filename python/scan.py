@@ -315,8 +315,8 @@ class Scan:
 
             #Check if bimodal and get the current low and high values
             is_bimodal = self.prescanparser.is_bimodal(par)
-            min_val = self.params.low(par)
-            max_val = self.params.high(par)
+            min_val = self.params.get_low(par)
+            max_val = self.params.get_high(par)
             
             # Split the scanner if bimodal and assign proper values
             if is_bimodal:
