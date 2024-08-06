@@ -46,22 +46,14 @@ class Params:
     # the new min or max, set them
     # these also set new range values
 
-    def setMin(self,parname,newMin):
-        self.parameters[parname].setMin(newMin)
+    def setLowerBound(self,parname,newMin):
+        self.parameters[parname].setLowerBound(newMin)
 
-    def setMax(self,parname,newMax):
-        self.parameters[parname].setMax(newMax)
-
-    # function to calculate parameter value
-    def getMidPoint(self,low,high):
-        return (low + high) / 2
-
-    # function to calculate parameter ranges
-    def getRange(self,low,high):
-        return abs(high - low) / 2
+    def setUpperBound(self,parname,newMax):
+        self.parameters[parname].setUpperBound(newMax)
 
     # set new value, range, low and high
-    def updateParams(self,
+    def scaleRanges(self,
                      newPoint: 'Point'=None,
                      rangeScale=1.0):
 
@@ -81,8 +73,33 @@ class Params:
                 newVal = newPoint.getVal(parname)
 
             # update parameter with new value and range scale
-            self.parameters[parname].updateParam(newVal=newVal,
+            self.parameters[parname].scaleRange(newVal=newVal,
                                                  rangeScale=rangeScale)
+
+    # update both low and high of each parameter using dictionaries
+    def updateLowHigh(self, lowdict:dict=None, highdict:dict=None):
+
+        # check to see if lowdict exists
+        if lowdict is not None:
+
+            # loop over parameters
+            for parname, newlow in lowdict.items():
+                if parname in self.parameters:
+                    # use lowdict to update the low for each parameter
+                    self.parameters[parname].updateLow(newlow)
+                else:
+                    print(f"Warning: {parname} is not known")
+            
+        # check to see if highdict exists
+        if highdict is not None:
+
+            # loop over parameters
+            for parname, newhigh in highdict.items():
+                if parname in self.parameters:
+                    # use highdict to update the high for each parameter
+                    self.parameters[parname].updateHigh(newhigh)
+                else:
+                    print(f"Warning: {parname} is not known")
 
     # function to calculate volume of parameter space
     def volume(self):
@@ -94,20 +111,20 @@ class Params:
         for par in self.parameters.values():
         
             # make sure range is non-zero
-            if par.range > 1e-13:
+            if par.high - par.low > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.range
+                volume *= par.high - par.low
         
         return volume
 
     # function to get min value
     def min(self,parname):
-        return self.parameters[parname].min
+        return self.parameters[parname].lowerBound
 
     # function to get max value
     def max(self,parname):
-        return self.parameters[parname].max
+        return self.parameters[parname].upperBound
 
     # function to get low value
     def low(self,parname):
@@ -163,12 +180,12 @@ class Parameter:
         # initialize values from dictionary
         self.fullname = dict['fullname']
         self.precision = dict['precision']
-        self.min = dict['min']
-        self.max = dict['max']
+        self.lowerBound = dict['min']
+        self.upperBound = dict['max']
 
         # initialize low and high from min and max
-        self.low = self.min
-        self.high = self.max
+        self.low = self.lowerBound
+        self.high = self.upperBound
 
         # initialize value as the midpoint
         self.val = self.getMidPoint()
@@ -189,20 +206,20 @@ class Parameter:
     # the new min or max, set them
     # this also sets new range values
 
-    def setMin(self,newMin):
-        self.min = newMin
-        if self.low < self.min:
-            self.low = self.min
+    def setLowerBound(self,newMin):
+        self.lowerBound = newMin
+        if self.low < self.lowerBound:
+            self.low = self.lowerBound
             self.range = self.getRange()
 
-    def setMax(self,newMax):
-        self.max = newMax
-        if self.high > self.max:
-            self.high = self.max
+    def setUpperBound(self,newMax):
+        self.upperBound = newMax
+        if self.high > self.upperBound:
+            self.high = self.upperBound
             self.range = self.getRange()
     
     # set new value, range, low and high
-    def updateParam(self,newVal=None,rangeScale=1.0):
+    def scaleRange(self,newVal=None,rangeScale=1.0):
 
         # if both newVal is None and rangeScale is 1.0, complain and return existing low
         if newVal is None and rangeScale == 1.0:
@@ -221,42 +238,73 @@ class Parameter:
         self.high = self.val + self.range / 2
 
         # adjust low and high based on min
-        if self.low < self.min:
+        if self.low < self.lowerBound:
             
             # calculate how much the new low is below min
-            overage = self.min - self.low
+            overage = self.lowerBound - self.low
 
             # add overage to high
             self.high += overage
 
             # if new high is above max, set it to max
-            if self.high > self.max:
-                self.high = self.max
+            if self.high > self.upperBound:
+                self.high = self.upperBound
 
             # set low to min
-            self.low = self.min
+            self.low = self.lowerBound
 
         # adjust high and low based on max
-        if self.high > self.max:
+        if self.high > self.upperBound:
 
             # calculate how much the new high is above max
-            overage = self.high - self.max
+            overage = self.high - self.upperBound
 
             # subtract overage from low
             self.low -= overage
 
             # if new low is below min, set it to min
-            if self.low < self.min:
-                self.low = self.min
+            if self.low < self.lowerBound:
+                self.low = self.lowerBound
             
             # set high to max
-            self.high = self.max
+            self.high = self.upperBound
 
         return
+    
+    # update the low to a new value
+    def updateLow(self, newval):
 
+        # check if newval is higher than previous low
+        if newval < self.lowerBound:
+            self.setLow(self.lowerBound)
+            return
+
+        # update low to our newval
+        self.setLow(newval)
+    
+    # update the high to a new value
+    def updateHigh(self, newval):
+
+        # check if newval is lower than previous high
+        if newval > self.upperBound:
+            self.setHigh(self.upperBound)
+            return
+
+        # update high to our newval
+        self.setHigh(newval)
+
+    # set the new low and update the range to reflect the new low
+    def setLow(self, newval):
+        self.low = newval
+        self.range = self.getRange()
+    
+    def setHigh(self, newval):
+        self.high = newval
+        self.range = self.getRange()
+    
     # print min and max
     def printMinMax(self):
-        print(self.name+": ["+f"{self.min:1.{self.precision}f}"+","+f"{self.max:1.{self.precision}f}"+"]")
+        print(self.name+": ["+f"{self.lowerBound:1.{self.precision}f}"+","+f"{self.upperBound:1.{self.precision}f}"+"]")
 
     # get formatted string showing range
     def formatRange(self):

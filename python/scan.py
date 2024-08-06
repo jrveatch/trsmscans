@@ -6,6 +6,8 @@ import shutil
 import time
 import datetime
 import argparse
+import numpy as np
+import math
 
 # import decimal
 from decimal import Decimal
@@ -32,14 +34,16 @@ class Scan:
                  modelname,
                  decay,
                  maxwidth,
+                 percentile,
                  overwrite=False):
         
         # store model name
         self.modelname = modelname
         
-        # store masses and decay information
+        # store masses, decay, and percentile information
         self.masses = masses
         self.decay = decay
+        self.percentile = percentile
 
         # check whether decay is valid
         supported = isValidDecay(self.decay)
@@ -154,11 +158,11 @@ class Scan:
 
             # check min value
             if newMin - one_percent > self.params.min(par):
-                self.params.setMin(par,newMin - one_percent)
+                self.params.setLowerBound(par,newMin - one_percent)
 
             # check max value
             if newMax + one_percent < self.params.max(par):
-                self.params.setMax(par,newMax + one_percent)
+                self.params.setUpperBound(par,newMax + one_percent)
 
             # print min and max to screen after prescan
             self.params.printMinMax(par)
@@ -194,8 +198,8 @@ class Scan:
         summary.write("\n")
         summary.close()
 
-        # set new low and high values
-        self.params.updateParams(self.optPoint)
+        # scale new low and high values
+        self.params.scaleRanges(self.optPoint)
 
         return
 
@@ -324,8 +328,8 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for par, values in zip(param_dict.keys(), param_values):
-                params_copy.setMin(par, values['min'])
-                params_copy.setMax(par, values['max'])
+                params_copy.setLowerBound(par, values['min'])
+                params_copy.setUpperBound(par, values['max'])
                 param_combination_data[par] = values
 
             all_param_combinations.append((params_copy, param_combination_data))
@@ -354,6 +358,7 @@ class Scan:
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
                 zoom=zoom,
+                percentile=self.percentile,
                 outdir=self.outdir,
                 label=f'Configuration-{i}'
             )
@@ -394,6 +399,7 @@ class Scanner:
                  npoints,
                  optPoint: 'Point',
                  zoom: 'Zoom',
+                 percentile,
                  outdir,
                  label=""):
 
@@ -408,6 +414,9 @@ class Scanner:
         self.outdir = outdir
         self.label = label
         self.modelname = params.model_name()
+        self.percentile = percentile
+        self.top_percentile = {}
+        self.top_percentile_xb = None
 
         # zoom rates
         self.zoom = zoom
@@ -552,18 +561,65 @@ class Scanner:
             summary.write("\n")
             summary.close()
 
+        # get paramaters to use for zooming in
+        paramArrays = self.scanparser.getParameters()
+
+        # minimum amount of points that need to be looked at before zooming in
+        min_points = 10
+        percentile_threshold = self.percentile
+
+        # get an array of xb results
+        xb_array = self.scanparser.getXB()
+
+        # if not the first iteration, add top_percentile_xb to current xb_array
+        if iter != 0:
+            xb_array = np.append(xb_array, self.top_percentile_xb)
+
+        # ensure min_points are looked
+        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+
+        # create a threshold to look at the top percentile of xb points
+        threshold = np.percentile(xb_array, percentile_threshold)
+
+        # get top percentile of xb
+        self.top_percentile_xb = xb_array[xb_array > threshold]
+
+        # dictionaries to update low and high in parameters
+        lowdict = {}
+        highdict = {}
+
+        # save params arrays where xb_array is the top percentile
+        for param, values in paramArrays.items():
+            # if not first iteration, add top_percentile to values
+            if iter != 0:
+                values = np.append(values, self.top_percentile[param])
+            # update top_percentile accounting for new values
+            self.top_percentile[param] = values[xb_array > threshold]
+            # set lows and highs of each parameter
+            lowdict[param] = self.top_percentile[param].min()
+            highdict[param] = self.top_percentile[param].max()
+
+        # update low and high using dictionaries
+        self.params.updateLowHigh(lowdict, highdict)
+
+        # TODO: reinclude old scaling as an alternative
         # parameter scaling factor
-        rangeScale = 1.0 - self.zoom.parRate
+        #rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
-        self.params.updateParams(self.optPoint,rangeScale)
+        #self.params.scaleRanges(self.optPoint,rangeScale)
 
+        # TODO: include these two lines in old scaling alternative
         # get new volume
-        volumeNew = self.params.volume()
-        volumeRatio = volumeNew/volume
+        #volumeNew = self.params.volume()
+        #volumeRatio = volumeNew/volume
 
         # step down npoints
-        self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+        
+        heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * heightRatio * (1.0 + self.zoom.densityRate))
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
@@ -597,6 +653,7 @@ if __name__ == "__main__":
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    argparser.add_argument("-p", "--percentile", default=95, type=int, help="Percentile cut for zooming in")
     args = argparser.parse_args()
 
     # create masses object
@@ -611,6 +668,7 @@ if __name__ == "__main__":
                   modelname=args.model,
                   decay=args.decay,
                   maxwidth=args.maxwidth,
+                  percentile=args.percentile,
                   overwrite=args.overwrite)
     
     # run scan using scan object
