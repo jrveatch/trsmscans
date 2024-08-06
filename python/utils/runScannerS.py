@@ -11,10 +11,13 @@ from utils import tsvutils
 import argparse
 
 # method to run ScannerS
-def runScannerS(ininame,npoints,modelname,njobs=-1):
+def runScannerS(ininame: str,
+                npoints: int,
+                modelname: str,
+                use_multiprocessing: bool) -> int:
 
-    # if only one process needed, just use subprocess
-    if njobs == 1:
+    # if only one process needed, use subprocess
+    if not use_multiprocessing:
         return runSingleProcess(ininame=ininame,
                                 npoints=npoints,
                                 modelname=modelname)
@@ -23,16 +26,18 @@ def runScannerS(ininame,npoints,modelname,njobs=-1):
     else:
         return runParallelProcesses(ininame=ininame,
                                     npoints=npoints,
-                                    modelname=modelname,
-                                    njobs=njobs)
+                                    modelname=modelname)
 
 # run job as a single process
-def runSingleProcess(ininame,npoints,modelname):
+def runSingleProcess(ininame: str,
+                     npoints: int,
+                     modelname: str) -> int:
 
     # simple information message
-    print(f"Running ScannerS as a single process.")
+    print(f"Running ScannerS as a single process with",npoints,"points.")
 
     # complain and exit if .ini doesn't exist
+    # TODO: Change this to a try/except
     if not os.path.exists(ininame):
         print(ininame,"doesn't exist. Exiting.")
         quit()
@@ -55,7 +60,10 @@ def runSingleProcess(ininame,npoints,modelname):
     return npoints
 
 # run multiple processes in parallel
-def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
+def runParallelProcesses(ininame: str,
+                         npoints: int,
+                         modelname: str,
+                         njobs=-1) -> int:
 
     # complain and exit if .ini doesn't exist
     if not os.path.exists(ininame):
@@ -160,7 +168,10 @@ def runParallelProcesses(ininame,npoints,modelname,njobs=-1):
     return npoints
 
 # run a process for multiprocessing
-def run_process(process, directory, counter, num_processes):
+def run_process(process: list[str],
+                directory: str,
+                counter,
+                num_processes: int) -> None:
 
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
@@ -182,7 +193,8 @@ def run_process(process, directory, counter, num_processes):
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python subprocess for a single job
-def run_subprocess(process,modelname):
+def run_subprocess(process: list[str],
+                   modelname: str) -> int:
 
     # output file name
     outfile = modelname + ".tsv"
@@ -230,14 +242,15 @@ def run_subprocess(process,modelname):
     return 0
 
 # concatenate outputs from parallel processes into a single .tsv file
-def concatenate_files(directories,filename):
+def concatenate_files(directories: list[str],
+                      filename: str) -> None:
 
     # loop over temporary directories
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.saveTSVOutput(inputfile=directory+"/"+filename,
-                               outputfile=filename)
+        tsvutils.save_tsv_output(inputfile=directory+"/"+filename,
+                                 outputfile=filename)
 
         # delete the temporary directory
         shutil.rmtree(directory)

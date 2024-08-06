@@ -10,25 +10,26 @@ import argparse
 
 # import package tools
 import filters
-import runScannerS
+from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
-from params import Params
-from masses import Masses
+from utils.params import Params
+from utils.masses import Masses
 
 def runPrescan(masses: 'Masses',
-               modelname,
-               npoints,
-               maxwidth,
-               overwrite=False,
-               use_multiprocessing=False,
-               stepsize=10000):
+               modelname: str,
+               npoints: int,
+               maxwidth: float,
+               overwrite: bool = False,
+               use_multiprocessing: bool = False,
+               stepsize: int = 10000):
 
     # get scan start time
     scanstart = time.time()
 
     # directory where we want the output to go
-    outdir = fileutils.prescanDir(modelname=modelname,masses=masses)
+    outdir = fileutils.prescan_dir(modelname=modelname,
+                                   masses=masses)
 
     # names of .ini and .tsv files
     ininame = outdir + modelname + ".ini"
@@ -79,7 +80,7 @@ def runPrescan(masses: 'Masses',
     params = Params(modelname,masses)
 
     # write .ini file from template
-    params.writeini(ininame)
+    params.write_ini(ininame)
 
     # if prescan exists, adjust the number of prescan points to run
     if nexisting > 0:
@@ -119,14 +120,10 @@ def runPrescan(masses: 'Masses',
             points_to_run = npoints - points_done
 
         # run ScannerS for the next set of points
-        if use_multiprocessing:
-            result = runScannerS.runParallelProcesses(ininame=ininame,
-                                                      modelname=modelname,
-                                                      npoints=points_to_run)
-        else:
-            result = runScannerS.runSingleProcess(ininame=ininame,
-                                                  modelname=modelname,
-                                                  npoints=points_to_run)
+        result = runScannerS(ininame=ininame,
+                             modelname=modelname,
+                             npoints=points_to_run,
+                             use_multiprocessing=use_multiprocessing)
 
         # if a process returns a negative result, delete directory and return result
         if result < 0:
@@ -141,20 +138,20 @@ def runPrescan(masses: 'Masses',
             return result
 
         # increment the count of points done
-        points_done += tsvutils.countPointsInTSV(tsvname_initial)
+        points_done += tsvutils.count_tsv_points(tsvname_initial)
 
         # initialize filter columns
-        filters.initializeFilters(tsvname_initial)
+        filters.initialize_filters(tsvname_initial)
 
         # save output to tsvname
-        tsvutils.saveTSVOutput(inputfile=tsvname_initial,
-                               outputfile=tsvname)
+        tsvutils.save_tsv_output(inputfile=tsvname_initial,
+                                 outputfile=tsvname)
 
     # apply width and bounds filters
-    filters.applyFilters(filename=tsvname,
-                         masses=masses,
-                         modelname=modelname,
-                         maxwidth=maxwidth)
+    filters.apply_filters(filename=tsvname,
+                          masses=masses,
+                          modelname=modelname,
+                          maxwidth=maxwidth)
 
     # get total time taken
     scanend = time.time()
@@ -167,15 +164,15 @@ def runPrescan(masses: 'Masses',
     return 0
 
 # function to check previous prescan
-def checkPrescan(tsvname):
+def checkPrescan(tsvname: str) -> int:
 
     # get number of points in file
-    return tsvutils.countPointsInTSV(tsvname)
+    return tsvutils.count_tsv_points(tsvname)
 
 # function to get number of points in a file
 # returns -1 if file does not exist
 # otherwise returns number of existing points in file
-def countNPointsInFile(filename):
+def countNPointsInFile(filename: str) -> int:
 
     # if file doesn't exist, return -1
     if not os.path.exists(filename):

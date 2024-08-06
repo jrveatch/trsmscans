@@ -12,18 +12,18 @@ class Model:
         self.__name = name
 
         # directory where model information is stored
-        self.__modeldir = os.environ['DATADIR']+"models/"
+        self.__model_dir = os.environ['DATADIR']+"models/"
 
         # model yaml file
-        self.__ymlname = self.__modeldir + self.__name + "_params.yml"
+        self.__ymlname = self.__model_dir + self.__name + "_params.yml"
 
         # template .ini filename
-        self.__templateini = self.__modeldir + self.__name + "_template.ini"
+        self.__templateini = self.__model_dir + self.__name + "_template.ini"
 
-        self.read_yaml()
+        self.__read_yaml()
 
     # read .yml file
-    def read_yaml(self):
+    def __read_yaml(self):
       
         # create empty particles dictionary
         self.particles = {}
@@ -65,15 +65,15 @@ class Model:
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
     # get dictionary of model parameters
-    def model_parameters(self) -> dict:
+    def parameters(self) -> dict:
         return self.__model_params
 
     # get a single model parameter
-    def model_parameter(self,parname) -> dict:
+    def parameter(self,parname) -> dict:
         return self.__model_params[parname]
 
     # get list of model parameter names
-    def model_parameter_names(self) -> list:
+    def parameter_names(self) -> list:
         return list(self.__model_params.keys())
 
     # get model parameter starting min
@@ -85,7 +85,7 @@ class Model:
         return self.__model_params[parname]['max']
 
     # get model name
-    def model_name(self) -> str:
+    def name(self) -> str:
         return self.__name
 
     # get model template .ini file

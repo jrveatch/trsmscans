@@ -13,29 +13,33 @@ import math
 from decimal import Decimal
 
 # import tools
-from parse import Parse, Point
-from params import Params
+from parse import Parse
+from utils.point import Point
+from utils.params import Params
 import filters
-import runScannerS
-from masses import Masses
+from utils.runScannerS import runScannerS
+from utils.masses import Masses
 import prescan
 from utils import fileutils
 from utils import tsvutils
+from utils.decayutils import isValidDecay
 
 import copy
 import itertools 
 import glob
+
+from typing import List
 
 # class to organize and run a complete scan
 class Scan:
 
     def __init__(self,
                  masses: 'Masses',
-                 modelname,
-                 decay,
-                 maxwidth,
-                 percentile,
-                 overwrite=False):
+                 modelname: str,
+                 decay: str,
+                 maxwidth: float,
+                 percentile: float,
+                 overwrite: bool = False):
         
         # store model name
         self.modelname = modelname
@@ -57,13 +61,16 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(modelname,masses)
+        self.params = Params(modelname=modelname,
+                             masses=masses)
 
         # make dummy optimal point
         self.optPoint = Point(modelname=modelname)
 
         # directory where we want the output to go
-        self.outdir = fileutils.scanDir(modelname=modelname,decay=decay,masses=masses)
+        self.outdir = fileutils.scan_dir(modelname=modelname,
+                                         decay=decay,
+                                         masses=masses)
 
          # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:
@@ -79,8 +86,8 @@ class Scan:
         self.summaryname = self.outdir+"scansummary_"+self.modelname+"_"+self.decay+"_"+str(self.masses)+".txt"
         summary = open(self.summaryname,"w")
         summary.write("Iter xbmax")
-        for par in self.params.parameters.values():
-            summary.write(" "+par.fullname)
+        for par in self.params.parameters().values():
+            summary.write(" "+par.fullname())
         summary.write("\n")
         summary.close()
 
@@ -90,12 +97,10 @@ class Scan:
         details.write("Scan details\n\n")
         details.close()
 
-        return
-
     # run a prescan to constrain scan parameter ranges
     def runPrescan(self,
-                   npoints,
-                   use_multiprocessing=False):
+                   npoints: int,
+                   use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = 10000
@@ -105,7 +110,8 @@ class Scan:
             nprescan = npoints
 
         # location of prescan outputs
-        prescantsv = fileutils.prescanTSV(modelname=self.modelname,masses=self.masses)
+        prescantsv = fileutils.prescan_tsv(modelname=self.modelname,
+                                           masses=self.masses)
 
         # call prescan and get result
         result = prescan.runPrescan(masses=self.masses,
@@ -147,31 +153,31 @@ class Scan:
         print("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for par in self.params.parnames:
+        for par in self.params.parnames():
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
 
             # get min and max from prescan
-            newMin = self.prescanparser.getMin(par)
-            newMax = self.prescanparser.getMax(par)
+            newMin = self.prescanparser.get_min(par)
+            newMax = self.prescanparser.get_max(par)
 
             # check min value
-            if newMin - one_percent > self.params.min(par):
-                self.params.setLowerBound(par,newMin - one_percent)
+            if newMin - one_percent > self.params.lower_bound(par):
+                self.params.set_lower_bound(par,newMin - one_percent)
 
             # check max value
-            if newMax + one_percent < self.params.max(par):
-                self.params.setUpperBound(par,newMax + one_percent)
+            if newMax + one_percent < self.params.upper_bound(par):
+                self.params.set_upper_bound(par,newMax + one_percent)
 
             # print min and max to screen after prescan
-            self.params.printMinMax(par)
+            self.params.print_bounds(par)
 
         # get scan density
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.getMaxPoint()
+        self.optPoint = self.prescanparser.get_max_xb_point()
 
         # write scan details to details file
         details = open(self.detailsname,"a")
@@ -179,12 +185,12 @@ class Scan:
         details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("Max xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames:
+        for par in self.params.parnames():
             details.write(par+":\n")
-            details.write("  "+self.optPoint.formatParam(par)+"\n")
-            details.write("  "+self.params.parameters[par].formatRange()+"\n")
+            details.write("  "+self.optPoint.format_param(par)+"\n")
+            details.write("  "+self.params.parameter(par).format_range()+"\n")
         details.write("--------------------\n")
         details.write("\n\n")
         details.close()
@@ -192,23 +198,23 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summaryname,"a")
         summary.write("Pre")
-        summary.write(" " + self.optPoint.formatXB())
-        for name, par in self.params.parameters.items():
-            summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision}f}")
+        summary.write(" " + self.optPoint.format_xb())
+        for name, par in self.params.parameters().items():
+            summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
         summary.write("\n")
         summary.close()
 
         # scale new low and high values
-        self.params.scaleRanges(self.optPoint)
+        self.params.scale_ranges(self.optPoint)
 
         return
 
     # run the full scan
     def runScan(self,
-                npoints,
-                niter,
+                npoints: int,
+                niter: int,
                 zoom: 'Zoom',
-                use_multiprocessing=False):
+                use_multiprocessing: bool = False) -> None:
 
         # get scan start time
         scanstart = time.time()
@@ -220,7 +226,8 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        all_scanners = self.create_scanners(npoints)
+        all_scanners = self.create_scanners(npoints=npoints,
+                                            zoom=zoom)
 
         for iter in range(niter):
 
@@ -262,7 +269,8 @@ class Scan:
         curr_max = 10
         return
     
-    def combine_files(self, directory):
+    def combine_files(self,
+                      directory: str) -> None:
 
         try:
             # Ensure the directory exists
@@ -284,7 +292,7 @@ class Scan:
                 # Create output file path based on last 4 digits
                 outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
                 # Save contents of current input file to respective output file
-                tsvutils.saveTSVOutput(inputfile, outputfile)
+                tsvutils.save_tsv_output(inputfile, outputfile)
 
         # Error exceptions
         except FileNotFoundError:
@@ -295,18 +303,20 @@ class Scan:
             print(f"Unexpected error: {e}")
     
     # Function that creates needed scanners
-    def create_scanners(self, npoints):
+    def create_scanners(self,
+                        npoints: int,
+                        zoom: 'Zoom') -> List['Scanner']:
 
         # Dictionary that will hold the values of the parameters
         param_dict = {}
 
         # Populate param_dict with parameter information
-        for par in self.params.parnames:
+        for par in self.params.parnames():
 
             #Check if bimodal and get the current low and high values
-            is_bimodal = self.prescanparser.isBimodal(par)
-            min_val = self.params.low(par)
-            max_val = self.params.high(par)
+            is_bimodal = self.prescanparser.is_bimodal(par)
+            min_val = self.params.get_low(par)
+            max_val = self.params.get_high(par)
             
             # Split the scanner if bimodal and assign proper values
             if is_bimodal:
@@ -328,14 +338,14 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for par, values in zip(param_dict.keys(), param_values):
-                params_copy.setLowerBound(par, values['min'])
-                params_copy.setUpperBound(par, values['max'])
+                params_copy.set_lower_bound(par, values['min'])
+                params_copy.set_upper_bound(par, values['max'])
                 param_combination_data[par] = values
 
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the scanners created
-        all_scanners = []
+        all_scanners: List['Scanner'] = []
 
         # Distribute points to be scanned to each scanner, rounding to the nearest whole number and having at least 1 point per scanner
         points_per_scanner = max(npoints // len(all_param_combinations), 1)
@@ -367,41 +377,21 @@ class Scan:
         # Return list of all scanners
         return all_scanners
 
-def isValidDecay(decaymode):
-
-    # decay mode file name
-    filename = os.environ['DATADIR'] + "decaymodes.txt"
-
-    # search for decaymode in file
-    with open(filename, 'r') as file:
-        # loop over every line in the file
-        for line in file:
-            # skip blank lines
-            if line.strip():
-                # get first word from each line
-                first_word = line.split()[0]
-                if first_word == decaymode:
-                    # if it is found, return True
-                    return True
-
-    # if it isn't found, return False
-    return False
-
 # class that keeps track of a single scan procedure
 class Scanner:
 
     def __init__(self,
-                 detailsname,
-                 summaryname,
+                 detailsname: str,
+                 summaryname: str,
                  params: 'Params',
-                 decay,
-                 maxwidth,
-                 npoints,
+                 decay: str,
+                 maxwidth: float,
+                 npoints: int,
                  optPoint: 'Point',
                  zoom: 'Zoom',
-                 percentile,
-                 outdir,
-                 label=""):
+                 percentile: float,
+                 outdir: str,
+                 label: str = ""):
 
         # some basic scanner information
         self.detailsname = detailsname
@@ -425,15 +415,15 @@ class Scanner:
         self.minpoints = 100
 
         # create parse object without a filename
-        self.scanparser = Parse(masses=self.params.masses,
+        self.scanparser = Parse(masses=self.params.masses(),
                                 modelname=self.modelname,
                                 decay=self.decay)
 
         # TODO: Names of details and summary files
 
     def run(self,
-            iter,
-            use_multiprocessing=False):
+            iter: int,
+            use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
         iterstart = time.time()
@@ -451,19 +441,13 @@ class Scanner:
         temptsv = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
-        self.params.writeini(ininame)
+        self.params.write_ini(ininame)
 
         # run ScannerS
-        if use_multiprocessing:
-            print("Using multiprocessing")
-            self.npoints = runScannerS.runParallelProcesses(ininame=ininame,
-                                                            modelname=self.modelname,
-                                                            npoints=self.npoints)
-        else:
-            print("Using single processing")
-            self.npoints = runScannerS.runSingleProcess(ininame=ininame,
-                                                        modelname=self.modelname,
-                                                        npoints=self.npoints)
+        self.npoints = runScannerS(ininame=ininame,
+                                   modelname=self.modelname,
+                                   npoints=self.npoints,
+                                   use_multiprocessing=use_multiprocessing)
 
         # TODO: Figure out what to do if process returns negative value
 
@@ -475,10 +459,10 @@ class Scanner:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
-                                                      masses=self.params.masses,
-                                                      modelname=self.modelname,
-                                                      maxwidth=self.maxwidth)
+        nwidth, nbounds, npass = filters.apply_filters(filename=tsvname,
+                                                       masses=self.params.masses(),
+                                                       modelname=self.modelname,
+                                                       maxwidth=self.maxwidth)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
@@ -498,12 +482,12 @@ class Scanner:
             details.write("\n\n")
             details.close()
             return
-        
+
         # read output tsv into parser
-        self.scanparser.readFile(filename=tsvname)
+        self.scanparser.read_file(filename=tsvname)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.getMaxPoint()
+        newPoint = self.scanparser.get_max_xb_point()
 
         # flag to indicate whether optimal point needs to be updated
         update = False
@@ -534,17 +518,17 @@ class Scanner:
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
         details.write("--------------------\n")
-        details.write("Found new max xsec*BR = " + newPoint.formatXB() + "\n")
+        details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + self.optPoint.formatXB() + "\n")
+        details.write("Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames:
+        for par in self.params.parnames():
             details.write(par+":\n")
-            details.write("  "+self.params.parameters[par].formatRange()+"\n")
+            details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:
-                details.write("  new optimal "+self.optPoint.formatParam(par)+"\n")
-                details.write("  "+self.optPoint.formatDiff(optPointOld,par)+"\n")
-                details.write("  "+self.optPoint.formatDiffFrac(optPointOld,par)+"\n")
+                details.write("  new optimal "+self.optPoint.format_param(par)+"\n")
+                details.write("  "+self.optPoint.format_diff(optPointOld,par)+"\n")
+                details.write("  "+self.optPoint.format_diff_frac(optPointOld,par)+"\n")
         details.write("--------------------\n")
         details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
         details.write("\n\n")
@@ -555,21 +539,21 @@ class Scanner:
             # write scan results to summary file
             summary = open(self.summaryname,"a")
             summary.write(identifier)
-            summary.write(" " + self.optPoint.formatXB())
-            for name, par in self.params.parameters.items():
-                summary.write(" " + f"{self.optPoint.getVal(name):1.{par.precision}f}")
+            summary.write(" " + self.optPoint.format_xb())
+            for name, par in self.params.parameters().items():
+                summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
             summary.write("\n")
             summary.close()
 
         # get paramaters to use for zooming in
-        paramArrays = self.scanparser.getParameters()
+        paramArrays = self.scanparser.get_parameter_arrays()
 
         # minimum amount of points that need to be looked at before zooming in
         min_points = 10
         percentile_threshold = self.percentile
 
         # get an array of xb results
-        xb_array = self.scanparser.getXB()
+        xb_array = self.scanparser.get_xb()
 
         # if not the first iteration, add top_percentile_xb to current xb_array
         if iter != 0:
@@ -578,6 +562,10 @@ class Scanner:
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
             percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+
+        # make sure percentile threshold is >= 0
+        if percentile_threshold < 0:
+            percentile_threshold = 0
 
         # create a threshold to look at the top percentile of xb points
         threshold = np.percentile(xb_array, percentile_threshold)
@@ -601,14 +589,14 @@ class Scanner:
             highdict[param] = self.top_percentile[param].max()
 
         # update low and high using dictionaries
-        self.params.updateLowHigh(lowdict, highdict)
+        self.params.update_low_high(lowdict, highdict)
 
         # TODO: reinclude old scaling as an alternative
         # parameter scaling factor
         #rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
-        #self.params.scaleRanges(self.optPoint,rangeScale)
+        #self.params.scale_ranges(self.optPoint,rangeScale)
 
         # TODO: include these two lines in old scaling alternative
         # get new volume

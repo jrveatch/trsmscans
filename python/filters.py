@@ -3,54 +3,55 @@
 import argparse
 import numpy as np
 
-import width
-import bounds
+from typing import Tuple
+
+from utils import width
+from utils import bounds
 from utils import tsvutils
-from arrays import Arrays
-from masses import Masses
+from utils.arrays import Arrays
+from utils.masses import Masses
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 
-def applyFilters(filename,
-                 modelname,
-                 masses: Masses,
-                 maxwidth):
+def apply_filters(filename: str,
+                  modelname: str,
+                  masses: Masses,
+                  maxwidth: float) -> Tuple[int,int,int]:
 
     # initialize filter columns
-    initializeFilters(filename)
+    initialize_filters(filename)
 
     # apply width filter
-    nwidth = width.filterwidths(filename=filename,
-                                maxwidth=maxwidth)
+    nwidth = width.filter_widths(filename=filename,
+                                 maxwidth=maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filterbounds(filename=filename,
-                                  modelname=modelname,
-                                  masses=masses)
+    nbounds = bounds.filter_bounds(filename=filename,
+                                   modelname=modelname,
+                                   masses=masses)
 
     # get arrays from output file
-    arrs = Arrays(filename)
-    arrs.loadArrays()
+    arrays = Arrays(filename)
 
     # find how many points pass both filters
-    filt_width = arrs.data[header_width]
-    filt_bounds = arrs.data[header_bounds]
+    filt_width = arrays.data(header_width)
+    filt_bounds = arrays.data(header_bounds)
     filt_total = np.multiply(filt_width,filt_bounds)
-    npass = filt_total.sum()
+    npass: int = filt_total.sum()
 
     # return numbers of events passing each filter
     return nwidth, nbounds, npass
 
-def initializeFilters(filename):
+def initialize_filters(filename: str) -> None:
 
     # initialize both columns
-    tsvutils.initializeColumn(filename=filename,
-                              column_header=header_width,
-                              value=1)
-    tsvutils.initializeColumn(filename=filename,
-                              column_header=header_bounds,
-                              value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header=header_width,
+                               value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header=header_bounds,
+                               value=1)
 
 if __name__ == "__main__":
 

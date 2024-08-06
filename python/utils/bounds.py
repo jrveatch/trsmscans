@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 
-from setupHiggsTools import *
+from utils.setupHiggsTools import *
 
-from arrays import Arrays
+from utils.arrays import Arrays
 from utils import tsvutils
 
-import argparse
-
-from masses import Masses
+from utils.masses import Masses
 
 # TODO: Make this work for other models
-def filterbounds(filename,
-                 modelname,
-                 masses: Masses,
-                 debug=False):
+def filter_bounds(filename: str,
+                  modelname: str,
+                  masses: Masses,
+                  debug = False) -> int:
 
     # get bounds and signals data
     bounds = getHiggsBounds()
@@ -36,92 +34,91 @@ def filterbounds(filename,
     XName = masses.XName
 
     # initialize column in case it doesn't exist
-    tsvutils.initializeColumn(filename=filename,
-                              column_header="filt_bounds",
-                              value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header="filt_bounds",
+                               value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)
-    arrs.loadArrays()
 
     # get filt_bounds array
-    filt_bounds = arrs.data['filt_bounds']
+    filt_bounds = arrs.data('filt_bounds')
 
-    for i in range(arrs.data['idx'].size):
+    for i in range(arrs.data('idx').size):
 
-        idx = int(arrs.data['idx'][i])
+        idx = int(arrs.data('idx')[i])
 
         # masses
-        mH = float(arrs.data['m'+HName][i])
-        mS = float(arrs.data['m'+SName][i])
-        mX = float(arrs.data['m'+XName][i])
+        mH = float(arrs.data('m'+HName)[i])
+        mS = float(arrs.data('m'+SName)[i])
+        mX = float(arrs.data('m'+XName)[i])
 
         # rescalings
         if HName == "H2":
-            RS = float(arrs.data['R11'][i])
-            RH = float(arrs.data['R21'][i])
+            RS = float(arrs.data('R11')[i])
+            RH = float(arrs.data('R21')[i])
         else:
-            RH = float(arrs.data['R11'][i])
-            RS = float(arrs.data['R21'][i])
-        RX = float(arrs.data['R31'][i])
+            RH = float(arrs.data('R11')[i])
+            RS = float(arrs.data('R21')[i])
+        RX = float(arrs.data('R31')[i])
 
         if debug is True:
             print('rescalings are ', RH,RS,RX)
 
         # H BRs
-        b_H_WW = float(arrs.data['b_'+HName+'_WW'][i])
-        b_H_ZZ = float(arrs.data['b_'+HName+'_ZZ'][i])
-        b_H_Zgam = float(arrs.data['b_'+HName+'_Zgam'][i])
-        b_H_bb = float(arrs.data['b_'+HName+'_bb'][i])
-        b_H_cc = float(arrs.data['b_'+HName+'_cc'][i])
-        b_H_gamgam = float(arrs.data['b_'+HName+'_gamgam'][i])
-        b_H_gg = float(arrs.data['b_'+HName+'_gg'][i])
-        b_H_mumu = float(arrs.data['b_'+HName+'_mumu'][i])
-        b_H_ss = float(arrs.data['b_'+HName+'_ss'][i])
-        b_H_tautau = float(arrs.data['b_'+HName+'_tautau'][i])
-        b_H_tt = float(arrs.data['b_'+HName+'_tt'][i])
+        b_H_WW = float(arrs.data('b_'+HName+'_WW')[i])
+        b_H_ZZ = float(arrs.data('b_'+HName+'_ZZ')[i])
+        b_H_Zgam = float(arrs.data('b_'+HName+'_Zgam')[i])
+        b_H_bb = float(arrs.data('b_'+HName+'_bb')[i])
+        b_H_cc = float(arrs.data('b_'+HName+'_cc')[i])
+        b_H_gamgam = float(arrs.data('b_'+HName+'_gamgam')[i])
+        b_H_gg = float(arrs.data('b_'+HName+'_gg')[i])
+        b_H_mumu = float(arrs.data('b_'+HName+'_mumu')[i])
+        b_H_ss = float(arrs.data('b_'+HName+'_ss')[i])
+        b_H_tautau = float(arrs.data('b_'+HName+'_tautau')[i])
+        b_H_tt = float(arrs.data('b_'+HName+'_tt')[i])
         # H->SS BR is 0 for mS > mH, otherwise get its value
         b_H_SS = 0
         if HName == "H2": # mH > mS
-            b_H_SS = float(arrs.data['b_H2_H1H1'][i])
+            b_H_SS = float(arrs.data('b_H2_H1H1')[i])
 
         # H2 BRs
-        b_S_WW = float(arrs.data['b_'+SName+'_WW'][i])
-        b_S_ZZ = float(arrs.data['b_'+SName+'_ZZ'][i])
-        b_S_Zgam = float(arrs.data['b_'+SName+'_Zgam'][i])
-        b_S_bb = float(arrs.data['b_'+SName+'_bb'][i])
-        b_S_cc = float(arrs.data['b_'+SName+'_cc'][i])
-        b_S_gamgam = float(arrs.data['b_'+SName+'_gamgam'][i])
-        b_S_gg = float(arrs.data['b_'+SName+'_gg'][i])
-        b_S_mumu = float(arrs.data['b_'+SName+'_mumu'][i])
-        b_S_ss = float(arrs.data['b_'+SName+'_ss'][i])
-        b_S_tautau = float(arrs.data['b_'+SName+'_tautau'][i])
-        b_S_tt = float(arrs.data['b_'+SName+'_tt'][i])
+        b_S_WW = float(arrs.data('b_'+SName+'_WW')[i])
+        b_S_ZZ = float(arrs.data('b_'+SName+'_ZZ')[i])
+        b_S_Zgam = float(arrs.data('b_'+SName+'_Zgam')[i])
+        b_S_bb = float(arrs.data('b_'+SName+'_bb')[i])
+        b_S_cc = float(arrs.data('b_'+SName+'_cc')[i])
+        b_S_gamgam = float(arrs.data('b_'+SName+'_gamgam')[i])
+        b_S_gg = float(arrs.data('b_'+SName+'_gg')[i])
+        b_S_mumu = float(arrs.data('b_'+SName+'_mumu')[i])
+        b_S_ss = float(arrs.data('b_'+SName+'_ss')[i])
+        b_S_tautau = float(arrs.data('b_'+SName+'_tautau')[i])
+        b_S_tt = float(arrs.data('b_'+SName+'_tt')[i])
         # S->HH BR is 0 for mH > mS, otherwise get its value
         b_S_HH = 0
         if SName == "H2": # mH < mS
-            b_S_HH = float(arrs.data['b_H2_H1H1'][i])
+            b_S_HH = float(arrs.data('b_H2_H1H1')[i])
 
         # X BRs
-        b_X_WW = float(arrs.data['b_'+XName+'_WW'][i])
-        b_X_ZZ = float(arrs.data['b_'+XName+'_ZZ'][i])
-        b_X_Zgam = float(arrs.data['b_'+XName+'_Zgam'][i])
-        b_X_bb = float(arrs.data['b_'+XName+'_bb'][i])
-        b_X_cc = float(arrs.data['b_'+XName+'_cc'][i])
-        b_X_gamgam = float(arrs.data['b_'+XName+'_gamgam'][i])
-        b_X_gg = float(arrs.data['b_'+XName+'_gg'][i])
-        b_X_mumu = float(arrs.data['b_'+XName+'_mumu'][i])
-        b_X_ss = float(arrs.data['b_'+XName+'_ss'][i])
-        b_X_tautau = float(arrs.data['b_'+XName+'_tautau'][i])
-        b_X_tt = float(arrs.data['b_'+XName+'_tt'][i])
-        b_X_HH = float(arrs.data['b_H3_'+HName+HName][i])
-        b_X_SS = float(arrs.data['b_H3_'+SName+SName][i])
-        b_X_SH = float(arrs.data['b_H3_H1H2'][i])
+        b_X_WW = float(arrs.data('b_'+XName+'_WW')[i])
+        b_X_ZZ = float(arrs.data('b_'+XName+'_ZZ')[i])
+        b_X_Zgam = float(arrs.data('b_'+XName+'_Zgam')[i])
+        b_X_bb = float(arrs.data('b_'+XName+'_bb')[i])
+        b_X_cc = float(arrs.data('b_'+XName+'_cc')[i])
+        b_X_gamgam = float(arrs.data('b_'+XName+'_gamgam')[i])
+        b_X_gg = float(arrs.data('b_'+XName+'_gg')[i])
+        b_X_mumu = float(arrs.data('b_'+XName+'_mumu')[i])
+        b_X_ss = float(arrs.data('b_'+XName+'_ss')[i])
+        b_X_tautau = float(arrs.data('b_'+XName+'_tautau')[i])
+        b_X_tt = float(arrs.data('b_'+XName+'_tt')[i])
+        b_X_HH = float(arrs.data('b_H3_'+HName+HName)[i])
+        b_X_SS = float(arrs.data('b_H3_'+SName+SName)[i])
+        b_X_SH = float(arrs.data('b_H3_H1H2')[i])
 
         # Widths
-        w_H = float(arrs.data['w_'+HName][i])
-        w_S = float(arrs.data['w_'+SName][i])
-        w_X = float(arrs.data['w_'+XName][i])
+        w_H = float(arrs.data('w_'+HName)[i])
+        w_S = float(arrs.data('w_'+SName)[i])
+        w_X = float(arrs.data('w_'+XName)[i])
         
         # i do everything at once here
         H.setMass(mH)
@@ -332,8 +329,8 @@ def filterbounds(filename,
         filt_bounds[i] = int(pass_filt)
 
     # save array of results and write to output file
-    arrs.setArray('filt_bounds',filt_bounds)
-    arrs.writeFile(filename)
+    arrs.set_array('filt_bounds',filt_bounds)
+    arrs.write_file(filename)
 
     if debug is True:
         print("Done!")
@@ -342,19 +339,3 @@ def filterbounds(filename,
     # number of entries that pass
     npass = filt_bounds.sum()
     return npass
-
-# filter a .tsv file if called as a standalone script
-if __name__ == "__main__":
-
-    # parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-f", "--filename", required=True, help="Name of tsvfile to run over")
-    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    args = argparser.parse_args()
-
-    # create masses
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
-
-    filterbounds(filename=args.filename,masses=masses,debug=True)

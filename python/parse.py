@@ -1,9 +1,15 @@
 
 # import numpy library as np
 import numpy as np
+from numpy.typing import NDArray
+
+from typing import Dict
 
 # import list of arrays
-import arrays
+from utils.arrays import Arrays
+
+# import point
+from utils.point import Point
 
 # import dip test for unimodality
 import diptest
@@ -12,13 +18,10 @@ import diptest
 import math
 
 # import masses class to handle mass orderings
-from masses import Masses
+from utils.masses import Masses
 
 # import model class to initialize Point class
-from model import Model
-
-# import decimal class for nicely formatted strings
-from decimal import Decimal
+from utils.model import Model
 
 # class to parse arrays and provide details about data
 class Parse:
@@ -26,261 +29,116 @@ class Parse:
     # load new set of arrays
     def __init__(self,
                  masses: Masses,
-                 decay,
-                 modelname,
-                 filename = ""):
+                 decay: str,
+                 modelname: str,
+                 filename: str = ""):
         
         # initialize model name
-        self.modelname = modelname
+        self.__modelname = modelname
 
         # initialize model
-        self.model = Model(modelname)
+        self.__model = Model(modelname)
 
         # initialize HName and SName
-        self.HName = masses.HName
-        self.SName = masses.SName
+        self.__HName = masses.HName
+        self.__SName = masses.SName
 
         # initialize decay mode
-        self.decay = decay
+        self.__decay = decay
 
-        # get arrays if filename is provided
+        # initialize xb array
+        self.__xb: NDArray = None
+
+        # initialize x-sec and BR arrays
+        self.__b_H_bb: NDArray = None
+        self.__b_H_tautau: NDArray = None
+        self.__b_H_WW: NDArray = None
+        self.__b_H_ZZ: NDArray = None
+        self.__b_H_gamgam: NDArray = None
+        self.__b_S_bb: NDArray = None
+        self.__b_S_tautau: NDArray = None
+        self.__b_S_WW: NDArray = None
+        self.__b_S_ZZ: NDArray = None
+        self.__b_S_gamgam: NDArray = None
+        self.__x_X_gg: NDArray = None
+        self.__b_X_SH: NDArray = None
+
+        # initialize dictionary of parameter arrays
+        self.__par_arrays: Dict[str,NDArray] = {}
+
+        # get arrays from provided filename if it is provided
         if filename:
-            self.readFile(filename)
+            self.read_file(filename)
 
     # load new arrays
-    def readFile(self,filename):
+    def read_file(self,
+                  filename: str) -> None:
 
         # create arrays object if it does not exist
-        if not hasattr(self,"arr"):
-            self.arr = arrays.Arrays(filename)
+        if not hasattr(self,"arrays"):
+            self.arrays = Arrays(filename)
 
         # load arrays from new file if arrays object already exists
         else:
-            self.arr.loadArrays(filename)
+            self.arrays.load_arrays(filename)
 
         # get arrays masked by filters
-        self.getFilteredArrays()
-
-    # get the arrays
-    def getArrays(self):
-        return self.arr
-
-    # get arrays of the filters
-    def getFilters(self):
-        self.filters = np.multiply(self.arr.data['filt_width'],self.arr.data['filt_bounds'])
+        self.__make_filtered_arrays()
 
     # find the point that maximizes xb
-    def getMaxPoint(self):
+    def get_max_xb_point(self) -> 'Point':
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(self.xb)
+        maxidx = np.argmax(self.__xb)
 
         # get max xsec times BR
-        maxxb = self.xb[maxidx]
+        maxxb = self.__xb[maxidx]
         
         # make dictionary for parameter values for maxxb
-        self.maxDict = {}
+        maxxb_parvals: Dict[str,float] = {}
 
-        # loop over parameter arrays
-        for par, array in self.parArrays.items():
-            self.maxDict[par] = array[maxidx]
+        # loop over parameter arrays and store optimal value of each
+        for par, array in self.__par_arrays.items():
+            maxxb_parvals[par] = array[maxidx]
 
         # return a point object holding xb and other parameters
-        return Point(xb=maxxb,
-                     modelname=self.modelname,
-                     parvals=self.maxDict)
-
-    # get the maximum xb
-    def getXB(self,decay=""):
-
-        # if no decay mode is provided, use stored decay mode
-        if not decay:
-            decay = self.decay
-
-        # get production cross section
-        xb_prod = self.getXBProd()
-
-        # get branching ratio
-        xb_decay = self.getXBDecay(decay)
-
-        # get total xsec times BR
-        xb = np.multiply(xb_prod,xb_decay)
-
-        # return total xsec time BR
-        return xb
-
-    # get maximum xb for the production
-    def getXBProd(self):
-
-        # TODO: take decay as argument for other production modes
-
-        # get production cross section
-        xb_prod = np.multiply(self.x_X_gg,self.b_X_SH)
-
-        return xb_prod
-
-    # get maximum xb for the decay
-    def getXBDecay(self,decay=""):
-
-        # if no decay mode is provided, use stored decay mode
-        if not decay:
-            decay = self.decay
-
-        # get appropriate BR for decay mode
-        match decay:
-
-            # 4b case
-            case "SHbbbb":
-                xb_decay = np.multiply(self.b_S_bb,self.b_H_bb)
-
-            # bbtautau cases
-            case "SbbHtautau":
-                xb_decay = np.multiply(self.b_S_bb,self.b_H_tautau)
-            case "StautauHbb":
-                xb_decay = np.multiply(self.b_S_tautau,self.b_H_bb)
-            case "SHbbtautau":
-                arr1 = np.multiply(self.b_S_bb,self.b_H_tautau)
-                arr2 = np.multiply(self.b_S_tautau,self.b_H_bb)
-                xb_decay = np.add(arr1,arr2)
-
-            # bbWW cases
-            case "SbbHWW":
-                xb_decay = np.multiply(self.b_S_bb,self.b_H_WW)
-            case "SWWHbb":
-                xb_decay = np.multiply(self.b_S_WW,self.b_H_bb)
-            case "SHbbWW":
-                arr1 = np.multiply(self.b_S_bb,self.b_H_WW)
-                arr2 = np.multiply(self.b_S_WW,self.b_H_bb)
-                xb_decay = np.add(arr1,arr2)
-
-            # bbZZ cases
-            case "SbbHZZ":
-                xb_decay = np.multiply(self.b_S_bb,self.b_H_ZZ)
-            case "SZZHbb":
-                xb_decay = np.multiply(self.b_S_ZZ,self.b_H_bb)
-            case "SHbbZZ":
-                arr1 = np.multiply(self.b_S_bb,self.b_H_ZZ)
-                arr2 = np.multiply(self.b_S_ZZ,self.b_H_bb)
-                xb_decay = np.add(arr1,arr2)
-
-            # VVtautau cases
-            case "SVVHbb":
-                xb_decay = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_bb)
-            case "SbbHVV":
-                xb_decay = np.multiply(self.b_S_bb,np.add(self.b_H_WW,self.b_H_ZZ))
-            case "SHVVbb":
-                arr1 = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_bb)
-                arr2 = np.multiply(self.b_S_bb,np.add(self.b_H_WW,self.b_H_ZZ))
-                xb_decay = np.add(arr1,arr2)
-
-            # WWtautau cases
-            case "SWWHtautau":
-                xb_decay = np.multiply(self.b_S_WW,self.b_H_tautau)
-            case "StautauHWW":
-                xb_decay = np.multiply(self.b_S_tautau,self.b_H_WW)
-            case "SHWWtautau":
-                arr1 = np.multiply(self.b_S_WW,self.b_H_tautau)
-                arr2 = np.multiply(self.b_S_tautau,self.b_H_WW)
-                xb_decay = np.add(arr1,arr2)
-
-            # ZZtautau cases
-            case "SZZHtautau":
-                xb_decay = np.multiply(self.b_S_ZZ,self.b_H_tautau)
-            case "StautauHZZ":
-                xb_decay = np.multiply(self.b_S_tautau,self.b_H_ZZ)
-            case "SHZZtautau":
-                arr1 = np.multiply(self.b_S_ZZ,self.b_H_tautau)
-                arr2 = np.multiply(self.b_S_tautau,self.b_H_ZZ)
-                xb_decay = np.add(arr1,arr2)
-
-            # VVtautau cases
-            case "SVVHtautau":
-                xb_decay = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_tautau)
-            case "StautauHVV":
-                xb_decay = np.multiply(self.b_S_tautau,np.add(self.b_H_WW,self.b_H_ZZ))
-            case "SHVVtautau":
-                arr1 = np.multiply(np.add(self.b_S_WW,self.b_S_ZZ),self.b_H_tautau)
-                arr2 = np.multiply(self.b_S_tautau,np.add(self.b_H_WW,self.b_H_ZZ))
-                xb_decay = np.add(arr1,arr2)
-
-            # bbgamgam cases
-            case "SbbHgamgam":
-                xb_decay = np.multiply(self.b_S_bb,self.b_H_gamgam)
-            case "SgamgamHbb":
-                xb_decay = np.multiply(self.b_S_gamgam,self.b_H_bb)
-            case "SHbbgamgam":
-                arr1 = np.multiply(self.b_S_bb,self.b_H_gamgam)
-                arr2 = np.multiply(self.b_S_gamgam,self.b_H_bb)
-                xb_decay = np.add(arr1,arr2)
-
-            # all other cases
-            case _:
-                print("Unrecognized decay",decay)
-                print("This should not have happened")
-                quit()
-
-        # return the decay BR
-        return xb_decay
+        return Point(xb = maxxb,
+                     modelname = self.__modelname,
+                     parvals = maxxb_parvals)
 
     # get minimum value of a parameter
-    def getMin(self,varname):
-        return np.min(self.parArrays[varname])
+    def get_min(self,
+                parname: str) -> float:
+        return np.min(self.__par_arrays[parname])
 
     # get maximum value of a parameter
-    def getMax(self,varname):
-        return np.max(self.parArrays[varname])
+    def get_max(self,
+                parname: str) -> float:
+        return np.max(self.__par_arrays[parname])
     
     # get arrays of all parameter as a dictionary
-    def getParameters(self):
-        return self.parArrays
+    def get_parameter_arrays(self) -> Dict[str,NDArray]:
+        return self.__par_arrays
 
-    # apply filters as mask
-    def getFilteredArrays(self):
-        
-        # get array of filters to use as a mask
-        self.getFilters()
-
-        ##############################
-        # create local arrays by applying filter mask
-        ##############################
-
-        # dictionary for parameter arrays
-        self.parArrays = {}
-
-        # loop over parameters
-        for name, par in self.model.model_parameters().items():
-            # populate dictionary of parameter arrays
-            self.parArrays[name] = self.arr.data[par['fullname']][self.filters != 0]
-
-        # H1 xsec and BR values
-        self.b_H_bb = self.arr.data['b_'+self.HName+'_bb'][self.filters != 0]
-        self.b_H_tautau = self.arr.data['b_'+self.HName+'_tautau'][self.filters != 0]
-        self.b_H_WW = self.arr.data['b_'+self.HName+'_WW'][self.filters != 0]
-        self.b_H_ZZ = self.arr.data['b_'+self.HName+'_ZZ'][self.filters != 0]
-        self.b_H_gamgam = self.arr.data['b_'+self.HName+'_gamgam'][self.filters != 0]
-
-        # H2 xsec and BR values
-        self.b_S_bb = self.arr.data['b_'+self.SName+'_bb'][self.filters != 0]
-        self.b_S_tautau = self.arr.data['b_'+self.SName+'_tautau'][self.filters != 0]
-        self.b_S_WW = self.arr.data['b_'+self.SName+'_WW'][self.filters != 0]
-        self.b_S_ZZ = self.arr.data['b_'+self.SName+'_ZZ'][self.filters != 0]
-        self.b_S_gamgam = self.arr.data['b_'+self.SName+'_gamgam'][self.filters != 0]
-
-        # H3 xsec and BR values
-        self.x_X_gg = self.arr.data['x_H3_gg'][self.filters != 0]
-        self.b_X_SH = self.arr.data['b_H3_H1H2'][self.filters != 0]
-
-        # cross-section times branching ratio
-        self.xb = self.getXB()
+    # get xb array
+    def get_xb(self,
+               decay: str = "") -> NDArray:
+        # if a decay mode is provided that is not the class member, return the corresponding xb
+        if decay and decay != self.__decay:
+            return self.__calc_xb(decay)
+        # otherwise return the default xb
+        else:
+            return self.__xb
 
     # function that checks whether xb is unimodal in a parameter
-    def isBimodal(self,param_name):
+    def is_bimodal(self,
+                   param_name: str) -> bool:
 
         # percentile threshold for xb
         percentile_threshold = 98
 
         # number of points available
-        npoints = len(self.xb)
+        npoints = len(self.__xb)
 
         # minimum number of points for test
         min_points = 200
@@ -294,10 +152,10 @@ class Parse:
             percentile_threshold = 0
 
         # get xb value that corresponds to percentile threshold
-        threshold_value = np.percentile(self.xb, percentile_threshold)
+        threshold_value = np.percentile(self.__xb, percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.parArrays[param_name][self.xb > threshold_value] 
+        param_selected = self.__par_arrays[param_name][self.__xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -311,74 +169,168 @@ class Parse:
         else:
             return False
 
-# class that holds parameter and xb values for a single point
-class Point:
+    # get the maximum xb
+    def __calc_xb(self,
+                  decay: str) -> NDArray:
 
-    # initialize point parameters
-    def __init__(self,
-                 modelname,
-                 parvals={},
-                 xb=0.0):
+        # get production cross section
+        xb_prod = self.__get_xb_prod()
+
+        # get branching ratio
+        xb_decay = self.__get_xb_decay(decay)
+
+        # get total xsec times BR
+        xb = np.multiply(xb_prod,xb_decay)
+
+        # return total xsec time BR
+        return xb
+
+    # get maximum xb for the production
+    def __get_xb_prod(self) -> NDArray:
+
+        # TODO: take decay as argument for other production modes
+
+        # get production cross section
+        xb_prod = np.multiply(self.__x_X_gg,self.__b_X_SH)
+
+        return xb_prod
+
+    # get maximum xb for the decay
+    def __get_xb_decay(self,
+                       decay: str) -> NDArray:
+
+        # get appropriate BR for decay mode
+        match decay:
+
+            # 4b case
+            case "SHbbbb":
+                xb_decay = np.multiply(self.__b_S_bb,self.__b_H_bb)
+
+            # bbtautau cases
+            case "SbbHtautau":
+                xb_decay = np.multiply(self.__b_S_bb,self.__b_H_tautau)
+            case "StautauHbb":
+                xb_decay = np.multiply(self.__b_S_tautau,self.__b_H_bb)
+            case "SHbbtautau":
+                arr1 = np.multiply(self.__b_S_bb,self.__b_H_tautau)
+                arr2 = np.multiply(self.__b_S_tautau,self.__b_H_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # bbWW cases
+            case "SbbHWW":
+                xb_decay = np.multiply(self.__b_S_bb,self.__b_H_WW)
+            case "SWWHbb":
+                xb_decay = np.multiply(self.__b_S_WW,self.__b_H_bb)
+            case "SHbbWW":
+                arr1 = np.multiply(self.__b_S_bb,self.__b_H_WW)
+                arr2 = np.multiply(self.__b_S_WW,self.__b_H_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # bbZZ cases
+            case "SbbHZZ":
+                xb_decay = np.multiply(self.__b_S_bb,self.__b_H_ZZ)
+            case "SZZHbb":
+                xb_decay = np.multiply(self.__b_S_ZZ,self.__b_H_bb)
+            case "SHbbZZ":
+                arr1 = np.multiply(self.__b_S_bb,self.__b_H_ZZ)
+                arr2 = np.multiply(self.__b_S_ZZ,self.__b_H_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # VVtautau cases
+            case "SVVHbb":
+                xb_decay = np.multiply(np.add(self.__b_S_WW,self.__b_S_ZZ),self.__b_H_bb)
+            case "SbbHVV":
+                xb_decay = np.multiply(self.__b_S_bb,np.add(self.__b_H_WW,self.__b_H_ZZ))
+            case "SHVVbb":
+                arr1 = np.multiply(np.add(self.__b_S_WW,self.__b_S_ZZ),self.__b_H_bb)
+                arr2 = np.multiply(self.__b_S_bb,np.add(self.__b_H_WW,self.__b_H_ZZ))
+                xb_decay = np.add(arr1,arr2)
+
+            # WWtautau cases
+            case "SWWHtautau":
+                xb_decay = np.multiply(self.__b_S_WW,self.__b_H_tautau)
+            case "StautauHWW":
+                xb_decay = np.multiply(self.__b_S_tautau,self.__b_H_WW)
+            case "SHWWtautau":
+                arr1 = np.multiply(self.__b_S_WW,self.__b_H_tautau)
+                arr2 = np.multiply(self.__b_S_tautau,self.__b_H_WW)
+                xb_decay = np.add(arr1,arr2)
+
+            # ZZtautau cases
+            case "SZZHtautau":
+                xb_decay = np.multiply(self.__b_S_ZZ,self.__b_H_tautau)
+            case "StautauHZZ":
+                xb_decay = np.multiply(self.__b_S_tautau,self.__b_H_ZZ)
+            case "SHZZtautau":
+                arr1 = np.multiply(self.__b_S_ZZ,self.__b_H_tautau)
+                arr2 = np.multiply(self.__b_S_tautau,self.__b_H_ZZ)
+                xb_decay = np.add(arr1,arr2)
+
+            # VVtautau cases
+            case "SVVHtautau":
+                xb_decay = np.multiply(np.add(self.__b_S_WW,self.__b_S_ZZ),self.__b_H_tautau)
+            case "StautauHVV":
+                xb_decay = np.multiply(self.__b_S_tautau,np.add(self.__b_H_WW,self.__b_H_ZZ))
+            case "SHVVtautau":
+                arr1 = np.multiply(np.add(self.__b_S_WW,self.__b_S_ZZ),self.__b_H_tautau)
+                arr2 = np.multiply(self.__b_S_tautau,np.add(self.__b_H_WW,self.__b_H_ZZ))
+                xb_decay = np.add(arr1,arr2)
+
+            # bbgamgam cases
+            case "SbbHgamgam":
+                xb_decay = np.multiply(self.__b_S_bb,self.__b_H_gamgam)
+            case "SgamgamHbb":
+                xb_decay = np.multiply(self.__b_S_gamgam,self.__b_H_bb)
+            case "SHbbgamgam":
+                arr1 = np.multiply(self.__b_S_bb,self.__b_H_gamgam)
+                arr2 = np.multiply(self.__b_S_gamgam,self.__b_H_bb)
+                xb_decay = np.add(arr1,arr2)
+
+            # all other cases
+            case _:
+                print("Unrecognized decay",decay)
+                print("This should not have happened")
+                quit()
+
+        # return the decay BR
+        return xb_decay
+
+    # get arrays of the filters
+    def __set_filters(self) -> None:
+        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'))
+
+    # apply filters as mask
+    def __make_filtered_arrays(self) -> None:
         
-        # get model
-        self.model = Model(modelname)
+        # get array of filters to use as a mask
+        self.__set_filters()
 
-        # initialize empty dictionary
-        self.parvals = {}
+        ##############################
+        # create local arrays by applying filter mask
+        ##############################
 
-        # if parvals exists, store it
-        if parvals:
-            self.parvals = parvals
-        # otherwise create default dictionary from model
-        else:
-            # get list of parameters from model
-            parlist = self.model.model_parameter_names()
+        # loop over parameters
+        for name, par in self.__model.parameters().items():
+            # populate dictionary of parameter arrays
+            self.__par_arrays[name] = self.arrays.data(par['fullname'])[self.filters != 0]
 
-            # loop over list of parameters and make default dictionary
-            for par in parlist:
-                self.parvals[par] = 0.0
+        # H xsec and BR values
+        self.__b_H_bb = self.arrays.data('b_'+self.__HName+'_bb')[self.filters != 0]
+        self.__b_H_tautau = self.arrays.data('b_'+self.__HName+'_tautau')[self.filters != 0]
+        self.__b_H_WW = self.arrays.data('b_'+self.__HName+'_WW')[self.filters != 0]
+        self.__b_H_ZZ = self.arrays.data('b_'+self.__HName+'_ZZ')[self.filters != 0]
+        self.__b_H_gamgam = self.arrays.data('b_'+self.__HName+'_gamgam')[self.filters != 0]
 
-        # store xb value
-        self.xb = xb
+        # S xsec and BR values
+        self.__b_S_bb = self.arrays.data('b_'+self.__SName+'_bb')[self.filters != 0]
+        self.__b_S_tautau = self.arrays.data('b_'+self.__SName+'_tautau')[self.filters != 0]
+        self.__b_S_WW = self.arrays.data('b_'+self.__SName+'_WW')[self.filters != 0]
+        self.__b_S_ZZ = self.arrays.data('b_'+self.__SName+'_ZZ')[self.filters != 0]
+        self.__b_S_gamgam = self.arrays.data('b_'+self.__SName+'_gamgam')[self.filters != 0]
 
-    # wrapper function to get attribute
-    def getVal(self,varname):
-        # if xb is requested, return it
-        if varname == "xb":
-            return self.xb
-        # otherwise return value from parvals
-        else:
-            return self.parvals[varname]
+        # X xsec and BR values
+        self.__x_X_gg = self.arrays.data('x_H3_gg')[self.filters != 0]
+        self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
 
-    # get difference between two values of varname
-    def diff(self, other: 'Point', parname):
-        return self.getVal(parname) - other.getVal(parname)
-
-    # get fractional difference between two values of varname
-    # TODO: Add divide-by-zero protection
-    def diffFrac(self, other: 'Point', parname):
-        return self.diff(other,parname) / abs(self.getVal(parname))
-    
-    # get formatted string of xb
-    def formatXB(self):
-        return f"{Decimal(self.xb):.3E}"
-    
-    # get formatted string of parameter
-    def formatParam(self, parname):
-        return "value = " + f"{self.getVal(parname):1.{self.model.model_parameter(parname)['precision']}f}"
-    
-    # get formatted string of parameter diff w.r.t. another point
-    def formatDiff(self, other: 'Point', parname):
-        return "diff. = " + f"{self.diff(other,parname):1.{self.model.model_parameter(parname)['precision']}f}"
-    
-    # get formatted string of parameter fractional diff w.r.t. another point
-    def formatDiffFrac(self, other: 'Point', parname):
-        return "rel. diff. = " + f"{self.diffFrac(other,parname):1.2f}"
-
-    # define the greater than (>) operator
-    def __gt__(self,other: 'Point'):
-        return self.xb > other.xb
-
-    # define the less than (<) operator
-    def __lt__(self,other: 'Point'):
-        return self.xb < other.xb
+        # cross-section times branching ratio
+        self.__xb = self.__calc_xb(self.__decay)

@@ -2,7 +2,7 @@ import Higgs.predictions as HP
 import Higgs.bounds as HB
 import Higgs.signals as HS
 
-from model import Model
+from utils.model import Model
 
 import os
 
