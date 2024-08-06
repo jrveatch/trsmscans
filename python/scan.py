@@ -269,7 +269,8 @@ class Scan:
         curr_max = 10
         return
     
-    def combine_files(self, directory):
+    def combine_files(self,
+                      directory: str) -> None:
 
         try:
             # Ensure the directory exists
@@ -291,7 +292,7 @@ class Scan:
                 # Create output file path based on last 4 digits
                 outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
                 # Save contents of current input file to respective output file
-                tsvutils.saveTSVOutput(inputfile, outputfile)
+                tsvutils.save_tsv_output(inputfile, outputfile)
 
         # Error exceptions
         except FileNotFoundError:
@@ -421,8 +422,8 @@ class Scanner:
         # TODO: Names of details and summary files
 
     def run(self,
-            iter,
-            use_multiprocessing=False):
+            iter: int,
+            use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
         iterstart = time.time()

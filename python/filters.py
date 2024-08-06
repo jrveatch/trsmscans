@@ -46,12 +46,12 @@ def apply_filters(filename: str,
 def initialize_filters(filename: str) -> None:
 
     # initialize both columns
-    tsvutils.initializeColumn(filename=filename,
-                              column_header=header_width,
-                              value=1)
-    tsvutils.initializeColumn(filename=filename,
-                              column_header=header_bounds,
-                              value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header=header_width,
+                               value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header=header_bounds,
+                               value=1)
 
 if __name__ == "__main__":
 

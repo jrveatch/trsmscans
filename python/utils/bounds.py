@@ -34,9 +34,9 @@ def filter_bounds(filename: str,
     XName = masses.XName
 
     # initialize column in case it doesn't exist
-    tsvutils.initializeColumn(filename=filename,
-                              column_header="filt_bounds",
-                              value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header="filt_bounds",
+                               value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)

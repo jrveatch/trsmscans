@@ -11,9 +11,9 @@ def filter_widths(filename: str,
     # TODO: accept different widths for each H
 
     # initialize column in case it doesn't exist
-    tsvutils.initializeColumn(filename=filename,
-                              column_header="filt_width",
-                              value=1)
+    tsvutils.initialize_column(filename=filename,
+                               column_header="filt_width",
+                               value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(filename)

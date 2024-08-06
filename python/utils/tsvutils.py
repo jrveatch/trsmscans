@@ -6,7 +6,7 @@ import subprocess
 # function to get number of points in a file
 # returns 0 if file does not exist
 # otherwise returns number of existing points in file
-def countPointsInTSV(filename):
+def count_tsv_points(filename: str) -> int:
 
     # if file doesn't exist, return -1
     if not os.path.exists(filename):
@@ -25,7 +25,8 @@ def countPointsInTSV(filename):
     return npoints
 
 # function to save output tsv file
-def saveTSVOutput(inputfile,outputfile):
+def save_tsv_output(inputfile: str,
+                    outputfile: str) -> None:
 
     # normalize paths to absolute paths for comparison
     inputfile = os.path.abspath(inputfile)
@@ -37,7 +38,7 @@ def saveTSVOutput(inputfile,outputfile):
         return
 
     # get number of points already in output file
-    nexisting = countPointsInTSV(outputfile)
+    nexisting = count_tsv_points(outputfile)
 
     # if output file doesn't exist or is empty, simply rename input file
     if nexisting <= 0:
@@ -70,7 +71,8 @@ def saveTSVOutput(inputfile,outputfile):
     return
 
 # function to check whether a column already exists in file
-def columnExists(filename,column_header):
+def column_exists(filename: str,
+                  column_header: str) -> bool:
 
     with open(filename, 'r') as f_in:
         # read the header
@@ -80,16 +82,15 @@ def columnExists(filename,column_header):
 
 # function to add and initialize columns
 # TODO: Rework this to accept a list of columns and values
-def initializeColumn(filename,column_header,value):
+def initialize_column(filename: str,
+                      column_header: str,
+                      value: float) -> None:
 
     # temp output filename
     temp_file = "temp.tsv"
 
-    # check whether column already exists
-    has_column = columnExists(filename=filename,column_header=column_header)
-
     # return if column already exists
-    if has_column:
+    if column_exists(filename=filename,column_header=column_header):
         return
 
     with open(filename, 'r') as f_in, open(temp_file, 'w') as f_out:
@@ -97,9 +98,8 @@ def initializeColumn(filename,column_header,value):
         # read the header
         header = f_in.readline().strip().split('\t')
         
-        # add new column header if needed
-        if not has_column:
-            header.append(column_header)
+        # add new column header
+        header.append(column_header)
         
         # write the updated header to the output file
         f_out.write('\t'.join(header) + '\n')
@@ -111,8 +111,7 @@ def initializeColumn(filename,column_header,value):
             columns = line.strip().split('\t')
             
             # append the new column data
-            if not has_column:
-                columns.append(str(value))
+            columns.append(str(value))
 
             # write the updated line to the output file
             f_out.write('\t'.join(columns) + '\n')

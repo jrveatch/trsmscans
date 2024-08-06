@@ -138,14 +138,14 @@ def runPrescan(masses: 'Masses',
             return result
 
         # increment the count of points done
-        points_done += tsvutils.countPointsInTSV(tsvname_initial)
+        points_done += tsvutils.count_tsv_points(tsvname_initial)
 
         # initialize filter columns
         filters.initialize_filters(tsvname_initial)
 
         # save output to tsvname
-        tsvutils.saveTSVOutput(inputfile=tsvname_initial,
-                               outputfile=tsvname)
+        tsvutils.save_tsv_output(inputfile=tsvname_initial,
+                                 outputfile=tsvname)
 
     # apply width and bounds filters
     filters.apply_filters(filename=tsvname,
@@ -167,7 +167,7 @@ def runPrescan(masses: 'Masses',
 def checkPrescan(tsvname: str) -> int:
 
     # get number of points in file
-    return tsvutils.countPointsInTSV(tsvname)
+    return tsvutils.count_tsv_points(tsvname)
 
 # function to get number of points in a file
 # returns -1 if file does not exist
