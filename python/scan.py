@@ -476,8 +476,9 @@ class Scanner:
 
         # apply width and bounds filters
         nwidth, nbounds, npass = filters.applyFilters(filename=tsvname,
-                                                      maxwidth=self.maxwidth,
-                                                      masses=self.params.masses)
+                                                      masses=self.params.masses,
+                                                      modelname=self.modelname,
+                                                      maxwidth=self.maxwidth)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
