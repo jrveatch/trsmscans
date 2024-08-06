@@ -149,8 +149,9 @@ def runPrescan(masses: 'Masses',
 
     # apply width and bounds filters
     filters.applyFilters(filename=tsvname,
-                         maxwidth=maxwidth,
-                         masses=masses)
+                         masses=masses,
+                         modelname=modelname,
+                         maxwidth=maxwidth)
 
     # get total time taken
     scanend = time.time()

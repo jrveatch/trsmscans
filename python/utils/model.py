@@ -14,20 +14,55 @@ class Model:
         # directory where model information is stored
         self.__model_dir = os.environ['DATADIR']+"models/"
 
+        # model yaml file
+        self.__ymlname = self.__modeldir + self.__name + "_params.yml"
+
         # template .ini filename
         self.__templateini = self.__model_dir + self.__name + "_template.ini"
 
-        # model yaml file
-        __ymlname = self.__model_dir + self.__name + "_params.yml"
+        self.__read_yaml()
+
+    # read .yml file
+    def __read_yaml(self):
+      
+        # create empty particles dictionary
+        self.particles = {}
 
         # create empty __model_params dictionary
         self.__model_params = {}
 
-        # TODO: Check to make sure .ini template and yaml exist
+        # read in model yaml file
+        with open(self.__ymlname,'r') as file:
+            # read yaml data for model
+            yaml_data = yaml.safe_load(file)[self.__name]
+            # read particles
+            self.particles = yaml_data['particles']
+            # read parameters
+            self.__model_params = yaml_data['parameters']
 
-        # read in model yaml file as a dictionary
-        with open(__ymlname,'r') as file:
-            self.__model_params = yaml.safe_load(file)[self.__name]
+        # convert NoneType entries to empty dictionaries
+        for key in self.particles:
+            if self.particles[key] == None:
+                self.particles[key] = {}
+        
+        # make sure exactly 1 SM-like Higgs is provided
+        if not len(self.particles['SMHiggs']) == 1:
+            print('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            return
+        
+        # store SM-like Higgs
+        self.SMHiggs = self.particles['SMHiggs'][0]
+
+        # store BSM scalars
+        self.BSMScalars = []
+        for key in self.particles:
+            # skip SM-like Higgs for this list
+            if key == 'SMHiggs':
+                continue
+            self.BSMScalars.extend(self.particles[key])
+        
+        # store list of all scalars
+        self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
     # get dictionary of model parameters
     def parameters(self) -> dict:

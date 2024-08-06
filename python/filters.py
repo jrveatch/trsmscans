@@ -13,17 +13,21 @@ header_width = "filt_width"
 header_bounds = "filt_bounds"
 
 def applyFilters(filename,
-                 maxwidth,
-                 masses: Masses):
+                 modelname,
+                 masses: Masses,
+                 maxwidth):
 
     # initialize filter columns
     initializeFilters(filename)
 
     # apply width filter
-    nwidth = width.filter_widths(filename,maxwidth)
+    nwidth = width.filter_widths(filename=filename,
+                                 maxwidth=maxwidth)
 
     # apply bounds filter
-    nbounds = bounds.filter_bounds(filename,masses)
+    nbounds = bounds.filter_bounds(filename=filename,
+                                   modelname=modelname,
+                                   masses=masses)
 
     # get arrays from output file
     arrays = Arrays(filename)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from twors_higgstools_setup import *
+from setupHiggsTools import *
 
 from utils.arrays import Arrays
 from utils import tsvutils
@@ -9,12 +9,24 @@ from utils.masses import Masses
 
 # TODO: Make this work for other models
 def filter_bounds(filename: str,
+                  modelname: str,
                   masses: Masses,
                   debug = False) -> int:
 
-    # get data and tools
-    bounds, signals = getHiggsData()
-    pred, H, S, X, ress_SM = setupHiggsTools()
+    # get bounds and signals data
+    bounds = getHiggsBounds()
+    signals = getHiggsSignals()
+
+    # get Higgs predictions
+    pred = getHiggsPredictions(modelname=modelname)
+
+    # get HiggsSignals Chi^2 for SM
+    ress_SM = signals(pred)
+
+    # get particles
+    H = pred.particle('H')
+    S = pred.particle('S')
+    X = pred.particle('X')
 
     # get strings for 3 bosons
     HName = masses.HName
