@@ -9,7 +9,7 @@ import datetime
 import argparse
 
 # import package tools
-import filters
+from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
@@ -140,18 +140,15 @@ def runPrescan(masses: 'Masses',
         # increment the count of points done
         points_done += tsvutils.count_tsv_points(tsvname_initial)
 
-        # initialize filter columns
-        filters.initialize_filters(tsvname_initial)
-
         # save output to tsvname
         tsvutils.save_tsv_output(inputfile=tsvname_initial,
                                  outputfile=tsvname)
 
     # apply width and bounds filters
-    filters.apply_filters(filename=tsvname,
-                          masses=masses,
-                          modelname=modelname,
-                          maxwidth=maxwidth)
+    apply_filters(filename=tsvname,
+                  masses=masses,
+                  modelname=modelname,
+                  maxwidth=maxwidth)
 
     # get total time taken
     scanend = time.time()

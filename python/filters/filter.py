@@ -5,8 +5,8 @@ import numpy as np
 
 from typing import Tuple
 
-from utils import width
-from utils import bounds
+from filters import width
+from filters import bounds
 from utils import tsvutils
 from utils.arrays import Arrays
 from utils.masses import Masses
