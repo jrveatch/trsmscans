@@ -67,4 +67,4 @@ if __name__ == "__main__":
     # create masses
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    applyFilters(filename=args.filename,maxwidth=args.maxwidth,masses=masses)
+    apply_filters(filename=args.filename,maxwidth=args.maxwidth,masses=masses)
