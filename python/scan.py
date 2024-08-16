@@ -456,6 +456,7 @@ class Scanner:
         # TODO: Figure out what to do if process returns negative value
 
         # rename output .tsv file to tsvname
+        # TODO: This should probably use tsvutils.save_tsv_output
         shutil.move(temptsv,tsvname)
 
         # calculate point density from ranges
