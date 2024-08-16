@@ -3,7 +3,6 @@
 # import various modules to help with logistics
 import os
 import shutil
-import subprocess
 import time
 import datetime
 import argparse
@@ -16,13 +15,13 @@ from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
 
-def runPrescan(masses: 'Masses',
-               modelname: str,
-               npoints: int,
-               maxwidth: float,
-               overwrite: bool = False,
-               use_multiprocessing: bool = False,
-               stepsize: int = 10000):
+# TODO: Make this return a Parse object
+def run_prescan(masses: 'Masses',
+                modelname: str,
+                npoints: int,
+                maxwidth: float,
+                overwrite: bool = False,
+                use_multiprocessing: bool = False) -> int:
 
     # get scan start time
     scanstart = time.time()
@@ -38,10 +37,9 @@ def runPrescan(masses: 'Masses',
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points for",str(masses))
-    print("Running in",outdir)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(tsvname)
+    nexisting = tsvutils.count_tsv_points(tsvname)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and npoints < nexisting * 0.2:
@@ -72,8 +70,14 @@ def runPrescan(masses: 'Masses',
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
+    # store starting directory
+    startDir = os.getcwd()
+
     # move into working directory for prescan
     os.chdir(outdir)
+
+    # print location
+    print("Running prescan in",outdir)
 
     # make instance of params
     # this automatically initializes the parameters
@@ -99,53 +103,30 @@ def runPrescan(masses: 'Masses',
         print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
         print("If you want to overwrite the existing prescan, run with -o.")
 
-    # increment up to the total number of points this will
-    # run the prescan to add stepsize points each time
-    # this approach takes a slightly longer time but allows
-    # progress to be captured at smaller increments in case
-    # the longer prescan runs get interrupted
+    # run ScannerS to sample points
+    result = runScannerS(ininame=ininame,
+                         modelname=modelname,
+                         npoints=npoints,
+                         use_multiprocessing=use_multiprocessing)
 
-    # number of points that have already been run
-    points_done = 0
+    # if a process returns a negative result, delete directory and return result
+    if result < 0:
 
-    # keep going while fewer than npoints have been done so far
-    while points_done < npoints:
+        # inform user
+        print("Removing directory",outdir)
 
-        # if there is space, run another set of stepsize
-        if npoints - points_done > stepsize:
-            points_to_run = stepsize
+        # delete directory
+        shutil.rmtree(outdir)
 
-        # otherwise run the remaining points
-        else:
-            points_to_run = npoints - points_done
+        # return result from process
+        return result
 
-        # run ScannerS for the next set of points
-        result = runScannerS(ininame=ininame,
-                             modelname=modelname,
-                             npoints=points_to_run,
-                             use_multiprocessing=use_multiprocessing)
+    # make sure new .tsv has filter columns
+    initialize_filters(filename=tsvname_initial)
 
-        # if a process returns a negative result, delete directory and return result
-        if result < 0:
-
-            # inform user
-            print("Removing directory",outdir)
-
-            # delete directory
-            shutil.rmtree(outdir)
-
-            # return result from process
-            return result
-
-        # increment the count of points done
-        points_done += tsvutils.count_tsv_points(tsvname_initial)
-
-        # initialize filter columns
-        initialize_filters(tsvname_initial)
-
-        # save output to tsvname
-        tsvutils.save_tsv_output(inputfile=tsvname_initial,
-                                 outputfile=tsvname)
+    # save output to tsvname
+    tsvutils.save_tsv_output(inputfile=tsvname_initial,
+                             outputfile=tsvname)
 
     # apply width and bounds filters
     apply_filters(filename=tsvname,
@@ -157,38 +138,14 @@ def runPrescan(masses: 'Masses',
     scanend = time.time()
     scantime = (scanend - scanstart)
 
+    # move back to the starting directory
+    os.chdir(startDir)
+
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
     # return after a successful run
     return 0
-
-# function to check previous prescan
-def checkPrescan(tsvname: str) -> int:
-
-    # get number of points in file
-    return tsvutils.count_tsv_points(tsvname)
-
-# function to get number of points in a file
-# returns -1 if file does not exist
-# otherwise returns number of existing points in file
-def countNPointsInFile(filename: str) -> int:
-
-    # if file doesn't exist, return -1
-    if not os.path.exists(filename):
-        return -1
-
-    # run wc -l to get the number of lines
-    result = subprocess.run(["wc", "-l", filename], capture_output=True, text=True)
-
-    # get output from wc -l
-    output = result.stdout.strip()
-
-    # get the number of previously scanned points
-    npoints = int(output.split()[0]) - 1
-
-    # return number of points
-    return npoints
 
 if __name__ == "__main__":
 
@@ -202,16 +159,14 @@ if __name__ == "__main__":
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
-    argparser.add_argument("-t", "--stepsize", default=10000, type=int, help="Step size to save progress")
     args = argparser.parse_args()
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    runPrescan(masses=masses,
-               modelname=args.model,
-               npoints=args.npoints,
-               maxwidth=args.maxwidth,
-               overwrite=args.overwrite,
-               use_multiprocessing=args.multiprocessing,
-               stepsize=args.stepsize)
+    run_prescan(masses=masses,
+                modelname=args.model,
+                npoints=args.npoints,
+                maxwidth=args.maxwidth,
+                overwrite=args.overwrite,
+                use_multiprocessing=args.multiprocessing)

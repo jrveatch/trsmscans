@@ -19,7 +19,7 @@ from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils.masses import Masses
-import prescan
+from prescan import run_prescan
 from utils import fileutils
 from utils import tsvutils
 from utils.decayutils import isValidDecay
@@ -98,6 +98,7 @@ class Scan:
         details.close()
 
     # run a prescan to constrain scan parameter ranges
+    # TODO: Come up with a different name for this
     def runPrescan(self,
                    npoints: int,
                    use_multiprocessing: bool = False) -> None:
@@ -114,11 +115,11 @@ class Scan:
                                            masses=self.masses)
 
         # call prescan and get result
-        result = prescan.runPrescan(masses=self.masses,
-                                    npoints=nprescan,
-                                    maxwidth=self.maxwidth,
-                                    modelname=self.modelname,
-                                    use_multiprocessing=use_multiprocessing)
+        result = run_prescan(masses=self.masses,
+                             npoints=nprescan,
+                             maxwidth=self.maxwidth,
+                             modelname=self.modelname,
+                             use_multiprocessing=use_multiprocessing)
     
         # if prescan fails, remove directory and quit
         if result < 0:
@@ -132,18 +133,21 @@ class Scan:
             # quit execution
             quit()
 
-        # count the number of prescan points available
-        with open(prescantsv, "r") as f:
-            nprescan = sum(1 for _ in f)
-
-        # info message about prescan
-        print("\nAnalyzing prescan with",nprescan,"points")
-
         # get parser from prescan
         self.prescanparser = Parse(filename=prescantsv,
                                    masses=self.masses,
                                    modelname=self.modelname,
                                    decay=self.decay)
+
+        # get the number of unfiltered prescan points available
+        n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()
+
+        # get the number of filtered prescan points available
+        n_prescan = self.prescanparser.get_n_points()
+
+        # info message about prescan
+        print("\nAnalyzing prescan with",n_prescan_unfiltered,"points")
+        print(n_prescan,"points passed filters")
 
         # if the prescan ranges are more than 1% of the max range  
         # away from the boundaries, change the boundaries to restrict
@@ -452,7 +456,8 @@ class Scanner:
         # TODO: Figure out what to do if process returns negative value
 
         # rename output .tsv file to tsvname
-        shutil.move(temptsv,tsvname)
+        tsvutils.save_tsv_output(inputfile=temptsv,
+                                 outputfile=tsvname)
 
         # calculate point density from ranges
         volume = self.params.volume()

@@ -334,3 +334,11 @@ class Parse:
 
         # cross-section times branching ratio
         self.__xb = self.__calc_xb(self.__decay)
+
+    # get number of filtered events
+    def get_n_points(self) -> int:
+        return self.__xb.size
+
+    # get number of unfiltered events
+    def get_n_unfiltered_points(self) -> int:
+        return self.arrays.data().shape[0]
