@@ -37,7 +37,6 @@ def run_prescan(masses: 'Masses',
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points for",str(masses))
-    print("Running in",outdir)
 
     # get number of pre-existing prescan points
     nexisting = tsvutils.count_tsv_points(tsvname)
@@ -71,8 +70,14 @@ def run_prescan(masses: 'Masses',
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
+    # store starting directory
+    startDir = os.getcwd()
+
     # move into working directory for prescan
     os.chdir(outdir)
+
+    # print location
+    print("Running prescan in",outdir)
 
     # make instance of params
     # this automatically initializes the parameters
@@ -155,6 +160,9 @@ def run_prescan(masses: 'Masses',
     # get total time taken
     scanend = time.time()
     scantime = (scanend - scanstart)
+
+    # move back to the starting directory
+    os.chdir(startDir)
 
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
