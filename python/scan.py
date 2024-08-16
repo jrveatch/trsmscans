@@ -133,18 +133,21 @@ class Scan:
             # quit execution
             quit()
 
-        # count the number of prescan points available
-        with open(prescantsv, "r") as f:
-            nprescan = sum(1 for _ in f)
-
-        # info message about prescan
-        print("\nAnalyzing prescan with",nprescan,"points")
-
         # get parser from prescan
         self.prescanparser = Parse(filename=prescantsv,
                                    masses=self.masses,
                                    modelname=self.modelname,
                                    decay=self.decay)
+
+        # get the number of unfiltered prescan points available
+        n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()
+
+        # get the number of filtered prescan points available
+        n_prescan = self.prescanparser.get_n_points()
+
+        # info message about prescan
+        print("\nAnalyzing prescan with",n_prescan_unfiltered,"points")
+        print(n_prescan,"points passed filters")
 
         # if the prescan ranges are more than 1% of the max range  
         # away from the boundaries, change the boundaries to restrict
