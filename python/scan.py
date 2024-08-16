@@ -98,6 +98,7 @@ class Scan:
         details.close()
 
     # run a prescan to constrain scan parameter ranges
+    # TODO: Come up with a different name for this
     def runPrescan(self,
                    npoints: int,
                    use_multiprocessing: bool = False) -> None:
