@@ -19,7 +19,7 @@ from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils.masses import Masses
-import prescan
+from prescan import run_prescan
 from utils import fileutils
 from utils import tsvutils
 from utils.decayutils import isValidDecay
@@ -114,11 +114,11 @@ class Scan:
                                            masses=self.masses)
 
         # call prescan and get result
-        result = prescan.runPrescan(masses=self.masses,
-                                    npoints=nprescan,
-                                    maxwidth=self.maxwidth,
-                                    modelname=self.modelname,
-                                    use_multiprocessing=use_multiprocessing)
+        result = run_prescan(masses=self.masses,
+                             npoints=nprescan,
+                             maxwidth=self.maxwidth,
+                             modelname=self.modelname,
+                             use_multiprocessing=use_multiprocessing)
     
         # if prescan fails, remove directory and quit
         if result < 0:

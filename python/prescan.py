@@ -3,7 +3,6 @@
 # import various modules to help with logistics
 import os
 import shutil
-import subprocess
 import time
 import datetime
 import argparse
@@ -16,13 +15,13 @@ from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
 
-def runPrescan(masses: 'Masses',
-               modelname: str,
-               npoints: int,
-               maxwidth: float,
-               overwrite: bool = False,
-               use_multiprocessing: bool = False,
-               stepsize: int = 10000):
+def run_prescan(masses: 'Masses',
+                modelname: str,
+                npoints: int,
+                maxwidth: float,
+                overwrite: bool = False,
+                use_multiprocessing: bool = False,
+                stepsize: int = 10000):
 
     # get scan start time
     scanstart = time.time()
@@ -41,7 +40,7 @@ def runPrescan(masses: 'Masses',
     print("Running in",outdir)
 
     # get number of pre-existing prescan points
-    nexisting = checkPrescan(tsvname)
+    nexisting = tsvutils.count_tsv_points(tsvname)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and npoints < nexisting * 0.2:
@@ -163,33 +162,6 @@ def runPrescan(masses: 'Masses',
     # return after a successful run
     return 0
 
-# function to check previous prescan
-def checkPrescan(tsvname: str) -> int:
-
-    # get number of points in file
-    return tsvutils.count_tsv_points(tsvname)
-
-# function to get number of points in a file
-# returns -1 if file does not exist
-# otherwise returns number of existing points in file
-def countNPointsInFile(filename: str) -> int:
-
-    # if file doesn't exist, return -1
-    if not os.path.exists(filename):
-        return -1
-
-    # run wc -l to get the number of lines
-    result = subprocess.run(["wc", "-l", filename], capture_output=True, text=True)
-
-    # get output from wc -l
-    output = result.stdout.strip()
-
-    # get the number of previously scanned points
-    npoints = int(output.split()[0]) - 1
-
-    # return number of points
-    return npoints
-
 if __name__ == "__main__":
 
     # parse command line arguments
@@ -208,10 +180,10 @@ if __name__ == "__main__":
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    runPrescan(masses=masses,
-               modelname=args.model,
-               npoints=args.npoints,
-               maxwidth=args.maxwidth,
-               overwrite=args.overwrite,
-               use_multiprocessing=args.multiprocessing,
-               stepsize=args.stepsize)
+    run_prescan(masses=masses,
+                modelname=args.model,
+                npoints=args.npoints,
+                maxwidth=args.maxwidth,
+                overwrite=args.overwrite,
+                use_multiprocessing=args.multiprocessing,
+                stepsize=args.stepsize)
