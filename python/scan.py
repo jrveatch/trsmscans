@@ -447,6 +447,10 @@ class Scanner:
         # write new .ini file from template and parameters
         self.params.write_ini(ininame)
 
+        # make sure npoints doesn't drop below the minimum
+        if self.npoints < self.minpoints:
+            self.npoints = self.minpoints
+
         # run ScannerS
         self.npoints = runScannerS(ininame=ininame,
                                    modelname=self.modelname,
@@ -613,10 +617,6 @@ class Scanner:
         
         heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
         self.npoints = int(self.npoints * heightRatio * (1.0 + self.zoom.densityRate))
-
-        # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-            self.npoints = self.minpoints
 
         return
 
