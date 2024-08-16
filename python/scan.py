@@ -16,7 +16,7 @@ from decimal import Decimal
 from parse import Parse
 from utils.point import Point
 from utils.params import Params
-import filters
+from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils.masses import Masses
 import prescan
@@ -459,10 +459,10 @@ class Scanner:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = filters.apply_filters(filename=tsvname,
-                                                       masses=self.params.masses(),
-                                                       modelname=self.modelname,
-                                                       maxwidth=self.maxwidth)
+        nwidth, nbounds, npass = apply_filters(filename=tsvname,
+                                               masses=self.params.masses(),
+                                               modelname=self.modelname,
+                                               maxwidth=self.maxwidth)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
