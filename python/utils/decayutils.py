@@ -2,7 +2,7 @@
 
 import os
 
-def isValidDecay(decaymode: str) -> bool:
+def is_valid_decay(decaymode: str) -> bool:
 
     # decay mode file name
     filename = os.environ['DATADIR'] + "decaymodes.txt"
