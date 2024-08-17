@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from utils.setupHiggsTools import *
+from filters.setupHiggsTools import *
 
 from utils.arrays import Arrays
 from utils import tsvutils
@@ -14,11 +14,11 @@ def filter_bounds(filename: str,
                   debug = False) -> int:
 
     # get bounds and signals data
-    bounds = getHiggsBounds()
-    signals = getHiggsSignals()
+    bounds = get_higgs_bounds()
+    signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = getHiggsPredictions(modelname=modelname)
+    pred = get_higgs_predictions(modelname=modelname)
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)

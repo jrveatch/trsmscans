@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from utils.setupHiggsTools import *
+from filters.setupHiggsTools import *
 
 from utils.test_point_utils import *
 
@@ -11,11 +11,11 @@ from utils.test_point_utils import *
 def check_singlet_point(MX, sintheta, l112, debug=False):
 
     # get bounds and signals data
-    bounds = getHiggsBounds()
-    signals = getHiggsSignals()
+    bounds = get_higgs_bounds()
+    signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = getHiggsPredictions(modelname="TRSMBroken")
+    pred = get_higgs_predictions(modelname="TRSMBroken")
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)
