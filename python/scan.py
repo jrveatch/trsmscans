@@ -22,7 +22,7 @@ from utils.masses import Masses
 from prescan import run_prescan
 from utils import fileutils
 from utils import tsvutils
-from utils.decayutils import isValidDecay
+from utils.decayutils import is_valid_decay
 
 import copy
 import itertools 
@@ -50,7 +50,7 @@ class Scan:
         self.percentile = percentile
 
         # check whether decay is valid
-        supported = isValidDecay(self.decay)
+        supported = is_valid_decay(self.decay)
         if not supported:
             print("Unrecognized decay",self.decay)
             print("Quitting...")
