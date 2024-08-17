@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import random
 import os
 import parse
 import argparse
@@ -280,14 +279,9 @@ class Plot:
     # Function that defines colors to plot using random RGB values
     def select_colors(self):
 
-        # Set random RGB values
-        r = random.random()
-        g = random.random()
-        b = random.random()
-
-        # Define two different colors with the given RGB values
-        color1 = (r, g, b)
-        color2 = (g, b, r)
+        # Define blue and red as the starting and stopping colors
+        color1 = (0, 0, 1)
+        color2 = (1, 0, 0)
 
         # Return the values to call
         return color1, color2
