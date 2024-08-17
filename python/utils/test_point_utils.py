@@ -4,9 +4,11 @@ from prettytable import PrettyTable
 from collections import OrderedDict
 from scipy.interpolate import interp1d
 import os
+from typing import List
 
 # round to sig significant figures
-def round_sig(x, sig=2):
+def round_sig(x: float,
+              sig: int = 2) -> float:
     if x == 0.:
         return 0.
     if math.isnan(x) is True:
@@ -15,13 +17,13 @@ def round_sig(x, sig=2):
     return round(x, sig-int(math.floor(math.log10(abs(x))))-1)
 
 # create interpolators for the various BRs and total width and return a dictionary
-def interpolate_HiggsBR(brdict):
+def interpolate_HiggsBR(brdict) -> List[interp1d]:
 
     # the kind of interpolation
     interpkind = 'cubic'
 
     # define an array of interpolators
-    interp_higgsbrs = []
+    interp_higgsbrs: List[interp1d] = []
 
     # find out how many BRs+width we have:
     values_view = list(brdict.values())
@@ -47,13 +49,19 @@ def interpolate_HiggsBR(brdict):
     return interp_higgsbrs
 
 # branching ratio RESCALING for h2 -> xx given Gamma_SM, sintheta, m1, m2, l112:
-def RES_BR_h2_to_xx(sth, Gam_SM, m1, m2, l112):
-    Gam_h2h1h1 = Gam_h2_to_h1h1(m1, m2, l112, sth)
-    RES_h2xx = sth**2 * Gam_SM/ ( Gam_SM * sth**2  + Gam_h2h1h1)
+def RES_BR_h2_to_xx(sth: float,
+                    Gam_SM: float,
+                    m1: float,
+                    m2: float,
+                    l112: float) -> float:
+    Gam_h2h1h1 = Gam_h2_to_h1h1(m1, m2, l112)
+    RES_h2xx = sth**2 * Gam_SM / ( Gam_SM * sth**2 + Gam_h2h1h1 )
     return RES_h2xx
 
 # calculate the width h2 -> h1 h1, given the mass, the self-coupling l112 (in GeV) and the sin(mixing angle)
-def Gam_h2_to_h1h1(m1, m2, l112, sth):
+def Gam_h2_to_h1h1(m1: float,
+                   m2: float,
+                   l112: float) -> float:
     if m2 < 2*m1:
         return 0.
     width_h2h1h1 = l112**2 * math.sqrt( 1 - 4 * m1**2 / m2**2 ) / 8 / math.pi / m2
@@ -62,7 +70,7 @@ def Gam_h2_to_h1h1(m1, m2, l112, sth):
 # function to read in the branching ratios into a dictionary in the format:
 # mass [GeV] | H -> bbbar | H -> tautau | H -> mumu | H -> cc | H -> ss | H -> tt | H -> gg | H -> gammagamma | H -> Zgamma | H -> WW | H -> ZZ | total width [GeV]
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR2014#SM_Higgs_Branching_Ratios_and_Pa
-def read_higgsBR(brfile):
+def read_higgsBR(brfile: str):
 
     # initialize BRs dictionary
     higgsbrs = {}
@@ -91,9 +99,9 @@ def read_higgsBR(brfile):
     return sorted_higgsbrs
 
 # minor correction to rescale all BRs to make sure that sum(BRs) = 1
-def fix_heavy_BRs(heavyBRs):
+def fix_heavy_BRs(heavyBRs: List[float]) -> List[float]:
     sumBRs = 0
-    heavyBRs_fixed = []
+    heavyBRs_fixed: List[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
     #print('sumBRs=',sumBRs)
@@ -103,8 +111,11 @@ def fix_heavy_BRs(heavyBRs):
     return heavyBRs_fixed
 
 # function that calculates the heavy Higgs branching ratios
-def calculate_heavy_BRs_only(interpolators_SM, mh2, l112, sintheta):
-    heavyBRs = []
+def calculate_heavy_BRs_only(interpolators_SM: List[interp1d],
+                             mh2: float,
+                             l112: float,
+                             sintheta: float) -> List[float]:
+    heavyBRs: List[float] = []
     # fix the SM Higgs mass
     mh1 = 125.09
     if mh2 < 1000.: # 
@@ -133,15 +144,19 @@ def calculate_heavy_BRs_only(interpolators_SM, mh2, l112, sintheta):
     return heavyBRs
 
 # the BR h2 -> h1 h1, given the m2, sintheta, l112, Gam_SM (total SM BR)
-def BR_h2_to_h1h1(sth, m1, m2, l112, Gam_SM):
-    BRh2h1h1 = Gam_h2_to_h1h1(m1, m2, l112, sth) /  ( Gam_SM * sth**2  + Gam_h2_to_h1h1(m1, m2, l112, sth))
+def BR_h2_to_h1h1(sth: float,
+                  m1: float,
+                  m2: float,
+                  l112: float,
+                  Gam_SM: float) -> float:
+    BRh2h1h1 = Gam_h2_to_h1h1(m1, m2, l112, sth) / ( Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112, sth) )
     return BRh2h1h1
 
 def width_h2(sth, m1, m2, l112, Gam_SM):
-    total_width = Gam_SM * sth**2  + Gam_h2_to_h1h1(m1, m2, l112, sth)
+    total_width = Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112, sth)
     return total_width
 
-def get_BR_interpolators_SM():
+def get_BR_interpolators_SM() -> List[interp1d]:
 
     # get data directory
     datadir = os.environ['DATADIR']
@@ -158,7 +173,7 @@ def get_BR_interpolators_SM():
     return interpolators
 
 # print the heavy Higgs info:
-def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo):
+def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo) -> None:
     print(textinfo)
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
@@ -172,8 +187,8 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo):
     print('consistency test: sum(BRs)=', BRsum_heavy)
     print('\n')
 
-def get_BR_text_array_heavy_withtripleHiggs():
-    BR_text_array = []
+def get_BR_text_array_heavy_withtripleHiggs() -> List[str]:
+    BR_text_array: List[str] = []
     BR_text_array.append('$b\\bar{b}$')
     BR_text_array.append('$\\tau \\tau$')
     BR_text_array.append('$\\mu \\mu$')
@@ -197,7 +212,7 @@ def get_BR_text_array_heavy_withtripleHiggs():
 # function to read in the XS into a dictionary in the format:
 # mS or mH (GeV) | Cross Section (pb) |	+Theory | -Theory |	TH Gaussian | -+(PDF+alphaS)
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHXSWG#BSM_Higgs
-def read_higgsXS_N3LO(xsfile):
+def read_higgsXS_N3LO(xsfile: str):
 
     # initialize xsec dictionary
     higgsxss = {}

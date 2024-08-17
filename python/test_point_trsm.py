@@ -8,7 +8,10 @@ from utils.test_point_utils import *
 
 # FUNCTION THAT RETURNS HiggsBounds True/False and chi-squared from HiggsSignals
 # INPUT IS MH, sintheta and l112, the Scalar-Higgs-Higgs coupling
-def check_singlet_point(MX, sintheta, l112, debug=False):
+def check_singlet_point(mX: float,
+                        sintheta: float,
+                        l112: float,
+                        debug: bool = False):
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -33,12 +36,12 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
     
     # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
     # then set the BRs according to the calculation
-    X.setMass(MX)
+    X.setMass(mX)
     HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(sintheta))
 
     # calculate and print the heavy H branching ratios, given MH, lambda_112 and sintheta
     BR_interpolators_SM = get_BR_interpolators_SM()
-    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, MX, l112, sintheta)
+    heavyBRs = calculate_heavy_BRs_only(BR_interpolators_SM, mX, l112, sintheta)
     heavyBRs = fix_heavy_BRs(heavyBRs)
     if debug is True:
         print_heavy_Higgs_info(heavyBRs, 'Heavy Higgs BRs & width')
@@ -94,7 +97,7 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
         print('gg -> X cross section @ pp @ 13 TeV =', X.cxn('LHC13', "ggH"))
         # compare to independent calculations:
         XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL()
-        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(MX),5)
+        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(mX),5)
         print('independent calculation of the cross section:')
         print('gg -> X cross section @ pp @ 13 TeV (N^2LO+NNLL) =',  xs13_nnlonnll)
         
@@ -119,7 +122,12 @@ def check_singlet_point(MX, sintheta, l112, debug=False):
     # return HiggsBounds (True/False) for Allowed/Disallowed and the chi-squared from HiggsSignals
     return resb.allowed, HS_allowed
 
-def tanb_to_lambda112(mH, mX, sintheta, v, tanb):
+def tanb_to_lambda112(mH: float,
+                      mX: float,
+                      sintheta: float,
+                      v: float,
+                      tanb: float) -> float:
+
     costheta = math.sqrt(1-sintheta**2)
     x = v/tanb
     lambda1 = (mH**2 / (2 * v**2)) * costheta**2 + (mX**2 / (2 * v**2)) * sintheta**2
@@ -135,7 +143,9 @@ def tanb_to_lambda112(mH, mX, sintheta, v, tanb):
     
     return lambda112
 
-def testpoint(mX,sintheta,tanb):
+def testpoint(mX: float,
+              sintheta: float,
+              tanb: float) -> None:
 
     # SM Higgs mass and VEV
     mH = 125.09
