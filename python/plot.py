@@ -9,6 +9,7 @@ import argparse
 from utils import fileutils
 from utils.masses import Masses
 from utils.model import Model
+from typing import List
 
 # Plot class
 class Plot:
@@ -39,7 +40,7 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files = []
+        self.all_files: List[str] = []
 
         # Directory for the scan outputs
         directory = fileutils.scan_dir(modelname=self.model.name(),
