@@ -139,8 +139,6 @@ class MeanShifter(PointVolume):
             size=self.__get_size(),
         )
 
-        self.__test_position = self.position
-
         for (parname, extents) in list(zip(self.__local_params.parnames(), self.extents())):
             self.__local_params.parameter(parname).set_low(extents[0])
             self.__local_params.parameter(parname).set_high(extents[1])
@@ -197,21 +195,20 @@ class MeanShifter(PointVolume):
                     print("\nError: xb contains 0 points, stopping execution...\n")
                     exit(1)
 
-            prev_pos = self.position
+            prev_position = self.position
 
             self.mean_shift(arrays, xb)
 
-            self.__stop_check()
+            self.__stop_check(prev_position)
 
             # Add meanshift data to ini file
             with open(ininame, 'a') as file:
                 contents = "[meanshift result]\n; details about mean shift scan operation (post)"
                 contents += f"\niter      = {iter}"
                 contents += f"\ncurr_pos  = {' '.join([str(p) for p in self.position])}"
-                contents += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
+                contents += f"\nprev_pos  = {' '.join([str(p) for p in prev_position])}"
                 contents += f"\nst_sens   = {self.__stop_sens}"
                 contents += f"\nst_epchs  = {self.__stop_epochs}"
-                contents += f"\ncur_epch  = {self.__epoch_count}"
                 contents += f"\navg_xb    = {np.average(xb)}"
                 contents += f"\nmax_xb    = {np.max(xb)}"
 
@@ -219,8 +216,8 @@ class MeanShifter(PointVolume):
 
             # NOTE: For debugging
             if self.__debug == True:
-                test_diff = tuple([self.__stop_sens * dimen for dimen in self.size])
-                shift = tuple([pos[1] - pos[0] for pos in list(zip(prev_pos, self.position))])
+                change = tuple([pos[1] - pos[0] for pos in list(zip(prev_position, self.position))])
+                sens_diff = tuple([self.__stop_sens * dimen for dimen in self.size])
 
                 print()
                 print(f"iter        = {iter}")
@@ -232,11 +229,11 @@ class MeanShifter(PointVolume):
                 print()
                 print(f"curr pos    = {self.position}")
                 print()
-                print(f"test pos    = {self.__test_position}")
+                print(f"prev pos    = {prev_position}")
                 print()
-                print(f"reset diff  = {test_diff}")
+                print(f"stop diff   = {sens_diff}")
                 print()
-                print(f"pos shift   = {shift}")
+                print(f"change pos  = {change}")
 
         self.__generate_visualizations()
 
@@ -258,22 +255,21 @@ class MeanShifter(PointVolume):
             ]
         )
 
-    def __stop_check(self):
+    def __stop_check(self, prev_position: tuple):
         """
         If epoch counter for exceeds max stop epochs then set self.__stop to True.
         """
         advance_epoch = True
 
         if type(self.__stop_sens) is float:
-            for pos, test in zip(self.position, self.__test_position):
-                percent_difference = np.abs(pos - test) / test
+            for pos, prev in zip(self.position, prev_position):
+                percent_difference = np.abs(pos - prev) / prev
 
                 if percent_difference > self.__stop_sens:
                     advance_epoch = False
 
         if advance_epoch == False:
             self.__epoch_count = 0
-            self.__test_position = self.position
         else:
             self.__epoch_count += 1
 
@@ -296,8 +292,8 @@ class MeanShifter(PointVolume):
                         ini_data.update({"iter": int(line.strip().split('=')[1])})
                     if "curr_pos" in line:
                         ini_data.update({"curr_pos": mapper.pack([float(token) for token in line.split('=')[1].strip().split(' ')])})
-                    if "test_pos" in line:
-                        ini_data.update({"test_pos": mapper.pack([float(token) for token in line.split('=')[1].strip().split(' ')])})
+                    if "prev_pos" in line:
+                        ini_data.update({"prev_pos": mapper.pack([float(token) for token in line.split('=')[1].strip().split(' ')])})
                     if "avg_xb" in line:
                         ini_data.update({"avg_xb": float(line.strip().split('=')[1])})
                     if "max_xb" in line:
@@ -327,9 +323,10 @@ class MeanShifter(PointVolume):
                     X.append(datum["curr_pos"][x_label])
                     Y.append(datum["curr_pos"][y_label])
 
-                for k, (x, y) in enumerate(list(zip(X, Y))):
-                    plt.plot(x, y, marker='*' if k == (len(X) - 1) else '.')
-                    plt.annotate(str(k), (x, y))
+                for i, (x, y) in enumerate(list(zip(X, Y))):
+                    plt.plot(x, y, marker='*' if i == (len(X) - 1) else '.'
+                    )
+                    plt.annotate(str(i), (x, y))
 
                 plt.xlabel(x_label)
                 plt.ylabel(y_label)

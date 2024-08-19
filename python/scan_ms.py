@@ -30,14 +30,14 @@ def main(args):
 
     initialize_directories(files_path, args, masses, global_params)
 
-    prescan(files_path, masses, global_params, args)
+    prescan(files_path, args, masses, global_params)
 
     os.chdir(files_path)
 
-    scan_op(files_path, args, masses, global_params)
+    scan(files_path, args, masses, global_params)
 
 
-def scan_op(files_path: str, args: argparse.Namespace, masses: Masses, global_params: Params):
+def scan(files_path: str, args: argparse.Namespace, masses: Masses, global_params: Params):
 
     decay = args.decay
     model_name = global_params.model_name()
@@ -75,7 +75,7 @@ def scan_op(files_path: str, args: argparse.Namespace, masses: Masses, global_pa
 
         # Write to summary file
         with open(summaryname, 'a') as file:
-            file.write(f"Opt {' '.join([str(e) for e in opt])}")
+            file.write(f"Opt{i} {' '.join([str(e) for e in opt])}")
 
     # SCAN LOGIC END HERE
 
@@ -94,7 +94,7 @@ def scan_op(files_path: str, args: argparse.Namespace, masses: Masses, global_pa
     return
 
 
-def prescan(files_path: str, masses: Masses, global_params: Params, args: argparse.Namespace):
+def prescan(files_path: str, args: argparse.Namespace, masses: Masses, global_params: Params):
 
     decay = args.decay
     num_points = args.npoints
@@ -200,7 +200,7 @@ def prescan(files_path: str, masses: Masses, global_params: Params, args: argpar
     global_params.scale_ranges(opt_point)
 
 
-def initialize_directories(path: str, args: argparse.Namespace, masses: Masses, params: Params):
+def initialize_directories(path: str, args: argparse.Namespace, masses: Masses, global_params: Params):
     model_name = args.modelname
     decay = args.decay
 
@@ -218,7 +218,7 @@ def initialize_directories(path: str, args: argparse.Namespace, masses: Masses, 
     summaryname = f"{path}scansummary_{model_name}_{decay}_{masses}.txt"
     summary = open(summaryname, "w")
     summary.write("Iter xbmax")
-    for par in params.parameters().values():
+    for par in global_params.parameters().values():
         summary.write(" " + par.fullname())
     summary.write("\n")
     summary.close()
