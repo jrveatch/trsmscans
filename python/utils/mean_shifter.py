@@ -204,7 +204,7 @@ class MeanShifter(PointVolume):
             with open(ininame, 'a') as file:
                 contents = "[meanshift]\n; details about mean shift scan operation (post)"
                 contents += f"\niter      = {iter}"
-                contents += f"\npos       = {' '.join([str(e) for e in self.position])}"
+                contents += f"\ncurr_pos  = {' '.join([str(e) for e in self.position])}"
                 contents += f"\nprev_pos  = {' '.join([str(e) for e in prev_position])}"
                 contents += f"\nst_sens   = {self.__stop_sens}"
                 contents += f"\nst_epchs  = {self.__stop_epochs}"
@@ -222,7 +222,7 @@ class MeanShifter(PointVolume):
                 print()
                 print(f"iter        = {iter}")
                 print()
-                print(f"position    = {self.position}")
+                print(f"curr pos    = {self.position}")
                 print()
                 print(f"prev pos    = {prev_position}")
                 print()
@@ -265,7 +265,8 @@ class MeanShifter(PointVolume):
                 ini_data = dict()
 
                 for line in file:
-                    if "iter" in line: ini_data.update({"iter": float(line.split('=')[1])})
+                    if "iter" in line: ini_data.update({"iter": int(line.split('=')[1])})
+                    if "position" in 
 
                 print(ini_data)
 
