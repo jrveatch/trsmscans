@@ -220,7 +220,7 @@ class MeanShifter(PointVolume):
             # NOTE: For debugging
             if self.__debug == True:
                 test_diff = tuple([self.__stop_sens * dimen for dimen in self.size])
-                shift = tuple([pos[1] - pos[0] for pos in list(zip(prev_pos, self.position))])
+                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(prev_pos, self.position))])
 
                 print()
                 print(f"iter        = {iter}")
@@ -236,7 +236,7 @@ class MeanShifter(PointVolume):
                 print()
                 print(f"reset diff  = {test_diff}")
                 print()
-                print(f"pos shift   = {shift}")
+                print(f"posit diff  = {position_diff}")
 
         self.__generate_visualizations()
 
