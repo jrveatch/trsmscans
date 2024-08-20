@@ -167,25 +167,22 @@ class MeanShifter(PointVolume):
             # write new .ini file from template and parameters
             self.__local_params.write_ini(ininame)
 
+            parser = None
             arrays = None
             xb = []
 
-            while len(xb) == 0:
-                runScannerS(
-                    ininame=ininame,
-                    modelname=self.__model_name,
-                    npoints=self.__num_points,
-                    use_multiprocessing=use_multiprocessing
-                )
+            runScannerS(
+                ininame=ininame,
+                modelname=self.__model_name,
+                npoints=self.__num_points,
+                use_multiprocessing=use_multiprocessing
+            )
 
-                save_tsv_output(temptsv, tsvname)
+            save_tsv_output(temptsv, tsvname)
 
-                try:
-                    apply_filters(tsvname, self.__model_name, self.__local_params.masses(), self.__max_width)
-                except ValueError as e:
-                    print(e)
-                    print("\nError applying filters, stopping execution...\n")
-                    exit(1)
+            try:
+                apply_filters(tsvname, self.__model_name, self.__local_params.masses(), self.__max_width)
+
 
                 parser = Parse(self.__local_params.masses(), self.__decay_name, self.__local_params.model_name())
                 parser.read_file(tsvname)
@@ -194,8 +191,11 @@ class MeanShifter(PointVolume):
                 xb = parser.get_xb()
 
                 if len(xb) == 0:
-                    print("\nError: xb contains 0 points, stopping execution...\n")
-                    exit(1)
+                    raise ValueError("Length of xb array was 0")
+            except Exception as e:
+                print(e)
+                print("\nError parsing tsv output, stopping execution...\n")
+                exit(1)
 
             prev_pos = self.position
 
