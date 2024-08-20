@@ -86,15 +86,15 @@ class ZoomOptimizer:
         # write new .ini file from template and parameters
         self.params.write_ini(ininame)
 
+        # make sure npoints doesn't drop below the minimum
+        if self.npoints < self.minpoints:
+	        self.npoints = self.minpoints
+
         # run ScannerS
         self.npoints = runScannerS(ininame=ininame,
                                    modelname=self.modelname,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
-
-        # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-	        self.npoints = self.minpoints
 
         # TODO: Figure out what to do if process returns negative value
 
