@@ -109,7 +109,7 @@ class MeanShifter(PointVolume):
     def __init__(
             self,
             files_path: str,
-            scan_prop: float,
+            scan_volume: float,
             stop_epochs: int,
             stop_sens: float,
             label: str,
@@ -121,7 +121,7 @@ class MeanShifter(PointVolume):
 
         self.__num_points = num_points
         self.__files_path = files_path
-        self.__scan_prop = scan_prop
+        self.__scan_volume = scan_volume
         self.__model_name = global_params.model_name()
         self.__decay_name = decay
         self.__label = label
@@ -230,6 +230,8 @@ class MeanShifter(PointVolume):
                 print(f"avg xb      = {np.average(xb)}")
                 print(f"max xb      = {np.max(xb)}")
                 print()
+                print(f"vol size    = {self.__scan_volume}")
+                print()
                 print(f"curr pos    = {self.position}")
                 print()
                 print(f"test pos    = {self.__test_position}")
@@ -253,7 +255,7 @@ class MeanShifter(PointVolume):
     def __get_size(self):
         return tuple(
             [
-                (self.__scan_prop * (self.__local_params.get_high(p) - self.__local_params.get_low(p)))
+                (self.__scan_volume * (self.__local_params.get_high(p) - self.__local_params.get_low(p)))
                 for p in self.__local_params.parnames()
             ]
         )

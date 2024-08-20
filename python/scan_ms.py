@@ -43,7 +43,7 @@ def scan(files_path: str, args: argparse.Namespace, masses: Masses, global_param
     model_name = global_params.model_name()
     num_scanners = args.numscanners
     num_points = args.npoints
-    scan_prop = args.scanprop
+    scan_volume = args.scanvolume
     use_multiprocessing = args.multiprocessing
     maxwidth = args.maxwidth
     stop_sens = args.stopsens
@@ -60,7 +60,7 @@ def scan(files_path: str, args: argparse.Namespace, masses: Masses, global_param
         
         scanner = MeanShifter(
             files_path,
-            scan_prop,
+            scan_volume,
             stop_epochs,
             stop_sens,
             label,
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
 
     argparser.add_argument("-ns", "--numscanners", default=1, type=int, help="Number of scanners to use")
-    argparser.add_argument("-sp", "--scanprop", default=0.1, type=float, help="Proportion of total volume to use for scan volume")
+    argparser.add_argument("-sv", "--scanvolume", default=0.1, type=float, help="Proportion of total volume to use for scan volume")
     argparser.add_argument("-ss", "--stopsens", default=0.1, type=float, help="Scan sensitivity for stopping conditions")
     argparser.add_argument("-se", "--stopepochs", default=3, type=int, help="Scan epochs used for stopping conditions")
 
