@@ -44,6 +44,7 @@ def scan(files_path: str, args: argparse.Namespace, masses: Masses, global_param
     num_scanners = args.numscanners
     num_points = args.npoints
     scan_volume = args.scanvolume
+    stop_mode = args.stopmode
     use_multiprocessing = args.multiprocessing
     maxwidth = args.maxwidth
     stop_sens = args.stopsens
@@ -61,6 +62,7 @@ def scan(files_path: str, args: argparse.Namespace, masses: Masses, global_param
         scanner = MeanShifter(
             files_path,
             scan_volume,
+            stop_mode,
             stop_epochs,
             stop_sens,
             label,
@@ -197,6 +199,7 @@ def prescan(files_path: str, args: argparse.Namespace, masses: Masses, global_pa
     summary.close()
 
     # scale new low and high values
+    # NOTE: Presets scan range before meanshift..
     global_params.scale_ranges(opt_point)
 
 
@@ -243,7 +246,8 @@ if __name__ == "__main__":
 
     argparser.add_argument("-ns", "--numscanners", default=1, type=int, help="Number of scanners to use")
     argparser.add_argument("-sv", "--scanvolume", default=0.1, type=float, help="Proportion of total volume to use for scan volume")
-    argparser.add_argument("-ss", "--stopsens", default=0.1, type=float, help="Scan sensitivity for stopping conditions")
+    argparser.add_argument("-sm", "--stopmode", default=0, type=int, help="Mode to use for stop condidition, 0 = test point, 1 = prev point")
+    argparser.add_argument("-ss", "--stopsens", default=0.9, type=float, help="Scan sensitivity for stopping conditions, values should be between 0 exclusive and 1 exclusive")
     argparser.add_argument("-se", "--stopepochs", default=3, type=int, help="Scan epochs used for stopping conditions")
 
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
