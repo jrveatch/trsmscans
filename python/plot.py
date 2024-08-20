@@ -3,21 +3,21 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import random
 import os
 import parse
 import argparse
 from utils import fileutils
 from utils.masses import Masses
 from utils.model import Model
+from typing import List
 
 # Plot class
 class Plot:
 
     def __init__(self,
-                 decay,
+                 decay: str,
                  masses: 'Masses',
-                 modelname):
+                 modelname: str):
 
         # Save arguments as class members
         self.decay = decay
@@ -31,16 +31,16 @@ class Plot:
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
-        self.getFileNames()
+        self.get_file_names()
 
         # Load data from all of the .tsv files
-        self.loadData()
+        self.load_data()
 
     # Function to get list of .tsv files for plotting
-    def getFileNames(self):
+    def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files = []
+        self.all_files: List[str] = []
 
         # Directory for the scan outputs
         directory = fileutils.scan_dir(modelname=self.model.name(),
@@ -67,7 +67,7 @@ class Plot:
         self.nfiles = len(self.all_files)
 
     # Function to load data from files
-    def loadData(self):
+    def load_data(self) -> None:
 
         # Retrieve the variable names for the model
         self.var_names = self.model.parameter_names()
@@ -134,7 +134,10 @@ class Plot:
 
     # Plot each iteration of the scan
     # TODO: find a way to make the process more efficient and faster !!
-    def makeScanPlots(self):
+    def make_scan_plots(self) -> None:
+
+        # Print info to screen
+        print("Making scan plots for",self.model.name(),self.decay,self.masses)
 
         # Find the Maximum point from the maximum points
         maximum = max(self.maxpoint_list)
@@ -210,7 +213,10 @@ class Plot:
         return
 
     # Plot the maximum xb in 2D bins for every parameter pair
-    def makeMaxXBPlots(self):
+    def make_max_xb_plots(self) -> None:
+
+        # Print info to screen
+        print("Making max XB plots for",self.model.name(),self.decay,self.masses)
 
         # Define number of bins to use in each dimension
         nbins = 100
@@ -224,7 +230,7 @@ class Plot:
 
             # Bin column
             self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = nbins, labels = False)
-        
+
         # Loop over var names twice to get every pair
         for v1 in range(self.nvars-1):
 
@@ -274,14 +280,9 @@ class Plot:
     # Function that defines colors to plot using random RGB values
     def select_colors(self):
 
-        # Set random RGB values
-        r = random.random()
-        g = random.random()
-        b = random.random()
-
-        # Define two different colors with the given RGB values
-        color1 = (r, g, b)
-        color2 = (g, b, r)
+        # Define blue and red as the starting and stopping colors
+        color1 = (0, 0, 1)
+        color2 = (1, 0, 0)
 
         # Return the values to call
         return color1, color2
@@ -299,5 +300,5 @@ if __name__ == '__main__':
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
     plotter = Plot(decay=args.decay, masses=masses, modelname=args.model)
-    plotter.makeScanPlots()
-    plotter.makeMaxXBPlots()
+    plotter.make_scan_plots()
+    plotter.make_max_xb_plots()

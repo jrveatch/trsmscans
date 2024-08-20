@@ -6,7 +6,7 @@ from utils.model import Model
 
 import os
 
-def getHiggsPredictions(modelname: str):
+def get_higgs_predictions(modelname: str):
 
     # create model object
     model = Model(modelname)
@@ -44,7 +44,7 @@ def getHiggsPredictions(modelname: str):
 
     return pred
 
-def getHiggsSignals():
+def get_higgs_signals():
 
     # get data directory
     datadir = os.environ['DATADIR']
@@ -54,7 +54,7 @@ def getHiggsSignals():
 
     return signals
 
-def getHiggsBounds():
+def get_higgs_bounds():
 
     # get data directory
     datadir = os.environ['DATADIR']

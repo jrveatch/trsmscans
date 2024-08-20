@@ -45,10 +45,6 @@ class Arrays:
         if self.__headers[0] != 'idx':
             self.__headers.insert(0, 'idx')
 
-    # get list of headers
-    def __get_headers(self) -> List[str]:
-        return self.__headers
-
     # load tsv columns into a numpy array
     def load_arrays(self,
                     filename: str = "",
