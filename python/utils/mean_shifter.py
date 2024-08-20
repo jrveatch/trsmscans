@@ -140,7 +140,7 @@ class MeanShifter(PointVolume):
         self.__label = label
         self.__stop = False
         self.__stop_epochs = stop_epochs
-        self.__stop_sens = stop_sens
+        self.__stop_sens = (1 - stop_sens)
         self.__max_width = max_width
         self.__epoch_count = 0
         self.__debug = debug
@@ -214,13 +214,20 @@ class MeanShifter(PointVolume):
             self.__prev_position = self.position
 
             self.mean_shift(arrays, xb)
-
+            
+            # Update params
+            for (parname, extents) in list(zip(self.__local_params.parnames(), self.extents())):
+                self.__local_params.parameter(parname).set_low(extents[0])
+                self.__local_params.parameter(parname).set_high(extents[1])
+            
             self.__stop_check()
 
             # Add meanshift data to ini file
             with open(ininame, 'a') as file:
                 contents = "[meanshift result]\n; details about mean shift scan operation (post)"
                 contents += f"\niter      = {iter}"
+                contents += f"\nnum pts   = {self.__num_points}"
+                contents += f"\nscan vol  = {self.__scan_volume}"
                 contents += f"\ncurr_pos  = {' '.join([str(p) for p in self.position])}"
                 contents += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
                 contents += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
@@ -235,11 +242,12 @@ class MeanShifter(PointVolume):
 
             # NOTE: For debugging
             if self.__debug == True:
-                test_diff = tuple([(1 - self.__stop_sens) * dimen for dimen in self.size])
+                test_diff = tuple([self.__stop_sens * dimen for dimen in self.size])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.position))])
 
                 print()
                 print(f"iter        = {iter}")
+                print(f"num points  = {self.__num_points}")
                 print(f"scan vol    = {self.__scan_volume}")
                 print(f"stop mode   = {'test pt' if self.__stop_mode == 0 else 'prev pt'}")
                 print(f"stop sens % = {self.__stop_sens}")
@@ -286,12 +294,11 @@ class MeanShifter(PointVolume):
         """
         advance_epoch = True
 
-        if type(self.__stop_sens) is float:
-            for pos, test in zip(self.position, self.__test_position if self.__stop_mode == 0 else self.__prev_position):
-                percent_difference = np.abs(pos - test) / test
+        for pos, test in zip(self.position, self.__test_position if self.__stop_mode == 0 else self.__prev_position):
+            percent_difference = np.abs(pos - test) / test
 
-                if percent_difference > (1 - self.__stop_sens):
-                    advance_epoch = False
+            if percent_difference > self.__stop_sens:
+                advance_epoch = False
 
         if advance_epoch == False:
             self.__epoch_count = 0
