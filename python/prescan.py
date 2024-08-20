@@ -73,7 +73,7 @@ def run_prescan(masses: 'Masses',
         if nexisting >= npoints:
             print("Found a prescan that already has",nexisting,"points.")
             print(npoints,"points request, skipping since no more are needed.")
-            print("If you want to overwrite the existing prescan, run with -o.")
+            print("If you want to overwrite the existing prescan, run with the -o option.")
             return 0
 
         # otherwise reduce the number of points to run with
