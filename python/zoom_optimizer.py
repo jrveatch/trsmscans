@@ -15,10 +15,9 @@ from decimal import Decimal
 from parse import Parse
 from utils.point import Point
 from utils.params import Params
-import filters
+from filters import apply_filters
 from utils.runScannerS import runScannerS
 from scan import Scan
-
 
 from typing import List
 
@@ -103,7 +102,7 @@ class ZoomOptimizer:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = filters.apply_filters(filename=tsvname,
+        nwidth, nbounds, npass = apply_filters(filename=tsvname,
                                                        masses=self.params.masses(),
                                                        modelname=self.modelname,
                                                        maxwidth=self.maxwidth)

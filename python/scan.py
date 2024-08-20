@@ -6,8 +6,6 @@ import shutil
 import time
 import datetime
 import argparse
-import numpy as np
-import math
 
 # import decimal
 from decimal import Decimal
@@ -16,8 +14,6 @@ from decimal import Decimal
 from parse import Parse
 from utils.point import Point
 from utils.params import Params
-import filters
-from utils.runScannerS import runScannerS
 from utils.masses import Masses
 import prescan
 from utils import fileutils
@@ -212,7 +208,7 @@ class Scan:
         return
 
     # run the full scan
-    def runScan(self,
+    def run_zoom_optimization(self,
                 npoints: int,
                 niter: int,
                 zoom: 'Zoom',
@@ -228,27 +224,27 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        all_scanners = self.create_scanners(npoints=npoints,
+        all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints,
                                             zoom=zoom)
 
         for iter in range(niter):
 
-            # Have a way to differentiate active scanners and inactive scanners during each iteration
-            # If scanners are differentiated, maybe have different loops to only scan from active scanners
+            # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
+            # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
             # Consider if having a seperate function to check for the maximum is best
 
             # trial_stopping_condition() #### Figure out why function is not able to be used
 
-            for scanner in all_scanners:
+            for zoom_optimizer in all_zoom_optimizers:
 
-                scanner.run(iter, use_multiprocessing)
+                zoom_optimizer.run(iter, use_multiprocessing)
 
             ##### TODO: Add early stopping conditions
             
         # Initialize directory where tsv files exist
         file_directory = self.outdir + "files"
 
-        # Combine all the tsvs depending on their iteration (multiple scanners create multiple tsvs/iteration)
+        # Combine all the tsvs depending on their iteration (multiple zoom optimizers create multiple tsvs/iteration)
         self.combine_files(file_directory)
 
         # get total scan time
@@ -304,8 +300,8 @@ class Scan:
         except Exception as e:
             print(f"Unexpected error: {e}")
     
-    # Function that creates needed scanners
-    def create_scanners(self,
+    # Function that creates needed zoom optimizers
+    def create_zoom_optimizers(self,
                         npoints: int,
                         zoom: 'Zoom') -> List['ZoomOptimizer']:
 
@@ -320,7 +316,7 @@ class Scan:
             min_val = self.params.get_low(par)
             max_val = self.params.get_high(par)
             
-            # Split the scanner if bimodal and assign proper values
+            # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
                 mid_val = (min_val + max_val) / 2.0
                 param_dict[par] = [
@@ -346,22 +342,22 @@ class Scan:
 
             all_param_combinations.append((params_copy, param_combination_data))
 
-        # List that holds all the scanners created
-        all_scanners: List['ZoomOptimizer'] = []
+        # List that holds all the zoom optimizers created
+        all_zoom_optimizers: List['ZoomOptimizer'] = []
 
-        # Distribute points to be scanned to each scanner, rounding to the nearest whole number and having at least 1 point per scanner
+        # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(npoints // len(all_param_combinations), 1)
 
-        # Initialize scanners for each parameter combination
+        # Initialize zoom optimizers for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
 
-            # Distribute points among scanners
+            # Distribute points among zoom optimizers
             points = points_per_scanner
-            if i == len(all_param_combinations) - 1:  # Ensure the last scanner gets any remaining points
+            if i == len(all_param_combinations) - 1:  # Ensure the last zoom optimizer gets any remaining points
                 points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
 
-            # Create the ZoomeOptimizer
-            scanner = ZoomOptimizer(
+            # Create the ZoomOptimizer
+            zoom_optimizer = ZoomOptimizer(
                 npoints=points,
                 params=params_copy,
                 decay=self.decay,
@@ -374,10 +370,10 @@ class Scan:
                 outdir=self.outdir,
                 label=f'Configuration-{i}'
             )
-            all_scanners.append(scanner)
+            all_zoom_optimizers.append(zoom_optimizer)
 
-        # Return list of all scanners
-        return all_scanners
+        # Return list of all zoom optimizers
+        return all_zoom_optimizers
 
 
 if __name__ == "__main__":
@@ -415,7 +411,7 @@ if __name__ == "__main__":
                   overwrite=args.overwrite)
     
     # run scan using scan object
-    myScan.runScan(npoints=args.npoints,
+    myScan.run_zoom_optimization(npoints=args.npoints,
                    niter=args.iterations,
                    zoom=zoom,
                    use_multiprocessing=args.multiprocessing)

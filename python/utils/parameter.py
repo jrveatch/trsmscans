@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional
 
 # class to hold and update a single model parameter
 class Parameter:
