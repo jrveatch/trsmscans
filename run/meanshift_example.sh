@@ -1,1 +1,1 @@
-../python/scan_ms.py -X 1001 -S 302 -M "TRSMBroken" -d "SbbHtautau" -n 100 -ns 1 -sv 0.05 -ss 0.01 -se 3 -o -m
+../python/scan_ms.py -X 1001 -S 302 -M "TRSMBroken" -d "SbbHtautau" -n 10 -ns 1 -sv 0.25 -ss 0.25 -se 5 -o -m

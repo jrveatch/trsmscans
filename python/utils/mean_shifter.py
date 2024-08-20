@@ -5,6 +5,8 @@ import random
 import sys
 import time
 
+from pprint import pprint
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -20,9 +22,10 @@ from utils.tsvutils import save_tsv_output
 
 class PointVolume:
 
-    def __init__(self, position: tuple = (0, 0), size: tuple = ((-1, 1), (-1, 1))):
+    def __init__(self, position: tuple = (0, 0), size: tuple = ((-1, 1), (-1, 1)), debug: bool = False):
         self._position = position
         self._size = size
+        self.__debug = debug
 
     def mean_shift(self, params: dict[np.ndarray], Z: np.ndarray):
         """Updates cente value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
@@ -38,6 +41,14 @@ class PointVolume:
         XX = np.array([params[key] for key in params])
 
         nZ = self.lin_norm(Z)
+
+        if self.__debug == True:
+            print("\nPre-shift:\n========")
+            for i, X in enumerate(XX):
+                print(f"X_{i}:")
+                print(X)
+            print("nZ")
+            print(nZ)
 
         normalization_factor = np.sum(nZ)
 
@@ -137,6 +148,7 @@ class MeanShifter(PointVolume):
         super().__init__(
             position=self.__get_random_pos(),
             size=self.__get_size(),
+            debug=self.__debug
         )
 
         self.__test_position = self.position
@@ -322,7 +334,7 @@ class MeanShifter(PointVolume):
             print()
             print("Arrays sorted\n========")
             for d in data_sorted:
-                print(d)
+                pprint(d, sort_dicts=False)
             print()
 
         # Create scatter plot
