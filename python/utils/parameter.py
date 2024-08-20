@@ -1,0 +1,183 @@
+from typing import Optional
+
+# class to hold and update a single model parameter
+class Parameter:
+
+    def __init__(self,name,dict):
+
+        # initialize parameter name
+        self.__name = name
+
+        # initialize values from dictionary
+        self.__fullname = dict['fullname']
+        self.__precision = dict['precision']
+        self.__lower_bound = dict['min']
+        self.__upper_bound = dict['max']
+
+        # initialize low and high from lower and upper bounds
+        self.__low = self.__lower_bound
+        self.__high = self.__upper_bound
+
+        # initialize value as the midpoint
+        self.__val = self.get_midpoint()
+
+        # initialize range
+        self.__range = self.get_range()
+
+    # get name
+    def name(self) -> str:
+        return self.__name
+
+    # get low
+    def get_low(self) -> float:
+        return self.__low
+
+    # get high
+    def get_high(self) -> float:
+        return self.__high
+
+    # get lower bound
+    def lower_bound(self) -> float:
+        return self.__lower_bound
+
+    # get upper bound
+    def upper_bound(self) -> float:
+        return self.__upper_bound
+
+    # get fullname
+    def fullname(self) -> str:
+        return self.__fullname
+
+    # get precision
+    def precision(self) -> int:
+        return self.__precision
+
+    # get the midpoint given current low and high
+    def get_midpoint(self) -> float:
+        return (self.__low + self.__high) / 2
+
+    # get range given current low and high
+    def get_range(self) -> float:
+        return abs(self.__high - self.__low)
+
+    # functions to set min and max values
+    # if the current high or low values are beyond
+    # the new min or max, set them
+    # this also sets new range values
+
+    def set_lower_bound(self,
+                        newMin: float) -> None:
+        self.__lower_bound = newMin
+        if self.__low < self.__lower_bound:
+            self.__low = self.__lower_bound
+            self.__range = self.get_range()
+
+    def set_upper_bound(self,
+                        newMax: float) -> None:
+        self.__upper_bound = newMax
+        if self.__high > self.__upper_bound:
+            self.__high = self.__upper_bound
+            self.__range = self.get_range()
+    
+    # set new value, range, low and high
+    def scale_range(self,
+                    newVal: Optional[float] = None,
+                    rangeScale: float = 1.0) -> None:
+
+        # if both newVal is None and rangeScale is 1.0, complain and return existing low
+        if newVal is None and rangeScale == 1.0:
+            print("Attempting to update parameter with no new information... returning...")
+            return
+
+        # if a new val is given, update stored val
+        if newVal:
+            self.__val = newVal
+
+        # scale range by given value
+        self.__range *= rangeScale
+
+        # find new low and high using the half range
+        self.__low = self.__val - self.__range / 2
+        self.__high = self.__val + self.__range / 2
+
+        # adjust low and high based on lower bound
+        if self.__low < self.__lower_bound:
+            
+            # calculate how much the new low is below lower bound
+            overage = self.__lower_bound - self.__low
+
+            # add overage to high
+            self.__high += overage
+
+            # if new high is above upper bound, set it to max
+            if self.__high > self.__upper_bound:
+                self.__high = self.__upper_bound
+
+            # set low to lower bound
+            self.__low = self.__lower_bound
+
+        # adjust high and low based on upper bound
+        if self.__high > self.__upper_bound:
+
+            # calculate how much the new high is above upper bound
+            overage = self.__high - self.__upper_bound
+
+            # subtract overage from low
+            self.__low -= overage
+
+            # if new low is below lower bound, set it to lower bound
+            if self.__low < self.__lower_bound:
+                self.__low = self.__lower_bound
+            
+            # set high to upper bound
+            self.__high = self.__upper_bound
+
+        return
+
+    # update the low to a new value
+    def update_low(self,
+                   newval: float) -> None:
+
+        # check if newval is higher than previous low
+        if newval < self.__lower_bound:
+            self.set_low(self.__lower_bound)
+            return
+
+        # update low to our newval
+        self.set_low(newval)
+    
+    # update the high to a new value
+    def update_high(self,
+                    newval: float) -> None:
+
+        # check if newval is lower than previous high
+        if newval > self.__upper_bound:
+            self.set_high(self.__upper_bound)
+            return
+
+        # update high to our newval
+        self.set_high(newval)
+
+    # set the new low and update the range to reflect the new low
+    def set_low(self,
+                newval: float) -> None:
+        self.__low = newval
+        self.range = self.get_range()
+
+    def set_high(self,
+                 newval: float) -> None:
+        self.__high = newval
+        self.range = self.get_range()
+
+    # print min and max
+    def print_bounds(self) -> None:
+        print(self.__name + ": ["+f"{self.__lower_bound:1.{self.__precision}f}"+","+f"{self.__upper_bound:1.{self.__precision}f}"+"]")
+
+    # get formatted string showing range
+    def format_range(self) -> str:
+        string_range = "range = ["
+        string_range += f"{self.__low:1.{self.__precision}f}"
+        string_range += ","
+        string_range += f"{self.__high:1.{self.__precision}f}"
+        string_range += "]"
+        return string_range
