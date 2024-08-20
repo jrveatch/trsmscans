@@ -28,14 +28,14 @@ class PointVolume:
         """Updates cente value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
 
         Args:
-            XX (numpy.ndarray[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
+            XX (dict[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
             Z (numpy.ndarray[<float>]): List of function values for the sample space.
 
         Returns:
             tuple(x_1, x_2, ... , x_i): The new position tuple of x_1, x_2, ... , x_i coordinates of the distribution.
         """
 
-        XX = np.array([dict[key] for key in params]).T
+        XX = np.array([params[key] for key in params])
 
         nZ = self.lin_norm(Z)
 
@@ -46,7 +46,7 @@ class PointVolume:
 
         means = []
 
-        for X_i in XX.transpose():
+        for X_i in XX:
             means.append(np.dot(X_i, nZ) / normalization_factor)
 
         self.position = tuple(means)
