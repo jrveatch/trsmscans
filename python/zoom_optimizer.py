@@ -15,11 +15,8 @@ from decimal import Decimal
 from parse import Parse
 from utils.point import Point
 from utils.params import Params
-from filters import apply_filters
+from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
-from scan import Scan
-
-from typing import List
 
 class ZoomOptimizer:
 
@@ -88,7 +85,7 @@ class ZoomOptimizer:
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
-	        self.npoints = self.minpoints
+            self.npoints = self.minpoints
 
         # run ScannerS
         self.npoints = runScannerS(ininame=ininame,
