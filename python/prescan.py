@@ -66,6 +66,23 @@ def run_prescan(masses: 'Masses',
         # reset nexisting to 0
         nexisting = 0
 
+    # if prescan exists, adjust the number of prescan points to run
+    if nexisting > 0:
+
+        # if enough points already exist, exit
+        if nexisting >= npoints:
+            print("Found a prescan that already has",nexisting,"points.")
+            print(npoints,"points request, skipping since no more are needed.")
+            print("If you want to overwrite the existing prescan, run with -o.")
+            return 0
+
+        # otherwise reduce the number of points to run with
+        npointsOld = npoints
+        npoints -= nexisting
+        print("Found prescan with",nexisting,"points.")
+        print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
+        print("If you want to overwrite the existing prescan, run with -o.")
+
     # check if directory exists, if not make it
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -85,23 +102,6 @@ def run_prescan(masses: 'Masses',
 
     # write .ini file from template
     params.write_ini(ininame)
-
-    # if prescan exists, adjust the number of prescan points to run
-    if nexisting > 0:
-
-        # if enough points already exist, exit
-        if nexisting >= npoints:
-            print("Found a prescan that already has",nexisting,"points.")
-            print(npoints,"points request, skipping since no more are needed.")
-            print("If you want to overwrite the existing prescan, run with -o.")
-            return 0
-
-        # otherwise reduce the number of points to run with
-        npointsOld = npoints
-        npoints -= nexisting
-        print("Found prescan with",nexisting,"points.")
-        print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
-        print("If you want to overwrite the existing prescan, run with -o.")
 
     # run ScannerS to sample points
     result = runScannerS(ininame=ininame,
