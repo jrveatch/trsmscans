@@ -92,6 +92,10 @@ class ZoomOptimizer:
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 
+        # make sure npoints doesn't drop below the minimum
+        if self.npoints < self.minpoints:
+	        self.npoints = self.minpoints
+
         # TODO: Figure out what to do if process returns negative value
 
         # rename output .tsv file to tsvname
@@ -251,9 +255,5 @@ class ZoomOptimizer:
         
         heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
         self.npoints = int(self.npoints * heightRatio * (1.0 + self.zoom.densityRate))
-
-        # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-            self.npoints = self.minpoints
 
         return
