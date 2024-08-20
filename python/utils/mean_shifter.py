@@ -35,7 +35,7 @@ class PointVolume:
             tuple(x_1, x_2, ... , x_i): The new position tuple of x_1, x_2, ... , x_i coordinates of the distribution.
         """
 
-        XX = ParamMapper(params.keys()).unpack(params)
+        XX = np.array([dict[key] for key in params]).T
 
         nZ = self.lin_norm(Z)
 
@@ -281,8 +281,6 @@ class MeanShifter(PointVolume):
             self.__stop = True
 
     def __generate_visualizations(self):
-        mapper = ParamMapper(self.__local_params.parnames())
-
         ini_files = glob.glob(self.__files_path + "files/" + self.__local_params.model_name() + "*.ini")
 
         data = []
@@ -295,9 +293,19 @@ class MeanShifter(PointVolume):
                     if "iter" in line:
                         ini_data.update({"iter": int(line.strip().split('=')[1])})
                     if "curr_pos" in line:
-                        ini_data.update({"curr_pos": mapper.pack([float(token) for token in line.split('=')[1].strip().split(' ')])})
+                        ini_data.update({"curr_pos": {
+                            p: a for p, a in zip(
+                                self.__local_params.parnames(),
+                                [float(token) for token in line.split('=')[1].strip().split(' ')]
+                            )}
+                        })
                     if "test_pos" in line:
-                        ini_data.update({"test_pos": mapper.pack([float(token) for token in line.split('=')[1].strip().split(' ')])})
+                        ini_data.update({"test_pos": {
+                            p: a for p, a in zip(
+                                self.__local_params.parnames(),
+                                [float(token) for token in line.split('=')[1].strip().split(' ')]
+                            )}
+                        })
                     if "avg_xb" in line:
                         ini_data.update({"avg_xb": float(line.strip().split('=')[1])})
                     if "max_xb" in line:
@@ -351,7 +359,7 @@ class MeanShifter(PointVolume):
                     Y.append(datum["curr_pos"][y_label])
 
                 plt.plot(X, Y)
-                plt.plot(X[len(X) -1], Y[len(Y) - 1], marker="*")
+                plt.plot(X[len(X) - 1], Y[len(Y) - 1], marker="*")
 
                 plt.xlabel(x_label)
                 plt.ylabel(y_label)
@@ -381,7 +389,7 @@ class MeanShifter(PointVolume):
             max_xb_interpolator = interp1d(max_xb_range, y_range)
 
             plt.plot(X, [max_xb_interpolator(elem) for elem in max_xb], c="tab:red", label="max xb")
-            plt.plot(X, [avg_xb_interpolator(elem) for elem in avg_xb], c="tab:orange", label ="average xb")
+            plt.plot(X, [avg_xb_interpolator(elem) for elem in avg_xb], c="tab:orange", label="average xb")
             plt.plot(X, Y, c="tab:blue", label=parname)
             plt.legend(loc="lower right")
             plt.xlabel("iter")
@@ -389,31 +397,3 @@ class MeanShifter(PointVolume):
             plt.savefig(f"{self.__files_path}files/{self.__local_params.model_name()}_timeseries_iter_xb({parname}).jpg", format="JPEG")
             plt.cla()
             plt.clf()
-
-
-class ParamMapper:
-
-    def __init__(self, param_names: list[str]):
-        self.__param_names = [str(param_name) for param_name in param_names]
-
-    def unpack(self, dict: dict) -> np.ndarray:
-        if len(dict.keys()) != len(self.__param_names):
-            raise ValueError(
-                f"Input size size mismatch: {len(dict.keys())}, {len(self.__param_names)}")
-
-        return np.array([dict[key] for key in self.__param_names]).T
-
-    def pack(self, arr: np.ndarray) -> dict:
-
-        if len(arr) != len(self.__param_names):
-            raise ValueError(
-                f"Input size mismatch: {len(arr)}, {len(self.__param_names)}")
-
-        return {p: a for p, a in zip(self.__param_names, arr)}
-
-    @property
-    def param_names(self):
-        return self.__param_names
-
-    def __str__(self):
-        return str(self.__param_names)
