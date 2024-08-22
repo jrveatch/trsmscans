@@ -22,45 +22,9 @@ from utils.tsvutils import save_tsv_output
 
 class PointVolume:
 
-    def __init__(self, position: tuple = (0, 0), size: tuple = ((-1, 1), (-1, 1)), debug: bool = False):
+    def __init__(self, position: tuple = (0, 0), size: tuple = ((-1, 1), (-1, 1))):
         self._position = position
         self._size = size
-        self.__debug = debug
-
-    def mean_shift(self, params: dict[np.ndarray], Z: np.ndarray):
-        """Updates cente value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
-
-        Args:
-            XX (dict[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
-            Z (numpy.ndarray[<float>]): List of function values for the sample space.
-
-        Returns:
-            tuple(x_1, x_2, ... , x_i): The new position tuple of x_1, x_2, ... , x_i coordinates of the distribution.
-        """
-
-        XX = np.array([params[key] for key in params])
-
-        nZ = self.lin_norm(Z)
-
-        if self.__debug == True:
-            print("\nPre-shift:\n========")
-            for i, X in enumerate(XX):
-                print(f"X_{i}:")
-                print(X)
-            print("nZ")
-            print(nZ)
-
-        normalization_factor = np.sum(nZ)
-
-        if normalization_factor == 0.0:
-            normalization_factor = sys.float_info.min
-
-        means = []
-
-        for X_i in XX:
-            means.append(np.dot(X_i, nZ) / normalization_factor)
-
-        self.position = tuple(means)
 
     def extents(self) -> tuple:
         extents = []
@@ -71,24 +35,6 @@ class PointVolume:
             extents.append((pos - offset, pos + offset))
 
         return tuple(extents)
-
-    @staticmethod
-    def lin_norm(X: list):
-        """Linear normalization of X
-
-        Args:
-            X (list[<float>]): List of values to normalize.
-
-        Returns:
-            (list[<float>]): A normalized list of the values contained in the input list.
-        """
-        MAX = max(X)
-        MIN = min(X)
-
-        # FIXME: TEST
-
-        # return np.vectorize(lambda x: (x - MIN) / (MAX - MIN))(X)
-        return np.array([(X[i] - MIN) / (MAX - MIN) for i in range(len(X))])
 
     @property
     def position(self) -> tuple:
@@ -271,6 +217,56 @@ class MeanShifter(PointVolume):
         self.__generate_visualizations()
 
         return self.position
+
+    def mean_shift(self, params: dict[np.ndarray], Z: np.ndarray):
+        """Updates cente value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
+
+        Args:
+            XX (dict[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
+            Z (numpy.ndarray[<float>]): List of function values for the sample space.
+
+        Returns:
+            tuple(x_1, x_2, ... , x_i): The new position tuple of x_1, x_2, ... , x_i coordinates of the distribution.
+        """
+
+        XX = np.array([params[key] for key in params])
+
+        nZ = self.lin_norm(Z)
+
+        if self.__debug == True:
+            print("\nPre-shift:\n========")
+            for i, X in enumerate(XX):
+                print(f"X_{i}:")
+                print(X)
+            print("nZ")
+            print(nZ)
+
+        normalization_factor = np.sum(nZ)
+
+        if normalization_factor == 0.0:
+            normalization_factor = sys.float_info.min
+
+        means = []
+
+        for X_i in XX:
+            means.append(np.dot(X_i, nZ) / normalization_factor)
+
+        self.position = tuple(means)
+
+    @staticmethod
+    def lin_norm(X: list):
+        """Linear normalization of X
+
+        Args:
+            X (list[<float>]): List of values to normalize.
+
+        Returns:
+            (list[<float>]): A normalized list of the values contained in the input list.
+        """
+        MAX = max(X)
+        MIN = min(X)
+
+        return np.array([(X[i] - MIN) / (MAX - MIN) for i in range(len(X))])
 
     def __get_random_pos(self):
         return tuple(
