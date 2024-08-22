@@ -48,6 +48,12 @@ class Params:
     # get masses
     def masses(self) -> 'Masses':
         return self.__masses
+    
+    def midpoint_tuples(self) -> tuple[float]:
+        return tuple([param.get_midpoint() for param in self.__parameters.values()])
+    
+    def extent_tuples(self) -> tuple[tuple[float]]:
+        return tuple([(param.get_low(), param.get_high()) for param in self.__parameters.values()])
 
     # get starting min value from model
     def starting_min(self,
