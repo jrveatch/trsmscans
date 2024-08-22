@@ -28,9 +28,10 @@ class ZoomOptimizer:
                  maxwidth: float,
                  npoints: int,
                  optPoint: 'Point',
-                 zoom: 'Zoom',
                  percentile: float,
                  outdir: str,
+                 parameter_rate: float,
+                 density_growth_rate: float,
                  label: str = ""):
 
         # some basic scanner information
@@ -47,9 +48,9 @@ class ZoomOptimizer:
         self.percentile = percentile
         self.top_percentile = {}
         self.top_percentile_xb = None
-
-        # zoom rates
-        self.zoom = zoom
+        
+        self.parRate = parameter_rate
+        self.densityRate = density_growth_rate
 
         # set minimum number of points per iteration
         self.minpoints = 100
@@ -251,6 +252,6 @@ class ZoomOptimizer:
         # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
         
         heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * heightRatio * (1.0 + self.zoom.densityRate))
+        self.npoints = int(self.npoints * heightRatio * (1.0 + self.densityRate))
 
         return
