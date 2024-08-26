@@ -174,7 +174,7 @@ class Params:
     
     # function to get parameter ranges
     def range(self,
-              parname: str) -> range:
+              parname: str) -> float:
         return self.parameter(parname).get_range()
     
     # function to write .ini file with parameters
