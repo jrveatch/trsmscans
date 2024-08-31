@@ -213,6 +213,7 @@ class Scan:
         summary.write("\n")
         summary.close()
 
+        # TODO: Is this needed?
         # scale new low and high values
         self.params.scale_ranges(self.optPoint)
 
@@ -336,7 +337,6 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
-
 
 if __name__ == "__main__":
 
