@@ -17,6 +17,7 @@ from utils.point import Point
 from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
+from utils import tsvutils
 
 class ZoomOptimizer:
 
@@ -78,6 +79,7 @@ class ZoomOptimizer:
         # set names of input .ini and output .tsv files
         ini_name = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
         tsv_name = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
+        tsv_combined_name = self.outdir + "files/tsv/" + self.modelname + "_" + iter_label + ".tsv"
         tsv_temp_name = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
@@ -206,6 +208,9 @@ class ZoomOptimizer:
 
         # step down npoints
         # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+
+        # append .tsv file to combined .tsv file for iteration
+        tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         return
 
