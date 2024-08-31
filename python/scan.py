@@ -87,6 +87,8 @@ class Scan:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
             os.makedirs(self.outdir + "/files")
+            os.makedirs(self.outdir + "/files/ini")
+            os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
         self.summaryname = self.outdir + "scansummary_" + self.modelname + "_" + self.decay + "_" + str(self.masses) + ".txt"
@@ -252,7 +254,7 @@ class Scan:
             # TODO: Add early stopping conditions
 
         # Initialize directory where tsv files exist
-        file_directory = self.outdir + "files"
+        file_directory = self.outdir + "files/tsv"
 
         # Combine all the tsvs depending on their iteration (multiple zoom optimizers create multiple tsvs/iteration)
         self.combine_files(file_directory)

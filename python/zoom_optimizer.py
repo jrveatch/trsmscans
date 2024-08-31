@@ -76,9 +76,8 @@ class ZoomOptimizer:
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.modelname + "_" + identifier
-        ininame = outname + ".ini"
-        tsvname = outname + ".tsv"
+        ininame = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
+        tsvname = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
         temptsv = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
