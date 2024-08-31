@@ -50,8 +50,8 @@ class ZoomOptimizer:
         self.top_percentile = {}
         self.top_percentile_xb = None
         
-        self.parRate = parameter_rate
-        self.densityRate = density_growth_rate
+        self.parameter_zoom_rate = parameter_rate
+        self.density_growth_rate = density_growth_rate
 
         # set minimum number of points per iteration
         self.minpoints = 100
@@ -196,7 +196,7 @@ class ZoomOptimizer:
 
         # TODO: reinclude old scaling as an alternative
         # parameter scaling factor
-        #rangeScale = 1.0 - self.zoom.parRate
+        #rangeScale = 1.0 - self.zoom.parameter_zoom_rate
 
         # set new low and high values
         #self.params.scale_ranges(self.optPoint,rangeScale)
@@ -207,7 +207,7 @@ class ZoomOptimizer:
         #volumeRatio = volumeNew/volume
 
         # step down npoints
-        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.density_growth_rate))
 
         # append .tsv file to combined .tsv file for iteration
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
@@ -240,10 +240,10 @@ class ZoomOptimizer:
             percentile_threshold = 0
 
         # create a threshold to look at the top percentile of xb points
-        threshold = np.percentile(xb_array, percentile_threshold)
+        xb_threshold = np.percentile(xb_array, percentile_threshold)
 
         # get top percentile of xb
-        self.top_percentile_xb = xb_array[xb_array > threshold]
+        self.top_percentile_xb = xb_array[xb_array > xb_threshold]
 
         # dictionaries to update low and high in parameters
         lowdict = {}
@@ -256,7 +256,7 @@ class ZoomOptimizer:
             #if self.top_percentile[param]:
             #    values = np.append(values, self.top_percentile[param])
             # update top_percentile accounting for new values
-            self.top_percentile[param] = values[xb_array > threshold]
+            self.top_percentile[param] = values[xb_array > xb_threshold]
             # set lows and highs of each parameter
             lowdict[param] = self.top_percentile[param].min()
             highdict[param] = self.top_percentile[param].max()
@@ -265,7 +265,7 @@ class ZoomOptimizer:
         self.params.update_low_high(lowdict, highdict)
 
         # calculate the new number of points based on the remaining xb range
-        heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * heightRatio * (1.0 + self.densityRate))
+        heightRatio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * heightRatio * (1.0 + self.density_growth_rate))
 
         return
