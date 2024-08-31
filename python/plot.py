@@ -45,7 +45,7 @@ class Plot:
         # Directory for the scan outputs
         directory = fileutils.scan_dir(modelname=self.model.name(),
                                        decay=self.decay,
-                                       masses=self.masses) + "files/"
+                                       masses=self.masses) + "files/tsv/"
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
