@@ -76,34 +76,34 @@ class ZoomOptimizer:
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
-        ininame = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
-        tsvname = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
-        temptsv = self.outdir + self.modelname + ".tsv"
+        ini_name = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
+        tsv_name = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
+        tsv_temp_name = self.outdir + self.modelname + ".tsv"
 
         # write new .ini file from template and parameters
-        self.params.write_ini(ininame)
+        self.params.write_ini(ini_name)
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
             self.npoints = self.minpoints
 
         # run ScannerS
-        self.npoints = runScannerS(ininame=ininame,
+        self.npoints = runScannerS(ininame=ini_name,
                                    modelname=self.modelname,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 
         # TODO: Figure out what to do if process returns negative value
 
-        # rename output .tsv file to tsvname
-        shutil.move(temptsv,tsvname)
+        # rename output .tsv file to tsv_name
+        shutil.move(tsv_temp_name,tsv_name)
 
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(filename=tsvname,
+        nwidth, nbounds, npass = apply_filters(filename=tsv_name,
                                                        masses=self.params.masses(),
                                                        modelname=self.modelname,
                                                        maxwidth=self.maxwidth)
@@ -128,7 +128,7 @@ class ZoomOptimizer:
             return
 
         # read output tsv into parser
-        self.scanparser.read_file(filename=tsvname)
+        self.scanparser.read_file(filename=tsv_name)
 
         # get new point as the maximum from the current scan
         newPoint = self.scanparser.get_max_xb_point()
