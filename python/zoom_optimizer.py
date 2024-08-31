@@ -31,8 +31,9 @@ class ZoomOptimizer:
                  optPoint: 'Point',
                  percentile: float,
                  outdir: str,
-                 parameter_rate: float,
+                 parameter_zoom_rate: float,
                  density_growth_rate: float,
+                 strategy: str = "percentile",
                  label: str = ""):
 
         # some basic scanner information
@@ -49,8 +50,9 @@ class ZoomOptimizer:
         self.percentile = percentile
         self.top_percentile = {}
         self.top_percentile_xb = None
-        
-        self.parameter_zoom_rate = parameter_rate
+
+        self.strategy = strategy
+        self.parameter_zoom_rate = parameter_zoom_rate
         self.density_growth_rate = density_growth_rate
 
         # set minimum number of points per iteration
@@ -191,23 +193,23 @@ class ZoomOptimizer:
             summary.write("\n")
             summary.close()
 
-        # zoom in using percentile
-        self.zoom_percentile()
+        # check zoom strategy and call method accordingly
+        match self.strategy:
 
-        # TODO: reinclude old scaling as an alternative
-        # parameter scaling factor
-        #rangeScale = 1.0 - self.zoom.parameter_zoom_rate
+            # zoom in using percentile
+            case "percentile":
+                self.zoom_percentile()
 
-        # set new low and high values
-        #self.params.scale_ranges(self.optPoint,rangeScale)
+            # zoom in using rate
+            case "rate":
+                self.zoom_rate()
 
-        # TODO: include these two lines in old scaling alternative
-        # get new volume
-        #volumeNew = self.params.volume()
-        #volumeRatio = volumeNew/volume
-
-        # step down npoints
-        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.density_growth_rate))
+            # all other cases
+            case _:
+                print("Unrecognized zoom strategy")
+                print("Please use 'percentile' (default) or 'rate'")
+                # TODO: Throw and exception here
+                return
 
         # append .tsv file to combined .tsv file for iteration
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
@@ -268,4 +270,25 @@ class ZoomOptimizer:
         heightRatio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
         self.npoints = int(self.npoints * heightRatio * (1.0 + self.density_growth_rate))
 
+        return
+
+    # method to zoom in based on a fixed rate
+    def zoom_rate(self) -> None:
+
+        # parameter scaling factor
+        range_scale = 1.0 - self.parameter_zoom_rate
+
+        # get volume before zooming
+        volume_old = self.params.volume()
+
+        # set new low and high values
+        self.params.scale_ranges(self.optPoint,range_scale)
+
+        # get volume after zooming
+        volume_new = self.params.volume()
+        volume_ratio = volume_new / volume_old
+
+        # step down npoints
+        self.npoints = int(self.npoints * volume_ratio * (1.0 + self.density_growth_rate))
+    
         return

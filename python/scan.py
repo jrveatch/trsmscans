@@ -36,7 +36,7 @@ class Scan:
                  maxwidth: float,
                  percentile: float,
                  overwrite: bool = False,
-                 parameter_rate: float = 0.05,
+                 parameter_zoom_rate: float = 0.05,
                  density_growth_rate: float = 0.2
                  ):
 
@@ -49,7 +49,7 @@ class Scan:
         self.percentile = percentile
 
         # store zooming info
-        self.parameter_rate = parameter_rate,
+        self.parameter_zoom_rate = parameter_zoom_rate
         self.density_growth_rate = density_growth_rate
 
         # check whether decay is valid
@@ -328,7 +328,7 @@ class Scan:
                 summaryname=self.summaryname,
                 percentile=self.percentile,
                 outdir=self.outdir,
-                parameter_rate=self.parameter_rate,
+                parameter_zoom_rate=self.parameter_zoom_rate,
                 density_growth_rate=self.density_growth_rate,
                 label=f'Configuration-{i}'
             )
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
+    argparser.add_argument("-r", "--parameter_zoom_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
@@ -367,7 +367,7 @@ if __name__ == "__main__":
                   maxwidth=args.maxwidth,
                   percentile=args.percentile,
                   overwrite=args.overwrite,
-                  parameter_rate=args.parameter_rate,
+                  parameter_zoom_rate=args.parameter_zoom_rate,
                   density_growth_rate=args.density_growth
                   )
 
