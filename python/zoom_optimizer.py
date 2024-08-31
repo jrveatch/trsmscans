@@ -70,9 +70,9 @@ class ZoomOptimizer:
         iterstart = time.time()
 
         # get iteration identifier
-        identifier = f"{iter:04d}"
+        iter_label = f"{iter:04d}"
         if self.label:
-            identifier = self.label + "_" + identifier
+            identifier = self.label + "_" + iter_label
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
@@ -189,19 +189,42 @@ class ZoomOptimizer:
             summary.write("\n")
             summary.close()
 
-        # get paramaters to use for zooming in
-        paramArrays = self.scanparser.get_parameter_arrays()
+        # zoom in using percentile
+        self.zoom_percentile()
 
-        # minimum amount of points that need to be looked at before zooming in
+        # TODO: reinclude old scaling as an alternative
+        # parameter scaling factor
+        #rangeScale = 1.0 - self.zoom.parRate
+
+        # set new low and high values
+        #self.params.scale_ranges(self.optPoint,rangeScale)
+
+        # TODO: include these two lines in old scaling alternative
+        # get new volume
+        #volumeNew = self.params.volume()
+        #volumeRatio = volumeNew/volume
+
+        # step down npoints
+        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
+
+        return
+
+    # method to zoom in based on a percentile cut on xb
+    def zoom_percentile(self) -> None:
+
+        # minimum number of points required before zooming in
         min_points = 10
+
+        # percentile threshold that can be adjusted on the fly
         percentile_threshold = self.percentile
 
         # get an array of xb results
         xb_array = self.scanparser.get_xb()
 
-        # if not the first iteration, add top_percentile_xb to current xb_array
-        if iter != 0:
-            xb_array = np.append(xb_array, self.top_percentile_xb)
+        # TODO: Comment back in once parameter issue is fixed
+        # if top_percentile_xb has already been filled, add it to current xb_array
+        #if self.top_percentile_xb is not None:
+        #    xb_array = np.append(xb_array, self.top_percentile_xb)
 
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
@@ -222,34 +245,21 @@ class ZoomOptimizer:
         highdict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in paramArrays.items():
+        for param, values in self.scanparser.get_parameter_arrays().items():
+            # TODO: Figure out how to check if dict key exists
             # if not first iteration, add top_percentile to values
-            if iter != 0:
-                values = np.append(values, self.top_percentile[param])
+            #if self.top_percentile[param]:
+            #    values = np.append(values, self.top_percentile[param])
             # update top_percentile accounting for new values
             self.top_percentile[param] = values[xb_array > threshold]
             # set lows and highs of each parameter
             lowdict[param] = self.top_percentile[param].min()
             highdict[param] = self.top_percentile[param].max()
 
-        # update low and high using dictionaries
+        # update params lows and highs using dictionaries
         self.params.update_low_high(lowdict, highdict)
 
-        # TODO: reinclude old scaling as an alternative
-        # parameter scaling factor
-        #rangeScale = 1.0 - self.zoom.parRate
-
-        # set new low and high values
-        #self.params.scale_ranges(self.optPoint,rangeScale)
-
-        # TODO: include these two lines in old scaling alternative
-        # get new volume
-        #volumeNew = self.params.volume()
-        #volumeRatio = volumeNew/volume
-
-        # step down npoints
-        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
-        
+        # calculate the new number of points based on the remaining xb range
         heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
         self.npoints = int(self.npoints * heightRatio * (1.0 + self.densityRate))
 
