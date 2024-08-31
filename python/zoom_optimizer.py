@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # import various modules to help with logistics
-import os
 import shutil
 import time
 import datetime
