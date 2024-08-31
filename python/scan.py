@@ -234,6 +234,7 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
+        # make a list of all zoom optimizersa based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
         for iter in range(niter):
@@ -241,8 +242,6 @@ class Scan:
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
             # Consider if having a seperate function to check for the maximum is best
-
-            # trial_stopping_condition() #### Figure out why function is not able to be used
 
             for zoom_optimizer in all_zoom_optimizers:
 
