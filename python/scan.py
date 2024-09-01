@@ -141,8 +141,7 @@ class Scan:
         # get parser from prescan
         self.prescanparser = Parse(filename=prescantsv,
                                    masses=self.masses,
-                                   modelname=self.modelname,
-                                   decay=self.decay)
+                                   modelname=self.modelname)
 
         # get the number of unfiltered prescan points available
         n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()
@@ -186,7 +185,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.get_max_xb_point()
+        self.optPoint = self.prescanparser.get_max_xb_point(self.decay)
 
         # write scan details to details file
         details = open(self.detailsname, "a")
@@ -274,7 +273,8 @@ class Scan:
         for par in self.params.parnames():
 
             # Check if bimodal and get the current low and high values
-            is_bimodal = self.prescanparser.is_bimodal(par)
+            is_bimodal = self.prescanparser.is_bimodal(param_name=par,
+                                                       decay=self.decay)
             min_val = self.params.get_low(par)
             max_val = self.params.get_high(par)
 

@@ -29,7 +29,6 @@ class Parse:
     # load new set of arrays
     def __init__(self,
                  masses: Masses,
-                 decay: str,
                  modelname: str,
                  filename: str = ""):
         
@@ -42,12 +41,6 @@ class Parse:
         # initialize HName and SName
         self.__HName = masses.HName
         self.__SName = masses.SName
-
-        # initialize decay mode
-        self.__decay = decay
-
-        # initialize xb array
-        self.__xb: NDArray = None
 
         # initialize x-sec and BR arrays
         self.__b_H_bb: NDArray = None
@@ -86,13 +79,17 @@ class Parse:
         self.__make_filtered_arrays()
 
     # find the point that maximizes xb
-    def get_max_xb_point(self) -> 'Point':
+    def get_max_xb_point(self,
+                         decay: str) -> 'Point':
+        
+        # get xb
+        xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(self.__xb)
+        maxidx = np.argmax(xb)
 
         # get max xsec times BR
-        maxxb = self.__xb[maxidx]
+        maxxb = xb[maxidx]
         
         # make dictionary for parameter values for maxxb
         maxxb_parvals: Dict[str,float] = {}
@@ -120,25 +117,19 @@ class Parse:
     def get_parameter_arrays(self) -> Dict[str,NDArray]:
         return self.__par_arrays
 
-    # get xb array
-    def get_xb(self,
-               decay: str = "") -> NDArray:
-        # if a decay mode is provided that is not the class member, return the corresponding xb
-        if decay and decay != self.__decay:
-            return self.__calc_xb(decay)
-        # otherwise return the default xb
-        else:
-            return self.__xb
-
     # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
-                   param_name: str) -> bool:
+                   param_name: str,
+                   decay: str) -> bool:
 
         # percentile threshold for xb
         percentile_threshold = 98
 
+        # get xb
+        xb = self.get_xb(decay)
+
         # number of points available
-        npoints = len(self.__xb)
+        npoints = len(xb)
 
         # minimum number of points for test
         min_points = 200
@@ -152,10 +143,10 @@ class Parse:
             percentile_threshold = 0
 
         # get xb value that corresponds to percentile threshold
-        threshold_value = np.percentile(self.__xb, percentile_threshold)
+        threshold_value = np.percentile(xb, percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.__par_arrays[param_name][self.__xb > threshold_value] 
+        param_selected = self.__par_arrays[param_name][xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -169,9 +160,9 @@ class Parse:
         else:
             return False
 
-    # get the maximum xb
-    def __calc_xb(self,
-                  decay: str) -> NDArray:
+    # get xb array
+    def get_xb(self,
+               decay: str) -> NDArray:
 
         # get production cross section
         xb_prod = self.__get_xb_prod()
@@ -332,12 +323,9 @@ class Parse:
         self.__x_X_gg = self.arrays.data('x_H3_gg')[self.filters != 0]
         self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
 
-        # cross-section times branching ratio
-        self.__xb = self.__calc_xb(self.__decay)
-
     # get number of filtered events
     def get_n_points(self) -> int:
-        return self.__xb.size
+        return next(iter(self.__par_arrays.values())).size
 
     # get number of unfiltered events
     def get_n_unfiltered_points(self) -> int:

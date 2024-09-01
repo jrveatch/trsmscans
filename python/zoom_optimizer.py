@@ -59,8 +59,7 @@ class ZoomOptimizer:
 
         # create parse object without a filename
         self.scanparser = Parse(masses=self.params.masses(),
-                                modelname=self.modelname,
-                                decay=self.decay)
+                                modelname=self.modelname)
 
         # TODO: Names of details and summary files
 
@@ -134,7 +133,7 @@ class ZoomOptimizer:
         self.scanparser.read_file(filename=tsv_name)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.get_max_xb_point()
+        newPoint = self.scanparser.get_max_xb_point(self.decay)
 
         # flag to indicate whether optimal point needs to be updated
         update = False
@@ -225,7 +224,7 @@ class ZoomOptimizer:
         percentile_threshold = self.percentile
 
         # get an array of xb results
-        xb_array = self.scanparser.get_xb()
+        xb_array = self.scanparser.get_xb(self.decay)
 
         # if top_percentile_xb has already been filled, add it to current xb_array
         if self.top_percentile_xb is not None:
