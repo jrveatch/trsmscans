@@ -104,22 +104,20 @@ def run_prescan(masses: 'Masses',
     params.write_ini(ininame)
 
     # run ScannerS to sample points
-    result = runScannerS(ininame=ininame,
-                         modelname=modelname,
-                         npoints=npoints,
-                         use_multiprocessing=use_multiprocessing)
+    try:
+        runScannerS(ininame=ininame,
+                    modelname=modelname,
+                    npoints=npoints,
+                    use_multiprocessing=use_multiprocessing)
 
-    # if a process returns a negative result, delete directory and return result
-    if result < 0:
-
-        # inform user
-        print("Removing directory",outdir)
+    # if timeout error is caught, delete the directory and raise
+    except TimeoutError:
 
         # delete directory
         shutil.rmtree(outdir)
 
         # return result from process
-        return result
+        raise
 
     # make sure new .tsv has filter columns
     initialize_filters(filename=tsvname_initial)
