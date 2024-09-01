@@ -95,7 +95,7 @@ class ZoomOptimizer:
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 
-        # TODO: Figure out what to do if process returns negative value
+        # TODO: Figure out what to do if process throws a TimeoutError
 
         # rename output .tsv file to tsv_name
         shutil.move(tsv_temp_name,tsv_name)

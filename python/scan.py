@@ -119,29 +119,22 @@ class Scan:
         prescantsv = fileutils.prescan_tsv(modelname=self.modelname,
                                            masses=self.masses)
 
-        # call prescan and get result
-        result = run_prescan(masses=self.masses,
-                             npoints=nprescan,
-                             maxwidth=self.maxwidth,
-                             modelname=self.modelname,
-                             use_multiprocessing=use_multiprocessing)
+        try:
+            # call prescan
+            self.prescanparser = run_prescan(masses=self.masses,
+                                             npoints=nprescan,
+                                             maxwidth=self.maxwidth,
+                                             modelname=self.modelname,
+                                             use_multiprocessing=use_multiprocessing)
 
         # if prescan fails, remove directory and quit
-        if result < 0:
-
-            # inform user
-            print("Removing directory", self.outdir)
+        except TimeoutError:
 
             # delete directory
             shutil.rmtree(self.outdir)
 
             # quit execution
-            quit()
-
-        # get parser from prescan
-        self.prescanparser = Parse(filename=prescantsv,
-                                   masses=self.masses,
-                                   modelname=self.modelname)
+            raise
 
         # get the number of unfiltered prescan points available
         n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()

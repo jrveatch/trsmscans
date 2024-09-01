@@ -14,14 +14,14 @@ from utils import tsvutils
 from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
+from parse import Parse
 
-# TODO: Make this return a Parse object
 def run_prescan(masses: 'Masses',
                 modelname: str,
                 npoints: int,
                 maxwidth: float,
                 overwrite: bool = False,
-                use_multiprocessing: bool = False) -> int:
+                use_multiprocessing: bool = False) -> 'Parse':
 
     # get scan start time
     scanstart = time.time()
@@ -34,6 +34,10 @@ def run_prescan(masses: 'Masses',
     ininame = outdir + modelname + ".ini"
     tsvname_initial = outdir + modelname + ".tsv"
     tsvname = outdir + modelname + "_prescan.tsv"
+
+    # create parse object without .tsv file name
+    parser = Parse(masses=masses,
+                   modelname=modelname)
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points for",str(masses))
@@ -53,8 +57,9 @@ def run_prescan(masses: 'Masses',
                 break
             # if no, print message and return
             elif response in ["no", "n"]:
+                parser.read_file(tsvname)
                 print("Exiting prescan")
-                return 0
+                return parser
             # complain if response is neither yes nor no
             else:
                 print("Please enter 'yes' or 'no'.")
@@ -69,12 +74,13 @@ def run_prescan(masses: 'Masses',
     # if prescan exists, adjust the number of prescan points to run
     if nexisting > 0:
 
-        # if enough points already exist, exit
+        # if enough points already exist, parse and return
         if nexisting >= npoints:
             print("Found a prescan that already has",nexisting,"points.")
             print(npoints,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with the -o option.")
-            return 0
+            parser.read_file(tsvname)
+            return parser
 
         # otherwise reduce the number of points to run with
         npointsOld = npoints
@@ -104,22 +110,20 @@ def run_prescan(masses: 'Masses',
     params.write_ini(ininame)
 
     # run ScannerS to sample points
-    result = runScannerS(ininame=ininame,
-                         modelname=modelname,
-                         npoints=npoints,
-                         use_multiprocessing=use_multiprocessing)
+    try:
+        runScannerS(ininame=ininame,
+                    modelname=modelname,
+                    npoints=npoints,
+                    use_multiprocessing=use_multiprocessing)
 
-    # if a process returns a negative result, delete directory and return result
-    if result < 0:
-
-        # inform user
-        print("Removing directory",outdir)
+    # if timeout error is caught, delete the directory and raise
+    except TimeoutError:
 
         # delete directory
         shutil.rmtree(outdir)
 
         # return result from process
-        return result
+        raise
 
     # make sure new .tsv has filter columns
     initialize_filters(filename=tsvname_initial)
@@ -134,6 +138,9 @@ def run_prescan(masses: 'Masses',
                   modelname=modelname,
                   maxwidth=maxwidth)
 
+    # parse output .tsv file
+    parser.read_file(tsvname)
+
     # get total time taken
     scanend = time.time()
     scantime = (scanend - scanstart)
@@ -144,8 +151,8 @@ def run_prescan(masses: 'Masses',
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
-    # return after a successful run
-    return 0
+    # return parser after a successful run
+    return parser
 
 if __name__ == "__main__":
 
