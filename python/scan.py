@@ -17,18 +17,15 @@ from utils.params import Params
 from utils.masses import Masses
 from prescan import run_prescan
 from utils import fileutils
-from utils import tsvutils
 from utils.decayutils import is_valid_decay
 
 import copy
 import itertools
-import glob
 
 from typing import List
 from zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
-
 
 class Scan:
 
@@ -39,7 +36,7 @@ class Scan:
                  maxwidth: float,
                  percentile: float,
                  overwrite: bool = False,
-                 parameter_rate: float = 0.05,
+                 parameter_zoom_rate: float = 0.05,
                  density_growth_rate: float = 0.2
                  ):
 
@@ -52,7 +49,7 @@ class Scan:
         self.percentile = percentile
 
         # store zooming info
-        self.parameter_rate = parameter_rate,
+        self.parameter_zoom_rate = parameter_zoom_rate
         self.density_growth_rate = density_growth_rate
 
         # check whether decay is valid
@@ -87,6 +84,8 @@ class Scan:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
             os.makedirs(self.outdir + "/files")
+            os.makedirs(self.outdir + "/files/ini")
+            os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
         self.summaryname = self.outdir + "scansummary_" + self.modelname + "_" + self.decay + "_" + str(self.masses) + ".txt"
@@ -213,6 +212,7 @@ class Scan:
         summary.write("\n")
         summary.close()
 
+        # TODO: Is this needed?
         # scale new low and high values
         self.params.scale_ranges(self.optPoint)
 
@@ -234,6 +234,7 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
+        # make a list of all zoom optimizersa based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
         for iter in range(niter):
@@ -242,19 +243,11 @@ class Scan:
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
             # Consider if having a seperate function to check for the maximum is best
 
-            # trial_stopping_condition() #### Figure out why function is not able to be used
-
             for zoom_optimizer in all_zoom_optimizers:
 
                 zoom_optimizer.run(iter, use_multiprocessing)
 
             # TODO: Add early stopping conditions
-
-        # Initialize directory where tsv files exist
-        file_directory = self.outdir + "files"
-
-        # Combine all the tsvs depending on their iteration (multiple zoom optimizers create multiple tsvs/iteration)
-        self.combine_files(file_directory)
 
         # get total scan time
         scanend = time.time()
@@ -269,45 +262,6 @@ class Scan:
         details.write("Scan took " + str(datetime.timedelta(seconds=int(scantime))) + " (hh:mm:ss)")
         details.close()
         return
-
-    def trial_stopping_condition(self):
-
-        # Use this function to distinguish between the maximums
-        curr_max = 10
-        return
-
-    def combine_files(self,
-                      directory: str) -> None:
-
-        try:
-            # Ensure the directory exists
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            # List all .tsv files in the input directory
-            input_files = glob.glob(os.path.join(directory, "*.tsv"))
-
-            # Sort files by filename to ensure the correct order
-            input_files.sort()
-
-            # Iterate over input files in the correct order
-            for inputfile in input_files:
-                # Extract last 4 digits from the filename
-                basename = os.path.basename(inputfile)
-                last_digits = basename[-8:-4]  # Assuming the pattern is '_XXXX.tsv'
-
-                # Create output file path based on last 4 digits
-                outputfile = os.path.join(directory, f"Output_{last_digits}.tsv")
-                # Save contents of current input file to respective output file
-                tsvutils.save_tsv_output(inputfile, outputfile)
-
-        # Error exceptions
-        except FileNotFoundError:
-            print(f"Error: A file was not found.")
-        except IOError as e:
-            print(f"Error: {e}")
-        except Exception as e:
-            print(f"Unexpected error: {e}")
 
     # Function that creates needed zoom optimizers
     def create_zoom_optimizers(self, npoints: int) -> List['ZoomOptimizer']:
@@ -375,7 +329,7 @@ class Scan:
                 summaryname=self.summaryname,
                 percentile=self.percentile,
                 outdir=self.outdir,
-                parameter_rate=self.parameter_rate,
+                parameter_zoom_rate=self.parameter_zoom_rate,
                 density_growth_rate=self.density_growth_rate,
                 label=f'Configuration-{i}'
             )
@@ -383,7 +337,6 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
-
 
 if __name__ == "__main__":
 
@@ -397,7 +350,7 @@ if __name__ == "__main__":
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
     argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-r", "--parameter_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
+    argparser.add_argument("-r", "--parameter_zoom_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
     argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
@@ -414,7 +367,7 @@ if __name__ == "__main__":
                   maxwidth=args.maxwidth,
                   percentile=args.percentile,
                   overwrite=args.overwrite,
-                  parameter_rate=args.parameter_rate,
+                  parameter_zoom_rate=args.parameter_zoom_rate,
                   density_growth_rate=args.density_growth
                   )
 
