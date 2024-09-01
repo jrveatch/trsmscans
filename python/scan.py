@@ -121,11 +121,11 @@ class Scan:
 
         try:
             # call prescan
-            run_prescan(masses=self.masses,
-                        npoints=nprescan,
-                        maxwidth=self.maxwidth,
-                        modelname=self.modelname,
-                        use_multiprocessing=use_multiprocessing)
+            self.prescanparser = run_prescan(masses=self.masses,
+                                             npoints=nprescan,
+                                             maxwidth=self.maxwidth,
+                                             modelname=self.modelname,
+                                             use_multiprocessing=use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
@@ -135,11 +135,6 @@ class Scan:
 
             # quit execution
             raise
-
-        # get parser from prescan
-        self.prescanparser = Parse(filename=prescantsv,
-                                   masses=self.masses,
-                                   modelname=self.modelname)
 
         # get the number of unfiltered prescan points available
         n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()
