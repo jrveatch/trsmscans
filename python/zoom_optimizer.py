@@ -227,10 +227,9 @@ class ZoomOptimizer:
         # get an array of xb results
         xb_array = self.scanparser.get_xb()
 
-        # TODO: Comment back in once parameter issue is fixed
         # if top_percentile_xb has already been filled, add it to current xb_array
-        #if self.top_percentile_xb is not None:
-        #    xb_array = np.append(xb_array, self.top_percentile_xb)
+        if self.top_percentile_xb is not None:
+            xb_array = np.append(xb_array, self.top_percentile_xb)
 
         # ensure min_points are looked
         if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
@@ -252,10 +251,9 @@ class ZoomOptimizer:
 
         # save params arrays where xb_array is the top percentile
         for param, values in self.scanparser.get_parameter_arrays().items():
-            # TODO: Figure out how to check if dict key exists
-            # if not first iteration, add top_percentile to values
-            #if self.top_percentile[param]:
-            #    values = np.append(values, self.top_percentile[param])
+            # if param is already in top_percentile, add top_percentile to values
+            if param in self.top_percentile:
+                values = np.append(values, self.top_percentile[param])
             # update top_percentile accounting for new values
             self.top_percentile[param] = values[xb_array > xb_threshold]
             # set lows and highs of each parameter
