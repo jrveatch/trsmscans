@@ -66,10 +66,19 @@ class Arrays:
             selected_lines = random.sample(lines, num_lines)
             selected_lines_str = ''.join(selected_lines)
 
-            self.__data = np.genfromtxt(StringIO(selected_lines_str), delimiter='\t', dtype=None, names=self.__headers, encoding=None)
+            self.__data = np.genfromtxt(StringIO(selected_lines_str),
+                                        delimiter='\t',
+                                        dtype=None,
+                                        names=self.__headers,
+                                        encoding=None)
         else:
             # create numpy array from the tsv
-            self.__data = np.genfromtxt(self.__file_name, delimiter='\t', dtype=None, names=self.__headers, encoding=None, skip_header=1)
+            self.__data = np.genfromtxt(self.__file_name,
+                                        delimiter='\t',
+                                        dtype=None,
+                                        names=self.__headers,
+                                        encoding=None,
+                                        skip_header=1)
 
     # get an array
     def get_array(self,
