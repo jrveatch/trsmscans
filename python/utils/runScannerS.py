@@ -239,14 +239,14 @@ def run_subprocess(process: list[str],
 
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: list[str],
-                      filename: str) -> None:
+                      file_name: str) -> None:
 
     # loop over temporary directories
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(inputfile=directory+"/"+filename,
-                                 outputfile=filename)
+        tsvutils.save_tsv_output(inputfile=directory+"/"+file_name,
+                                 outputfile=file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)

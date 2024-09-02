@@ -8,7 +8,7 @@ from utils import tsvutils
 from utils.masses import Masses
 
 # TODO: Make this work for other models
-def filter_bounds(filename: str,
+def filter_bounds(file_name: str,
                   model_name: str,
                   masses: Masses,
                   debug = False) -> int:
@@ -34,12 +34,12 @@ def filter_bounds(filename: str,
     XName = masses.XName
 
     # initialize column in case it doesn't exist
-    tsvutils.initialize_column(filename=filename,
+    tsvutils.initialize_column(file_name=file_name,
                                column_header="filt_bounds",
                                value=1)
 
     # load in arrays from .tsv file
-    arrs = Arrays(filename)
+    arrs = Arrays(file_name)
 
     # get filt_bounds array
     filt_bounds = arrs.data('filt_bounds')
@@ -330,7 +330,7 @@ def filter_bounds(filename: str,
 
     # save array of results and write to output file
     arrs.set_array('filt_bounds',filt_bounds)
-    arrs.write_file(filename)
+    arrs.write_file(file_name)
 
     if debug is True:
         print("Done!")

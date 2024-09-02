@@ -138,14 +138,14 @@ def run_prescan(masses: 'Masses',
         raise
 
     # make sure new .tsv has filter columns
-    initialize_filters(filename=tsvname_initial)
+    initialize_filters(file_name=tsvname_initial)
 
     # save output to tsvname
     tsvutils.save_tsv_output(inputfile=tsvname_initial,
                              outputfile=tsvname)
 
     # apply width and bounds filters
-    apply_filters(filename=tsvname,
+    apply_filters(file_name=tsvname,
                   masses=masses,
                   config_loader=config_loader)
 

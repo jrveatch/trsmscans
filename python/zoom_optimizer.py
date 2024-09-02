@@ -64,7 +64,7 @@ class ZoomOptimizer:
                                          decay=decay,
                                          masses=self.params.masses())
 
-        # create parse object without a filename
+        # create parse object without a file name
         self.scanparser = Parse(masses=self.params.masses(),
                                 model_name=self.model_name)
 
@@ -112,7 +112,7 @@ class ZoomOptimizer:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(filename=tsv_name,
+        nwidth, nbounds, npass = apply_filters(file_name=tsv_name,
                                                masses=self.params.masses(),
                                                config_loader=self.config_loader)
 
@@ -136,7 +136,7 @@ class ZoomOptimizer:
             return
 
         # read output tsv into parser
-        self.scanparser.read_file(filename=tsv_name)
+        self.scanparser.read_file(file_name=tsv_name)
 
         # get new point as the maximum from the current scan
         newPoint = self.scanparser.get_max_xb_point(self.decay)

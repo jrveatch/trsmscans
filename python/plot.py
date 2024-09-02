@@ -85,10 +85,10 @@ class Plot:
         self.var_lists = {}
 
         # Iterate through each file
-        for file in self.all_files:
+        for file_name in self.all_files:
 
             # Retrieve the variables from the list
-            parser = parse.Parse(filename=file,
+            parser = parse.Parse(file_name=file_name,
                                  masses=self.masses,
                                  model_name=self.model.name())
             allParams = parser.get_parameter_arrays()
