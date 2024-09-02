@@ -6,10 +6,10 @@ from utils.model import Model
 
 import os
 
-def get_higgs_predictions(modelname: str):
+def get_higgs_predictions(model_name: str):
 
     # create model object
-    model = Model(modelname)
+    model = Model(model_name)
 
     # create the model predictions
     pred = HP.Predictions()

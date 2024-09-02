@@ -40,7 +40,7 @@ class ZoomOptimizer:
         self.npoints = npoints
         self.optPoint = optPoint
         self.label = label
-        self.modelname = params.model_name()
+        self.model_name = params.model_name()
         self.top_percentile = {}
         self.top_percentile_xb = None
 
@@ -60,13 +60,13 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        self.outdir = fileutils.scan_dir(modelname=self.modelname,
+        self.outdir = fileutils.scan_dir(model_name=self.model_name,
                                          decay=decay,
                                          masses=self.params.masses())
 
         # create parse object without a filename
         self.scanparser = Parse(masses=self.params.masses(),
-                                modelname=self.modelname)
+                                model_name=self.model_name)
 
         # TODO: Names of details and summary files
 
@@ -84,10 +84,10 @@ class ZoomOptimizer:
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
-        ini_name = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
-        tsv_name = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
-        tsv_combined_name = self.outdir + "files/tsv/" + self.modelname + "_" + iter_label + ".tsv"
-        tsv_temp_name = self.outdir + self.modelname + ".tsv"
+        ini_name = self.outdir + "files/ini/" + self.model_name + "_" + identifier + ".ini"
+        tsv_name = self.outdir + "files/tsv/" + self.model_name + "_" + identifier + ".tsv"
+        tsv_combined_name = self.outdir + "files/tsv/" + self.model_name + "_" + iter_label + ".tsv"
+        tsv_temp_name = self.outdir + self.model_name + ".tsv"
 
         # write new .ini file from template and parameters
         self.params.write_ini(ini_name)
@@ -98,7 +98,7 @@ class ZoomOptimizer:
 
         # run ScannerS
         self.npoints = runScannerS(ininame=ini_name,
-                                   modelname=self.modelname,
+                                   model_name=self.model_name,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 

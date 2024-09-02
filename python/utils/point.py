@@ -10,12 +10,12 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 modelname: str,
+                 model_name: str,
                  parvals: dict[str,float] = {},
                  xb: float = 0.0):
         
         # get model
-        self.model = Model(modelname)
+        self.model = Model(model_name)
 
         # initialize empty dictionary
         self.parvals: dict[str,float] = {}

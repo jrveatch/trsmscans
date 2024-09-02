@@ -9,7 +9,7 @@ from utils.masses import Masses
 
 # TODO: Make this work for other models
 def filter_bounds(filename: str,
-                  modelname: str,
+                  model_name: str,
                   masses: Masses,
                   debug = False) -> int:
 
@@ -18,7 +18,7 @@ def filter_bounds(filename: str,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(modelname=modelname)
+    pred = get_higgs_predictions(model_name=model_name)
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)

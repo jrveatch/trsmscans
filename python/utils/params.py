@@ -10,7 +10,7 @@ from typing import Optional
 class Params:
 
     def __init__(self,
-                 modelname: str,
+                 model_name: str,
                  masses: 'Masses'):
 
         # store masses
@@ -21,8 +21,8 @@ class Params:
         self.__mH2 = masses.mH2
         self.__mH3 = masses.mH3
 
-        # get model using modelname
-        self.__model = Model(modelname)
+        # get model using model_name
+        self.__model = Model(model_name)
 
         # get list of parameter names
         self.__parnames: list[str] = self.__model.parameter_names()

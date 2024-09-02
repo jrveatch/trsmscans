@@ -22,7 +22,7 @@ def apply_filters(filename: str,
 
     # get model name from config file
     try:
-        modelname: float = config_loader.get('model', 'model_name')
+        model_name: float = config_loader.get('model', 'model_name')
     except KeyError as e:
         print(f"Error: {e}")
         raise
@@ -36,7 +36,7 @@ def apply_filters(filename: str,
 
     # apply bounds filter
     nbounds = bounds.filter_bounds(filename=filename,
-                                   modelname=modelname,
+                                   model_name=model_name,
                                    masses=masses)
 
     # get arrays from output file

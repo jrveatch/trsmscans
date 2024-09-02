@@ -13,25 +13,25 @@ import argparse
 # method to run ScannerS
 def runScannerS(ininame: str,
                 npoints: int,
-                modelname: str,
+                model_name: str,
                 use_multiprocessing: bool) -> int:
 
     # if only one process needed, use subprocess
     if not use_multiprocessing:
         return run_single_process(ininame=ininame,
                                   npoints=npoints,
-                                  modelname=modelname)
+                                  model_name=model_name)
 
     # otherwise use multiprocessing
     else:
         return run_parallel_processes(ininame=ininame,
                                       npoints=npoints,
-                                      modelname=modelname)
+                                      model_name=model_name)
 
 # run job as a single process
 def run_single_process(ininame: str,
                        npoints: int,
-                       modelname: str) -> int:
+                       model_name: str) -> int:
 
     # simple information message
     print(f"Running ScannerS as a single process with",npoints,"points.")
@@ -43,11 +43,11 @@ def run_single_process(ininame: str,
         quit()
 
     # define process
-    process = [modelname, "--config", ininame, "scan", "-n", str(npoints)]
+    process = [model_name, "--config", ininame, "scan", "-n", str(npoints)]
 
     # run the process
     try:
-        run_subprocess(process,modelname)
+        run_subprocess(process,model_name)
     except TimeoutError:
         raise
 
@@ -60,7 +60,7 @@ def run_single_process(ininame: str,
 # run multiple processes in parallel
 def run_parallel_processes(ininame: str,
                            npoints: int,
-                           modelname: str,
+                           model_name: str,
                            njobs=-1) -> int:
 
     # complain and exit if .ini doesn't exist
@@ -76,7 +76,7 @@ def run_parallel_processes(ininame: str,
         print("Only 1 CPU available, running as a single process")
         return run_single_process(ininame=ininame,
                                   npoints=npoints,
-                                  modelname=modelname)
+                                  model_name=model_name)
 
     # set number of workers to 80% of the available cores
     nworkers = int(ncpu * 0.8)
@@ -108,17 +108,17 @@ def run_parallel_processes(ininame: str,
         print("Only 1 process needed, running as a single process")
         return run_single_process(ininame=ininame,
                                   npoints=npoints,
-                                  modelname=modelname)
+                                  model_name=model_name)
 
     # print out some information
     print("Running test job with",min_points,"points")
 
     # define test process with 10 points
-    test_process = [modelname, "--config", ininame, "scan", "-n", str(min_points)]
+    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points)]
 
     # run test process
     try:
-        run_subprocess(test_process,modelname)
+        run_subprocess(test_process,model_name)
     except TimeoutError:
         raise
 
@@ -135,7 +135,7 @@ def run_parallel_processes(ininame: str,
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [modelname, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ininame, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -158,7 +158,7 @@ def run_parallel_processes(ininame: str,
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,modelname+".tsv")
+    concatenate_files(directories,model_name+".tsv")
 
     # return number of points that are actually used
     return npoints
@@ -190,10 +190,10 @@ def run_process(process: list[str],
 
 # run a python subprocess for a single job
 def run_subprocess(process: list[str],
-                   modelname: str) -> None:
+                   model_name: str) -> None:
 
     # output file name
-    outfile = modelname + ".tsv"
+    outfile = model_name + ".tsv"
 
     # log file
     log = open("ScannerS.log", "w")
@@ -265,6 +265,6 @@ if __name__ == "__main__":
 
     # run ScannerS using baseline .ini
     runScannerS(ininame=ininame,
-                modelname=args.model,
+                model_name=args.model,
                 npoints=args.npoints,
                 njobs=args.njobs)

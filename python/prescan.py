@@ -18,7 +18,7 @@ from parse import Parse
 from utils.config_loader import ConfigLoader
 
 def run_prescan(masses: 'Masses',
-                modelname: str,
+                model_name: str,
                 npoints: int,
                 config_loader = None,
                 config_file_name: str = "",
@@ -29,17 +29,17 @@ def run_prescan(masses: 'Masses',
     scanstart = time.time()
 
     # directory where we want the output to go
-    outdir = fileutils.prescan_dir(modelname=modelname,
+    outdir = fileutils.prescan_dir(model_name=model_name,
                                    masses=masses)
 
     # names of .ini and .tsv files
-    ininame = outdir + modelname + ".ini"
-    tsvname_initial = outdir + modelname + ".tsv"
-    tsvname = outdir + modelname + "_prescan.tsv"
+    ininame = outdir + model_name + ".ini"
+    tsvname_initial = outdir + model_name + ".tsv"
+    tsvname = outdir + model_name + "_prescan.tsv"
 
     # create parse object without .tsv file name
     parser = Parse(masses=masses,
-                   modelname=modelname)
+                   model_name=model_name)
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points for",str(masses))
@@ -109,14 +109,14 @@ def run_prescan(masses: 'Masses',
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = modelname + "_default.yml"
+            config_file_name = model_name + "_default.yml"
 
         # load config file
         config_loader = ConfigLoader(config_file_name=config_file_name)
 
     # make instance of params
     # this automatically initializes the parameters
-    params = Params(modelname,masses)
+    params = Params(model_name,masses)
 
     # write .ini file from template
     params.write_ini(ininame)
@@ -124,7 +124,7 @@ def run_prescan(masses: 'Masses',
     # run ScannerS to sample points
     try:
         runScannerS(ininame=ininame,
-                    modelname=modelname,
+                    model_name=model_name,
                     npoints=npoints,
                     use_multiprocessing=use_multiprocessing)
 
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
     run_prescan(masses=masses,
-                modelname=args.model,
+                model_name=args.model,
                 npoints=args.npoints,
                 overwrite=args.overwrite,
                 use_multiprocessing=args.multiprocessing)

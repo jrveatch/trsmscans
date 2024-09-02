@@ -30,14 +30,14 @@ class Scan:
 
     def __init__(self,
                  masses: 'Masses',
-                 modelname: str,
+                 model_name: str,
                  decay: str,
                  config_file_name: str = "",
                  overwrite: bool = False
                  ):
 
         # store model name
-        self.modelname = modelname
+        self.model_name = model_name
 
         # store masses and decay information
         self.masses = masses
@@ -52,21 +52,21 @@ class Scan:
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = modelname + "_default.yml"
+            config_file_name = model_name + "_default.yml"
 
         # load config file
         self.config_loader = ConfigLoader(config_file_name=config_file_name)
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(modelname=modelname,
+        self.params = Params(model_name=model_name,
                              masses=masses)
 
         # make dummy optimal point
-        self.optPoint = Point(modelname=modelname)
+        self.optPoint = Point(model_name=model_name)
 
         # directory where we want the output to go
-        self.outdir = fileutils.scan_dir(modelname=modelname,
+        self.outdir = fileutils.scan_dir(model_name=model_name,
                                          decay=decay,
                                          masses=masses)
 
@@ -83,7 +83,7 @@ class Scan:
             os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
-        self.summaryname = self.outdir + "scansummary_" + self.modelname + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summaryname = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summaryname, "w")
         summary.write("Iter xbmax")
         for par in self.params.parameters().values():
@@ -92,7 +92,7 @@ class Scan:
         summary.close()
 
         # create details file
-        self.detailsname = self.outdir + "scandetails_" + self.modelname + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.detailsname = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.detailsname, "w")
         details.write("Scan details\n\n")
         details.close()
@@ -114,7 +114,7 @@ class Scan:
             # call prescan
             self.prescanparser = run_prescan(masses=self.masses,
                                              npoints=nprescan,
-                                             modelname=self.modelname,
+                                             model_name=self.model_name,
                                              config_loader=self.config_loader,
                                              use_multiprocessing=use_multiprocessing)
 
@@ -338,7 +338,7 @@ if __name__ == "__main__":
 
     # creaate scan object
     myScan = Scan(masses=masses,
-                  modelname=args.model,
+                  model_name=args.model,
                   decay=args.decay,
                   overwrite=args.overwrite
                   )
