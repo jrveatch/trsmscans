@@ -151,16 +151,16 @@ class Scan:
             one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
 
             # get min and max from prescan
-            newMin = self.prescan_parser.get_min(par)
-            newMax = self.prescan_parser.get_max(par)
+            new_min = self.prescan_parser.get_min(par)
+            new_max = self.prescan_parser.get_max(par)
 
             # check min value
-            if newMin - one_percent > self.params.lower_bound(par):
-                self.params.set_lower_bound(par, newMin - one_percent)
+            if new_min - one_percent > self.params.lower_bound(par):
+                self.params.set_lower_bound(par, new_min - one_percent)
 
             # check max value
-            if newMax + one_percent < self.params.upper_bound(par):
-                self.params.set_upper_bound(par, newMax + one_percent)
+            if new_max + one_percent < self.params.upper_bound(par):
+                self.params.set_upper_bound(par, new_max + one_percent)
 
             # print min and max to screen after prescan
             self.params.print_bounds(par)
