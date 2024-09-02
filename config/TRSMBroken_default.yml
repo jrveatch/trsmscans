@@ -7,6 +7,9 @@ width:
   max_width_H2: 0.15
   max_width_H3: 0.15
 
+scan:
+  max_prescan_points: 10000
+
 zoom:
   strategy: "percentile" # "percentile" or "rate"
   parameter_zoom_rate: 0.05
