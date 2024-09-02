@@ -26,7 +26,6 @@ from typing import List
 from zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
-
 class Scan:
 
     def __init__(self,
@@ -114,10 +113,6 @@ class Scan:
         # if fewer points are requested than nprescan, only use that many
         if npoints < nprescan:
             nprescan = npoints
-
-        # location of prescan outputs
-        prescantsv = fileutils.prescan_tsv(modelname=self.modelname,
-                                           masses=self.masses)
 
         try:
             # call prescan
