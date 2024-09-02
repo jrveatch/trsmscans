@@ -112,11 +112,11 @@ class Scan:
 
         try:
             # call prescan
-            self.prescanparser = run_prescan(masses=self.masses,
-                                             npoints=nprescan,
-                                             model_name=self.model_name,
-                                             config_loader=self.config_loader,
-                                             use_multiprocessing=use_multiprocessing)
+            self.prescan_parser = run_prescan(masses=self.masses,
+                                              npoints=nprescan,
+                                              model_name=self.model_name,
+                                              config_loader=self.config_loader,
+                                              use_multiprocessing=use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
@@ -128,10 +128,10 @@ class Scan:
             raise
 
         # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescanparser.get_n_unfiltered_points()
+        n_prescan_unfiltered = self.prescan_parser.get_n_unfiltered_points()
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescanparser.get_n_points()
+        n_prescan = self.prescan_parser.get_n_points()
 
         # info message about prescan
         print("\nAnalyzing prescan with", n_prescan_unfiltered, "points")
@@ -151,8 +151,8 @@ class Scan:
             one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
 
             # get min and max from prescan
-            newMin = self.prescanparser.get_min(par)
-            newMax = self.prescanparser.get_max(par)
+            newMin = self.prescan_parser.get_min(par)
+            newMax = self.prescan_parser.get_max(par)
 
             # check min value
             if newMin - one_percent > self.params.lower_bound(par):
@@ -169,7 +169,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.get_max_xb_point(self.decay)
+        self.optPoint = self.prescan_parser.get_max_xb_point(self.decay)
 
         # write scan details to details file
         details = open(self.detailsname, "a")
@@ -257,8 +257,8 @@ class Scan:
         for par in self.params.parnames():
 
             # Check if bimodal and get the current low and high values
-            is_bimodal = self.prescanparser.is_bimodal(param_name=par,
-                                                       decay=self.decay)
+            is_bimodal = self.prescan_parser.is_bimodal(param_name=par,
+                                                        decay=self.decay)
             min_val = self.params.get_low(par)
             max_val = self.params.get_high(par)
 
