@@ -17,6 +17,7 @@ from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils import tsvutils
+from utils import fileutils
 
 class ZoomOptimizer:
 
@@ -29,7 +30,6 @@ class ZoomOptimizer:
                  npoints: int,
                  optPoint: 'Point',
                  percentile: float,
-                 outdir: str,
                  parameter_zoom_rate: float,
                  density_growth_rate: float,
                  strategy: str = "percentile",
@@ -43,12 +43,16 @@ class ZoomOptimizer:
         self.maxwidth = maxwidth
         self.npoints = npoints
         self.optPoint = optPoint
-        self.outdir = outdir
         self.label = label
         self.modelname = params.model_name()
         self.percentile = percentile
         self.top_percentile = {}
         self.top_percentile_xb = None
+
+        # set output directory
+        self.outdir = fileutils.scan_dir(modelname=self.modelname,
+                                         decay=decay,
+                                         masses=self.params.masses())
 
         self.strategy = strategy
         self.parameter_zoom_rate = parameter_zoom_rate
