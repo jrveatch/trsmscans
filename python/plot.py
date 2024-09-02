@@ -9,7 +9,6 @@ import argparse
 from utils import fileutils
 from utils.masses import Masses
 from utils.model import Model
-from typing import List
 
 # Plot class
 class Plot:
@@ -40,7 +39,7 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files: List[str] = []
+        self.all_files: list[str] = []
 
         # Directory for the scan outputs
         directory = fileutils.scan_dir(modelname=self.model.name(),
@@ -91,13 +90,12 @@ class Plot:
             # Retrieve the variables from the list
             parser = parse.Parse(filename=file,
                                  masses=self.masses,
-                                 decay=self.decay,
                                  modelname=self.model.name())
             allParams = parser.get_parameter_arrays()
             xb = parser.get_xb(self.decay)
 
             # Retrieve maximum point based on the file's variables
-            maxpoint = parser.get_max_xb_point()
+            maxpoint = parser.get_max_xb_point(self.decay)
 
             # Iterate through the information of each parameter
             for name, par in allParams.items():
