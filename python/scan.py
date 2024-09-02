@@ -145,7 +145,7 @@ class Scan:
         print("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
@@ -179,7 +179,7 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
             details.write(par + ":\n")
             details.write("  " + self.optPoint.format_param(par) + "\n")
             details.write("  " + self.params.parameter(par).format_range() + "\n")
@@ -254,7 +254,7 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=par,

@@ -174,7 +174,7 @@ class ZoomOptimizer:
         details.write("Update optimal point: " + str(update) + "\n")
         details.write("Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:
