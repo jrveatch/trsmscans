@@ -21,7 +21,6 @@ from utils.decayutils import is_valid_decay
 import copy
 import itertools
 
-from typing import List
 from zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
@@ -251,7 +250,7 @@ class Scan:
         return
 
     # Function that creates needed zoom optimizers
-    def create_zoom_optimizers(self, npoints: int) -> List['ZoomOptimizer']:
+    def create_zoom_optimizers(self, npoints: int) -> list['ZoomOptimizer']:
 
         # Dictionary that will hold the values of the parameters
         param_dict = {}
@@ -292,7 +291,7 @@ class Scan:
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: list['ZoomOptimizer'] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(npoints // len(all_param_combinations), 1)

@@ -4,7 +4,7 @@ from utils.model import Model
 from utils.point import Point
 from utils.parameter import Parameter
 
-from typing import Optional, Dict, List
+from typing import Optional
 
 # class to hold and update full set of parameters used in a scan
 class Params:
@@ -25,15 +25,15 @@ class Params:
         self.__model = Model(modelname)
 
         # get list of parameter names
-        self.__parnames: List[str] = self.__model.parameter_names()
+        self.__parnames: list[str] = self.__model.parameter_names()
 
         # create dictionary of parameters
-        self.__parameters: Dict[str,'Parameter'] = {}
+        self.__parameters: dict[str,'Parameter'] = {}
         for par in self.__parnames:
             self.__parameters[par] = Parameter(par,self.__model.parameter(par))
 
     # get dictionary of parameters
-    def parameters(self) -> Dict[str,'Parameter']:
+    def parameters(self) -> dict[str,'Parameter']:
         return self.__parameters
 
     # get parameter
@@ -42,7 +42,7 @@ class Params:
         return self.__parameters[parname]
 
     # get parameter names
-    def parnames(self) -> List[str]:
+    def parnames(self) -> list[str]:
         return self.__parnames
 
     # get masses

@@ -3,8 +3,6 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from typing import Dict
-
 # import list of arrays
 from utils.arrays import Arrays
 
@@ -57,7 +55,7 @@ class Parse:
         self.__b_X_SH: NDArray = None
 
         # initialize dictionary of parameter arrays
-        self.__par_arrays: Dict[str,NDArray] = {}
+        self.__par_arrays: dict[str,NDArray] = {}
 
         # get arrays from provided filename if it is provided
         if filename:
@@ -92,7 +90,7 @@ class Parse:
         maxxb = xb[maxidx]
         
         # make dictionary for parameter values for maxxb
-        maxxb_parvals: Dict[str,float] = {}
+        maxxb_parvals: dict[str,float] = {}
 
         # loop over parameter arrays and store optimal value of each
         for par, array in self.__par_arrays.items():
@@ -114,7 +112,7 @@ class Parse:
         return np.max(self.__par_arrays[parname])
     
     # get arrays of all parameter as a dictionary
-    def get_parameter_arrays(self) -> Dict[str,NDArray]:
+    def get_parameter_arrays(self) -> dict[str,NDArray]:
         return self.__par_arrays
 
     # function that checks whether xb is unimodal in a parameter
