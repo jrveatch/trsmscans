@@ -251,7 +251,7 @@ class Scan:
     def create_zoom_optimizers(self, npoints: int) -> list['ZoomOptimizer']:
 
         # Dictionary that will hold the values of the parameters
-        param_dict = {}
+        param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
         for par in self.params.parnames():
@@ -273,7 +273,7 @@ class Scan:
                 param_dict[par] = [{'min': min_val, 'max': max_val}]
 
         # List that holds parameter value combinations
-        all_param_combinations = []
+        all_param_combinations: list[tuple['Params', dict[str, float]]] = []
 
         # Generate all parameter combinations
         for param_values in itertools.product(*param_dict.values()):  # Itertools.product serves as a way to get combinations of values
