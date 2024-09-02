@@ -11,7 +11,6 @@ import argparse
 from decimal import Decimal
 
 # import tools
-from parse import Parse
 from utils.point import Point
 from utils.params import Params
 from utils.masses import Masses
@@ -316,7 +315,6 @@ class Scan:
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
                 percentile=self.percentile,
-                outdir=self.outdir,
                 parameter_zoom_rate=self.parameter_zoom_rate,
                 density_growth_rate=self.density_growth_rate,
                 label=f'Configuration-{i}'
