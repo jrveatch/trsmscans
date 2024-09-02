@@ -158,7 +158,8 @@ def run_parallel_processes(ininame: str,
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,model_name+".tsv")
+    concatenate_files(directories=directories,
+                      file_name=model_name+".tsv")
 
     # return number of points that are actually used
     return npoints
