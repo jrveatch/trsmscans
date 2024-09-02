@@ -13,6 +13,8 @@ class ConfigLoader:
         if not config_path:
             config_path = os.environ['CONFIGDIR']
 
+        print(f"Loading configuration from {config_path + config_file_name}")
+
         self.config = self.load_config(config_path + config_file_name)
 
     def load_config(self,

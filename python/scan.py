@@ -23,6 +23,8 @@ import itertools
 
 from zoom_optimizer import ZoomOptimizer
 
+from utils.config_loader import ConfigLoader
+
 # class to organize and run a complete scan
 class Scan:
 
@@ -30,24 +32,16 @@ class Scan:
                  masses: 'Masses',
                  modelname: str,
                  decay: str,
-                 maxwidth: float,
-                 percentile: float,
-                 overwrite: bool = False,
-                 parameter_zoom_rate: float = 0.05,
-                 density_growth_rate: float = 0.2
+                 config_file_name: str = "",
+                 overwrite: bool = False
                  ):
 
         # store model name
         self.modelname = modelname
 
-        # store masses, decay, and percentile information
+        # store masses and decay information
         self.masses = masses
         self.decay = decay
-        self.percentile = percentile
-
-        # store zooming info
-        self.parameter_zoom_rate = parameter_zoom_rate
-        self.density_growth_rate = density_growth_rate
 
         # check whether decay is valid
         supported = is_valid_decay(self.decay)
@@ -56,8 +50,12 @@ class Scan:
             print("Quitting...")
             quit()
 
-        # store maximum allowed width
-        self.maxwidth = maxwidth
+        # use default config file name if none is provided
+        if not config_file_name:
+            config_file_name = modelname + "_default.yml"
+
+        # load config file
+        self.config_loader = ConfigLoader(config_file_name=config_file_name)
 
         # make instance of params
         # this automatically initializes the parameters
@@ -116,8 +114,8 @@ class Scan:
             # call prescan
             self.prescanparser = run_prescan(masses=self.masses,
                                              npoints=nprescan,
-                                             maxwidth=self.maxwidth,
                                              modelname=self.modelname,
+                                             config_loader=self.config_loader,
                                              use_multiprocessing=use_multiprocessing)
 
         # if prescan fails, remove directory and quit
@@ -309,13 +307,10 @@ class Scan:
                 npoints=points,
                 params=params_copy,
                 decay=self.decay,
-                maxwidth=self.maxwidth,
                 optPoint=self.optPoint,
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
-                percentile=self.percentile,
-                parameter_zoom_rate=self.parameter_zoom_rate,
-                density_growth_rate=self.density_growth_rate,
+                config_loader=self.config_loader,
                 label=f'Configuration-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
@@ -334,12 +329,8 @@ if __name__ == "__main__":
     argparser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
-    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
-    argparser.add_argument("-r", "--parameter_zoom_rate", default=0.05, type=float, help="Rate at which parameter range should shrink")
-    argparser.add_argument("-g", "--density_growth", default=0.2, type=float, help="Rate at which point density should grow")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
-    argparser.add_argument("-p", "--percentile", default=95, type=int, help="Percentile cut for zooming in")
     args = argparser.parse_args()
 
     # create masses object
@@ -349,11 +340,7 @@ if __name__ == "__main__":
     myScan = Scan(masses=masses,
                   modelname=args.model,
                   decay=args.decay,
-                  maxwidth=args.maxwidth,
-                  percentile=args.percentile,
-                  overwrite=args.overwrite,
-                  parameter_zoom_rate=args.parameter_zoom_rate,
-                  density_growth_rate=args.density_growth
+                  overwrite=args.overwrite
                   )
 
     # run scan using scan object

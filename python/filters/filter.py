@@ -8,21 +8,31 @@ from filters import bounds
 from utils import tsvutils
 from utils.arrays import Arrays
 from utils.masses import Masses
+from utils.config_loader import ConfigLoader
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 
 def apply_filters(filename: str,
-                  modelname: str,
                   masses: Masses,
-                  maxwidth: float) -> tuple[int,int,int]:
+                  config_loader: 'ConfigLoader') -> tuple[int,int,int]:
 
     # initialize filter columns
     initialize_filters(filename)
 
+    # get model name from config file
+    try:
+        modelname: float = config_loader.get('model', 'model_name')
+    except KeyError as e:
+        print(f"Error: {e}")
+        raise
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise
+
     # apply width filter
     nwidth = width.filter_widths(filename=filename,
-                                 maxwidth=maxwidth)
+                                 config_loader=config_loader)
 
     # apply bounds filter
     nbounds = bounds.filter_bounds(filename=filename,

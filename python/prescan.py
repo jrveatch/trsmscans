@@ -15,11 +15,13 @@ from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
 from parse import Parse
+from utils.config_loader import ConfigLoader
 
 def run_prescan(masses: 'Masses',
                 modelname: str,
                 npoints: int,
-                maxwidth: float,
+                config_loader = None,
+                config_file_name: str = "",
                 overwrite: bool = False,
                 use_multiprocessing: bool = False) -> 'Parse':
 
@@ -102,6 +104,16 @@ def run_prescan(masses: 'Masses',
     # print location
     print("Running prescan in",outdir)
 
+    # if config loader is not provided, create one
+    if not config_loader:
+
+        # use default config file name if none is provided
+        if not config_file_name:
+            config_file_name = modelname + "_default.yml"
+
+        # load config file
+        config_loader = ConfigLoader(config_file_name=config_file_name)
+
     # make instance of params
     # this automatically initializes the parameters
     params = Params(modelname,masses)
@@ -135,8 +147,7 @@ def run_prescan(masses: 'Masses',
     # apply width and bounds filters
     apply_filters(filename=tsvname,
                   masses=masses,
-                  modelname=modelname,
-                  maxwidth=maxwidth)
+                  config_loader=config_loader)
 
     # parse output .tsv file
     parser.read_file(tsvname)
@@ -163,7 +174,6 @@ if __name__ == "__main__":
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     args = argparser.parse_args()
@@ -174,6 +184,5 @@ if __name__ == "__main__":
     run_prescan(masses=masses,
                 modelname=args.model,
                 npoints=args.npoints,
-                maxwidth=args.maxwidth,
                 overwrite=args.overwrite,
                 use_multiprocessing=args.multiprocessing)
