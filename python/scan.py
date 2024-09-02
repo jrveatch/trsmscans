@@ -86,8 +86,8 @@ class Scan:
         self.summaryname = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summaryname, "w")
         summary.write("Iter xbmax")
-        for par in self.params.parameters().values():
-            summary.write(" " + par.fullname())
+        for parameter in self.params.parameters().values():
+            summary.write(" " + parameter.fullname())
         summary.write("\n")
         summary.close()
 
@@ -145,25 +145,25 @@ class Scan:
         print("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for par in self.params.parameter_names():
+        for parameter_name in self.params.parameter_names():
 
             # getting 1% of min and max from the model
-            one_percent = (self.params.starting_max(par) - self.params.starting_min(par)) / 100
+            one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
 
             # get min and max from prescan
-            new_min = self.prescan_parser.get_min(par)
-            new_max = self.prescan_parser.get_max(par)
+            new_min = self.prescan_parser.get_min(parameter_name)
+            new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params.lower_bound(par):
-                self.params.set_lower_bound(par, new_min - one_percent)
+            if new_min - one_percent > self.params.lower_bound(parameter_name):
+                self.params.set_lower_bound(parameter_name, new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params.upper_bound(par):
-                self.params.set_upper_bound(par, new_max + one_percent)
+            if new_max + one_percent < self.params.upper_bound(parameter_name):
+                self.params.set_upper_bound(parameter_name, new_max + one_percent)
 
             # print min and max to screen after prescan
-            self.params.print_bounds(par)
+            self.params.print_bounds(parameter_name)
 
         # get scan density
         density = nprescan / self.params.volume()
@@ -179,10 +179,10 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parameter_names():
-            details.write(par + ":\n")
-            details.write("  " + self.optPoint.format_param(par) + "\n")
-            details.write("  " + self.params.parameter(par).format_range() + "\n")
+        for parameter_name in self.params.parameter_names():
+            details.write(parameter_name + ":\n")
+            details.write("  " + self.optPoint.format_param(parameter_name) + "\n")
+            details.write("  " + self.params.parameter(parameter_name).format_range() + "\n")
         details.write("--------------------\n")
         details.write("\n\n")
         details.close()
@@ -191,8 +191,8 @@ class Scan:
         summary = open(self.summaryname, "a")
         summary.write("Pre")
         summary.write(" " + self.optPoint.format_xb())
-        for name, par in self.params.parameters().items():
-            summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
+        for name, parameter in self.params.parameters().items():
+            summary.write(" " + f"{self.optPoint.get_val(name):1.{parameter.precision()}f}")
         summary.write("\n")
         summary.close()
 
@@ -254,23 +254,23 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for par in self.params.parameter_names():
+        for parameter_name in self.params.parameter_names():
 
             # Check if bimodal and get the current low and high values
-            is_bimodal = self.prescan_parser.is_bimodal(param_name=par,
+            is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params.get_low(par)
-            max_val = self.params.get_high(par)
+            min_val = self.params.get_low(parameter_name)
+            max_val = self.params.get_high(parameter_name)
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
                 mid_val = (min_val + max_val) / 2.0
-                param_dict[par] = [
+                param_dict[parameter_name] = [
                     {'min': min_val, 'max': mid_val},
                     {'min': mid_val, 'max': max_val}
                 ]
             else:
-                param_dict[par] = [{'min': min_val, 'max': max_val}]
+                param_dict[parameter_name] = [{'min': min_val, 'max': max_val}]
 
         # List that holds parameter value combinations
         all_param_combinations: list[tuple['Params', dict[str, float]]] = []
