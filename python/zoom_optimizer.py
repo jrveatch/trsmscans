@@ -18,6 +18,7 @@ from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils import tsvutils
 from utils import fileutils
+from utils.config_loader import ConfigLoader
 
 class ZoomOptimizer:
 
@@ -26,13 +27,9 @@ class ZoomOptimizer:
                  summaryname: str,
                  params: 'Params',
                  decay: str,
-                 maxwidth: float,
                  npoints: int,
                  optPoint: 'Point',
-                 percentile: float,
-                 parameter_zoom_rate: float,
-                 density_growth_rate: float,
-                 strategy: str = "percentile",
+                 config_loader: ConfigLoader,
                  label: str = ""):
 
         # some basic scanner information
@@ -40,26 +37,32 @@ class ZoomOptimizer:
         self.summaryname = summaryname
         self.params = params
         self.decay = decay
-        self.maxwidth = maxwidth
         self.npoints = npoints
         self.optPoint = optPoint
         self.label = label
         self.modelname = params.model_name()
-        self.percentile = percentile
         self.top_percentile = {}
         self.top_percentile_xb = None
+
+        # get zoom configuration from config file
+        self.config_loader = config_loader
+        try:
+            self.strategy: str = self.config_loader.get('zoom', 'strategy')
+            self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
+            self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
+            self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
+            self.minpoints: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+        except KeyError as e:
+            print(f"Error: {e}")
+            raise
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
 
         # set output directory
         self.outdir = fileutils.scan_dir(modelname=self.modelname,
                                          decay=decay,
                                          masses=self.params.masses())
-
-        self.strategy = strategy
-        self.parameter_zoom_rate = parameter_zoom_rate
-        self.density_growth_rate = density_growth_rate
-
-        # set minimum number of points per iteration
-        self.minpoints = 100
 
         # create parse object without a filename
         self.scanparser = Parse(masses=self.params.masses(),
@@ -110,9 +113,8 @@ class ZoomOptimizer:
 
         # apply width and bounds filters
         nwidth, nbounds, npass = apply_filters(filename=tsv_name,
-                                                       masses=self.params.masses(),
-                                                       modelname=self.modelname,
-                                                       maxwidth=self.maxwidth)
+                                               masses=self.params.masses(),
+                                               config_loader=self.config_loader)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
@@ -164,7 +166,7 @@ class ZoomOptimizer:
         details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
+        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
         details.write("--------------------\n")
@@ -200,11 +202,11 @@ class ZoomOptimizer:
 
             # zoom in using percentile
             case "percentile":
-                self.zoom_percentile()
+                self.percentile_zoom()
 
             # zoom in using rate
             case "rate":
-                self.zoom_rate()
+                self.rate_zoom()
 
             # all other cases
             case _:
@@ -219,13 +221,13 @@ class ZoomOptimizer:
         return
 
     # method to zoom in based on a percentile cut on xb
-    def zoom_percentile(self) -> None:
+    def percentile_zoom(self) -> None:
 
         # minimum number of points required before zooming in
         min_points = 10
 
         # percentile threshold that can be adjusted on the fly
-        percentile_threshold = self.percentile
+        percentile_threshold = self.zoom_percentile
 
         # get an array of xb results
         xb_array = self.scanparser.get_xb(self.decay)
@@ -273,7 +275,7 @@ class ZoomOptimizer:
         return
 
     # method to zoom in based on a fixed rate
-    def zoom_rate(self) -> None:
+    def rate_zoom(self) -> None:
 
         # parameter scaling factor
         range_scale = 1.0 - self.parameter_zoom_rate

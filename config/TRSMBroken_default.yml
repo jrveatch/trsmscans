@@ -1,0 +1,18 @@
+
+model:
+  model_name: "TRSMBroken"
+
+width:
+  max_width_H1: 0.15
+  max_width_H2: 0.15
+  max_width_H3: 0.15
+
+scan:
+  max_prescan_points: 10000
+
+zoom:
+  strategy: "percentile" # "percentile" or "rate"
+  parameter_zoom_rate: 0.05
+  density_growth_rate: 0.5
+  zoom_percentile: 95
+  min_points_per_iteration: 100

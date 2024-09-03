@@ -8,21 +8,31 @@ from filters import bounds
 from utils import tsvutils
 from utils.arrays import Arrays
 from utils.masses import Masses
+from utils.config_loader import ConfigLoader
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 
 def apply_filters(filename: str,
-                  modelname: str,
                   masses: Masses,
-                  maxwidth: float) -> tuple[int,int,int]:
+                  config_loader: 'ConfigLoader') -> tuple[int,int,int]:
 
     # initialize filter columns
     initialize_filters(filename)
 
+    # get model name from config file
+    try:
+        modelname: float = config_loader.get('model', 'model_name')
+    except KeyError as e:
+        print(f"Error: {e}")
+        raise
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        raise
+
     # apply width filter
     nwidth = width.filter_widths(filename=filename,
-                                 maxwidth=maxwidth)
+                                 config_loader=config_loader)
 
     # apply bounds filter
     nbounds = bounds.filter_bounds(filename=filename,
@@ -56,7 +66,6 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--filename", help="Name of file to apply filters to")
-    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -65,4 +74,4 @@ if __name__ == "__main__":
     # create masses
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    apply_filters(filename=args.filename,maxwidth=args.maxwidth,masses=masses)
+    apply_filters(filename=args.filename,masses=masses)
