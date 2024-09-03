@@ -66,7 +66,6 @@ if __name__ == "__main__":
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     argparser.add_argument("-f", "--file_name", help="Name of file to apply filters to")
-    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -75,4 +74,4 @@ if __name__ == "__main__":
     # create masses
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    apply_filters(file_name=args.file_name,maxwidth=args.maxwidth,masses=masses)
+    apply_filters(file_name=args.file_name,masses=masses)

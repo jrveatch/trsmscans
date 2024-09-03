@@ -57,6 +57,16 @@ class Scan:
         # load config file
         self.config_loader = ConfigLoader(config_file_name=config_file_name)
 
+        # get configurations from config file
+        try:
+            self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
+        except KeyError as e:
+            print(f"Error: {e}")
+            raise
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
+
         # make instance of params
         # this automatically initializes the parameters
         self.params = Params(model_name=model_name,
@@ -104,10 +114,10 @@ class Scan:
                    use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
-        nprescan = 10000
+        nprescan = self.max_prescan_points
 
         # if fewer points are requested than nprescan, only use that many
-        if npoints < nprescan:
+        if npoints < self.max_prescan_points:
             nprescan = npoints
 
         try:
