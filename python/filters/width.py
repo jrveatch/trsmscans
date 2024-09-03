@@ -7,18 +7,18 @@ from utils import tsvutils
 
 from utils.config_loader import ConfigLoader
 
-def filter_widths(filename: str,
+def filter_widths(file_name: str,
                   config_loader: 'ConfigLoader') -> int:
 
     # TODO: accept different widths for each H
 
     # initialize column in case it doesn't exist
-    tsvutils.initialize_column(filename=filename,
+    tsvutils.initialize_column(file_name=file_name,
                                column_header="filt_width",
                                value=1)
 
     # load in arrays from .tsv file
-    arrs = Arrays(filename)
+    arrs = Arrays(file_name)
 
     # get arrays of widths
     width_H1 = np.divide(arrs.get_array('w_H1'),arrs.get_array('mH1'))
@@ -52,7 +52,7 @@ def filter_widths(filename: str,
     arrs.set_array('filt_width',filt_width)
 
     # write new data to file
-    arrs.write_file(filename)
+    arrs.write_file(file_name)
 
     # number of entries that pass
     npass = filt_width.sum()

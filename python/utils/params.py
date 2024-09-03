@@ -10,7 +10,7 @@ from typing import Optional
 class Params:
 
     def __init__(self,
-                 modelname: str,
+                 model_name: str,
                  masses: 'Masses'):
 
         # store masses
@@ -21,15 +21,15 @@ class Params:
         self.__mH2 = masses.mH2
         self.__mH3 = masses.mH3
 
-        # get model using modelname
-        self.__model = Model(modelname)
+        # get model using model_name
+        self.__model = Model(model_name)
 
         # get list of parameter names
-        self.__parnames: list[str] = self.__model.parameter_names()
+        self.__parameter_names: list[str] = self.__model.parameter_names()
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
-        for par in self.__parnames:
+        for par in self.__parameter_names:
             self.__parameters[par] = Parameter(par,self.__model.parameter(par))
 
     # get dictionary of parameters
@@ -42,8 +42,8 @@ class Params:
         return self.__parameters[parname]
 
     # get parameter names
-    def parnames(self) -> list[str]:
-        return self.__parnames
+    def parameter_names(self) -> list[str]:
+        return self.__parameter_names
 
     # get masses
     def masses(self) -> 'Masses':
@@ -95,7 +95,7 @@ class Params:
             return
 
         # loop over parameters
-        for parname in self.__parnames:
+        for parname in self.__parameter_names:
 
             # initialize new value to be None
             newVal = None

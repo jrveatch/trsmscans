@@ -40,7 +40,7 @@ class ZoomOptimizer:
         self.npoints = npoints
         self.optPoint = optPoint
         self.label = label
-        self.modelname = params.model_name()
+        self.model_name = params.model_name()
         self.top_percentile = {}
         self.top_percentile_xb = None
 
@@ -60,13 +60,13 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        self.outdir = fileutils.scan_dir(modelname=self.modelname,
+        self.outdir = fileutils.scan_dir(model_name=self.model_name,
                                          decay=decay,
                                          masses=self.params.masses())
 
-        # create parse object without a filename
+        # create parse object without a file name
         self.scanparser = Parse(masses=self.params.masses(),
-                                modelname=self.modelname)
+                                model_name=self.model_name)
 
         # TODO: Names of details and summary files
 
@@ -84,10 +84,10 @@ class ZoomOptimizer:
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
-        ini_name = self.outdir + "files/ini/" + self.modelname + "_" + identifier + ".ini"
-        tsv_name = self.outdir + "files/tsv/" + self.modelname + "_" + identifier + ".tsv"
-        tsv_combined_name = self.outdir + "files/tsv/" + self.modelname + "_" + iter_label + ".tsv"
-        tsv_temp_name = self.outdir + self.modelname + ".tsv"
+        ini_name = self.outdir + "files/ini/" + self.model_name + "_" + identifier + ".ini"
+        tsv_name = self.outdir + "files/tsv/" + self.model_name + "_" + identifier + ".tsv"
+        tsv_combined_name = self.outdir + "files/tsv/" + self.model_name + "_" + iter_label + ".tsv"
+        tsv_temp_name = self.outdir + self.model_name + ".tsv"
 
         # write new .ini file from template and parameters
         self.params.write_ini(ini_name)
@@ -98,7 +98,7 @@ class ZoomOptimizer:
 
         # run ScannerS
         self.npoints = runScannerS(ininame=ini_name,
-                                   modelname=self.modelname,
+                                   model_name=self.model_name,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 
@@ -112,7 +112,7 @@ class ZoomOptimizer:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(filename=tsv_name,
+        nwidth, nbounds, npass = apply_filters(file_name=tsv_name,
                                                masses=self.params.masses(),
                                                config_loader=self.config_loader)
 
@@ -136,7 +136,7 @@ class ZoomOptimizer:
             return
 
         # read output tsv into parser
-        self.scanparser.read_file(filename=tsv_name)
+        self.scanparser.read_file(file_name=tsv_name)
 
         # get new point as the maximum from the current scan
         newPoint = self.scanparser.get_max_xb_point(self.decay)
@@ -174,7 +174,7 @@ class ZoomOptimizer:
         details.write("Update optimal point: " + str(update) + "\n")
         details.write("Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:

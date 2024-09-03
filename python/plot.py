@@ -16,15 +16,15 @@ class Plot:
     def __init__(self,
                  decay: str,
                  masses: 'Masses',
-                 modelname: str):
+                 model_name: str):
 
         # Save arguments as class members
         self.decay = decay
         self.masses = masses
-        self.model = Model(modelname)
+        self.model = Model(model_name)
 
         # Create plot output directory
-        self.output_dir = fileutils.plots_dir(modelname=self.model.name(),
+        self.output_dir = fileutils.plots_dir(model_name=self.model.name(),
                                               decay=self.decay,
                                               masses=self.masses)
         os.makedirs(self.output_dir, exist_ok=True)
@@ -42,7 +42,7 @@ class Plot:
         self.all_files: list[str] = []
 
         # Directory for the scan outputs
-        directory = fileutils.scan_dir(modelname=self.model.name(),
+        directory = fileutils.scan_dir(model_name=self.model.name(),
                                        decay=self.decay,
                                        masses=self.masses) + "files/tsv/"
 
@@ -57,7 +57,7 @@ class Plot:
         self.all_files.sort()
 
         # If prescan exists, make it the first file to plot
-        prescan = fileutils.prescan_tsv(modelname=self.model.name(),
+        prescan = fileutils.prescan_tsv(model_name=self.model.name(),
                                         masses=self.masses)
         if os.path.exists(prescan):
             self.all_files.insert(0, prescan)
@@ -85,12 +85,12 @@ class Plot:
         self.var_lists = {}
 
         # Iterate through each file
-        for file in self.all_files:
+        for file_name in self.all_files:
 
             # Retrieve the variables from the list
-            parser = parse.Parse(filename=file,
+            parser = parse.Parse(file_name=file_name,
                                  masses=self.masses,
-                                 modelname=self.model.name())
+                                 model_name=self.model.name())
             allParams = parser.get_parameter_arrays()
             xb = parser.get_xb(self.decay)
 
@@ -297,6 +297,6 @@ if __name__ == '__main__':
 
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    plotter = Plot(decay=args.decay, masses=masses, modelname=args.model)
+    plotter = Plot(decay=args.decay, masses=masses, model_name=args.model)
     plotter.make_scan_plots()
     plotter.make_max_xb_plots()

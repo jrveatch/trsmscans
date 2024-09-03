@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Any, Optional
 
 # class to hold and update a single model parameter
 class Parameter:
 
-    def __init__(self,name,dict):
+    def __init__(self,
+                 name: str,
+                 dict: dict[str, Any]):
 
         # initialize parameter name
         self.__name = name

@@ -6,14 +6,14 @@ import subprocess
 # function to get number of points in a file
 # returns 0 if file does not exist
 # otherwise returns number of existing points in file
-def count_tsv_points(filename: str) -> int:
+def count_tsv_points(file_name: str) -> int:
 
     # if file doesn't exist, return -1
-    if not os.path.exists(filename):
+    if not os.path.exists(file_name):
         return 0
 
     # run wc -l to get the number of lines
-    result = subprocess.run(["wc", "-l", filename], capture_output=True, text=True)
+    result = subprocess.run(["wc", "-l", file_name], capture_output=True, text=True)
 
     # get output from wc -l
     output = result.stdout.strip()
@@ -71,10 +71,10 @@ def save_tsv_output(inputfile: str,
     return
 
 # function to check whether a column already exists in file
-def column_exists(filename: str,
+def column_exists(file_name: str,
                   column_header: str) -> bool:
 
-    with open(filename, 'r') as f_in:
+    with open(file_name, 'r') as f_in:
         # read the header
         header = f_in.readline().strip().split('\t')
         # check if the column header exists in the header
@@ -82,18 +82,18 @@ def column_exists(filename: str,
 
 # function to add and initialize columns
 # TODO: Rework this to accept a list of columns and values
-def initialize_column(filename: str,
+def initialize_column(file_name: str,
                       column_header: str,
                       value: float) -> None:
 
-    # temp output filename
+    # temp output file name
     temp_file = "temp.tsv"
 
     # return if column already exists
-    if column_exists(filename=filename,column_header=column_header):
+    if column_exists(file_name=file_name,column_header=column_header):
         return
 
-    with open(filename, 'r') as f_in, open(temp_file, 'w') as f_out:
+    with open(file_name, 'r') as f_in, open(temp_file, 'w') as f_out:
         
         # read the header
         header = f_in.readline().strip().split('\t')
@@ -117,4 +117,4 @@ def initialize_column(filename: str,
             f_out.write('\t'.join(columns) + '\n')
 
     # replace the input file with the temp file
-    shutil.move(temp_file, filename)
+    shutil.move(temp_file, file_name)

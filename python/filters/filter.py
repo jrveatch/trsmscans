@@ -13,16 +13,16 @@ from utils.config_loader import ConfigLoader
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 
-def apply_filters(filename: str,
+def apply_filters(file_name: str,
                   masses: Masses,
                   config_loader: 'ConfigLoader') -> tuple[int,int,int]:
 
     # initialize filter columns
-    initialize_filters(filename)
+    initialize_filters(file_name)
 
     # get model name from config file
     try:
-        modelname: float = config_loader.get('model', 'model_name')
+        model_name: float = config_loader.get('model', 'model_name')
     except KeyError as e:
         print(f"Error: {e}")
         raise
@@ -31,16 +31,16 @@ def apply_filters(filename: str,
         raise
 
     # apply width filter
-    nwidth = width.filter_widths(filename=filename,
+    nwidth = width.filter_widths(file_name=file_name,
                                  config_loader=config_loader)
 
     # apply bounds filter
-    nbounds = bounds.filter_bounds(filename=filename,
-                                   modelname=modelname,
+    nbounds = bounds.filter_bounds(file_name=file_name,
+                                   model_name=model_name,
                                    masses=masses)
 
     # get arrays from output file
-    arrays = Arrays(filename)
+    arrays = Arrays(file_name)
 
     # find how many points pass both filters
     filt_width = arrays.data(header_width)
@@ -51,13 +51,13 @@ def apply_filters(filename: str,
     # return numbers of events passing each filter
     return nwidth, nbounds, npass
 
-def initialize_filters(filename: str) -> None:
+def initialize_filters(file_name: str) -> None:
 
     # initialize both columns
-    tsvutils.initialize_column(filename=filename,
+    tsvutils.initialize_column(file_name=file_name,
                                column_header=header_width,
                                value=1)
-    tsvutils.initialize_column(filename=filename,
+    tsvutils.initialize_column(file_name=file_name,
                                column_header=header_bounds,
                                value=1)
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # parse command line arguments
     argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-f", "--filename", help="Name of file to apply filters to")
+    argparser.add_argument("-f", "--file_name", help="Name of file to apply filters to")
     argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -74,4 +74,4 @@ if __name__ == "__main__":
     # create masses
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    apply_filters(filename=args.filename,masses=masses)
+    apply_filters(file_name=args.file_name,masses=masses)

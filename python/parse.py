@@ -27,14 +27,14 @@ class Parse:
     # load new set of arrays
     def __init__(self,
                  masses: Masses,
-                 modelname: str,
-                 filename: str = ""):
+                 model_name: str,
+                 file_name: str = ""):
         
         # initialize model name
-        self.__modelname = modelname
+        self.__model_name = model_name
 
         # initialize model
-        self.__model = Model(modelname)
+        self.__model = Model(model_name)
 
         # initialize HName and SName
         self.__HName = masses.HName
@@ -57,21 +57,21 @@ class Parse:
         # initialize dictionary of parameter arrays
         self.__par_arrays: dict[str,NDArray] = {}
 
-        # get arrays from provided filename if it is provided
-        if filename:
-            self.read_file(filename)
+        # get arrays from file name if it is provided
+        if file_name:
+            self.read_file(file_name)
 
     # load new arrays
     def read_file(self,
-                  filename: str) -> None:
+                  file_name: str) -> None:
 
         # create arrays object if it does not exist
         if not hasattr(self,"arrays"):
-            self.arrays = Arrays(filename)
+            self.arrays = Arrays(file_name)
 
         # load arrays from new file if arrays object already exists
         else:
-            self.arrays.load_arrays(filename)
+            self.arrays.load_arrays(file_name)
 
         # get arrays masked by filters
         self.__make_filtered_arrays()
@@ -98,7 +98,7 @@ class Parse:
 
         # return a point object holding xb and other parameters
         return Point(xb = maxxb,
-                     modelname = self.__modelname,
+                     model_name = self.__model_name,
                      parvals = maxxb_parvals)
 
     # get minimum value of a parameter
