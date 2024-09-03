@@ -3,7 +3,6 @@ import numpy as np
 from numpy.typing import NDArray
 import random
 from io import StringIO
-from typing import List
 
 class Arrays:
 
@@ -14,7 +13,7 @@ class Arrays:
         self.__filename = filename
     
         # empty headers list
-        self.__headers: List[str] = []
+        self.__headers: list[str] = []
 
         # empty array data
         self.__data: NDArray = None

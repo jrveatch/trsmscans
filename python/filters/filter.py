@@ -3,8 +3,6 @@
 import argparse
 import numpy as np
 
-from typing import Tuple
-
 from filters import width
 from filters import bounds
 from utils import tsvutils
@@ -17,7 +15,7 @@ header_bounds = "filt_bounds"
 def apply_filters(filename: str,
                   modelname: str,
                   masses: Masses,
-                  maxwidth: float) -> Tuple[int,int,int]:
+                  maxwidth: float) -> tuple[int,int,int]:
 
     # initialize filter columns
     initialize_filters(filename)
