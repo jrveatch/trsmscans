@@ -20,7 +20,7 @@ from utils.config_loader import ConfigLoader
 def run_prescan(masses: 'Masses',
                 model_name: str,
                 npoints: int,
-                config_loader = None,
+                config_loader: ConfigLoader | None = None,
                 config_file_name: str = "",
                 overwrite: bool = False,
                 use_multiprocessing: bool = False) -> 'Parse':
