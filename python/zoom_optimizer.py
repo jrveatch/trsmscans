@@ -80,7 +80,7 @@ class ZoomOptimizer:
         # get iteration identifier
         iter_label = f"{iter:04d}"
         if self.label:
-            identifier = self.label + "_" + iter_label
+            identifier = self.label + "-Iteration-" + iter_label
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files

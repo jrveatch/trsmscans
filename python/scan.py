@@ -321,7 +321,7 @@ class Scan:
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
                 config_loader=self.config_loader,
-                label=f'Configuration-{i}'
+                label=f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
 
