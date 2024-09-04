@@ -9,6 +9,23 @@ import math
 from blessings import Terminal
 from utils import tsvutils
 import argparse
+from utils.config_loader import ConfigLoader
+
+config_loader = ConfigLoader(config_file_name="ScannerS.yml")
+# get configurations from config file
+try:
+    # fraction of cpus to use when parallel processing
+    frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
+    # minimum number of points per job
+    min_points_per_job: float = config_loader.get('ScannerS', 'min_points_per_job')
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout: float = config_loader.get('ScannerS', 'timeout')
+except KeyError as e:
+    print(f"Error: {e}")
+    raise
+except Exception as e:
+    print(f"Unexpected error: {e}")
+    raise
 
 # method to run ScannerS
 def runScannerS(ininame: str,
@@ -78,8 +95,8 @@ def run_parallel_processes(ininame: str,
                                   npoints=npoints,
                                   model_name=model_name)
 
-    # set number of workers to 80% of the available cores
-    nworkers = int(ncpu * 0.8)
+    # set number of workers to fraction of the available cores (rounded down)
+    nworkers = int(ncpu * frac_cpu)
 
     # by default set nprocesses to nworkers
     if njobs < 1:
@@ -92,16 +109,13 @@ def run_parallel_processes(ininame: str,
     else:
         num_processes = njobs
 
-    # minimum number of points per job
-    min_points = 10
-
     # get number of points per job, rounded up
     points_per_job = math.ceil(npoints/num_processes)
 
-    # if points_per_job is less than min_points, reduce the number of jobs
-    if points_per_job < min_points:
-        num_processes = math.ceil(npoints/min_points) - 1
-        points_per_job = min_points
+    # if points_per_job is less than min_points_per_job, reduce the number of jobs
+    if points_per_job < min_points_per_job:
+        num_processes = math.ceil(npoints/min_points_per_job) - 1
+        points_per_job = min_points_per_job
 
     # if fewer than 2 processes are needed, run a single process
     if num_processes < 2:
@@ -111,10 +125,10 @@ def run_parallel_processes(ininame: str,
                                   model_name=model_name)
 
     # print out some information
-    print("Running test job with",min_points,"points")
+    print("Running test job with",min_points_per_job,"points")
 
     # define test process with 10 points
-    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points)]
+    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points_per_job)]
 
     # run test process
     try:
@@ -198,9 +212,6 @@ def run_subprocess(process: list[str],
 
     # log file
     log = open("ScannerS.log", "w")
-
-    # time in seconds at which process will be killed if nothing is printed out
-    timeout = 20
 
     # launch process
     process = subprocess.Popen(process, stdout=log, stderr=log)
