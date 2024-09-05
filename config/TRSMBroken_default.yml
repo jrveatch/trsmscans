@@ -3,9 +3,9 @@ model:
   model_name: "TRSMBroken"
 
 width:
-  max_width_H1: 0.15
-  max_width_H2: 0.15
-  max_width_H3: 0.15
+  max_width_H: 0.15
+  max_width_S: 0.15
+  max_width_X: 0.15
 
 scan:
   max_prescan_points: 10000
