@@ -71,7 +71,7 @@ class Scan:
                              masses=masses)
 
         # make dummy optimal point
-        self.optPoint = Point(modelname=modelname)
+        self.global_max = Point(modelname=modelname)
 
         # directory where we want the output to go
         self.outdir = fileutils.scan_dir(modelname=modelname,
@@ -187,7 +187,7 @@ class Scan:
         density = nprescan / self.params.volume()
 
         # get new points
-        self.optPoint = self.prescanparser.get_max_xb_point()
+        self.global_max = self.prescanparser.get_max_xb_point()
 
         # write scan details to details file
         details = open(self.detailsname, "a")
@@ -195,11 +195,11 @@ class Scan:
         details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + self.optPoint.format_xb() + "\n")
+        details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
         details.write("--------------------\n")
         for par in self.params.parnames():
             details.write(par + ":\n")
-            details.write("  " + self.optPoint.format_param(par) + "\n")
+            details.write("  " + self.global_max.format_param(par) + "\n")
             details.write("  " + self.params.parameter(par).format_range() + "\n")
         details.write("--------------------\n")
         details.write("\n\n")
@@ -208,14 +208,14 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summaryname, "a")
         summary.write("Pre")
-        summary.write(" " + self.optPoint.format_xb())
+        summary.write(" " + self.global_max.format_xb())
         for name, par in self.params.parameters().items():
-            summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
+            summary.write(" " + f"{self.global_max.get_val(name):1.{par.precision()}f}")
         summary.write("\n")
         summary.close()
 
         # scale new low and high values
-        self.params.scale_ranges(self.optPoint)
+        self.params.scale_ranges(self.global_max)
 
         return
 
@@ -237,7 +237,9 @@ class Scan:
 
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
-        for iter in range(niter):
+        target_xb = 0
+
+        for iter in range(niter): # make controlling num of iters optionals
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
@@ -245,9 +247,29 @@ class Scan:
 
             # trial_stopping_condition() #### Figure out why function is not able to be used
 
-            for zoom_optimizer in all_zoom_optimizers:
+            # TODO: possibly redistribute points to all active scanners
 
-                zoom_optimizer.run(iter, use_multiprocessing)
+            # if zoom_optimizer meets stopping condition, zoom_optimizer 
+
+            for zoom_optimizer in all_zoom_optimizers:
+                
+                # counter to stop loop if all zoom_optimizer.running == False (to allow running wihout niter)
+
+                if zoom_optimizer.is_running:
+
+                    # store a temp_xb to compre against current max_xb
+                    temp_xb = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
+
+                    # store max_xb
+                    if temp_xb > self.global_max:
+                        self.global_max = temp_xb
+            
+            #if max_xb < target_xb: # move for each zoom_optimizer to check local max (temp_max) and check twice
+            #    print("Max xb less than target...")
+            #    print("Ending scan early")
+            #    break
+
+            #target_xb = self.global_max + (self.global_max * 0.01)
 
             # TODO: Add early stopping conditions
 
@@ -370,7 +392,7 @@ class Scan:
                 params=params_copy,
                 decay=self.decay,
                 maxwidth=self.maxwidth,
-                optPoint=self.optPoint,
+                optPoint=self.global_max,
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
                 percentile=self.percentile,

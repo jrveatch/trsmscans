@@ -41,13 +41,15 @@ class ZoomOptimizer:
         self.decay = decay
         self.maxwidth = maxwidth
         self.npoints = npoints
-        self.optPoint = optPoint
+        self.local_max = optPoint
         self.outdir = outdir
         self.label = label
         self.modelname = params.model_name()
         self.percentile = percentile
         self.top_percentile = {}
         self.top_percentile_xb = None
+        self.global_xb_fail = 0
+        self.is_running = True
         
         self.parRate = parameter_rate
         self.densityRate = density_growth_rate
@@ -64,6 +66,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
+            global_max_xb:Point,
             use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
@@ -138,12 +141,12 @@ class ZoomOptimizer:
         update = False
 
         # store the previous point
-        optPointOld = self.optPoint
+        optPointOld = self.local_max
 
         # if new point is better than the optimal point, replace it
-        if newPoint > self.optPoint:
+        if newPoint > self.local_max:
             update = True
-            self.optPoint = newPoint
+            self.local_max = newPoint
 
         # get iteration end time
         iterend = time.time()
@@ -165,15 +168,15 @@ class ZoomOptimizer:
         details.write("--------------------\n")
         details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n")
+        details.write("Optimal point xsec*BR = " + self.local_max.format_xb() + "\n")
         details.write("--------------------\n")
         for par in self.params.parnames():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:
-                details.write("  new optimal "+self.optPoint.format_param(par)+"\n")
-                details.write("  "+self.optPoint.format_diff(optPointOld,par)+"\n")
-                details.write("  "+self.optPoint.format_diff_frac(optPointOld,par)+"\n")
+                details.write("  new optimal "+self.local_max.format_param(par)+"\n")
+                details.write("  "+self.local_max.format_diff(optPointOld,par)+"\n")
+                details.write("  "+self.local_max.format_diff_frac(optPointOld,par)+"\n")
         details.write("--------------------\n")
         details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
         details.write("\n\n")
@@ -184,9 +187,9 @@ class ZoomOptimizer:
             # write scan results to summary file
             summary = open(self.summaryname,"a")
             summary.write(identifier)
-            summary.write(" " + self.optPoint.format_xb())
+            summary.write(" " + self.local_max.format_xb())
             for name, par in self.params.parameters().items():
-                summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
+                summary.write(" " + f"{self.local_max.get_val(name):1.{par.precision()}f}")
             summary.write("\n")
             summary.close()
 
@@ -241,7 +244,7 @@ class ZoomOptimizer:
         #rangeScale = 1.0 - self.zoom.parRate
 
         # set new low and high values
-        #self.params.scale_ranges(self.optPoint,rangeScale)
+        #self.params.scale_ranges(self.local_max,rangeScale)
 
         # TODO: include these two lines in old scaling alternative
         # get new volume
@@ -254,4 +257,14 @@ class ZoomOptimizer:
         heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
         self.npoints = int(self.npoints * heightRatio * (1.0 + self.densityRate))
 
-        return
+        if newPoint < global_max_xb * 0.5:
+            self.global_xb_fail += 1
+        else:
+            self.global_xb_fail = 0
+        
+        if self.global_xb_fail >= 2:
+            self.is_running = False
+            print("Max xb less than target...")
+            print("Ending current scanner early")
+
+        return newPoint
