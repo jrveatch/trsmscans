@@ -325,6 +325,9 @@ class Scan:
             )
             all_zoom_optimizers.append(zoom_optimizer)
 
+        # Print the number of zoom optimizers
+        print(f"\nUsing {len(all_zoom_optimizers)} ZoomOptimizer(s)")
+
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
