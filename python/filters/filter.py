@@ -33,6 +33,7 @@ def apply_filters(file_name: str,
 
     # apply width filter
     nwidth = width.filter_widths(file_name=file_name,
+                                 masses=masses,
                                  config_loader=config_loader)
 
     # apply bounds filter
