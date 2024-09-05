@@ -112,9 +112,9 @@ class ZoomOptimizer:
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(file_name=tsv_name,
-                                               masses=self.params.masses(),
-                                               config_loader=self.config_loader)
+        nwidth, nbounds, nsignals, npass = apply_filters(file_name=tsv_name,
+                                                         masses=self.params.masses(),
+                                                         config_loader=self.config_loader)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
@@ -168,7 +168,8 @@ class ZoomOptimizer:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
-        details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
+        details.write(str(nsignals) + "/" + str(self.npoints) + " pass signals check\n")
+        details.write(str(npass) + "/" + str(self.npoints) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")

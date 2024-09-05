@@ -286,7 +286,7 @@ class Parse:
 
     # get arrays of the filters
     def __set_filters(self) -> None:
-        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'))
+        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'),self.arrays.data('filt_signals'))
 
     # apply filters as mask
     def __make_filtered_arrays(self) -> None:

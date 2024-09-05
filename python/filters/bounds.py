@@ -33,16 +33,20 @@ def filter_bounds(file_name: str,
     SName = masses.SName
     XName = masses.XName
 
-    # initialize column in case it doesn't exist
+    # initialize columns in case they don't exist
     tsvutils.initialize_column(file_name=file_name,
                                column_header="filt_bounds",
+                               value=1)
+    tsvutils.initialize_column(file_name=file_name,
+                               column_header="filt_signals",
                                value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(file_name)
 
-    # get filt_bounds array
+    # get filter arrays
     filt_bounds = arrs.data('filt_bounds')
+    filt_signals = arrs.data('filt_signals')
 
     for i in range(arrs.data('idx').size):
 
@@ -303,19 +307,19 @@ def filter_bounds(file_name: str,
             print(signals_result)
             print(HS_allowed)
 
-        # check whether requirements are passed
-        pass_filt = False
-        if int(bounds_result.allowed) and int(HS_allowed):
-            pass_filt = True
-        filt_bounds[i] = int(pass_filt)
+        # save whether requirements are passed
+        filt_bounds[i] = int(bounds_result.allowed)
+        filt_signals[i] = int(HS_allowed)
 
-    # save array of results and write to output file
+    # save arrays of results and write to output file
     arrs.set_array('filt_bounds',filt_bounds)
+    arrs.set_array('filt_signals',filt_signals)
     arrs.write_file(file_name)
 
     # number of entries that pass
-    npass = filt_bounds.sum()
-    return npass
+    nbounds = filt_bounds.sum()
+    nsignals = filt_signals.sum()
+    return nbounds, nsignals
 
 def print_bounds_result(bounds_result,
                         idx: int,
