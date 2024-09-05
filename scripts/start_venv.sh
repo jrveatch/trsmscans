@@ -11,7 +11,7 @@ source trsm_venv/bin/activate
 
 # check whether requirements file exists
 if ! [ -f "python/requirements.txt" ]; then
-    echo "python/requirements.txt not found."
+    printf "python/requirements.txt not found."
     return
 fi
 
@@ -27,13 +27,13 @@ comm -13 "$installed_packages_temp" "python/requirements.txt" > "$requirements_t
 
 # check if there are any differences between installed packages and requirements
 if [ -s "$requirements_temp" ]; then
-    echo "Requirements file has changed"
+    printf "Requirements file has changed"
     cat "$requirements_temp"
-    echo "Updating packages..."
+    printf "Updating packages..."
     pip install -r "$requirements_temp"
-    echo "Packages updated"
+    printf "Packages updated"
 else
-    echo "Python packages are all up-to-date"
+    printf "Python packages are all up-to-date"
 fi
 
 # clean up temporary files
