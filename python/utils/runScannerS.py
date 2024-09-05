@@ -95,6 +95,13 @@ def run_parallel_processes(ininame: str,
     # minimum number of points per job
     min_points = 10
 
+    # if fewer than 2 processes are needed, run a single process
+    if npoints < 2 * min_points:
+        print("Only 1 process needed, running as a single process")
+        return run_single_process(ininame=ininame,
+                                  npoints=npoints,
+                                  model_name=model_name)
+
     # get number of points per job, rounded up
     points_per_job = math.ceil(npoints/num_processes)
 
@@ -102,13 +109,6 @@ def run_parallel_processes(ininame: str,
     if points_per_job < min_points:
         num_processes = math.ceil(npoints/min_points) - 1
         points_per_job = min_points
-
-    # if fewer than 2 processes are needed, run a single process
-    if num_processes < 2:
-        print("Only 1 process needed, running as a single process")
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
 
     # print out some information
     print("Running test job with",min_points,"points")
@@ -161,8 +161,8 @@ def run_parallel_processes(ininame: str,
     concatenate_files(directories=directories,
                       file_name=model_name+".tsv")
 
-    # return number of points that are actually used
-    return npoints
+    # return number of points that are actually used, including test job points
+    return npoints + min_points
 
 # run a process for multiprocessing
 def run_process(process: list[str],
