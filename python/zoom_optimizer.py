@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # import various modules to help with logistics
-import os
 import shutil
 import time
 import datetime
@@ -17,6 +16,9 @@ from utils.point import Point
 from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
+from utils import tsvutils
+from utils import fileutils
+from utils.config_loader import ConfigLoader
 
 class ZoomOptimizer:
 
@@ -25,13 +27,9 @@ class ZoomOptimizer:
                  summaryname: str,
                  params: 'Params',
                  decay: str,
-                 maxwidth: float,
                  npoints: int,
                  optPoint: 'Point',
-                 percentile: float,
-                 outdir: str,
-                 parameter_rate: float,
-                 density_growth_rate: float,
+                 config_loader: ConfigLoader,
                  label: str = ""):
 
         # some basic scanner information
@@ -39,28 +37,38 @@ class ZoomOptimizer:
         self.summaryname = summaryname
         self.params = params
         self.decay = decay
-        self.maxwidth = maxwidth
         self.npoints = npoints
         self.local_max = optPoint
-        self.outdir = outdir
         self.label = label
-        self.modelname = params.model_name()
-        self.percentile = percentile
+        self.model_name = params.model_name()
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
         self.is_running = True
-        
-        self.parRate = parameter_rate
-        self.densityRate = density_growth_rate
 
-        # set minimum number of points per iteration
-        self.minpoints = 100
+        # get zoom configuration from config file
+        self.config_loader = config_loader
+        try:
+            self.strategy: str = self.config_loader.get('zoom', 'strategy')
+            self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
+            self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
+            self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
+            self.minpoints: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+        except KeyError as e:
+            print(f"Error: {e}")
+            raise
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
 
-        # create parse object without a filename
+        # set output directory
+        self.outdir = fileutils.scan_dir(model_name=self.model_name,
+                                         decay=decay,
+                                         masses=self.params.masses())
+
+        # create parse object without a file name
         self.scanparser = Parse(masses=self.params.masses(),
-                                modelname=self.modelname,
-                                decay=self.decay)
+                                model_name=self.model_name)
 
         # TODO: Names of details and summary files
 
@@ -73,44 +81,43 @@ class ZoomOptimizer:
         iterstart = time.time()
 
         # get iteration identifier
-        identifier = f"{iter:04d}"
+        iter_label = f"{iter:04d}"
         if self.label:
-            identifier = self.label + "_" + identifier
+            identifier = self.label + "-Iteration-" + iter_label
         print("\nIteration:",identifier)
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.modelname + "_" + identifier
-        ininame = outname + ".ini"
-        tsvname = outname + ".tsv"
-        temptsv = self.outdir + self.modelname + ".tsv"
+        ini_name = self.outdir + "files/ini/" + self.model_name + "_" + identifier + ".ini"
+        tsv_name = self.outdir + "files/tsv/" + self.model_name + "_" + identifier + ".tsv"
+        tsv_combined_name = self.outdir + "files/tsv/" + self.model_name + "_" + iter_label + ".tsv"
+        tsv_temp_name = self.outdir + self.model_name + ".tsv"
 
         # write new .ini file from template and parameters
-        self.params.write_ini(ininame)
+        self.params.write_ini(ini_name)
 
         # make sure npoints doesn't drop below the minimum
         if self.npoints < self.minpoints:
             self.npoints = self.minpoints
 
         # run ScannerS
-        self.npoints = runScannerS(ininame=ininame,
-                                   modelname=self.modelname,
+        self.npoints = runScannerS(ininame=ini_name,
+                                   model_name=self.model_name,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)
 
-        # TODO: Figure out what to do if process returns negative value
+        # TODO: Figure out what to do if process throws a TimeoutError
 
-        # rename output .tsv file to tsvname
-        shutil.move(temptsv,tsvname)
+        # rename output .tsv file to tsv_name
+        shutil.move(tsv_temp_name,tsv_name)
 
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.npoints / volume
 
         # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(filename=tsvname,
-                                                       masses=self.params.masses(),
-                                                       modelname=self.modelname,
-                                                       maxwidth=self.maxwidth)
+        nwidth, nbounds, nsignals, npass = apply_filters(file_name=tsv_name,
+                                                         masses=self.params.masses(),
+                                                         config_loader=self.config_loader)
 
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
@@ -132,10 +139,10 @@ class ZoomOptimizer:
             return
 
         # read output tsv into parser
-        self.scanparser.read_file(filename=tsvname)
+        self.scanparser.read_file(file_name=tsv_name)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.get_max_xb_point()
+        newPoint = self.scanparser.get_max_xb_point(self.decay)
 
         # flag to indicate whether optimal point needs to be updated
         update = False
@@ -162,15 +169,16 @@ class ZoomOptimizer:
         details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
+        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut\n")
         details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
-        details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
+        details.write(str(nsignals) + "/" + str(self.npoints) + " pass signals check\n")
+        details.write(str(npass) + "/" + str(self.npoints) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
         details.write("Optimal point xsec*BR = " + self.local_max.format_xb() + "\n")
         details.write("--------------------\n")
-        for par in self.params.parnames():
+        for par in self.params.parameter_names():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
             if update:
@@ -193,69 +201,26 @@ class ZoomOptimizer:
             summary.write("\n")
             summary.close()
 
-        # get paramaters to use for zooming in
-        paramArrays = self.scanparser.get_parameter_arrays()
+        # check zoom strategy and call method accordingly
+        match self.strategy:
 
-        # minimum amount of points that need to be looked at before zooming in
-        min_points = 10
-        percentile_threshold = self.percentile
+            # zoom in using percentile
+            case "percentile":
+                self.percentile_zoom()
 
-        # get an array of xb results
-        xb_array = self.scanparser.get_xb()
+            # zoom in using rate
+            case "rate":
+                self.rate_zoom()
 
-        # if not the first iteration, add top_percentile_xb to current xb_array
-        if iter != 0:
-            xb_array = np.append(xb_array, self.top_percentile_xb)
+            # all other cases
+            case _:
+                print("Unrecognized zoom strategy")
+                print("Please use 'percentile' (default) or 'rate'")
+                # TODO: Throw and exception here
+                return
 
-        # ensure min_points are looked
-        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
-            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
-
-        # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
-
-        # create a threshold to look at the top percentile of xb points
-        threshold = np.percentile(xb_array, percentile_threshold)
-
-        # get top percentile of xb
-        self.top_percentile_xb = xb_array[xb_array > threshold]
-
-        # dictionaries to update low and high in parameters
-        lowdict = {}
-        highdict = {}
-
-        # save params arrays where xb_array is the top percentile
-        for param, values in paramArrays.items():
-            # if not first iteration, add top_percentile to values
-            if iter != 0:
-                values = np.append(values, self.top_percentile[param])
-            # update top_percentile accounting for new values
-            self.top_percentile[param] = values[xb_array > threshold]
-            # set lows and highs of each parameter
-            lowdict[param] = self.top_percentile[param].min()
-            highdict[param] = self.top_percentile[param].max()
-
-        # update low and high using dictionaries
-        self.params.update_low_high(lowdict, highdict)
-
-        # TODO: reinclude old scaling as an alternative
-        # parameter scaling factor
-        #rangeScale = 1.0 - self.zoom.parRate
-
-        # set new low and high values
-        #self.params.scale_ranges(self.local_max,rangeScale)
-
-        # TODO: include these two lines in old scaling alternative
-        # get new volume
-        #volumeNew = self.params.volume()
-        #volumeRatio = volumeNew/volume
-
-        # step down npoints
-        # self.npoints = int(self.npoints * volumeRatio * (1.0 + self.zoom.densityRate))
-        
-        heightRatio = (xb_array.max() - threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * heightRatio * (1.0 + self.densityRate))
+        # append .tsv file to combined .tsv file for iteration
+        tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         if newPoint < global_max_xb * 0.5:
             self.global_xb_fail += 1
@@ -268,3 +233,78 @@ class ZoomOptimizer:
             print("Ending current scanner early")
 
         return newPoint
+
+    # method to zoom in based on a percentile cut on xb
+    def percentile_zoom(self) -> None:
+
+        # minimum number of points required before zooming in
+        min_points = 10
+
+        # percentile threshold that can be adjusted on the fly
+        percentile_threshold = self.zoom_percentile
+
+        # get an array of xb results
+        xb_array = self.scanparser.get_xb(self.decay)
+
+        # if top_percentile_xb has already been filled, add it to current xb_array
+        if self.top_percentile_xb is not None:
+            xb_array = np.append(xb_array, self.top_percentile_xb)
+
+        # ensure min_points are looked
+        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
+            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+
+        # make sure percentile threshold is >= 0
+        if percentile_threshold < 0:
+            percentile_threshold = 0
+
+        # create a threshold to look at the top percentile of xb points
+        xb_threshold = np.percentile(xb_array, percentile_threshold)
+
+        # get top percentile of xb
+        self.top_percentile_xb = xb_array[xb_array > xb_threshold]
+
+        # dictionaries to update low and high in parameters
+        lowdict = {}
+        highdict = {}
+
+        # save params arrays where xb_array is the top percentile
+        for param, values in self.scanparser.get_parameter_arrays().items():
+            # if param is already in top_percentile, add top_percentile to values
+            if param in self.top_percentile:
+                values = np.append(values, self.top_percentile[param])
+            # update top_percentile accounting for new values
+            self.top_percentile[param] = values[xb_array > xb_threshold]
+            # set lows and highs of each parameter
+            lowdict[param] = self.top_percentile[param].min()
+            highdict[param] = self.top_percentile[param].max()
+
+        # update params lows and highs using dictionaries
+        self.params.update_low_high(lowdict, highdict)
+
+        # calculate the new number of points based on the remaining xb range
+        heightRatio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * heightRatio * (1.0 + self.density_growth_rate))
+
+        return
+
+    # method to zoom in based on a fixed rate
+    def rate_zoom(self) -> None:
+
+        # parameter scaling factor
+        range_scale = 1.0 - self.parameter_zoom_rate
+
+        # get volume before zooming
+        volume_old = self.params.volume()
+
+        # set new low and high values
+        self.params.scale_ranges(self.local_max,range_scale)
+
+        # get volume after zooming
+        volume_new = self.params.volume()
+        volume_ratio = volume_new / volume_old
+
+        # step down npoints
+        self.npoints = int(self.npoints * volume_ratio * (1.0 + self.density_growth_rate))
+    
+        return

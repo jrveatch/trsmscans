@@ -17,7 +17,7 @@ class Model:
         # model yaml file
         self.__ymlname = self.__model_dir + self.__name + "_params.yml"
 
-        # template .ini filename
+        # template .ini file name
         self.__templateini = self.__model_dir + self.__name + "_template.ini"
 
         self.__read_yaml()

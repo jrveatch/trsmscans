@@ -14,26 +14,32 @@ from utils import tsvutils
 from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
+from parse import Parse
+from utils.config_loader import ConfigLoader
 
-# TODO: Make this return a Parse object
 def run_prescan(masses: 'Masses',
-                modelname: str,
+                model_name: str,
                 npoints: int,
-                maxwidth: float,
+                config_loader: ConfigLoader | None = None,
+                config_file_name: str = "",
                 overwrite: bool = False,
-                use_multiprocessing: bool = False) -> int:
+                use_multiprocessing: bool = False) -> 'Parse':
 
     # get scan start time
     scanstart = time.time()
 
     # directory where we want the output to go
-    outdir = fileutils.prescan_dir(modelname=modelname,
+    outdir = fileutils.prescan_dir(model_name=model_name,
                                    masses=masses)
 
     # names of .ini and .tsv files
-    ininame = outdir + modelname + ".ini"
-    tsvname_initial = outdir + modelname + ".tsv"
-    tsvname = outdir + modelname + "_prescan.tsv"
+    ininame = outdir + model_name + ".ini"
+    tsvname_initial = outdir + model_name + ".tsv"
+    tsvname = outdir + model_name + "_prescan.tsv"
+
+    # create parse object without .tsv file name
+    parser = Parse(masses=masses,
+                   model_name=model_name)
 
     # print starting message
     print("\nRunning a prescan with",npoints,"points for",str(masses))
@@ -53,8 +59,9 @@ def run_prescan(masses: 'Masses',
                 break
             # if no, print message and return
             elif response in ["no", "n"]:
+                parser.read_file(tsvname)
                 print("Exiting prescan")
-                return 0
+                return parser
             # complain if response is neither yes nor no
             else:
                 print("Please enter 'yes' or 'no'.")
@@ -69,12 +76,13 @@ def run_prescan(masses: 'Masses',
     # if prescan exists, adjust the number of prescan points to run
     if nexisting > 0:
 
-        # if enough points already exist, exit
+        # if enough points already exist, parse and return
         if nexisting >= npoints:
             print("Found a prescan that already has",nexisting,"points.")
             print(npoints,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with the -o option.")
-            return 0
+            parser.read_file(tsvname)
+            return parser
 
         # otherwise reduce the number of points to run with
         npointsOld = npoints
@@ -96,43 +104,53 @@ def run_prescan(masses: 'Masses',
     # print location
     print("Running prescan in",outdir)
 
+    # if config loader is not provided, create one
+    if not config_loader:
+
+        # use default config file name if none is provided
+        if not config_file_name:
+            config_file_name = model_name + "_default.yml"
+
+        # load config file
+        config_loader = ConfigLoader(config_file_name=config_file_name)
+
     # make instance of params
     # this automatically initializes the parameters
-    params = Params(modelname,masses)
+    params = Params(model_name,masses)
 
     # write .ini file from template
     params.write_ini(ininame)
 
     # run ScannerS to sample points
-    result = runScannerS(ininame=ininame,
-                         modelname=modelname,
-                         npoints=npoints,
-                         use_multiprocessing=use_multiprocessing)
+    try:
+        runScannerS(ininame=ininame,
+                    model_name=model_name,
+                    npoints=npoints,
+                    use_multiprocessing=use_multiprocessing)
 
-    # if a process returns a negative result, delete directory and return result
-    if result < 0:
-
-        # inform user
-        print("Removing directory",outdir)
+    # if timeout error is caught, delete the directory and raise
+    except TimeoutError:
 
         # delete directory
         shutil.rmtree(outdir)
 
         # return result from process
-        return result
+        raise
 
     # make sure new .tsv has filter columns
-    initialize_filters(filename=tsvname_initial)
+    initialize_filters(file_name=tsvname_initial)
 
     # save output to tsvname
     tsvutils.save_tsv_output(inputfile=tsvname_initial,
                              outputfile=tsvname)
 
     # apply width and bounds filters
-    apply_filters(filename=tsvname,
+    apply_filters(file_name=tsvname,
                   masses=masses,
-                  modelname=modelname,
-                  maxwidth=maxwidth)
+                  config_loader=config_loader)
+
+    # parse output .tsv file
+    parser.read_file(tsvname)
 
     # get total time taken
     scanend = time.time()
@@ -144,8 +162,8 @@ def run_prescan(masses: 'Masses',
     # print total time to the screen
     print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
 
-    # return after a successful run
-    return 0
+    # return parser after a successful run
+    return parser
 
 if __name__ == "__main__":
 
@@ -156,7 +174,6 @@ if __name__ == "__main__":
     argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-w", "--maxwidth", default=0.15, type=float, help="Maximum allowed width for any scalar")
     argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     args = argparser.parse_args()
@@ -165,8 +182,7 @@ if __name__ == "__main__":
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
     run_prescan(masses=masses,
-                modelname=args.model,
+                model_name=args.model,
                 npoints=args.npoints,
-                maxwidth=args.maxwidth,
                 overwrite=args.overwrite,
                 use_multiprocessing=args.multiprocessing)

@@ -3,18 +3,17 @@ import numpy as np
 from numpy.typing import NDArray
 import random
 from io import StringIO
-from typing import List
 
 class Arrays:
 
     def __init__(self,
-                 filename: str):
+                 file_name: str):
 
-        # store filename
-        self.__filename = filename
+        # store file name
+        self.__file_name = file_name
     
         # empty headers list
-        self.__headers: List[str] = []
+        self.__headers: list[str] = []
 
         # empty array data
         self.__data: NDArray = None
@@ -37,7 +36,7 @@ class Arrays:
     def __load_headers(self) -> None:
 
         # read column headers into list
-        with open(self.__filename,'r') as file:
+        with open(self.__file_name,'r') as file:
             header_line = file.readline().strip()
             self.__headers = header_line.split('\t')
 
@@ -47,19 +46,19 @@ class Arrays:
 
     # load tsv columns into a numpy array
     def load_arrays(self,
-                    filename: str = "",
+                    file_name: str = "",
                     num_lines: int = -1) -> None:
 
-        # if a new filename is provided, store it as class object
-        if filename:
-            self.__filename = filename
+        # if a new file name is provided, store it as class object
+        if file_name:
+            self.__file_name = file_name
 
         # if headers have not be loaded, load them now
         if not self.__headers:
             print("Headers were not loaded, loading now")
             self.load_headers()
 
-        with open(self.__filename, 'r') as f:
+        with open(self.__file_name, 'r') as f:
             _ = f.readline()
             lines = f.readlines()
 
@@ -67,10 +66,19 @@ class Arrays:
             selected_lines = random.sample(lines, num_lines)
             selected_lines_str = ''.join(selected_lines)
 
-            self.__data = np.genfromtxt(StringIO(selected_lines_str), delimiter='\t', dtype=None, names=self.__headers, encoding=None)
+            self.__data = np.genfromtxt(StringIO(selected_lines_str),
+                                        delimiter='\t',
+                                        dtype=None,
+                                        names=self.__headers,
+                                        encoding=None)
         else:
             # create numpy array from the tsv
-            self.__data = np.genfromtxt(self.__filename, delimiter='\t', dtype=None, names=self.__headers, encoding=None, skip_header=1)
+            self.__data = np.genfromtxt(self.__file_name,
+                                        delimiter='\t',
+                                        dtype=None,
+                                        names=self.__headers,
+                                        encoding=None,
+                                        skip_header=1)
 
     # get an array
     def get_array(self,
@@ -89,9 +97,9 @@ class Arrays:
 
     # write arrays to a new file
     def write_file(self,
-                   filename: str) -> None:
+                   file_name: str) -> None:
         # open output file
-        with open(filename,'w') as f:
+        with open(file_name,'w') as f:
             # write headers
             f.write('\t'.join(self.__headers) + '\n')
             # write data

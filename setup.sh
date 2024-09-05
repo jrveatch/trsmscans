@@ -12,6 +12,9 @@ export PATH="${PWD}/ScannerS/build:$PATH"
 # set data directory as environment variable
 export DATADIR="${PWD}/data/"
 
+# set config directory as environment variable
+export CONFIGDIR="${PWD}/config/"
+
 # set run directory as environment variable
 export RUNDIR="${PWD}/run/"
 

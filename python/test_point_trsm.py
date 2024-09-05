@@ -18,7 +18,7 @@ def check_singlet_point(mX: float,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(modelname="TRSMBroken")
+    pred = get_higgs_predictions(model_name="TRSMBroken")
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)
