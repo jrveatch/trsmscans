@@ -12,6 +12,7 @@ from utils.config_loader import ConfigLoader
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"
+header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
                   masses: Masses,
@@ -35,9 +36,9 @@ def apply_filters(file_name: str,
                                  config_loader=config_loader)
 
     # apply bounds filter
-    nbounds = bounds.filter_bounds(file_name=file_name,
-                                   model_name=model_name,
-                                   masses=masses)
+    nbounds, nsignals = bounds.filter_bounds(file_name=file_name,
+                                             model_name=model_name,
+                                             masses=masses)
 
     # get arrays from output file
     arrays = Arrays(file_name)
@@ -45,20 +46,24 @@ def apply_filters(file_name: str,
     # find how many points pass both filters
     filt_width = arrays.data(header_width)
     filt_bounds = arrays.data(header_bounds)
-    filt_total = np.multiply(filt_width,filt_bounds)
+    filt_signals = arrays.data(header_signals)
+    filt_total = np.multiply(filt_width,filt_bounds,filt_signals)
     npass: int = filt_total.sum()
 
     # return numbers of events passing each filter
-    return nwidth, nbounds, npass
+    return nwidth, nbounds, nsignals, npass
 
 def initialize_filters(file_name: str) -> None:
 
-    # initialize both columns
+    # initialize all columns
     tsvutils.initialize_column(file_name=file_name,
                                column_header=header_width,
                                value=1)
     tsvutils.initialize_column(file_name=file_name,
                                column_header=header_bounds,
+                               value=1)
+    tsvutils.initialize_column(file_name=file_name,
+                               column_header=header_signals,
                                value=1)
 
 if __name__ == "__main__":
