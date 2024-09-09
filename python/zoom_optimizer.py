@@ -18,6 +18,8 @@ from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 
+from sample_points import sample_points
+
 class ZoomOptimizer:
 
     def __init__(self,
@@ -48,16 +50,13 @@ class ZoomOptimizer:
         self.top_percentile = {}
         self.top_percentile_xb = None
 
+        self.point_sampler = sample_points(self.outdir, self.params.model_name(), self.maxwidth)
+
         # zoom rates
         self.zoom = zoom
 
         # set minimum number of points per iteration
         self.minpoints = 100
-
-        # create parse object without a filename
-        self.scanparser = Parse(masses=self.params.masses(),
-                                modelname=self.modelname,
-                                decay=self.decay)
 
         # TODO: Names of details and summary files
 
@@ -74,61 +73,11 @@ class ZoomOptimizer:
             identifier = self.label + "_" + identifier
         print("\nIteration:",identifier)
 
-        # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.modelname + "_" + identifier
-        ininame = outname + ".ini"
-        tsvname = outname + ".tsv"
-        temptsv = self.outdir + self.modelname + ".tsv"
-
-        # write new .ini file from template and parameters
-        self.params.write_ini(ininame)
-
-        # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-            self.npoints = self.minpoints
-
-        # run ScannerS
-        self.npoints = runScannerS(ininame=ininame,
-                                   modelname=self.modelname,
-                                   npoints=self.npoints,
-                                   use_multiprocessing=use_multiprocessing)
-
-        # TODO: Figure out what to do if process returns negative value
-
-        # rename output .tsv file to tsvname
-        shutil.move(temptsv,tsvname)
+        self.scanparser = self.point_sampler.pass_info(self.params, identifier, self.decay, self.npoints)
 
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.npoints / volume
-
-        # apply width and bounds filters
-        nwidth, nbounds, npass = apply_filters(filename=tsvname,
-                                                       masses=self.params.masses(),
-                                                       modelname=self.modelname,
-                                                       maxwidth=self.maxwidth)
-
-        # TODO: Figure out whether these are needed and what return values to use
-        # protection against the case where all points fail width filter
-        if nwidth == 0:
-            details = open(self.detailsname,"a")
-            details.write("Iteration = " + str(identifier) + "\n")
-            details.write("Skip due to " + str(nwidth) + " events passing width filter\n")
-            details.write("\n\n\n\n")
-            details.close()
-            return
-
-        # protection against the case where all points fail bounds filter
-        if nbounds == 0:
-            details = open(self.detailsname,"a")
-            details.write("Iteration = " + str(identifier) + "\n")
-            details.write("Skip due to " + str(nbounds) + " events passing bounds filter\n")
-            details.write("\n\n")
-            details.close()
-            return
-
-        # read output tsv into parser
-        self.scanparser.read_file(filename=tsvname)
 
         # get new point as the maximum from the current scan
         newPoint = self.scanparser.get_max_xb_point()
@@ -158,9 +107,9 @@ class ZoomOptimizer:
         details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
-        details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
-        details.write(str(npass) + "/" + str(self.npoints) + " pass both checks\n")
+        details.write(str(self.point_sampler.get_nwidth()) + "/" + str(self.npoints) + " pass width cut of " + str(self.maxwidth) + "\n")
+        details.write(str(self.point_sampler.get_nbounds()) + "/" + str(self.npoints) + " pass bounds check\n")
+        details.write(str(self.point_sampler.get_npass()) + "/" + str(self.npoints) + " pass both checks\n")
         details.write("--------------------\n")
         details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
         details.write("Update optimal point: " + str(update) + "\n")
