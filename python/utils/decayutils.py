@@ -5,10 +5,10 @@ import os
 def is_valid_decay(decaymode: str) -> bool:
 
     # decay mode file name
-    filename = os.environ['DATADIR'] + "decaymodes.txt"
+    file_name = os.environ['DATADIR'] + "decaymodes.txt"
 
     # search for decaymode in file
-    with open(filename, 'r') as file:
+    with open(file_name, 'r') as file:
         # loop over every line in the file
         for line in file:
             # skip blank lines

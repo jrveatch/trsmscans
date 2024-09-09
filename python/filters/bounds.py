@@ -8,8 +8,8 @@ from utils import tsvutils
 from utils.masses import Masses
 
 # TODO: Make this work for other models
-def filter_bounds(filename: str,
-                  modelname: str,
+def filter_bounds(file_name: str,
+                  model_name: str,
                   masses: Masses,
                   debug = False) -> int:
 
@@ -18,10 +18,10 @@ def filter_bounds(filename: str,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(modelname=modelname)
+    pred = get_higgs_predictions(model_name=model_name)
 
     # get HiggsSignals Chi^2 for SM
-    ress_SM = signals(pred)
+    signals_result_SM = signals(pred)
 
     # get particles
     H = pred.particle('H')
@@ -33,16 +33,20 @@ def filter_bounds(filename: str,
     SName = masses.SName
     XName = masses.XName
 
-    # initialize column in case it doesn't exist
-    tsvutils.initialize_column(filename=filename,
+    # initialize columns in case they don't exist
+    tsvutils.initialize_column(file_name=file_name,
                                column_header="filt_bounds",
+                               value=1)
+    tsvutils.initialize_column(file_name=file_name,
+                               column_header="filt_signals",
                                value=1)
 
     # load in arrays from .tsv file
-    arrs = Arrays(filename)
+    arrs = Arrays(file_name)
 
-    # get filt_bounds array
+    # get filter arrays
     filt_bounds = arrs.data('filt_bounds')
+    filt_signals = arrs.data('filt_signals')
 
     for i in range(arrs.data('idx').size):
 
@@ -277,65 +281,72 @@ def filter_bounds(filename: str,
             X.setBr('S', 'S', b_X_SS)
             X.setBr('H', 'S', b_X_SH)
 
-        resb = bounds(pred)
+        # get bounds and signals results
+        bounds_result = bounds(pred)
+        signals_result = signals(pred)
 
-        if debug is True:
-            print(resb)
-            print(resb.allowed)
-
-        if resb.allowed == False:
-            limits1 = [a for a in bounds(pred).appliedLimits if "H" in a.contributingParticles()]
-            limits2 = [a for a in bounds(pred).appliedLimits if "S" in a.contributingParticles()]
-            limits3 = [a for a in bounds(pred).appliedLimits if "X" in a.contributingParticles()]
-            limits = [a for a in bounds(pred).appliedLimits if a.obsRatio() > 1.0]
-
-            # TODO: lim.limit().id() is the channel identifier
-            # we will want to ignore 13022 at least near 125 since it excludes SM
-            if debug is True:
-                for lim in limits1:
-                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                        print('\t hbexcl1 ', idx,'\t 1',  mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-                for lim in limits2:
-                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                        print('\t hbexcl2 ', idx,'\t 2', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-                for lim in limits3:
-                    if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                        print('\t hbexcl3 ', idx,'\t 3', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
-
-        # get and print the HiggsSignal result
-        ress = signals(pred)
-        if debug is True:
-            print(ress)
-
+        # get HiggsSignals result using model and SM
         # this is now specific for bp1
         HS_allowed = False
         # bp1 and bp4 and low low
         #if mH3-mH1-mH2< 0:
         # bp2 and bp5 and high low
         #if mH2-2*mH1 < 0:
-        if ress - ress_SM < 4.00:
+        if signals_result - signals_result_SM < 4.00:
             HS_allowed = True
         else:
             HS_allowed = False
 
+        # print out debug information
         if debug is True:
-            print(resb.allowed)
+            print_bounds_result(bounds_result=bounds_result,
+                                idx=idx,
+                                mX=mX,
+                                mS=mS,
+                                mH=mH)
+            print(signals_result)
             print(HS_allowed)
 
-        # check whether requirements are passed
-        pass_filt = False
-        if int(resb.allowed) and int(HS_allowed):
-            pass_filt = True
-        filt_bounds[i] = int(pass_filt)
+        # save whether requirements are passed
+        filt_bounds[i] = int(bounds_result.allowed)
+        filt_signals[i] = int(HS_allowed)
 
-    # save array of results and write to output file
+    # save arrays of results and write to output file
     arrs.set_array('filt_bounds',filt_bounds)
-    arrs.write_file(filename)
-
-    if debug is True:
-        print("Done!")
-        print('Total number of points =', i)
+    arrs.set_array('filt_signals',filt_signals)
+    arrs.write_file(file_name)
 
     # number of entries that pass
-    npass = filt_bounds.sum()
-    return npass
+    nbounds = filt_bounds.sum()
+    nsignals = filt_signals.sum()
+    return nbounds, nsignals
+
+def print_bounds_result(bounds_result,
+                        idx: int,
+                        mX: float,
+                        mS: float,
+                        mH: float) -> None:
+
+    print(bounds_result)
+    print(bounds_result.allowed)
+    
+    if bounds_result.allowed is False:
+        limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]
+        limits2 = [a for a in bounds_result.appliedLimits if "S" in a.contributingParticles()]
+        limits3 = [a for a in bounds_result.appliedLimits if "X" in a.contributingParticles()]
+        limits = [a for a in bounds_result.appliedLimits if a.obsRatio() > 1.0]
+        
+        # TODO: lim.limit().id() is the channel identifier
+        # we will want to ignore 13022 at least near 125 since it excludes SM
+        for lim in limits1:
+            if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                print('\t hbexcl1 ', idx,'\t 1',  mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+        for lim in limits2:
+            if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                print('\t hbexcl2 ', idx,'\t 2', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+        for lim in limits3:
+            if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                print('\t hbexcl3 ', idx,'\t 3', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+        for lim in limits:
+            if lim.expRatio() > 1 and lim.obsRatio() > 1:
+                print('\t hbexcl ', idx, mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())

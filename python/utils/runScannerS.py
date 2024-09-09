@@ -13,25 +13,25 @@ import argparse
 # method to run ScannerS
 def runScannerS(ininame: str,
                 npoints: int,
-                modelname: str,
+                model_name: str,
                 use_multiprocessing: bool) -> int:
 
     # if only one process needed, use subprocess
     if not use_multiprocessing:
-        return runSingleProcess(ininame=ininame,
-                                npoints=npoints,
-                                modelname=modelname)
+        return run_single_process(ininame=ininame,
+                                  npoints=npoints,
+                                  model_name=model_name)
 
     # otherwise use multiprocessing
     else:
-        return runParallelProcesses(ininame=ininame,
-                                    npoints=npoints,
-                                    modelname=modelname)
+        return run_parallel_processes(ininame=ininame,
+                                      npoints=npoints,
+                                      model_name=model_name)
 
 # run job as a single process
-def runSingleProcess(ininame: str,
-                     npoints: int,
-                     modelname: str) -> int:
+def run_single_process(ininame: str,
+                       npoints: int,
+                       model_name: str) -> int:
 
     # simple information message
     print(f"Running ScannerS as a single process with",npoints,"points.")
@@ -43,15 +43,13 @@ def runSingleProcess(ininame: str,
         quit()
 
     # define process
-    process = [modelname, "--config", ininame, "scan", "-n", str(npoints)]
+    process = [model_name, "--config", ininame, "scan", "-n", str(npoints)]
 
     # run the process
-    result = run_subprocess(process,modelname)
-
-    # pass failed job error up the line
-    if result < 0:
-        print("Single process timed out. Exiting.")
-        return result
+    try:
+        run_subprocess(process,model_name)
+    except TimeoutError:
+        raise
 
     # simple information message
     print("Finished running process")
@@ -60,10 +58,10 @@ def runSingleProcess(ininame: str,
     return npoints
 
 # run multiple processes in parallel
-def runParallelProcesses(ininame: str,
-                         npoints: int,
-                         modelname: str,
-                         njobs=-1) -> int:
+def run_parallel_processes(ininame: str,
+                           npoints: int,
+                           model_name: str,
+                           njobs=-1) -> int:
 
     # complain and exit if .ini doesn't exist
     if not os.path.exists(ininame):
@@ -76,9 +74,9 @@ def runParallelProcesses(ininame: str,
     # if there is only 1 CPU available, run a single process
     if ncpu == 1:
         print("Only 1 CPU available, running as a single process")
-        return runSingleProcess(ininame=ininame,
-                                npoints=npoints,
-                                modelname=modelname)
+        return run_single_process(ininame=ininame,
+                                  npoints=npoints,
+                                  model_name=model_name)
 
     # set number of workers to 80% of the available cores
     nworkers = int(ncpu * 0.8)
@@ -97,6 +95,13 @@ def runParallelProcesses(ininame: str,
     # minimum number of points per job
     min_points = 10
 
+    # if fewer than 2 processes are needed, run a single process
+    if npoints < 2 * min_points:
+        print("Only 1 process needed, running as a single process")
+        return run_single_process(ininame=ininame,
+                                  npoints=npoints,
+                                  model_name=model_name)
+
     # get number of points per job, rounded up
     points_per_job = math.ceil(npoints/num_processes)
 
@@ -105,26 +110,17 @@ def runParallelProcesses(ininame: str,
         num_processes = math.ceil(npoints/min_points) - 1
         points_per_job = min_points
 
-    # if fewer than 2 processes are needed, run a single process
-    if num_processes < 2:
-        print("Only 1 process needed, running as a single process")
-        return runSingleProcess(ininame=ininame,
-                                npoints=npoints,
-                                modelname=modelname)
-
     # print out some information
     print("Running test job with",min_points,"points")
 
     # define test process with 10 points
-    test_process = [modelname, "--config", ininame, "scan", "-n", str(min_points)]
+    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points)]
 
     # run test process
-    test_result = run_subprocess(test_process,modelname)
-
-    # if test_result indicates a timeout, complain and exit
-    if test_result < 0:
-        print("Test job timed out. Exiting.")
-        return test_result
+    try:
+        run_subprocess(test_process,model_name)
+    except TimeoutError:
+        raise
 
     # print out some information
     print("Test job was successful")
@@ -139,7 +135,7 @@ def runParallelProcesses(ininame: str,
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [modelname, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ininame, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -162,10 +158,11 @@ def runParallelProcesses(ininame: str,
     print("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
-    concatenate_files(directories,modelname+".tsv")
+    concatenate_files(directories=directories,
+                      file_name=model_name+".tsv")
 
-    # return number of points that are actually used
-    return npoints
+    # return number of points that are actually used, including test job points
+    return npoints + min_points
 
 # run a process for multiprocessing
 def run_process(process: list[str],
@@ -194,19 +191,19 @@ def run_process(process: list[str],
 
 # run a python subprocess for a single job
 def run_subprocess(process: list[str],
-                   modelname: str) -> int:
+                   model_name: str) -> None:
 
     # output file name
-    outfile = modelname + ".tsv"
+    outfile = model_name + ".tsv"
 
     # log file
     log = open("ScannerS.log", "w")
 
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout = 20
+
     # launch process
     process = subprocess.Popen(process, stdout=log, stderr=log)
-
-    # time in seconds at which process will be killed if nothing is printed out
-    timeout = 30
 
     # get start time
     start_time = time.time()
@@ -223,14 +220,14 @@ def run_subprocess(process: list[str],
             # if output file is empty, complain, kill process and exit
             if os.path.exists(outfile) and not os.path.getsize(outfile):
 
-                # complain
-                print("No output after",timeout,"seconds. Exiting!")
-
                 # kill process
                 process.kill()
 
-                # exit
-                return -1
+                # make exception message
+                msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
+
+                # raise timeout exception
+                raise TimeoutError(msg)
 
             # only need to check timeout once
             check_timeout = False
@@ -239,18 +236,18 @@ def run_subprocess(process: list[str],
         time.sleep(1)
 
     # successful run
-    return 0
+    return
 
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: list[str],
-                      filename: str) -> None:
+                      file_name: str) -> None:
 
     # loop over temporary directories
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(inputfile=directory+"/"+filename,
-                                 outputfile=filename)
+        tsvutils.save_tsv_output(inputfile=directory+"/"+file_name,
+                                 outputfile=file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)
@@ -269,6 +266,6 @@ if __name__ == "__main__":
 
     # run ScannerS using baseline .ini
     runScannerS(ininame=ininame,
-                modelname=args.model,
+                model_name=args.model,
                 npoints=args.npoints,
                 njobs=args.njobs)

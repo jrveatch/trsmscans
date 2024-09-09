@@ -3,8 +3,6 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from typing import Dict
-
 # import list of arrays
 from utils.arrays import Arrays
 
@@ -29,25 +27,18 @@ class Parse:
     # load new set of arrays
     def __init__(self,
                  masses: Masses,
-                 decay: str,
-                 modelname: str,
-                 filename: str = ""):
+                 model_name: str,
+                 file_name: str = ""):
         
         # initialize model name
-        self.__modelname = modelname
+        self.__model_name = model_name
 
         # initialize model
-        self.__model = Model(modelname)
+        self.__model = Model(model_name)
 
         # initialize HName and SName
         self.__HName = masses.HName
         self.__SName = masses.SName
-
-        # initialize decay mode
-        self.__decay = decay
-
-        # initialize xb array
-        self.__xb: NDArray = None
 
         # initialize x-sec and BR arrays
         self.__b_H_bb: NDArray = None
@@ -64,38 +55,42 @@ class Parse:
         self.__b_X_SH: NDArray = None
 
         # initialize dictionary of parameter arrays
-        self.__par_arrays: Dict[str,NDArray] = {}
+        self.__par_arrays: dict[str,NDArray] = {}
 
-        # get arrays from provided filename if it is provided
-        if filename:
-            self.read_file(filename)
+        # get arrays from file name if it is provided
+        if file_name:
+            self.read_file(file_name)
 
     # load new arrays
     def read_file(self,
-                  filename: str) -> None:
+                  file_name: str) -> None:
 
         # create arrays object if it does not exist
         if not hasattr(self,"arrays"):
-            self.arrays = Arrays(filename)
+            self.arrays = Arrays(file_name)
 
         # load arrays from new file if arrays object already exists
         else:
-            self.arrays.load_arrays(filename)
+            self.arrays.load_arrays(file_name)
 
         # get arrays masked by filters
         self.__make_filtered_arrays()
 
     # find the point that maximizes xb
-    def get_max_xb_point(self) -> 'Point':
+    def get_max_xb_point(self,
+                         decay: str) -> 'Point':
+        
+        # get xb
+        xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(self.__xb)
+        maxidx = np.argmax(xb)
 
         # get max xsec times BR
-        maxxb = self.__xb[maxidx]
+        maxxb = xb[maxidx]
         
         # make dictionary for parameter values for maxxb
-        maxxb_parvals: Dict[str,float] = {}
+        maxxb_parvals: dict[str,float] = {}
 
         # loop over parameter arrays and store optimal value of each
         for par, array in self.__par_arrays.items():
@@ -103,7 +98,7 @@ class Parse:
 
         # return a point object holding xb and other parameters
         return Point(xb = maxxb,
-                     modelname = self.__modelname,
+                     model_name = self.__model_name,
                      parvals = maxxb_parvals)
 
     # get minimum value of a parameter
@@ -117,28 +112,22 @@ class Parse:
         return np.max(self.__par_arrays[parname])
     
     # get arrays of all parameter as a dictionary
-    def get_parameter_arrays(self) -> Dict[str,NDArray]:
+    def get_parameter_arrays(self) -> dict[str,NDArray]:
         return self.__par_arrays
-
-    # get xb array
-    def get_xb(self,
-               decay: str = "") -> NDArray:
-        # if a decay mode is provided that is not the class member, return the corresponding xb
-        if decay and decay != self.__decay:
-            return self.__calc_xb(decay)
-        # otherwise return the default xb
-        else:
-            return self.__xb
 
     # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
-                   param_name: str) -> bool:
+                   param_name: str,
+                   decay: str) -> bool:
 
         # percentile threshold for xb
         percentile_threshold = 98
 
+        # get xb
+        xb = self.get_xb(decay)
+
         # number of points available
-        npoints = len(self.__xb)
+        npoints = len(xb)
 
         # minimum number of points for test
         min_points = 200
@@ -152,10 +141,10 @@ class Parse:
             percentile_threshold = 0
 
         # get xb value that corresponds to percentile threshold
-        threshold_value = np.percentile(self.__xb, percentile_threshold)
+        threshold_value = np.percentile(xb, percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.__par_arrays[param_name][self.__xb > threshold_value] 
+        param_selected = self.__par_arrays[param_name][xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -169,9 +158,9 @@ class Parse:
         else:
             return False
 
-    # get the maximum xb
-    def __calc_xb(self,
-                  decay: str) -> NDArray:
+    # get xb array
+    def get_xb(self,
+               decay: str) -> NDArray:
 
         # get production cross section
         xb_prod = self.__get_xb_prod()
@@ -297,7 +286,7 @@ class Parse:
 
     # get arrays of the filters
     def __set_filters(self) -> None:
-        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'))
+        self.filters = np.multiply(self.arrays.data('filt_width'),self.arrays.data('filt_bounds'),self.arrays.data('filt_signals'))
 
     # apply filters as mask
     def __make_filtered_arrays(self) -> None:
@@ -332,12 +321,9 @@ class Parse:
         self.__x_X_gg = self.arrays.data('x_H3_gg')[self.filters != 0]
         self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
 
-        # cross-section times branching ratio
-        self.__xb = self.__calc_xb(self.__decay)
-
     # get number of filtered events
     def get_n_points(self) -> int:
-        return self.__xb.size
+        return next(iter(self.__par_arrays.values())).size
 
     # get number of unfiltered events
     def get_n_unfiltered_points(self) -> int:

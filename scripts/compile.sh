@@ -1,8 +1,8 @@
 
 # compile ScannerS
-echo "\n"
-echo "Trying to compile ScannerS"
-echo "\n"
+printf "\n"
+printf "Trying to compile ScannerS"
+printf "\n"
 cd ScannerS
 if [ ! -d build ]; then
     mkdir build
@@ -13,9 +13,9 @@ make
 cd ../..
 
 # compile higgstools with C++
-echo "\n"
-echo "Trying to compile higgstools"
-echo "\n"
+printf "\n"
+printf "Trying to compile higgstools"
+printf "\n"
 cd higgstools
 if [ ! -d build ]; then
     mkdir build
@@ -26,10 +26,9 @@ make
 cd ../..
 
 # compile higgstools python module
-echo "\n"
-echo "Trying to compile higgstools python"
-echo "\n"
+printf "\n"
+printf "Trying to compile higgstools python"
+printf "\n"
 cd higgstools
 pip install .
 cd ..
-

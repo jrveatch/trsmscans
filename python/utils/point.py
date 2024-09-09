@@ -5,23 +5,20 @@ from utils.model import Model
 # import decimal class for nicely formatted strings
 from decimal import Decimal
 
-# import typing Dict
-from typing import Dict
-
 # class that holds parameter and xb values for a single point
 class Point:
 
     # initialize point parameters
     def __init__(self,
-                 modelname: str,
-                 parvals: Dict[str,float] = {},
+                 model_name: str,
+                 parvals: dict[str,float] = {},
                  xb: float = 0.0):
         
         # get model
-        self.model = Model(modelname)
+        self.model = Model(model_name)
 
         # initialize empty dictionary
-        self.parvals: Dict[str,float] = {}
+        self.parvals: dict[str,float] = {}
 
         # if parvals exists, store it
         if parvals:
