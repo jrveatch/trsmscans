@@ -125,6 +125,10 @@ class Parse:
     def get_max_xb_line(self) -> str:
         return self.__max_xb_line
 
+    # get header for .tsv
+    def get_tsv_header(self) -> str:
+        return self.arrays.get_header_string()
+
     # get minimum value of a parameter
     def get_min(self,
                 parname: str) -> float:
