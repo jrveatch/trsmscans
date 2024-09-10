@@ -60,7 +60,7 @@ class Point:
     
     # get formatted string of xb
     def format_xb(self) -> str:
-        return f"{Decimal(self.xb):.3E}"
+        return f"{Decimal(self.xb):.2E}"
     
     # get formatted string of parameter
     def format_param(self,
