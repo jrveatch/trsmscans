@@ -95,9 +95,10 @@ class Scan:
         # create summary file
         self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
-        summary.write("Iter xbmax")
+        summary.write("xbmax")
         for parameter in self.params.parameters().values():
-            summary.write(" " + parameter.fullname())
+            summary.write("\t" + parameter.fullname())
+        summary.write("\titer")
         summary.write("\n")
         summary.close()
 
@@ -203,10 +204,10 @@ class Scan:
 
         # write scan results to summary file
         summary = open(self.summary_name, "a")
-        summary.write("Pre")
-        summary.write(" " + self.optPoint.format_xb())
+        summary.write(self.optPoint.format_xb())
         for name, parameter in self.params.parameters().items():
-            summary.write(" " + f"{self.optPoint.get_val(name):1.{parameter.precision()}f}")
+            summary.write("\t" + f"{self.optPoint.get_val(name):1.{parameter.precision()}f}")
+        summary.write("\tPre")
         summary.write("\n")
         summary.close()
 
