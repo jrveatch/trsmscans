@@ -309,7 +309,7 @@ class Parse:
 
     # get arrays of the filters
     def __set_filters(self) -> None:
-        self.filters = self.arrays.data('filt_width') * self.arrays.data('filt_bounds') * self.arrays.data('filt_signals')
+        self.__filters = self.arrays.data('filt_width') * self.arrays.data('filt_bounds') * self.arrays.data('filt_signals')
 
     # apply filters as mask
     def __make_filtered_arrays(self) -> None:
@@ -324,28 +324,28 @@ class Parse:
         # loop over parameters
         for name, par in self.__model.parameters().items():
             # populate dictionary of parameter arrays
-            self.__par_arrays[name] = self.arrays.data(par['fullname'])[self.filters != 0]
+            self.__par_arrays[name] = self.arrays.data(par['fullname'])[self.__filters != 0]
 
         # H xsec and BR values
-        self.__b_H_bb = self.arrays.data('b_'+self.__HName+'_bb')[self.filters != 0]
-        self.__b_H_tautau = self.arrays.data('b_'+self.__HName+'_tautau')[self.filters != 0]
-        self.__b_H_WW = self.arrays.data('b_'+self.__HName+'_WW')[self.filters != 0]
-        self.__b_H_ZZ = self.arrays.data('b_'+self.__HName+'_ZZ')[self.filters != 0]
-        self.__b_H_gamgam = self.arrays.data('b_'+self.__HName+'_gamgam')[self.filters != 0]
+        self.__b_H_bb = self.arrays.data('b_'+self.__HName+'_bb')[self.__filters != 0]
+        self.__b_H_tautau = self.arrays.data('b_'+self.__HName+'_tautau')[self.__filters != 0]
+        self.__b_H_WW = self.arrays.data('b_'+self.__HName+'_WW')[self.__filters != 0]
+        self.__b_H_ZZ = self.arrays.data('b_'+self.__HName+'_ZZ')[self.__filters != 0]
+        self.__b_H_gamgam = self.arrays.data('b_'+self.__HName+'_gamgam')[self.__filters != 0]
 
         # S xsec and BR values
-        self.__b_S_bb = self.arrays.data('b_'+self.__SName+'_bb')[self.filters != 0]
-        self.__b_S_tautau = self.arrays.data('b_'+self.__SName+'_tautau')[self.filters != 0]
-        self.__b_S_WW = self.arrays.data('b_'+self.__SName+'_WW')[self.filters != 0]
-        self.__b_S_ZZ = self.arrays.data('b_'+self.__SName+'_ZZ')[self.filters != 0]
-        self.__b_S_gamgam = self.arrays.data('b_'+self.__SName+'_gamgam')[self.filters != 0]
+        self.__b_S_bb = self.arrays.data('b_'+self.__SName+'_bb')[self.__filters != 0]
+        self.__b_S_tautau = self.arrays.data('b_'+self.__SName+'_tautau')[self.__filters != 0]
+        self.__b_S_WW = self.arrays.data('b_'+self.__SName+'_WW')[self.__filters != 0]
+        self.__b_S_ZZ = self.arrays.data('b_'+self.__SName+'_ZZ')[self.__filters != 0]
+        self.__b_S_gamgam = self.arrays.data('b_'+self.__SName+'_gamgam')[self.__filters != 0]
 
         # X xsec and BR values
-        self.__x_X_gg = self.arrays.data('x_H3_gg')[self.filters != 0]
-        self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.filters != 0]
+        self.__x_X_gg = self.arrays.data('x_H3_gg')[self.__filters != 0]
+        self.__b_X_SH = self.arrays.data('b_H3_H1H2')[self.__filters != 0]
 
         # original indices
-        self.__prefilter_idx = self.arrays.data('idx')[self.filters != 0]
+        self.__prefilter_idx = self.arrays.data('idx')[self.__filters != 0]
 
     # get number of filtered events
     def get_n_points(self) -> int:
