@@ -358,7 +358,7 @@ if __name__ == "__main__":
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
 
-    # creaate scan object
+    # create scan object
     myScan = Scan(masses=masses,
                   model_name=args.model,
                   decay=args.decay,
