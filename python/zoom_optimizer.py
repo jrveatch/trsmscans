@@ -166,6 +166,7 @@ class ZoomOptimizer:
         # print iteration time to screen
         print("Iteration took",str(datetime.timedelta(seconds=int(itertime))),"(hh:mm:ss)")
 
+        # TODO: Factorize this to a function after sample_points change is merged
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
         details = open(self.details_name,"a")
@@ -196,19 +197,12 @@ class ZoomOptimizer:
 
         # if a new optimal point is found
         if update is True:
-            # write scan results to summary file
-            summary = open(self.summary_name,"a")
-            summary.write(identifier)
-            summary.write(" " + self.optPoint.format_xb())
-            for name, par in self.params.parameters().items():
-                summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
-            summary.write("\n")
-            summary.close()
 
-            # write scan results to summary file
-            tsv_summary = open(self.tsv_summary_name,"a")
-            tsv_summary.write(self.scanparser.get_max_xb_line())
-            tsv_summary.close()
+            # write max xb point summary to info file
+            self.write_summary(identifier)
+
+            # write max xb point raw .tsv line to info file
+            self.write_tsv_summary()
 
         # check zoom strategy and call method accordingly
         match self.strategy:
@@ -232,6 +226,22 @@ class ZoomOptimizer:
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         return
+
+    # write max xb point summary to info file
+    def write_summary(self, identifier) -> None:
+        summary = open(self.summary_name,"a")
+        summary.write(self.optPoint.format_xb())
+        for name, par in self.params.parameters().items():
+            summary.write("\t" + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
+        summary.write("\t" + identifier)
+        summary.write("\n")
+        summary.close()
+
+    # write max xb point raw .tsv line to info file
+    def write_tsv_summary(self) -> None:
+        tsv_summary = open(self.tsv_summary_name,"a")
+        tsv_summary.write(self.scanparser.get_max_xb_line())
+        tsv_summary.close()
 
     # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:
