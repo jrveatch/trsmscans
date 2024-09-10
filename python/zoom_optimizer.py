@@ -23,8 +23,8 @@ from utils.config_loader import ConfigLoader
 class ZoomOptimizer:
 
     def __init__(self,
-                 detailsname: str,
-                 summaryname: str,
+                 details_name: str,
+                 summary_name: str,
                  params: 'Params',
                  decay: str,
                  npoints: int,
@@ -33,8 +33,8 @@ class ZoomOptimizer:
                  label: str = ""):
 
         # some basic scanner information
-        self.detailsname = detailsname
-        self.summaryname = summaryname
+        self.details_name = details_name
+        self.summary_name = summary_name
         self.params = params
         self.decay = decay
         self.npoints = npoints
@@ -119,7 +119,7 @@ class ZoomOptimizer:
         # TODO: Figure out whether these are needed and what return values to use
         # protection against the case where all points fail width filter
         if nwidth == 0:
-            details = open(self.detailsname,"a")
+            details = open(self.details_name,"a")
             details.write("Iteration = " + str(identifier) + "\n")
             details.write("Skip due to " + str(nwidth) + " events passing width filter\n")
             details.write("\n\n\n\n")
@@ -128,7 +128,7 @@ class ZoomOptimizer:
 
         # protection against the case where all points fail bounds filter
         if nbounds == 0:
-            details = open(self.detailsname,"a")
+            details = open(self.details_name,"a")
             details.write("Iteration = " + str(identifier) + "\n")
             details.write("Skip due to " + str(nbounds) + " events passing bounds filter\n")
             details.write("\n\n")
@@ -161,7 +161,7 @@ class ZoomOptimizer:
 
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
-        details = open(self.detailsname,"a")
+        details = open(self.details_name,"a")
         details.write("Iteration = " + str(identifier) + "\n")
         details.write("--------------------\n")
         details.write("Using " + str(self.npoints) + " scan points\n")
@@ -190,7 +190,7 @@ class ZoomOptimizer:
         # if a new optimal point is found
         if update is True:
             # write scan results to summary file
-            summary = open(self.summaryname,"a")
+            summary = open(self.summary_name,"a")
             summary.write(identifier)
             summary.write(" " + self.optPoint.format_xb())
             for name, par in self.params.parameters().items():

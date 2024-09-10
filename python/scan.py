@@ -93,8 +93,8 @@ class Scan:
             os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
-        self.summaryname = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
-        summary = open(self.summaryname, "w")
+        self.summary_name = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        summary = open(self.summary_name, "w")
         summary.write("Iter xbmax")
         for parameter in self.params.parameters().values():
             summary.write(" " + parameter.fullname())
@@ -102,8 +102,8 @@ class Scan:
         summary.close()
 
         # create details file
-        self.detailsname = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
-        details = open(self.detailsname, "w")
+        self.details_name = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
 
@@ -182,7 +182,7 @@ class Scan:
         self.optPoint = self.prescan_parser.get_max_xb_point(self.decay)
 
         # write scan details to details file
-        details = open(self.detailsname, "a")
+        details = open(self.details_name, "a")
         details.write("Prescan\n")
         details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
@@ -198,7 +198,7 @@ class Scan:
         details.close()
 
         # write scan results to summary file
-        summary = open(self.summaryname, "a")
+        summary = open(self.summary_name, "a")
         summary.write("Pre")
         summary.write(" " + self.optPoint.format_xb())
         for name, parameter in self.params.parameters().items():
@@ -252,7 +252,7 @@ class Scan:
         print("Scan took", str(datetime.timedelta(seconds=int(scantime))), "(hh:mm:ss)\n")
 
         # write time info to details file
-        details = open(self.detailsname, "a")
+        details = open(self.details_name, "a")
         details.write("Scan took " + str(datetime.timedelta(seconds=int(scantime))) + " (hh:mm:ss)")
         details.close()
         return
@@ -318,8 +318,8 @@ class Scan:
                 params=params_copy,
                 decay=self.decay,
                 optPoint=self.optPoint,
-                detailsname=self.detailsname,
-                summaryname=self.summaryname,
+                details_name=self.details_name,
+                summary_name=self.summary_name,
                 config_loader=self.config_loader,
                 label=f'ZoomOptimizer-{i}'
             )
