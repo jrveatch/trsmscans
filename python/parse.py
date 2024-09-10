@@ -121,6 +121,7 @@ class Parse:
                      model_name = self.__model_name,
                      parvals = maxxb_parvals)
 
+    # get line from .tsv corresponding to max xb point
     def get_max_xb_line(self) -> str:
         return self.__max_xb_line
 
