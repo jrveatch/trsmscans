@@ -107,7 +107,7 @@ class Scan:
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.outdir + "scan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.outdir + "prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
@@ -328,9 +328,6 @@ class Scan:
                 params=params_copy,
                 decay=self.decay,
                 optPoint=self.optPoint,
-                details_name=self.details_name,
-                summary_name=self.summary_name,
-                tsv_summary_name=self.tsv_summary_name,
                 config_loader=self.config_loader,
                 label=f'ZoomOptimizer-{i}'
             )

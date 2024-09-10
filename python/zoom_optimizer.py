@@ -6,6 +6,7 @@ import time
 import datetime
 import numpy as np
 import math
+import shutil
 
 # import decimal
 from decimal import Decimal
@@ -23,9 +24,6 @@ from utils.config_loader import ConfigLoader
 class ZoomOptimizer:
 
     def __init__(self,
-                 details_name: str,
-                 summary_name: str,
-                 tsv_summary_name: str,
                  params: 'Params',
                  decay: str,
                  npoints: int,
@@ -34,9 +32,6 @@ class ZoomOptimizer:
                  label: str = ""):
 
         # some basic scanner information
-        self.details_name = details_name
-        self.summary_name = summary_name
-        self.tsv_summary_name = tsv_summary_name
         self.params = params
         self.decay = decay
         self.npoints = npoints
@@ -65,6 +60,16 @@ class ZoomOptimizer:
         self.outdir = fileutils.scan_dir(model_name=self.model_name,
                                          decay=decay,
                                          masses=self.params.masses())
+
+        # get output information file names
+        output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
+        self.summary_name = self.outdir + "scan_summary_" + output_file_postfix
+        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + output_file_postfix
+        self.prescan_details_name = self.outdir + "prescan_details_" + output_file_postfix
+        self.details_name = self.outdir + "scan_details_" + self.label + "_" + output_file_postfix
+
+        # copy prescan details file to zoom optimizer details file
+        shutil.copy(self.prescan_details_name,self.details_name)
 
         # create parse object without a file name
         self.scanparser = Parse(masses=self.params.masses(),
