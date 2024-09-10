@@ -25,6 +25,7 @@ class ZoomOptimizer:
     def __init__(self,
                  details_name: str,
                  summary_name: str,
+                 tsv_summary_name: str,
                  params: 'Params',
                  decay: str,
                  npoints: int,
@@ -35,6 +36,7 @@ class ZoomOptimizer:
         # some basic scanner information
         self.details_name = details_name
         self.summary_name = summary_name
+        self.tsv_summary_name = tsv_summary_name
         self.params = params
         self.decay = decay
         self.npoints = npoints
@@ -197,6 +199,11 @@ class ZoomOptimizer:
                 summary.write(" " + f"{self.optPoint.get_val(name):1.{par.precision()}f}")
             summary.write("\n")
             summary.close()
+
+            # write scan results to summary file
+            tsv_summary = open(self.tsv_summary_name,"a")
+            tsv_summary.write(self.scanparser.get_max_xb_line())
+            tsv_summary.close()
 
         # check zoom strategy and call method accordingly
         match self.strategy:

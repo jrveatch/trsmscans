@@ -93,7 +93,7 @@ class Scan:
             os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
-        self.summary_name = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("Iter xbmax")
         for parameter in self.params.parameters().values():
@@ -101,8 +101,13 @@ class Scan:
         summary.write("\n")
         summary.close()
 
+        # create raw output file
+        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        tsv_summary = open(self.tsv_summary_name, "w")
+        tsv_summary.close()
+
         # create details file
-        self.details_name = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.outdir + "scan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
@@ -204,6 +209,12 @@ class Scan:
             summary.write(" " + f"{self.optPoint.get_val(name):1.{parameter.precision()}f}")
         summary.write("\n")
         summary.close()
+
+        # write scan max xb tsv line to tsv summary file
+        tsv_summary = open(self.tsv_summary_name, "a")
+        tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
+        tsv_summary.write(self.prescan_parser.get_max_xb_line())
+        tsv_summary.close()
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -319,6 +330,7 @@ class Scan:
                 optPoint=self.optPoint,
                 details_name=self.details_name,
                 summary_name=self.summary_name,
+                tsv_summary_name=self.tsv_summary_name,
                 config_loader=self.config_loader,
                 label=f'ZoomOptimizer-{i}'
             )
