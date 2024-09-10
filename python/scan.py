@@ -231,7 +231,7 @@ class Scan:
         # make a list of all zoom optimizersa based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
-        target_xb = 0
+        # target_xb = 0
 
         for iter in range(niter): # make controlling num of iters optionals
 
@@ -247,12 +247,12 @@ class Scan:
 
                 if zoom_optimizer.is_running:
 
-                    # store a temp_xb to compre against current max_xb
-                    temp_xb = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
+                    # store a temp_max to compre against current max_xb
+                    temp_max = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
 
                     # store max_xb
-                    if temp_xb > self.global_max:
-                        self.global_max = temp_xb
+                    if temp_max > self.global_max:
+                        self.global_max = temp_max
             
             #if max_xb < target_xb: # move for each zoom_optimizer to check local max (temp_max) and check twice
             #    print("Max xb less than target...")
@@ -337,7 +337,7 @@ class Scan:
                 npoints=points,
                 params=params_copy,
                 decay=self.decay,
-                optPoint=self.global_max,
+                starting_max=self.global_max,
                 detailsname=self.detailsname,
                 summaryname=self.summaryname,
                 config_loader=self.config_loader,

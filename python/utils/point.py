@@ -87,5 +87,5 @@ class Point:
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
     
-    def __mul__(self,other: float):
-        return Point(self.model.name(), self.parvals, self.xb*other)
+    def __mul__(self,scale_factor: float):
+        return Point(self.model.name(), self.parvals, self.xb*scale_factor)

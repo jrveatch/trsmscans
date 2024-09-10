@@ -28,7 +28,7 @@ class ZoomOptimizer:
                  params: 'Params',
                  decay: str,
                  npoints: int,
-                 optPoint: 'Point',
+                 starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
 
@@ -38,7 +38,7 @@ class ZoomOptimizer:
         self.params = params
         self.decay = decay
         self.npoints = npoints
-        self.local_max = optPoint
+        self.local_max = starting_max
         self.label = label
         self.model_name = params.model_name()
         self.top_percentile = {}
@@ -222,11 +222,13 @@ class ZoomOptimizer:
         # append .tsv file to combined .tsv file for iteration
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
+        # add to a counter if new point is less than half of the global max
         if newPoint < global_max_xb * 0.5:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
         
+        # end the ZoomOptimzer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
             print("Max xb less than target...")
