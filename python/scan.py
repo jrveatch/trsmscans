@@ -108,10 +108,9 @@ class Scan:
         details.close()
 
     # run a prescan to constrain scan parameter ranges
-    # TODO: Come up with a different name for this
-    def runPrescan(self,
-                   npoints: int,
-                   use_multiprocessing: bool = False) -> None:
+    def run_prescan(self,
+                    npoints: int,
+                    use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = self.max_prescan_points
@@ -222,8 +221,8 @@ class Scan:
         scanstart = time.time()
 
         # run prescan
-        self.runPrescan(npoints=npoints,
-                        use_multiprocessing=use_multiprocessing)
+        self.run_prescan(npoints=npoints,
+                         use_multiprocessing=use_multiprocessing)
 
         # move into the working directory for scans
         os.chdir(self.outdir)
