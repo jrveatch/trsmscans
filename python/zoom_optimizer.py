@@ -199,7 +199,7 @@ class ZoomOptimizer:
         details.close()
 
         # if a new optimal point is found
-        if is_new_global_max is True:
+        if is_new_global_max:
 
             # write max xb point summary to info file
             self.write_summary(identifier)
@@ -237,8 +237,12 @@ class ZoomOptimizer:
         # end the ZoomOptimzer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            print("Max xb less than target...")
-            print("Ending current scanner early")
+            end_message = "Local max is less than half of global max\n"
+            end_message += "Terminating zoom optimizer"
+            print(end_message)
+            details = open(self.details_name,"a")
+            details.write(end_message)
+            details.close()
 
         return new_max
 
