@@ -259,7 +259,9 @@ class Scan:
                 if zoom_optimizer.is_running:
 
                     # store a temp_max to compre against current max_xb
-                    temp_max = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
+                    temp_max = zoom_optimizer.run(iter=iter,
+                                                  global_max=self.global_max,
+                                                  use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
 
                     # store max_xb
                     if temp_max > self.global_max:

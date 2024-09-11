@@ -81,7 +81,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
-            global_max_xb: 'Point',
+            global_max: 'Point',
             use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
@@ -151,15 +151,14 @@ class ZoomOptimizer:
         # get new point as the maximum from the current scan
         new_max = self.scanparser.get_max_xb_point(self.decay)
 
-        # flag to indicate whether optimal point needs to be updated
-        update = False
+        # flag to indicate whether new_max is greater than global_max
+        is_new_global_max = new_max > global_max
 
         # store the previous point
         local_max_old = self.local_max
 
         # if new point is better than the local max point, replace it
         if new_max > self.local_max:
-            update = True
             self.local_max = new_max
 
         # get iteration end time
@@ -182,15 +181,16 @@ class ZoomOptimizer:
         details.write(str(nsignals) + "/" + str(self.npoints) + " pass signals check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass all checks\n")
         details.write("--------------------\n")
-        details.write("Found new max xsec*BR = " + new_max.format_xb() + "\n")
-        details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + self.local_max.format_xb() + "\n")
+        details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
+        details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
+        details.write("Global max xsec*BR = " + global_max.format_xb() + "\n")
+        details.write("Found new global max point: " + str(is_new_global_max) + "\n")
         details.write("--------------------\n")
         for par in self.params.parameter_names():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
-            if update:
-                details.write("  new optimal "+self.local_max.format_param(par)+"\n")
+            if is_new_global_max:
+                details.write("  new global max "+self.local_max.format_param(par)+"\n")
                 details.write("  "+self.local_max.format_diff(local_max_old,par)+"\n")
                 details.write("  "+self.local_max.format_diff_frac(local_max_old,par)+"\n")
         details.write("--------------------\n")
@@ -199,7 +199,7 @@ class ZoomOptimizer:
         details.close()
 
         # if a new optimal point is found
-        if update is True:
+        if is_new_global_max is True:
 
             # write max xb point summary to info file
             self.write_summary(identifier)
@@ -229,7 +229,7 @@ class ZoomOptimizer:
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         # add to a counter if new point is less than half of the global max
-        if new_max < global_max_xb * 0.5:
+        if new_max < global_max * 0.5:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
