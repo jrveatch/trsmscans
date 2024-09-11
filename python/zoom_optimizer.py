@@ -78,7 +78,7 @@ class ZoomOptimizer:
             use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
-        iterstart = time.time()
+        iter_start = time.time()
 
         # get iteration identifier
         iter_label = f"{iter:04d}"
@@ -156,11 +156,11 @@ class ZoomOptimizer:
             self.local_max = newPoint
 
         # get iteration end time
-        iterend = time.time()
-        itertime = iterend - iterstart
+        iter_end = time.time()
+        iter_time = iter_end - iter_start
 
         # print iteration time to screen
-        print("Iteration took",str(datetime.timedelta(seconds=int(itertime))),"(hh:mm:ss)")
+        print("Iteration took",str(datetime.timedelta(seconds=int(iter_time))),"(hh:mm:ss)")
 
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
@@ -186,7 +186,7 @@ class ZoomOptimizer:
                 details.write("  "+self.local_max.format_diff(optPointOld,par)+"\n")
                 details.write("  "+self.local_max.format_diff_frac(optPointOld,par)+"\n")
         details.write("--------------------\n")
-        details.write("Iteration took "+str(datetime.timedelta(seconds=int(itertime)))+" (hh:mm:ss)\n")
+        details.write("Iteration took "+str(datetime.timedelta(seconds=int(iter_time)))+" (hh:mm:ss)\n")
         details.write("\n\n")
         details.close()
 
@@ -267,8 +267,8 @@ class ZoomOptimizer:
         self.top_percentile_xb = xb_array[xb_array > xb_threshold]
 
         # dictionaries to update low and high in parameters
-        lowdict = {}
-        highdict = {}
+        low_dict = {}
+        high_dict = {}
 
         # save params arrays where xb_array is the top percentile
         for param, values in self.scanparser.get_parameter_arrays().items():
@@ -278,15 +278,15 @@ class ZoomOptimizer:
             # update top_percentile accounting for new values
             self.top_percentile[param] = values[xb_array > xb_threshold]
             # set lows and highs of each parameter
-            lowdict[param] = self.top_percentile[param].min()
-            highdict[param] = self.top_percentile[param].max()
+            low_dict[param] = self.top_percentile[param].min()
+            high_dict[param] = self.top_percentile[param].max()
 
         # update params lows and highs using dictionaries
-        self.params.update_low_high(lowdict, highdict)
+        self.params.update_low_high(low_dict, high_dict)
 
         # calculate the new number of points based on the remaining xb range
-        heightRatio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * heightRatio * (1.0 + self.density_growth_rate))
+        height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
+        self.npoints = int(self.npoints * height_ratio * (1.0 + self.density_growth_rate))
 
         return
 
