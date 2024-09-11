@@ -222,7 +222,7 @@ class ZoomOptimizer:
             case _:
                 print("Unrecognized zoom strategy")
                 print("Please use 'percentile' (default) or 'rate'")
-                # TODO: Throw and exception here
+                # TODO: Throw an exception here
                 return
 
         # append .tsv file to combined .tsv file for iteration
