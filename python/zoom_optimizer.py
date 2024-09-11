@@ -237,7 +237,7 @@ class ZoomOptimizer:
         # end the ZoomOptimzer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            end_message = "Local max is less than half of global max\n"
+            end_message = "Local max is consistently less than half of global max\n"
             end_message += "Terminating zoom optimizer"
             print(end_message)
             details = open(self.details_name,"a")
