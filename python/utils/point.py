@@ -86,3 +86,6 @@ class Point:
     # define the less than (<) operator
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
+    
+    def __mul__(self,scale_factor: float):
+        return Point(self.model.name(), self.parvals, self.xb*scale_factor)
