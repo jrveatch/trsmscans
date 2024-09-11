@@ -219,7 +219,7 @@ class Scan:
                               use_multiprocessing: bool = False) -> None:
 
         # get scan start time
-        scanstart = time.time()
+        scan_start = time.time()
 
         # run prescan
         self.runPrescan(npoints=npoints,
@@ -244,16 +244,16 @@ class Scan:
             # TODO: Add early stopping conditions
 
         # get total scan time
-        scanend = time.time()
-        scantime = (scanend - scanstart)
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
 
         # print out scan time
         print("\nDone!")
-        print("Scan took", str(datetime.timedelta(seconds=int(scantime))), "(hh:mm:ss)\n")
+        print("Scan took", str(datetime.timedelta(seconds=int(scan_time))), "(hh:mm:ss)\n")
 
         # write time info to details file
         details = open(self.details_name, "a")
-        details.write("Scan took " + str(datetime.timedelta(seconds=int(scantime))) + " (hh:mm:ss)")
+        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
         details.close()
         return
 
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
 
-    # creaate scan object
+    # create scan object
     myScan = Scan(masses=masses,
                   model_name=args.model,
                   decay=args.decay,
