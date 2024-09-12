@@ -246,8 +246,8 @@ def concatenate_files(directories: list[str],
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(inputfile=directory+"/"+file_name,
-                                 outputfile=file_name)
+        tsvutils.save_tsv_output(input_file=directory+"/"+file_name,
+                                 output_file=file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)
