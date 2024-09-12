@@ -45,11 +45,11 @@ def run_prescan(masses: 'Masses',
     print("\nRunning a prescan with",num_points,"points for",str(masses))
 
     # get number of pre-existing prescan points
-    nexisting = tsvutils.count_tsv_points(tsv_name)
+    num_existing = tsvutils.count_tsv_points(tsv_name)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
-    if overwrite and num_points < nexisting * 0.2:
-        print("You are requesting",num_points,"points but there are already",nexisting,"points")
+    if overwrite and num_points < num_existing * 0.2:
+        print("You are requesting",num_points,"points but there are already",num_existing,"points")
         while True:
             # get user response
             response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
@@ -70,25 +70,25 @@ def run_prescan(masses: 'Masses',
     if os.path.exists(outdir) and overwrite:
         # remove directory
         shutil.rmtree(outdir)
-        # reset nexisting to 0
-        nexisting = 0
+        # reset num_existing to 0
+        num_existing = 0
 
     # if prescan exists, adjust the number of prescan points to run
-    if nexisting > 0:
+    if num_existing > 0:
 
         # if enough points already exist, parse and return
-        if nexisting >= num_points:
-            print("Found a prescan that already has",nexisting,"points.")
+        if num_existing >= num_points:
+            print("Found a prescan that already has",num_existing,"points.")
             print(num_points,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with the -o option.")
             parser.read_file(tsv_name)
             return parser
 
         # otherwise reduce the number of points to run with
-        num_pointsOld = num_points
-        num_points -= nexisting
-        print("Found prescan with",nexisting,"points.")
-        print(num_pointsOld,"prescan points requested, so I am running with",num_points,"points.")
+        num_points_old = num_points
+        num_points -= num_existing
+        print("Found prescan with",num_existing,"points.")
+        print(num_points_old,"prescan points requested, so I am running with",num_points,"points.")
         print("If you want to overwrite the existing prescan, run with the -o option.")
 
     # check if directory exists, if not make it
