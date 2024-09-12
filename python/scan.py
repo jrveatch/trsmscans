@@ -116,23 +116,23 @@ class Scan:
 
     # run a prescan to constrain scan parameter ranges
     def run_prescan(self,
-                    npoints: int,
+                    num_points: int,
                     use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = self.max_prescan_points
 
         # if fewer points are requested than nprescan, only use that many
-        if npoints < self.max_prescan_points:
-            nprescan = npoints
+        if num_points < self.max_prescan_points:
+            nprescan = num_points
 
         try:
             # call prescan
-            self.prescan_parser = run_prescan(masses=self.masses,
-                                              npoints=nprescan,
-                                              model_name=self.model_name,
-                                              config_loader=self.config_loader,
-                                              use_multiprocessing=use_multiprocessing)
+            self.prescan_parser = run_prescan(masses = self.masses,
+                                              num_points = nprescan,
+                                              model_name = self.model_name,
+                                              config_loader = self.config_loader,
+                                              use_multiprocessing = use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
@@ -226,7 +226,7 @@ class Scan:
 
     # run the full scan
     def run_zoom_optimization(self,
-                              npoints: int,
+                              num_points: int,
                               niter: int,
                               use_multiprocessing: bool = False) -> None:
 
@@ -234,14 +234,14 @@ class Scan:
         scan_start = time.time()
 
         # run prescan
-        self.run_prescan(npoints=npoints,
-                         use_multiprocessing=use_multiprocessing)
+        self.run_prescan(num_points = num_points,
+                         use_multiprocessing = use_multiprocessing)
 
         # move into the working directory for scans
         os.chdir(self.outdir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
+        all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
 
         # target_xb = 0
 
@@ -292,7 +292,7 @@ class Scan:
         return
 
     # Function that creates needed zoom optimizers
-    def create_zoom_optimizers(self, npoints: int) -> list['ZoomOptimizer']:
+    def create_zoom_optimizers(self, num_points: int) -> list['ZoomOptimizer']:
 
         # Dictionary that will hold the values of the parameters
         param_dict: dict[str, list[ dict[str, float] ]] = {}
@@ -336,24 +336,24 @@ class Scan:
         all_zoom_optimizers: list['ZoomOptimizer'] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
-        points_per_scanner = max(npoints // len(all_param_combinations), 1)
+        points_per_scanner = max(num_points // len(all_param_combinations), 1)
 
         # Initialize zoom optimizers for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
 
             # Distribute points among zoom optimizers
-            points = points_per_scanner
+            num_scanner_points = points_per_scanner
             if i == len(all_param_combinations) - 1:  # Ensure the last zoom optimizer gets any remaining points
-                points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
+                num_scanner_points = num_points - (points_per_scanner * (len(all_param_combinations) - 1))
 
             # Create the ZoomOptimizer
             zoom_optimizer = ZoomOptimizer(
-                npoints=points,
-                params=params_copy,
-                decay=self.decay,
-                starting_max=self.global_max,
-                config_loader=self.config_loader,
-                label=f'ZoomOptimizer-{i}'
+                num_points = num_scanner_points,
+                params = params_copy,
+                decay = self.decay,
+                starting_max = self.global_max,
+                config_loader = self.config_loader,
+                label = f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
 
@@ -382,13 +382,13 @@ if __name__ == "__main__":
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
 
     # create scan object
-    myScan = Scan(masses=masses,
-                  model_name=args.model,
-                  decay=args.decay,
-                  overwrite=args.overwrite
-                  )
+    myScan = Scan(masses = masses,
+                  model_name = args.model,
+                  decay = args.decay,
+                  overwrite = args.overwrite
+                 )
 
     # run scan using scan object
-    myScan.run_zoom_optimization(npoints=args.npoints,
-                                 niter=args.iterations,
-                                 use_multiprocessing=args.multiprocessing)
+    myScan.run_zoom_optimization(num_points = args.npoints,
+                                 niter = args.iterations,
+                                 use_multiprocessing = args.multiprocessing)

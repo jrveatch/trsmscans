@@ -12,7 +12,7 @@ import argparse
 
 # method to run ScannerS
 def runScannerS(ini_name: str,
-                npoints: int,
+                num_points: int,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
@@ -22,26 +22,26 @@ def runScannerS(ini_name: str,
 
     # if only one process needed, use subprocess
     if not use_multiprocessing:
-        return run_single_process(ini_name=ini_name,
-                                  npoints=npoints,
-                                  model_name=model_name)
+        return run_single_process(ini_name = ini_name,
+                                  num_points = num_points,
+                                  model_name = model_name)
 
     # otherwise use multiprocessing
     else:
-        return run_parallel_processes(ini_name=ini_name,
-                                      npoints=npoints,
-                                      model_name=model_name)
+        return run_parallel_processes(ini_name = ini_name,
+                                      num_points = num_points,
+                                      model_name = model_name)
 
 # run job as a single process
 def run_single_process(ini_name: str,
-                       npoints: int,
+                       num_points: int,
                        model_name: str) -> int:
 
     # simple information message
-    print(f"Running ScannerS as a single process with {npoints} points.")
+    print(f"Running ScannerS as a single process with {num_points} points.")
 
     # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", str(npoints)]
+    process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
 
     # run the process
     try:
@@ -53,32 +53,32 @@ def run_single_process(ini_name: str,
     print("Finished running process")
 
     # return number of points used
-    return npoints
+    return num_points
 
 # run multiple processes in parallel
 def run_parallel_processes(ini_name: str,
-                           npoints: int,
+                           num_points: int,
                            model_name: str) -> int:
 
     # get number of available CPUs
-    ncpu = mp.cpu_count()
-
-    # if there is only 1 CPU available, run a single process
-    if ncpu == 1:
-        print("Only 1 CPU available, running as a single process")
-        return run_single_process(ini_name=ini_name,
-                                  npoints=npoints,
-                                  model_name=model_name)
+    num_cpu = mp.cpu_count()
 
     # minimum number of points per job
     min_points = 10
 
+    # if there is only 1 CPU available, run a single process
+    if num_cpu == 1:
+        print("Only 1 CPU available, running as a single process")
+        return run_single_process(ini_name = ini_name,
+                                  num_points = num_points,
+                                  model_name = model_name)
+
     # if fewer than 2 processes are needed, run a single process
-    if npoints < 2 * min_points:
+    if num_points < 2 * min_points:
         print("Only 1 process needed, running as a single process")
-        return run_single_process(ini_name=ini_name,
-                                  npoints=npoints,
-                                  model_name=model_name)
+        return run_single_process(ini_name = ini_name,
+                                  num_points = num_points,
+                                  model_name = model_name)
 
     # print out some information
     print(f"Running test job with {min_points} points")
@@ -96,21 +96,21 @@ def run_parallel_processes(ini_name: str,
     print("Test job was successful")
 
     # set number of processes to 80% of the available cores rounded down
-    num_processes = int(ncpu * 0.8)
+    num_processes = int(num_cpu * 0.8)
 
     # get number of points per job, rounded up
-    points_per_process = math.ceil(npoints/num_processes)
+    points_per_process = math.ceil(num_points/num_processes)
 
     # if points_per_process is less than min_points, reduce the number of jobs
     if points_per_process < min_points:
-        num_processes = math.ceil(npoints/min_points) - 1
+        num_processes = math.ceil(num_points/min_points) - 1
         points_per_process = min_points
 
-    # reset npoints to reflect how many are actually used
-    npoints = points_per_process * num_processes
+    # reset num_points to reflect how many are actually used
+    num_points = points_per_process * num_processes
 
     # print out some information
-    print(f"Running {npoints} points as {num_processes} processes with {points_per_process} points each")
+    print(f"Running {num_points} points as {num_processes} processes with {points_per_process} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -143,7 +143,7 @@ def run_parallel_processes(ini_name: str,
                       file_name=model_name+".tsv")
 
     # return number of points that are actually used, including test job points
-    return npoints + min_points
+    return num_points + min_points
 
 # run a process for multiprocessing
 def run_process(process_args: list[str],
@@ -248,7 +248,6 @@ if __name__ == "__main__":
     ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ini_name=ini_name,
-                model_name=args.model,
-                npoints=args.npoints,
-                njobs=args.njobs)
+    runScannerS(ini_name = ini_name,
+                model_name = args.model,
+                num_points = args.npoints)
