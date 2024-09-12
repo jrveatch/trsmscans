@@ -240,7 +240,7 @@ class Scan:
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        # make a list of all zoom optimizersa based on bimodal distribution tests
+        # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
         # target_xb = 0
@@ -249,17 +249,17 @@ class Scan:
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a seperate function to check for the maximum is best
+            # Consider if having a separate function to check for the maximum is best
 
             # TODO: possibly redistribute points to all active scanners
 
             for zoom_optimizer in all_zoom_optimizers:
                 
-                # counter to stop loop if all zoom_optimizer.running == False (to allow running wihout niter)
+                # counter to stop loop if all zoom_optimizer.running == False (to allow running without niter)
 
                 if zoom_optimizer.is_running:
 
-                    # store a temp_max to compre against current max_xb
+                    # store a temp_max to compare against current max_xb
                     temp_max = zoom_optimizer.run(iter=iter,
                                                   global_max=self.global_max,
                                                   use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
