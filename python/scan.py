@@ -89,6 +89,7 @@ class Scan:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
             os.makedirs(self.outdir + "/files")
+            os.makedirs(self.outdir + "/files/details")
             os.makedirs(self.outdir + "/files/ini")
             os.makedirs(self.outdir + "/files/tsv")
 
@@ -108,7 +109,7 @@ class Scan:
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.outdir + "prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.outdir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()

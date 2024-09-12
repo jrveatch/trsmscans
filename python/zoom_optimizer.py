@@ -67,8 +67,8 @@ class ZoomOptimizer:
         output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
         self.summary_name = self.outdir + "scan_summary_" + output_file_postfix
         self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + output_file_postfix
-        self.prescan_details_name = self.outdir + "prescan_details_" + output_file_postfix
-        self.details_name = self.outdir + "scan_details_" + self.label + "_" + output_file_postfix
+        self.prescan_details_name = self.outdir + "files/details/prescan_details_" + output_file_postfix
+        self.details_name = self.outdir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
