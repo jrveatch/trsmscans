@@ -58,8 +58,7 @@ def run_single_process(ini_name: str,
 # run multiple processes in parallel
 def run_parallel_processes(ini_name: str,
                            npoints: int,
-                           model_name: str,
-                           njobs=-1) -> int:
+                           model_name: str) -> int:
 
     # get number of available CPUs
     ncpu = mp.cpu_count()
@@ -71,20 +70,6 @@ def run_parallel_processes(ini_name: str,
                                   npoints=npoints,
                                   model_name=model_name)
 
-    # set number of workers to 80% of the available cores
-    nworkers = int(ncpu * 0.8)
-
-    # by default set nprocesses to nworkers
-    if njobs < 1:
-        num_processes = nworkers
-    # if the number of requested jobs is greater than the number
-    # of workers, limit number of processes to number of workers
-    elif njobs > nworkers:
-        num_processes = nworkers
-    # otherwise set the number of processes to the requested number of jobs
-    else:
-        num_processes = njobs
-
     # minimum number of points per job
     min_points = 10
 
@@ -94,14 +79,6 @@ def run_parallel_processes(ini_name: str,
         return run_single_process(ini_name=ini_name,
                                   npoints=npoints,
                                   model_name=model_name)
-
-    # get number of points per job, rounded up
-    points_per_job = math.ceil(npoints/num_processes)
-
-    # if points_per_job is less than min_points, reduce the number of jobs
-    if points_per_job < min_points:
-        num_processes = math.ceil(npoints/min_points) - 1
-        points_per_job = min_points
 
     # print out some information
     print(f"Running test job with {min_points} points")
@@ -118,17 +95,28 @@ def run_parallel_processes(ini_name: str,
     # print out some information
     print("Test job was successful")
 
+    # set number of processes to 80% of the available cores rounded down
+    num_processes = int(ncpu * 0.8)
+
+    # get number of points per job, rounded up
+    points_per_process = math.ceil(npoints/num_processes)
+
+    # if points_per_process is less than min_points, reduce the number of jobs
+    if points_per_process < min_points:
+        num_processes = math.ceil(npoints/min_points) - 1
+        points_per_process = min_points
+
     # reset npoints to reflect how many are actually used
-    npoints = points_per_job * num_processes
+    npoints = points_per_process * num_processes
 
     # print out some information
-    print(f"Running {npoints} points as {num_processes} processes with {points_per_job} points each")
+    print(f"Running {npoints} points as {num_processes} processes with {points_per_process} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
