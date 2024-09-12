@@ -9,6 +9,7 @@ import argparse
 from utils import fileutils
 from utils.masses import Masses
 from utils.model import Model
+from utils.point import Point
 
 # Plot class
 class Plot:
@@ -79,7 +80,7 @@ class Plot:
         self.nvars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
-        self.max_point_list = []
+        self.max_point_list: list[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
         self.var_lists = {}
@@ -172,7 +173,7 @@ class Plot:
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opac)
 
                     # Adjust the opacity
-                    opac+=op 
+                    opac += op 
 
                 # Reset opacity for star points
                 opac = op

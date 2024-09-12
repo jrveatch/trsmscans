@@ -29,7 +29,7 @@ class Model:
         self.particles = {}
 
         # create empty __model_params dictionary
-        self.__model_params = {}
+        self.__model_params: dict[str,any] = {}
 
         # read in model yaml file
         with open(self.__yaml_name,'r') as file:
@@ -69,11 +69,11 @@ class Model:
         return self.__model_params
 
     # get a single model parameter
-    def parameter(self,par_name) -> dict:
+    def parameter(self,par_name) -> dict[str,any]:
         return self.__model_params[par_name]
 
     # get list of model parameter names
-    def parameter_names(self) -> list:
+    def parameter_names(self) -> list[str]:
         return list(self.__model_params.keys())
 
     # get model parameter starting min
