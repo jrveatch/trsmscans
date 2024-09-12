@@ -16,7 +16,7 @@ def runScannerS(ini_name: str,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
-    # complain and exit if .ini doesn't exist
+    # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
         raise FileNotFoundError(ini_name,"doesn't exist. Exiting.")
 
