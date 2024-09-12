@@ -50,7 +50,7 @@ class ZoomOptimizer:
             self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
-            self.minpoints: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+            self.min_points: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except KeyError as e:
             print(f"Error: {e}")
             raise
@@ -103,8 +103,8 @@ class ZoomOptimizer:
         self.params.write_ini(ini_name)
 
         # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-            self.npoints = self.minpoints
+        if self.npoints < self.min_points:
+            self.npoints = self.min_points
 
         # run ScannerS
         self.npoints = runScannerS(ininame=ini_name,
