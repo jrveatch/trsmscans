@@ -38,14 +38,14 @@ def run_single_process(ini_name: str,
                        model_name: str) -> int:
 
     # simple information message
-    print(f"Running ScannerS as a single process with",npoints,"points.")
+    print(f"Running ScannerS as a single process with {npoints} points.")
 
     # define process
-    process = [model_name, "--config", ini_name, "scan", "-n", str(npoints)]
+    process_args = [model_name, "--config", ini_name, "scan", "-n", str(npoints)]
 
     # run the process
     try:
-        run_subprocess(process,model_name)
+        run_subprocess(process_args,model_name)
     except TimeoutError:
         raise
 
@@ -104,14 +104,14 @@ def run_parallel_processes(ini_name: str,
         points_per_job = min_points
 
     # print out some information
-    print("Running test job with",min_points,"points")
+    print(f"Running test job with {min_points} points")
 
     # define test process with 10 points
-    test_process = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
+    test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
 
     # run test process
     try:
-        run_subprocess(test_process,model_name)
+        run_subprocess(test_process_args,model_name)
     except TimeoutError:
         raise
 
@@ -122,7 +122,7 @@ def run_parallel_processes(ini_name: str,
     npoints = points_per_job * num_processes
 
     # print out some information
-    print("Running",npoints,"points as",num_processes,"processes with",points_per_job,"points each")
+    print(f"Running {npoints} points as {num_processes} processes with {points_per_job} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -158,7 +158,7 @@ def run_parallel_processes(ini_name: str,
     return npoints + min_points
 
 # run a process for multiprocessing
-def run_process(process: list[str],
+def run_process(process_args: list[str],
                 directory: str,
                 counter,
                 num_processes: int) -> None:
@@ -173,7 +173,7 @@ def run_process(process: list[str],
     log = open("ScannerS.log", "w")
 
     # run the process with arguments and suppress output
-    subprocess.run(process, stdout=log, stderr=log)
+    subprocess.run(process_args, stdout=log, stderr=log)
 
     # get Terminal for nicer outputs
     term = Terminal()
@@ -183,7 +183,7 @@ def run_process(process: list[str],
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python subprocess for a single job
-def run_subprocess(process: list[str],
+def run_subprocess(process_args: list[str],
                    model_name: str) -> None:
 
     # output file name
@@ -196,7 +196,7 @@ def run_subprocess(process: list[str],
     timeout = 20
 
     # launch process
-    process = subprocess.Popen(process, stdout=log, stderr=log)
+    process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
     # get start time
     start_time = time.time()
