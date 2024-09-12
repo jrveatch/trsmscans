@@ -234,7 +234,7 @@ class ZoomOptimizer:
         else:
             self.global_xb_fail = 0
         
-        # end the ZoomOptimzer if counter reaches 2
+        # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
             end_message = "Local max is consistently less than half of global max\n"
