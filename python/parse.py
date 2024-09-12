@@ -98,28 +98,28 @@ class Parse:
         xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
-        maxidx = np.argmax(xb)
+        max_idx = np.argmax(xb)
 
         # get max xsec times BR
-        maxxb = xb[maxidx]
+        max_xb = xb[max_idx]
 
         # get prefilter index of max xb point
-        prefilter_idx = self.__prefilter_idx[maxidx]
+        prefilter_idx = self.__prefilter_idx[max_idx]
 
         # store max xb line - add 1 to account for header
         self.__max_xb_line = self.__file_content[prefilter_idx+1]
         
-        # make dictionary for parameter values for maxxb
-        maxxb_parvals: dict[str,float] = {}
+        # make dictionary for parameter values for max_xb
+        max_xb_par_vals: dict[str,float] = {}
 
         # loop over parameter arrays and store optimal value of each
         for par, array in self.__par_arrays.items():
-            maxxb_parvals[par] = array[maxidx]
+            max_xb_par_vals[par] = array[max_idx]
 
         # return a point object holding xb and other parameters
-        return Point(xb = maxxb,
+        return Point(xb = max_xb,
                      model_name = self.__model_name,
-                     parvals = maxxb_parvals)
+                     par_vals = max_xb_par_vals)
 
     # get line from .tsv corresponding to max xb point
     def get_max_xb_line(self) -> str:
@@ -131,13 +131,13 @@ class Parse:
 
     # get minimum value of a parameter
     def get_min(self,
-                parname: str) -> float:
-        return np.min(self.__par_arrays[parname])
+                par_name: str) -> float:
+        return np.min(self.__par_arrays[par_name])
 
     # get maximum value of a parameter
     def get_max(self,
-                parname: str) -> float:
-        return np.max(self.__par_arrays[parname])
+                par_name: str) -> float:
+        return np.max(self.__par_arrays[par_name])
     
     # get arrays of all parameter as a dictionary
     def get_parameter_arrays(self) -> dict[str,NDArray]:
