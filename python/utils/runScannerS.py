@@ -251,6 +251,8 @@ def concatenate_files(directories: list[str],
 
         # delete the temporary directory
         shutil.rmtree(directory)
+        # this is a possible fix, but it is likely unstable
+        #shutil.rmtree(directory, ignore_errors=True)
 
 if __name__ == "__main__":
 
