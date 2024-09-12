@@ -157,7 +157,7 @@ class Plot:
 
                 # Set the opacity to be between values 0.19 and 1 depending on the number of files
                 op = (0.8 / self.nfiles)
-                opac = op + 0.19
+                opacity = op + 0.19
 
                 # Create a new scatter figure
                 plt.figure()
@@ -170,14 +170,14 @@ class Plot:
                     color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
                     # Plot the variables by file
-                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opac)
+                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
 
                     # Adjust the opacity
-                    opac += op 
+                    opacity += op 
 
                 # Reset opacity for star points
-                opac = op
-                opac += 0.19
+                opacity = op
+                opacity += 0.19
 
                 for q in range(len(self.var_lists['xb'])):
 
@@ -191,12 +191,12 @@ class Plot:
 
                     # Plot the max point from the scatterplot [star]
                     if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
-                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opac, marker="*") #plot normally
+                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
                     else: #If point is maximum point plot as a bigger star
                         plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
 
                     # Adjust the opacity
-                    opac+=op
+                    opacity += op
 
                 # Initialize scatterplot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
