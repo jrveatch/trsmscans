@@ -89,29 +89,35 @@ class Scan:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
             os.makedirs(self.outdir + "/files")
+            os.makedirs(self.outdir + "/files/details")
             os.makedirs(self.outdir + "/files/ini")
             os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
-        self.summary_name = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
-        summary.write("Iter xbmax")
+        summary.write("xbmax")
         for parameter in self.params.parameters().values():
-            summary.write(" " + parameter.fullname())
+            summary.write("\t" + parameter.fullname())
+        summary.write("\titer")
         summary.write("\n")
         summary.close()
 
+        # create raw output file
+        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        tsv_summary = open(self.tsv_summary_name, "w")
+        tsv_summary.close()
+
         # create details file
-        self.details_name = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.outdir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
 
     # run a prescan to constrain scan parameter ranges
-    # TODO: Come up with a different name for this
-    def runPrescan(self,
-                   npoints: int,
-                   use_multiprocessing: bool = False) -> None:
+    def run_prescan(self,
+                    npoints: int,
+                    use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = self.max_prescan_points
@@ -199,12 +205,18 @@ class Scan:
 
         # write scan results to summary file
         summary = open(self.summary_name, "a")
-        summary.write("Pre")
-        summary.write(" " + self.global_max.format_xb())
+        summary.write(self.global_max.format_xb())
         for name, parameter in self.params.parameters().items():
-            summary.write(" " + f"{self.global_max.get_val(name):1.{parameter.precision()}f}")
+            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.precision()}f}")
+        summary.write("\tPre")
         summary.write("\n")
         summary.close()
+
+        # write scan max xb tsv line to tsv summary file
+        tsv_summary = open(self.tsv_summary_name, "a")
+        tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
+        tsv_summary.write(self.prescan_parser.get_max_xb_line())
+        tsv_summary.close()
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -222,13 +234,13 @@ class Scan:
         scan_start = time.time()
 
         # run prescan
-        self.runPrescan(npoints=npoints,
-                        use_multiprocessing=use_multiprocessing)
+        self.run_prescan(npoints=npoints,
+                         use_multiprocessing=use_multiprocessing)
 
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        # make a list of all zoom optimizersa based on bimodal distribution tests
+        # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
         # target_xb = 0
@@ -237,18 +249,20 @@ class Scan:
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a seperate function to check for the maximum is best
+            # Consider if having a separate function to check for the maximum is best
 
             # TODO: possibly redistribute points to all active scanners
 
             for zoom_optimizer in all_zoom_optimizers:
                 
-                # counter to stop loop if all zoom_optimizer.running == False (to allow running wihout niter)
+                # counter to stop loop if all zoom_optimizer.running == False (to allow running without niter)
 
                 if zoom_optimizer.is_running:
 
-                    # store a temp_max to compre against current max_xb
-                    temp_max = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
+                    # store a temp_max to compare against current max_xb
+                    temp_max = zoom_optimizer.run(iter=iter,
+                                                  global_max=self.global_max,
+                                                  use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
 
                     # store max_xb
                     if temp_max > self.global_max:
@@ -338,8 +352,6 @@ class Scan:
                 params=params_copy,
                 decay=self.decay,
                 starting_max=self.global_max,
-                details_name=self.details_name,
-                summary_name=self.summary_name,
                 config_loader=self.config_loader,
                 label=f'ZoomOptimizer-{i}'
             )

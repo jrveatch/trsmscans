@@ -6,6 +6,7 @@ import time
 import datetime
 import numpy as np
 import math
+import shutil
 
 # import decimal
 from decimal import Decimal
@@ -23,8 +24,6 @@ from utils.config_loader import ConfigLoader
 class ZoomOptimizer:
 
     def __init__(self,
-                 details_name: str,
-                 summary_name: str,
                  params: 'Params',
                  decay: str,
                  npoints: int,
@@ -33,8 +32,6 @@ class ZoomOptimizer:
                  label: str = ""):
 
         # some basic scanner information
-        self.details_name = details_name
-        self.summary_name = summary_name
         self.params = params
         self.decay = decay
         self.npoints = npoints
@@ -53,7 +50,7 @@ class ZoomOptimizer:
             self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
-            self.minpoints: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+            self.min_points: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except KeyError as e:
             print(f"Error: {e}")
             raise
@@ -66,6 +63,16 @@ class ZoomOptimizer:
                                          decay=decay,
                                          masses=self.params.masses())
 
+        # get output information file names
+        output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
+        self.summary_name = self.outdir + "scan_summary_" + output_file_postfix
+        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + output_file_postfix
+        self.prescan_details_name = self.outdir + "files/details/prescan_details_" + output_file_postfix
+        self.details_name = self.outdir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
+
+        # copy prescan details file to zoom optimizer details file
+        shutil.copy(self.prescan_details_name,self.details_name)
+
         # create parse object without a file name
         self.scanparser = Parse(masses=self.params.masses(),
                                 model_name=self.model_name)
@@ -74,7 +81,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
-            global_max_xb:Point,
+            global_max: 'Point',
             use_multiprocessing: bool = False) -> None:
 
         # get time of iteration start
@@ -96,8 +103,8 @@ class ZoomOptimizer:
         self.params.write_ini(ini_name)
 
         # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.minpoints:
-            self.npoints = self.minpoints
+        if self.npoints < self.min_points:
+            self.npoints = self.min_points
 
         # run ScannerS
         self.npoints = runScannerS(ininame=ini_name,
@@ -142,18 +149,17 @@ class ZoomOptimizer:
         self.scanparser.read_file(file_name=tsv_name)
 
         # get new point as the maximum from the current scan
-        newPoint = self.scanparser.get_max_xb_point(self.decay)
+        new_max = self.scanparser.get_max_xb_point(self.decay)
 
-        # flag to indicate whether optimal point needs to be updated
-        update = False
+        # flag to indicate whether new_max is greater than global_max
+        is_new_global_max = new_max > global_max
 
         # store the previous point
-        optPointOld = self.local_max
+        local_max_old = self.local_max
 
-        # if new point is better than the optimal point, replace it
-        if newPoint > self.local_max:
-            update = True
-            self.local_max = newPoint
+        # if new point is better than the local max point, replace it
+        if new_max > self.local_max:
+            self.local_max = new_max
 
         # get iteration end time
         iter_end = time.time()
@@ -162,6 +168,7 @@ class ZoomOptimizer:
         # print iteration time to screen
         print("Iteration took",str(datetime.timedelta(seconds=int(iter_time))),"(hh:mm:ss)")
 
+        # TODO: Factorize this to a function after sample_points change is merged
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
         details = open(self.details_name,"a")
@@ -174,32 +181,31 @@ class ZoomOptimizer:
         details.write(str(nsignals) + "/" + str(self.npoints) + " pass signals check\n")
         details.write(str(npass) + "/" + str(self.npoints) + " pass all checks\n")
         details.write("--------------------\n")
-        details.write("Found new max xsec*BR = " + newPoint.format_xb() + "\n")
-        details.write("Update optimal point: " + str(update) + "\n")
-        details.write("Optimal point xsec*BR = " + self.local_max.format_xb() + "\n")
+        details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
+        details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
+        details.write("Global max xsec*BR = " + global_max.format_xb() + "\n")
+        details.write("Found new global max point: " + str(is_new_global_max) + "\n")
         details.write("--------------------\n")
         for par in self.params.parameter_names():
             details.write(par+":\n")
             details.write("  "+self.params.parameter(par).format_range()+"\n")
-            if update:
-                details.write("  new optimal "+self.local_max.format_param(par)+"\n")
-                details.write("  "+self.local_max.format_diff(optPointOld,par)+"\n")
-                details.write("  "+self.local_max.format_diff_frac(optPointOld,par)+"\n")
+            if is_new_global_max:
+                details.write("  new global max "+self.local_max.format_param(par)+"\n")
+                details.write("  "+self.local_max.format_diff(local_max_old,par)+"\n")
+                details.write("  "+self.local_max.format_diff_frac(local_max_old,par)+"\n")
         details.write("--------------------\n")
         details.write("Iteration took "+str(datetime.timedelta(seconds=int(iter_time)))+" (hh:mm:ss)\n")
         details.write("\n\n")
         details.close()
 
         # if a new optimal point is found
-        if update is True:
-            # write scan results to summary file
-            summary = open(self.summary_name,"a")
-            summary.write(identifier)
-            summary.write(" " + self.local_max.format_xb())
-            for name, par in self.params.parameters().items():
-                summary.write(" " + f"{self.local_max.get_val(name):1.{par.precision()}f}")
-            summary.write("\n")
-            summary.close()
+        if is_new_global_max:
+
+            # write max xb point summary to info file
+            self.write_summary(identifier)
+
+            # write max xb point raw .tsv line to info file
+            self.write_tsv_summary()
 
         # check zoom strategy and call method accordingly
         match self.strategy:
@@ -216,25 +222,45 @@ class ZoomOptimizer:
             case _:
                 print("Unrecognized zoom strategy")
                 print("Please use 'percentile' (default) or 'rate'")
-                # TODO: Throw and exception here
+                # TODO: Throw an exception here
                 return
 
         # append .tsv file to combined .tsv file for iteration
         tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         # add to a counter if new point is less than half of the global max
-        if newPoint < global_max_xb * 0.5:
+        if new_max < global_max * 0.5:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
         
-        # end the ZoomOptimzer if counter reaches 2
+        # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            print("Max xb less than target...")
-            print("Ending current scanner early")
+            end_message = "Local max is consistently less than half of global max\n"
+            end_message += "Terminating zoom optimizer"
+            print(end_message)
+            details = open(self.details_name,"a")
+            details.write(end_message)
+            details.close()
 
-        return newPoint
+        return new_max
+
+    # write max xb point summary to info file
+    def write_summary(self, identifier) -> None:
+        summary = open(self.summary_name,"a")
+        summary.write(self.local_max.format_xb())
+        for name, par in self.params.parameters().items():
+            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.precision()}f}")
+        summary.write("\t" + identifier)
+        summary.write("\n")
+        summary.close()
+
+    # write max xb point raw .tsv line to info file
+    def write_tsv_summary(self) -> None:
+        tsv_summary = open(self.tsv_summary_name,"a")
+        tsv_summary.write(self.scanparser.get_max_xb_line())
+        tsv_summary.close()
 
     # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:
