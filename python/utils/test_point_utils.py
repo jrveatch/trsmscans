@@ -69,16 +69,16 @@ def Gam_h2_to_h1h1(m1: float,
 # function to read in the branching ratios into a dictionary in the format:
 # mass [GeV] | H -> bbbar | H -> tautau | H -> mumu | H -> cc | H -> ss | H -> tt | H -> gg | H -> gammagamma | H -> Zgamma | H -> WW | H -> ZZ | total width [GeV]
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR2014#SM_Higgs_Branching_Ratios_and_Pa
-def read_higgsBR(brfile: str):
+def read_higgsBR(br_file: str):
 
     # initialize BRs dictionary
     higgs_brs = {}
 
     # open file of BRs
-    brstream = open(brfile, 'r')
+    br_stream = open(br_file, 'r')
 
     # loop over the file
-    for line in brstream:
+    for line in br_stream:
 
         # split line by whitespace
         values_raw = line.strip().split()
@@ -158,10 +158,10 @@ def width_h2(sth, m1, m2, l112, Gam_SM):
 def get_BR_interpolators_SM() -> list[interp1d]:
 
     # get data directory
-    datadir = os.environ['DATADIR']
+    data_dir = os.environ['DATADIR']
 
     # the file containing the branching ratios for the SM Higgs boson:
-    BR_file = datadir+"higgsBR_YR4.txt"
+    BR_file = data_dir + "higgsBR_YR4.txt"
 
     # read the file:
     higgs_brs = read_higgsBR(BR_file)
@@ -172,8 +172,8 @@ def get_BR_interpolators_SM() -> list[interp1d]:
     return interpolators
 
 # print the heavy Higgs info:
-def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo) -> None:
-    print(textinfo)
+def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
+    print(text_info)
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
