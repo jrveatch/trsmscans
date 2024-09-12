@@ -79,7 +79,7 @@ class Plot:
         self.nvars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
-        self.maxpoint_list = []
+        self.max_point_list = []
 
         # Initialize a dictionary to store lists of numpy arrays
         self.var_lists = {}
@@ -95,7 +95,7 @@ class Plot:
             xb = parser.get_xb(self.decay)
 
             # Retrieve maximum point based on the file's variables
-            maxpoint = parser.get_max_xb_point(self.decay)
+            max_point = parser.get_max_xb_point(self.decay)
 
             # Iterate through the information of each parameter
             for name, par in allParams.items():
@@ -116,7 +116,7 @@ class Plot:
             self.var_lists['xb'].append(xb)
 
             # Append the maximum point to the list
-            self.maxpoint_list.append(maxpoint)
+            self.max_point_list.append(max_point)
 
         # Initialize a dictionary to hold combined arrays
         self.comb_arrays = {}
@@ -138,7 +138,7 @@ class Plot:
         print("Making scan plots for",self.model.name(),self.decay,self.masses)
 
         # Find the Maximum point from the maximum points
-        maximum = max(self.maxpoint_list)
+        maximum = max(self.max_point_list)
 
         # Set the start and end colors by random RGB values
         start_rgb, end_rgb = self.select_colors()
@@ -185,11 +185,11 @@ class Plot:
                     variable2 = self.var_names[j]
 
                     # Get and store the max points for each variable
-                    point1 = self.maxpoint_list[q].get_val(variable1)
-                    point2 = self.maxpoint_list[q].get_val(variable2)
+                    point1 = self.max_point_list[q].get_val(variable1)
+                    point2 = self.max_point_list[q].get_val(variable2)
 
                     # Plot the max point from the scatterplot [star]
-                    if(self.maxpoint_list[q] != maximum): #Make sure the point is not the maximum point
+                    if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
                         plt.scatter(point1, point2, s=25, color="yellow", alpha=opac, marker="*") #plot normally
                     else: #If point is maximum point plot as a bigger star
                         plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
@@ -287,13 +287,13 @@ class Plot:
 
 if __name__ == '__main__':
 
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("-d", "--decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=float)
-    argparser.add_argument("-S", "--SMass", required=True, type=float)
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float)
-    argparser.add_argument("-M", "--model", default="TRSMBroken", type=str)
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-d", "--decay", required=True, type=str)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float)
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float)
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
+    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    args = arg_parser.parse_args()
 
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 

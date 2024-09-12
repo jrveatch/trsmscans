@@ -107,7 +107,7 @@ class ZoomOptimizer:
             self.npoints = self.min_points
 
         # run ScannerS
-        self.npoints = runScannerS(ininame=ini_name,
+        self.npoints = runScannerS(ini_name=ini_name,
                                    model_name=self.model_name,
                                    npoints=self.npoints,
                                    use_multiprocessing=use_multiprocessing)

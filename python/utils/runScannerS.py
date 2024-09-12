@@ -11,25 +11,25 @@ from utils import tsvutils
 import argparse
 
 # method to run ScannerS
-def runScannerS(ininame: str,
+def runScannerS(ini_name: str,
                 npoints: int,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
     # if only one process needed, use subprocess
     if not use_multiprocessing:
-        return run_single_process(ininame=ininame,
+        return run_single_process(ini_name=ini_name,
                                   npoints=npoints,
                                   model_name=model_name)
 
     # otherwise use multiprocessing
     else:
-        return run_parallel_processes(ininame=ininame,
+        return run_parallel_processes(ini_name=ini_name,
                                       npoints=npoints,
                                       model_name=model_name)
 
 # run job as a single process
-def run_single_process(ininame: str,
+def run_single_process(ini_name: str,
                        npoints: int,
                        model_name: str) -> int:
 
@@ -38,12 +38,12 @@ def run_single_process(ininame: str,
 
     # complain and exit if .ini doesn't exist
     # TODO: Change this to a try/except
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
+    if not os.path.exists(ini_name):
+        print(ini_name,"doesn't exist. Exiting.")
         quit()
 
     # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(npoints)]
+    process = [model_name, "--config", ini_name, "scan", "-n", str(npoints)]
 
     # run the process
     try:
@@ -58,14 +58,14 @@ def run_single_process(ininame: str,
     return npoints
 
 # run multiple processes in parallel
-def run_parallel_processes(ininame: str,
+def run_parallel_processes(ini_name: str,
                            npoints: int,
                            model_name: str,
                            njobs=-1) -> int:
 
     # complain and exit if .ini doesn't exist
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
+    if not os.path.exists(ini_name):
+        print(ini_name,"doesn't exist. Exiting.")
         quit()
 
     # get number of available CPUs
@@ -74,7 +74,7 @@ def run_parallel_processes(ininame: str,
     # if there is only 1 CPU available, run a single process
     if ncpu == 1:
         print("Only 1 CPU available, running as a single process")
-        return run_single_process(ininame=ininame,
+        return run_single_process(ini_name=ini_name,
                                   npoints=npoints,
                                   model_name=model_name)
 
@@ -98,7 +98,7 @@ def run_parallel_processes(ininame: str,
     # if fewer than 2 processes are needed, run a single process
     if npoints < 2 * min_points:
         print("Only 1 process needed, running as a single process")
-        return run_single_process(ininame=ininame,
+        return run_single_process(ini_name=ini_name,
                                   npoints=npoints,
                                   model_name=model_name)
 
@@ -114,7 +114,7 @@ def run_parallel_processes(ininame: str,
     print("Running test job with",min_points,"points")
 
     # define test process with 10 points
-    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points)]
+    test_process = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
 
     # run test process
     try:
@@ -135,7 +135,7 @@ def run_parallel_processes(ininame: str,
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_job)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -255,17 +255,17 @@ def concatenate_files(directories: list[str],
 if __name__ == "__main__":
 
     # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
-    argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    arg_parser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
+    args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ininame = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
+    ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ininame=ininame,
+    runScannerS(ini_name=ini_name,
                 model_name=args.model,
                 npoints=args.npoints,
                 njobs=args.njobs)
