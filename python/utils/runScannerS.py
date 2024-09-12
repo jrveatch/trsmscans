@@ -16,6 +16,10 @@ def runScannerS(ini_name: str,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
+    # complain and exit if .ini doesn't exist
+    if not os.path.exists(ini_name):
+        raise FileNotFoundError(ini_name,"doesn't exist. Exiting.")
+
     # if only one process needed, use subprocess
     if not use_multiprocessing:
         return run_single_process(ini_name=ini_name,
@@ -35,12 +39,6 @@ def run_single_process(ini_name: str,
 
     # simple information message
     print(f"Running ScannerS as a single process with",npoints,"points.")
-
-    # complain and exit if .ini doesn't exist
-    # TODO: Change this to a try/except
-    if not os.path.exists(ini_name):
-        print(ini_name,"doesn't exist. Exiting.")
-        quit()
 
     # define process
     process = [model_name, "--config", ini_name, "scan", "-n", str(npoints)]
@@ -62,11 +60,6 @@ def run_parallel_processes(ini_name: str,
                            npoints: int,
                            model_name: str,
                            njobs=-1) -> int:
-
-    # complain and exit if .ini doesn't exist
-    if not os.path.exists(ini_name):
-        print(ini_name,"doesn't exist. Exiting.")
-        quit()
 
     # get number of available CPUs
     ncpu = mp.cpu_count()
