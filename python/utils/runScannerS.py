@@ -241,7 +241,6 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
-    arg_parser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
     args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
