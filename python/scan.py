@@ -59,6 +59,7 @@ class Scan:
 
         # get configurations from config file
         try:
+            self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
             self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
         except KeyError as e:
             print(f"Error: {e}")
@@ -233,6 +234,10 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
+        # if npoints isn't given, use num_starting_points
+        if npoints < 0:
+            npoints = self.num_starting_points
+
         # run prescan
         self.run_prescan(npoints=npoints,
                          use_multiprocessing=use_multiprocessing)
@@ -372,8 +377,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-i", "--iterations", default=20, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     args = arg_parser.parse_args()
