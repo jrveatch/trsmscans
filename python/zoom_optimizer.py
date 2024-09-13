@@ -26,7 +26,7 @@ class ZoomOptimizer:
     def __init__(self,
                  params: 'Params',
                  decay: str,
-                 npoints: int,
+                 num_points: int,
                  starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
@@ -34,7 +34,7 @@ class ZoomOptimizer:
         # some basic scanner information
         self.params = params
         self.decay = decay
-        self.npoints = npoints
+        self.num_points = num_points
         self.local_max = starting_max
         self.label = label
         self.model_name = params.model_name()
@@ -102,15 +102,15 @@ class ZoomOptimizer:
         # write new .ini file from template and parameters
         self.params.write_ini(ini_name)
 
-        # make sure npoints doesn't drop below the minimum
-        if self.npoints < self.min_points:
-            self.npoints = self.min_points
+        # make sure num_points doesn't drop below the minimum
+        if self.num_points < self.min_points:
+            self.num_points = self.min_points
 
         # run ScannerS
-        self.npoints = runScannerS(ini_name=ini_name,
-                                   model_name=self.model_name,
-                                   npoints=self.npoints,
-                                   use_multiprocessing=use_multiprocessing)
+        self.num_points = runScannerS(ini_name = ini_name,
+                                      model_name = self.model_name,
+                                      num_points = self.num_points,
+                                      use_multiprocessing = use_multiprocessing)
 
         # TODO: Figure out what to do if process throws a TimeoutError
 
@@ -119,7 +119,7 @@ class ZoomOptimizer:
 
         # calculate point density from ranges
         volume = self.params.volume()
-        density = self.npoints / volume
+        density = self.num_points / volume
 
         # apply width and bounds filters
         nwidth, nbounds, nsignals, npass = apply_filters(file_name=tsv_name,
@@ -174,12 +174,12 @@ class ZoomOptimizer:
         details = open(self.details_name,"a")
         details.write("Iteration = " + str(identifier) + "\n")
         details.write("--------------------\n")
-        details.write("Using " + str(self.npoints) + " scan points\n")
+        details.write("Using " + str(self.num_points) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(nwidth) + "/" + str(self.npoints) + " pass width cut\n")
-        details.write(str(nbounds) + "/" + str(self.npoints) + " pass bounds check\n")
-        details.write(str(nsignals) + "/" + str(self.npoints) + " pass signals check\n")
-        details.write(str(npass) + "/" + str(self.npoints) + " pass all checks\n")
+        details.write(str(nwidth) + "/" + str(self.num_points) + " pass width cut\n")
+        details.write(str(nbounds) + "/" + str(self.num_points) + " pass bounds check\n")
+        details.write(str(nsignals) + "/" + str(self.num_points) + " pass signals check\n")
+        details.write(str(npass) + "/" + str(self.num_points) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
         details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
@@ -312,7 +312,7 @@ class ZoomOptimizer:
 
         # calculate the new number of points based on the remaining xb range
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
-        self.npoints = int(self.npoints * height_ratio * (1.0 + self.density_growth_rate))
+        self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate))
 
         return
 
@@ -332,7 +332,7 @@ class ZoomOptimizer:
         volume_new = self.params.volume()
         volume_ratio = volume_new / volume_old
 
-        # step down npoints
-        self.npoints = int(self.npoints * volume_ratio * (1.0 + self.density_growth_rate))
+        # step down num_points
+        self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate))
     
         return
