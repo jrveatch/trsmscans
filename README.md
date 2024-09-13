@@ -33,6 +33,13 @@ following installed:
 Note: If you are using a Mac, the installation seems to work better if you
 use homebrew instead of macports as your package manager.
 
+### Python on lxplus
+
+If you are working on lxplus, you will need to install a custom version of
+Python since the default version is not sufficient. You can do this following
+[the instructions given here](https://abpcomputing.web.cern.ch/guides/python_inst/).
+It is recommended that you install the latest version of Python.
+
 ## Installation
 
 Most of the installation is done via scripts that are provided
