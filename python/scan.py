@@ -234,9 +234,9 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        # if npoints isn't given, use num_starting_points
-        if npoints < 0:
-            npoints = self.num_starting_points
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
 
         # run prescan
         self.run_prescan(num_points = num_points,
