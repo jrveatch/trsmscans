@@ -20,9 +20,6 @@ class Parameter:
         self.__low = self.__lower_bound
         self.__high = self.__upper_bound
 
-        # initialize value as the midpoint
-        self.__val = self.center()
-
     # get name
     def name(self) -> str:
         return self.__name
@@ -90,18 +87,14 @@ class Parameter:
             print("Attempting to update parameter with no new information... returning...")
             return
 
-        # if a new val is given, update stored val
-        if newVal:
-            self.__val = newVal
-
         width = self.width()
 
         # scale width by given value
         width *= rangeScale
 
         # find new low and high using the half width
-        self.__low = self.__val - width / 2
-        self.__high = self.__val + width / 2
+        self.__low = self.center() - width / 2
+        self.__high = self.center() + width / 2
 
         # adjust low and high based on lower bound
         if self.__low < self.__lower_bound:
