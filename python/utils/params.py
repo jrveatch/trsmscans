@@ -49,10 +49,10 @@ class Params:
     def masses(self) -> 'Masses':
         return self.__masses
     
-    def midpoint_tuples(self) -> tuple[float]:
-        return tuple([param.get_midpoint() for param in self.__parameters.values()])
+    def center_point(self) -> tuple[float]:
+        return tuple([param.center() for param in self.__parameters.values()])
     
-    def extent_tuples(self) -> tuple[tuple[float]]:
+    def extents(self) -> tuple[tuple[float]]:
         return tuple([(param.get_low(), param.get_high()) for param in self.__parameters.values()])
 
     # get starting min value from model
@@ -155,12 +155,12 @@ class Params:
     # function to get lower bound value
     def lower_bound(self,
                     par_name: str) -> float:
-        return self.parameter(par_name).lower_bound()
+        return self.parameter(par_name).get_lower_bound()
 
     # function to get max value
     def upper_bound(self,
                     par_name: str) -> float:
-        return self.parameter(par_name).upper_bound()
+        return self.parameter(par_name).get_upper_bound()
 
     # function to get low value
     def get_low(self,
