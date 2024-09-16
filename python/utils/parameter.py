@@ -39,11 +39,11 @@ class Parameter:
         return self.__high
 
     # get lower bound
-    def lower_bound(self) -> float:
+    def get_lower_bound(self) -> float:
         return self.__lower_bound
 
     # get upper bound
-    def upper_bound(self) -> float:
+    def get_upper_bound(self) -> float:
         return self.__upper_bound
 
     # get fullname
