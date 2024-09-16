@@ -48,12 +48,12 @@ class Parameter:
     def get_precision(self) -> int:
         return self.__precision
 
-    # get the midpoint given current low and high
+    # get the parameter center given current low and high
     def center(self) -> float:
         return (self.__low + self.__high) / 2
     
     # get range (inclusive)
-    def range_inc(self) -> tuple:
+    def range(self) -> tuple:
         return (self.__low, self.__high)
 
     # get range given current low and high
