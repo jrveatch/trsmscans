@@ -19,37 +19,37 @@ from utils.config_loader import ConfigLoader
 
 def run_prescan(masses: 'Masses',
                 model_name: str,
-                npoints: int,
+                num_points: int,
                 config_loader: ConfigLoader | None = None,
                 config_file_name: str = "",
                 overwrite: bool = False,
                 use_multiprocessing: bool = False) -> 'Parse':
 
     # get scan start time
-    scanstart = time.time()
+    scan_start = time.time()
 
     # directory where we want the output to go
     outdir = fileutils.prescan_dir(model_name=model_name,
                                    masses=masses)
 
     # names of .ini and .tsv files
-    ininame = outdir + model_name + ".ini"
-    tsvname_initial = outdir + model_name + ".tsv"
-    tsvname = outdir + model_name + "_prescan.tsv"
+    ini_name = outdir + model_name + ".ini"
+    tsv_name_initial = outdir + model_name + ".tsv"
+    tsv_name = outdir + model_name + "_prescan.tsv"
 
     # create parse object without .tsv file name
     parser = Parse(masses=masses,
                    model_name=model_name)
 
     # print starting message
-    print("\nRunning a prescan with",npoints,"points for",str(masses))
+    print("\nRunning a prescan with",num_points,"points for",str(masses))
 
     # get number of pre-existing prescan points
-    nexisting = tsvutils.count_tsv_points(tsvname)
+    num_existing = tsvutils.count_tsv_points(tsv_name)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
-    if overwrite and npoints < nexisting * 0.2:
-        print("You are requesting",npoints,"points but there are already",nexisting,"points")
+    if overwrite and num_points < num_existing * 0.2:
+        print("You are requesting",num_points,"points but there are already",num_existing,"points")
         while True:
             # get user response
             response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
@@ -59,7 +59,7 @@ def run_prescan(masses: 'Masses',
                 break
             # if no, print message and return
             elif response in ["no", "n"]:
-                parser.read_file(tsvname)
+                parser.read_file(tsv_name)
                 print("Exiting prescan")
                 return parser
             # complain if response is neither yes nor no
@@ -70,25 +70,25 @@ def run_prescan(masses: 'Masses',
     if os.path.exists(outdir) and overwrite:
         # remove directory
         shutil.rmtree(outdir)
-        # reset nexisting to 0
-        nexisting = 0
+        # reset num_existing to 0
+        num_existing = 0
 
     # if prescan exists, adjust the number of prescan points to run
-    if nexisting > 0:
+    if num_existing > 0:
 
         # if enough points already exist, parse and return
-        if nexisting >= npoints:
-            print("Found a prescan that already has",nexisting,"points.")
-            print(npoints,"points request, skipping since no more are needed.")
+        if num_existing >= num_points:
+            print("Found a prescan that already has",num_existing,"points.")
+            print(num_points,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with the -o option.")
-            parser.read_file(tsvname)
+            parser.read_file(tsv_name)
             return parser
 
         # otherwise reduce the number of points to run with
-        npointsOld = npoints
-        npoints -= nexisting
-        print("Found prescan with",nexisting,"points.")
-        print(npointsOld,"prescan points requested, so I am running with",npoints,"points.")
+        num_points_old = num_points
+        num_points -= num_existing
+        print("Found prescan with",num_existing,"points.")
+        print(num_points_old,"prescan points requested, so I am running with",num_points,"points.")
         print("If you want to overwrite the existing prescan, run with the -o option.")
 
     # check if directory exists, if not make it
@@ -119,14 +119,14 @@ def run_prescan(masses: 'Masses',
     params = Params(model_name,masses)
 
     # write .ini file from template
-    params.write_ini(ininame)
+    params.write_ini(ini_name)
 
     # run ScannerS to sample points
     try:
-        runScannerS(ininame=ininame,
-                    model_name=model_name,
-                    npoints=npoints,
-                    use_multiprocessing=use_multiprocessing)
+        runScannerS(ini_name = ini_name,
+                    model_name = model_name,
+                    num_points = num_points,
+                    use_multiprocessing = use_multiprocessing)
 
     # if timeout error is caught, delete the directory and raise
     except TimeoutError:
@@ -138,29 +138,29 @@ def run_prescan(masses: 'Masses',
         raise
 
     # make sure new .tsv has filter columns
-    initialize_filters(file_name=tsvname_initial)
+    initialize_filters(file_name=tsv_name_initial)
 
-    # save output to tsvname
-    tsvutils.save_tsv_output(inputfile=tsvname_initial,
-                             outputfile=tsvname)
+    # save output to tsv_name
+    tsvutils.save_tsv_output(input_file = tsv_name_initial,
+                             output_file = tsv_name)
 
     # apply width and bounds filters
-    apply_filters(file_name=tsvname,
-                  masses=masses,
-                  config_loader=config_loader)
+    apply_filters(file_name = tsv_name,
+                  masses = masses,
+                  config_loader = config_loader)
 
     # parse output .tsv file
-    parser.read_file(tsvname)
+    parser.read_file(tsv_name)
 
     # get total time taken
-    scanend = time.time()
-    scantime = (scanend - scanstart)
+    scan_end = time.time()
+    scan_time = (scan_end - scan_start)
 
     # move back to the starting directory
     os.chdir(startDir)
 
     # print total time to the screen
-    print("Prescan took",str(datetime.timedelta(seconds=int(scantime))),"(hh:mm:ss)")
+    print("Prescan took",str(datetime.timedelta(seconds=int(scan_time))),"(hh:mm:ss)")
 
     # return parser after a successful run
     return parser
@@ -168,21 +168,21 @@ def run_prescan(masses: 'Masses',
 if __name__ == "__main__":
 
     # parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
-    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
+    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
+    args = arg_parser.parse_args()
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    run_prescan(masses=masses,
-                model_name=args.model,
-                npoints=args.npoints,
-                overwrite=args.overwrite,
-                use_multiprocessing=args.multiprocessing)
+    run_prescan(masses = masses,
+                model_name = args.model,
+                num_points = args.npoints,
+                overwrite = args.overwrite,
+                use_multiprocessing = args.multiprocessing)

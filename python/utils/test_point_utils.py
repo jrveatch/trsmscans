@@ -19,10 +19,10 @@ def round_sig(x: float,
 def interpolate_HiggsBR(brdict) -> list[interp1d]:
 
     # the kind of interpolation
-    interpkind = 'cubic'
+    interp_kind = 'cubic'
 
     # define an array of interpolators
-    interp_higgsbrs: list[interp1d] = []
+    interp_higgs_brs: list[interp1d] = []
 
     # find out how many BRs+width we have:
     values_view = list(brdict.values())
@@ -42,12 +42,12 @@ def interpolate_HiggsBR(brdict) -> list[interp1d]:
 
     # now create the interpolators and put them in the array:
     for ii in range(NBRs):
-        interpolator = interp1d(mass_array, br_array[ii], kind=interpkind, bounds_error=False)
-        interp_higgsbrs.append(interpolator)
+        interpolator = interp1d(mass_array, br_array[ii], kind=interp_kind, bounds_error=False)
+        interp_higgs_brs.append(interpolator)
 
-    return interp_higgsbrs
+    return interp_higgs_brs
 
-# branching ratio RESCALING for h2 -> xx given Gamma_SM, sintheta, m1, m2, l112:
+# branching ratio RESCALING for h2 -> xx given Gamma_SM, sin_theta, m1, m2, l112:
 def RES_BR_h2_to_xx(sth: float,
                     Gam_SM: float,
                     m1: float,
@@ -69,16 +69,16 @@ def Gam_h2_to_h1h1(m1: float,
 # function to read in the branching ratios into a dictionary in the format:
 # mass [GeV] | H -> bbbar | H -> tautau | H -> mumu | H -> cc | H -> ss | H -> tt | H -> gg | H -> gammagamma | H -> Zgamma | H -> WW | H -> ZZ | total width [GeV]
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/CERNYellowReportPageBR2014#SM_Higgs_Branching_Ratios_and_Pa
-def read_higgsBR(brfile: str):
+def read_higgsBR(br_file: str):
 
     # initialize BRs dictionary
-    higgsbrs = {}
+    higgs_brs = {}
 
     # open file of BRs
-    brstream = open(brfile, 'r')
+    br_stream = open(br_file, 'r')
 
     # loop over the file
-    for line in brstream:
+    for line in br_stream:
 
         # split line by whitespace
         values_raw = line.strip().split()
@@ -86,16 +86,16 @@ def read_higgsBR(brfile: str):
         # convert values to floats
         values = [float(value) for value in values_raw]
 
-        # create brarray from all values except first
-        brarray = values[1:]
+        # create br_array from all values except first
+        br_array = values[1:]
 
-        # create BRs dictionary from brarray
-        higgsbrs[values[0]] = brarray
+        # create BRs dictionary from br_array
+        higgs_brs[values[0]] = br_array
 
     # sort by increasing value of HYmass
-    sorted_x = sorted(list(higgsbrs.items()), key=operator.itemgetter(0))
-    sorted_higgsbrs = OrderedDict(sorted_x)
-    return sorted_higgsbrs
+    sorted_x = sorted(list(higgs_brs.items()), key=operator.itemgetter(0))
+    sorted_higgs_brs = OrderedDict(sorted_x)
+    return sorted_higgs_brs
 
 # minor correction to rescale all BRs to make sure that sum(BRs) = 1
 def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
@@ -113,7 +113,7 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
 def calculate_heavy_BRs_only(interpolators_SM: list[interp1d],
                              mh2: float,
                              l112: float,
-                             sintheta: float) -> list[float]:
+                             sin_theta: float) -> list[float]:
     heavyBRs: list[float] = []
     # fix the SM Higgs mass
     mh1 = 125.09
@@ -123,7 +123,7 @@ def calculate_heavy_BRs_only(interpolators_SM: list[interp1d],
         Gamma_SM = interpolators_SM[-1](1000.)
         print("WARNING: mh2 > 1000.! (tree level)")
     # get the rescaling factor of the SM BRs:
-    rescale_fac = RES_BR_h2_to_xx(sintheta, Gamma_SM, mh1, mh2, l112)
+    rescale_fac = RES_BR_h2_to_xx(sin_theta, Gamma_SM, mh1, mh2, l112)
     # loop over the SM BRs and rescale with the factor:
     for hh in range(len(interpolators_SM)-1):
         if mh2 < 1000.:
@@ -131,49 +131,49 @@ def calculate_heavy_BRs_only(interpolators_SM: list[interp1d],
         else:
             heavyBRs.append(interpolators_SM[hh](1000.) * rescale_fac)
     # add the h1h1 decay:
-    BR_hh = BR_h2_to_h1h1(sintheta, mh1, mh2, l112, Gamma_SM)
+    BR_hh = BR_h2_to_h1h1(sin_theta, mh1, mh2, l112, Gamma_SM)
     heavyBRs.append(BR_hh)
     # add the h1h1h1 decay (DON'T DO THIS HERE):
     BR_tripleHiggs = 0.
     heavyBRs.append(BR_tripleHiggs)
 
     # add the total heavy Higgs width:
-    heavyBRs.append(width_h2(sintheta, mh1, mh2, l112, Gamma_SM))
+    heavyBRs.append(width_h2(sin_theta, mh1, mh2, l112, Gamma_SM))
     
     return heavyBRs
 
-# the BR h2 -> h1 h1, given the m2, sintheta, l112, Gam_SM (total SM BR)
+# the BR h2 -> h1 h1, given the m2, sin_theta, l112, Gam_SM (total SM BR)
 def BR_h2_to_h1h1(sth: float,
                   m1: float,
                   m2: float,
                   l112: float,
                   Gam_SM: float) -> float:
-    BRh2h1h1 = Gam_h2_to_h1h1(m1, m2, l112, sth) / ( Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112, sth) )
+    BRh2h1h1 = Gam_h2_to_h1h1(m1, m2, l112) / ( Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112) )
     return BRh2h1h1
 
 def width_h2(sth, m1, m2, l112, Gam_SM):
-    total_width = Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112, sth)
+    total_width = Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112)
     return total_width
 
 def get_BR_interpolators_SM() -> list[interp1d]:
 
     # get data directory
-    datadir = os.environ['DATADIR']
+    data_dir = os.environ['DATADIR']
 
     # the file containing the branching ratios for the SM Higgs boson:
-    BR_file = datadir+"higgsBR_YR4.txt"
+    BR_file = data_dir + "higgsBR_YR4.txt"
 
     # read the file:
-    HiggsBRs = read_higgsBR(BR_file)
+    higgs_brs = read_higgsBR(BR_file)
 
     # get the BR interpolators
-    interpolators = interpolate_HiggsBR(HiggsBRs)
+    interpolators = interpolate_HiggsBR(higgs_brs)
 
     return interpolators
 
 # print the heavy Higgs info:
-def print_heavy_Higgs_info(HeavyHiggsBRs, textinfo) -> None:
-    print(textinfo)
+def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
+    print(text_info)
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
@@ -211,16 +211,16 @@ def get_BR_text_array_heavy_withtripleHiggs() -> list[str]:
 # function to read in the XS into a dictionary in the format:
 # mS or mH (GeV) | Cross Section (pb) |	+Theory | -Theory |	TH Gaussian | -+(PDF+alphaS)
 # see https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHXSWG#BSM_Higgs
-def read_higgsXS_N3LO(xsfile: str):
+def read_higgsXS_N3LO(xs_file: str):
 
     # initialize xsec dictionary
-    higgsxss = {}
+    higgs_xss = {}
 
     # open xsec file
-    xsstream = open(xsfile, 'r')
+    xs_stream = open(xs_file, 'r')
 
     # loop over the file
-    for line in xsstream:
+    for line in xs_stream:
 
         # split line by whitespace
         values_raw = line.strip().split()
@@ -228,28 +228,28 @@ def read_higgsXS_N3LO(xsfile: str):
         # convert values to floats
         values = [float(value) for value in values_raw]
 
-        # create brarray from all values except first
-        xsarray = values[1:]
+        # create br_array from all values except first
+        xs_array = values[1:]
 
-        # create BRs dictionary from brarray
-        higgsxss[values[0]] = xsarray
+        # create BRs dictionary from br_array
+        higgs_xss[values[0]] = xs_array
 
     # sort by increasing value of HYmass
-    sorted_x = sorted(list(higgsxss.items()), key=operator.itemgetter(0))
-    sorted_higgsxss = OrderedDict(sorted_x)
-    return sorted_higgsxss
+    sorted_x = sorted(list(higgs_xss.items()), key=operator.itemgetter(0))
+    sorted_higgs_xss = OrderedDict(sorted_x)
+    return sorted_higgs_xss
 
 # create interpolators for the XS and return a dictionary
-def interpolate_HiggsXS(xsdict):
+def interpolate_HiggsXS(xs_dict):
 
     # the kind of interpolation
-    interpkind = 'linear'
+    interp_kind = 'linear'
 
     # define an array of interpolators
-    interp_higgsxss = []
+    interp_higgs_xss = []
 
     # find out how many BRs+width we have:
-    values_view = list(xsdict.values())
+    values_view = list(xs_dict.values())
     value_iterator = iter(values_view)
     first_value = next(value_iterator)
   
@@ -258,22 +258,22 @@ def interpolate_HiggsXS(xsdict):
     xs_array =[]
 
     # get the mass and the corresponding BR arrays
-    for key in list(xsdict.keys()):
+    for key in list(xs_dict.keys()):
         mass_array.append(key)
-        xs_array.append(xsdict[key][0])
+        xs_array.append(xs_dict[key][0])
 
     # now create the interpolators and put them in the array:
-    interp_higgsxss = interp1d(mass_array, xs_array, kind=interpkind, bounds_error=False)
+    interp_higgs_xss = interp1d(mass_array, xs_array, kind=interp_kind, bounds_error=False)
 
-    return interp_higgsxss
+    return interp_higgs_xss
 
 def get_XS_interpolator_SM_13TeV_NNLONNLL():
 
     # get data directory
-    datadir = os.environ['DATADIR']
+    data_dir = os.environ['DATADIR']
 
     # the 13 TeV ggF cross sections at NNLO+NNLL
-    XS13_file = datadir+"higgsXS_YR4_13TeV_NNLONNLL.txt"
+    XS13_file = data_dir + "higgsXS_YR4_13TeV_NNLONNLL.txt"
     HiggsXS_13_NNLONNLL = read_higgsXS_N3LO(XS13_file)
 
     # get the interpolated XS

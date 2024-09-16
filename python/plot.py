@@ -9,6 +9,7 @@ import argparse
 from utils import fileutils
 from utils.masses import Masses
 from utils.model import Model
+from utils.point import Point
 
 # Plot class
 class Plot:
@@ -79,7 +80,7 @@ class Plot:
         self.nvars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
-        self.maxpoint_list = []
+        self.max_point_list: list[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
         self.var_lists = {}
@@ -95,7 +96,7 @@ class Plot:
             xb = parser.get_xb(self.decay)
 
             # Retrieve maximum point based on the file's variables
-            maxpoint = parser.get_max_xb_point(self.decay)
+            max_point = parser.get_max_xb_point(self.decay)
 
             # Iterate through the information of each parameter
             for name, par in allParams.items():
@@ -116,7 +117,7 @@ class Plot:
             self.var_lists['xb'].append(xb)
 
             # Append the maximum point to the list
-            self.maxpoint_list.append(maxpoint)
+            self.max_point_list.append(max_point)
 
         # Initialize a dictionary to hold combined arrays
         self.comb_arrays = {}
@@ -138,7 +139,7 @@ class Plot:
         print("Making scan plots for",self.model.name(),self.decay,self.masses)
 
         # Find the Maximum point from the maximum points
-        maximum = max(self.maxpoint_list)
+        maximum = max(self.max_point_list)
 
         # Set the start and end colors by random RGB values
         start_rgb, end_rgb = self.select_colors()
@@ -156,7 +157,7 @@ class Plot:
 
                 # Set the opacity to be between values 0.19 and 1 depending on the number of files
                 op = (0.8 / self.nfiles)
-                opac = op + 0.19
+                opacity = op + 0.19
 
                 # Create a new scatter figure
                 plt.figure()
@@ -169,14 +170,14 @@ class Plot:
                     color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
                     # Plot the variables by file
-                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opac)
+                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
 
                     # Adjust the opacity
-                    opac+=op 
+                    opacity += op 
 
                 # Reset opacity for star points
-                opac = op
-                opac += 0.19
+                opacity = op
+                opacity += 0.19
 
                 for q in range(len(self.var_lists['xb'])):
 
@@ -185,17 +186,17 @@ class Plot:
                     variable2 = self.var_names[j]
 
                     # Get and store the max points for each variable
-                    point1 = self.maxpoint_list[q].get_val(variable1)
-                    point2 = self.maxpoint_list[q].get_val(variable2)
+                    point1 = self.max_point_list[q].get_val(variable1)
+                    point2 = self.max_point_list[q].get_val(variable2)
 
                     # Plot the max point from the scatterplot [star]
-                    if(self.maxpoint_list[q] != maximum): #Make sure the point is not the maximum point
-                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opac, marker="*") #plot normally
+                    if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
+                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
                     else: #If point is maximum point plot as a bigger star
                         plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
 
                     # Adjust the opacity
-                    opac+=op
+                    opacity += op
 
                 # Initialize scatterplot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
@@ -287,13 +288,13 @@ class Plot:
 
 if __name__ == '__main__':
 
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("-d", "--decay", required=True, type=str)
-    argparser.add_argument("-X", "--XMass", required=True, type=float)
-    argparser.add_argument("-S", "--SMass", required=True, type=float)
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float)
-    argparser.add_argument("-M", "--model", default="TRSMBroken", type=str)
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("-d", "--decay", required=True, type=str)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float)
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float)
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
+    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    args = arg_parser.parse_args()
 
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
