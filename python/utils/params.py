@@ -105,7 +105,7 @@ class Params:
             for par_name, new_low in low_dict.items():
                 if par_name in self.__parameters:
                     # use low_dict to update the low for each parameter
-                    self.__parameters[par_name].update_low(new_low)
+                    self.__parameters[par_name].set_low(new_low)
                 else:
                     print(f"Warning: {par_name} is not known")
             
@@ -116,7 +116,7 @@ class Params:
             for par_name, new_high in high_dict.items():
                 if par_name in self.__parameters:
                     # use high_dict to update the high for each parameter
-                    self.__parameters[par_name].update_high(new_high)
+                    self.__parameters[par_name].set_high(new_high)
                 else:
                     print(f"Warning: {par_name} is not known")
 

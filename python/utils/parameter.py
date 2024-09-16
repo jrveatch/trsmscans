@@ -131,37 +131,24 @@ class Parameter:
         return
 
     # update the low to a new value
-    def update_low(self,
-                   newval: float) -> None:
+    def set_low(self, value: float) -> None:
 
-        if newval < self.__lower_bound:
+        if value < self.__lower_bound:
             # restrict low if outside bound
-            self.set_low(self.__lower_bound)
+            self.__low = self.__lower_bound
         else:
-            # update low to our newval
-            self.set_low(newval)
+            # update low to our new value
+            self.__low = value
     
     # update the high to a new value
-    def update_high(self,
-                    newval: float) -> None:
+    def set_high(self, value: float) -> None:
 
-        if newval > self.__upper_bound:
+        if value > self.__upper_bound:
             # restrict high if outside bound
-            self.set_high(self.__upper_bound)
+            self.__high = self.__upper_bound
         else:
-            # update high to our newval
-            self.set_high(newval)
-
-    # set the new low and update the range to reflect the new low
-    def set_low(self,
-                newval: float) -> None:
-        self.__low = newval
-        self.range = self.width()
-
-    def set_high(self,
-                 newval: float) -> None:
-        self.__high = newval
-        self.range = self.width()
+            # update high to our new value
+            self.__high = value
 
     # print min and max
     def print_bounds(self) -> None:
