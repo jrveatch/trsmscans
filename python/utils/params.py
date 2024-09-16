@@ -169,3 +169,24 @@ class Params:
     # parameter name indexing
     def __getitem__(self, key) -> Parameter:
         return self.parameter(key)
+
+    ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
+
+    # initialize iteration
+    def __iter__(self):
+        self.__iter_idx = -1
+        return self
+    
+    # get next value
+    def __next__(self):
+        self.__iter_idx += 1
+
+        if self.__iter_idx >= len(self.__parameters):
+            raise StopIteration
+        
+        return self.__parameters.values()[self.__iter_idx]
+    
+    # length of params
+    def __len__(self):
+        return len(self.__parameters)
+    
