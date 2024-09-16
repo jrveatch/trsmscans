@@ -21,10 +21,10 @@ class Parameter:
         self.__high = self.__upper_bound
 
         # initialize value as the midpoint
-        self.__val = self.get_midpoint()
+        self.__val = self.center()
 
         # initialize range
-        self.__range = self.get_range()
+        self.__range = self.width()
 
     # get name
     def name(self) -> str:
@@ -47,19 +47,19 @@ class Parameter:
         return self.__upper_bound
 
     # get fullname
-    def fullname(self) -> str:
+    def get_fullname(self) -> str:
         return self.__fullname
 
     # get precision
-    def precision(self) -> int:
+    def get_precision(self) -> int:
         return self.__precision
 
     # get the midpoint given current low and high
-    def get_midpoint(self) -> float:
+    def center(self) -> float:
         return (self.__low + self.__high) / 2
 
     # get range given current low and high
-    def get_range(self) -> float:
+    def width(self) -> float:
         return abs(self.__high - self.__low)
 
     # functions to set min and max values
@@ -72,14 +72,14 @@ class Parameter:
         self.__lower_bound = newMin
         if self.__low < self.__lower_bound:
             self.__low = self.__lower_bound
-            self.__range = self.get_range()
+            self.__range = self.width()
 
     def set_upper_bound(self,
                         newMax: float) -> None:
         self.__upper_bound = newMax
         if self.__high > self.__upper_bound:
             self.__high = self.__upper_bound
-            self.__range = self.get_range()
+            self.__range = self.width()
     
     # set new value, range, low and high
     def scale_range(self,
@@ -164,12 +164,12 @@ class Parameter:
     def set_low(self,
                 newval: float) -> None:
         self.__low = newval
-        self.range = self.get_range()
+        self.range = self.width()
 
     def set_high(self,
                  newval: float) -> None:
         self.__high = newval
-        self.range = self.get_range()
+        self.range = self.width()
 
     # print min and max
     def print_bounds(self) -> None:

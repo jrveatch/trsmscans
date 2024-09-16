@@ -99,7 +99,7 @@ class Scan:
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters().values():
-            summary.write("\t" + parameter.fullname())
+            summary.write("\t" + parameter.get_fullname())
         summary.write("\titer")
         summary.write("\n")
         summary.close()
@@ -208,7 +208,7 @@ class Scan:
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
         for name, parameter in self.params.parameters().items():
-            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.precision()}f}")
+            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
         summary.write("\tPre")
         summary.write("\n")
         summary.close()

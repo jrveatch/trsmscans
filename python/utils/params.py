@@ -145,10 +145,10 @@ class Params:
         for par in self.__parameters.values():
         
             # make sure range is non-zero
-            if par.get_range() > 1e-13:
+            if par.width() > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.get_range()
+                volume *= par.width()
         
         return volume
 
@@ -175,7 +175,7 @@ class Params:
     # function to get parameter ranges
     def range(self,
               par_name: str) -> float:
-        return self.parameter(par_name).get_range()
+        return self.parameter(par_name).width()
     
     # function to write .ini file with parameters
     def write_ini(self,
