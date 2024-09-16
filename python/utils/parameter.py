@@ -23,9 +23,6 @@ class Parameter:
         # initialize value as the midpoint
         self.__val = self.center()
 
-        # initialize range
-        self.__range = self.width()
-
     # get name
     def name(self) -> str:
         return self.__name
@@ -57,6 +54,10 @@ class Parameter:
     # get the midpoint given current low and high
     def center(self) -> float:
         return (self.__low + self.__high) / 2
+    
+    # get range (inclusive)
+    def range_inc(self) -> tuple:
+        return (self.__low, self.__high)
 
     # get range given current low and high
     def width(self) -> float:
@@ -72,17 +73,15 @@ class Parameter:
         self.__lower_bound = newMin
         if self.__low < self.__lower_bound:
             self.__low = self.__lower_bound
-            self.__range = self.width()
 
     def set_upper_bound(self,
                         newMax: float) -> None:
         self.__upper_bound = newMax
         if self.__high > self.__upper_bound:
             self.__high = self.__upper_bound
-            self.__range = self.width()
     
     # set new value, range, low and high
-    def scale_range(self,
+    def scale_width(self,
                     newVal: Optional[float] = None,
                     rangeScale: float = 1.0) -> None:
 
@@ -95,12 +94,14 @@ class Parameter:
         if newVal:
             self.__val = newVal
 
-        # scale range by given value
-        self.__range *= rangeScale
+        width = self.width()
 
-        # find new low and high using the half range
-        self.__low = self.__val - self.__range / 2
-        self.__high = self.__val + self.__range / 2
+        # scale width by given value
+        width *= rangeScale
+
+        # find new low and high using the half width
+        self.__low = self.__val - width / 2
+        self.__high = self.__val + width / 2
 
         # adjust low and high based on lower bound
         if self.__low < self.__lower_bound:
@@ -140,25 +141,23 @@ class Parameter:
     def update_low(self,
                    newval: float) -> None:
 
-        # check if newval is higher than previous low
         if newval < self.__lower_bound:
+            # restrict low if outside bound
             self.set_low(self.__lower_bound)
-            return
-
-        # update low to our newval
-        self.set_low(newval)
+        else:
+            # update low to our newval
+            self.set_low(newval)
     
     # update the high to a new value
     def update_high(self,
                     newval: float) -> None:
 
-        # check if newval is lower than previous high
         if newval > self.__upper_bound:
+            # restrict high if outside bound
             self.set_high(self.__upper_bound)
-            return
-
-        # update high to our newval
-        self.set_high(newval)
+        else:
+            # update high to our newval
+            self.set_high(newval)
 
     # set the new low and update the range to reflect the new low
     def set_low(self,

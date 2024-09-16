@@ -172,12 +172,12 @@ class Scan:
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params.lower_bound(parameter_name):
-                self.params.set_lower_bound(parameter_name, new_min - one_percent)
+            if new_min - one_percent > self.params[parameter_name].get_lower_bound():
+                self.params[parameter_name].set_lower_bound(new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params.upper_bound(parameter_name):
-                self.params.set_upper_bound(parameter_name, new_max + one_percent)
+            if new_max + one_percent < self.params[parameter_name].get_upper_bound():
+                self.params[parameter_name].set_upper_bound(new_max + one_percent)
 
             # print min and max to screen after prescan
             self.params.print_bounds(parameter_name)
@@ -234,9 +234,9 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        # if npoints isn't given, use num_starting_points
-        if npoints < 0:
-            npoints = self.num_starting_points
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
 
         # run prescan
         self.run_prescan(num_points = num_points,
@@ -308,8 +308,8 @@ class Scan:
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params.get_low(parameter_name)
-            max_val = self.params.get_high(parameter_name)
+            min_val = self.params[parameter_name].get_low()
+            max_val = self.params[parameter_name].get_high()
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
@@ -330,10 +330,10 @@ class Scan:
             param_combination_data = {}  # Dictionary to hold all combinations of values
 
             # Zip the names and values together, assigning the data to each parameter
-            for par, values in zip(param_dict.keys(), param_values):
-                params_copy.set_lower_bound(par, values['min'])
-                params_copy.set_upper_bound(par, values['max'])
-                param_combination_data[par] = values
+            for name, parameter in zip(param_dict.keys(), param_values):
+                params_copy[name].set_lower_bound(parameter['min'])
+                params_copy[name].set_upper_bound(parameter['max'])
+                param_combination_data[name] = parameter
 
             all_param_combinations.append((params_copy, param_combination_data))
 
