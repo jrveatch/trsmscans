@@ -87,8 +87,8 @@ def run_prescan(masses: 'Masses',
         # otherwise reduce the number of points to run with
         num_points_old = num_points
         num_points -= num_existing
-        print("Found prescan with",num_existing,"points.")
-        print(num_points_old,"prescan points requested, so I am running with",num_points,"points.")
+        print(num_points_old,"prescan points requested and found existing prescan with",num_existing,"points.")
+        print("Running with the additional",num_points,"points.")
         print("If you want to overwrite the existing prescan, run with the -o option.")
 
     # check if directory exists, if not make it
