@@ -44,7 +44,9 @@ class ZoomOptimizer:
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
+        self.local_xb_fail = 0
         self.is_running = True
+        self.local_history = []
 
         # get zoom configuration from config file
         self.config_loader = config_loader
@@ -233,6 +235,34 @@ class ZoomOptimizer:
             self.is_running = False
             print("Max xb less than target...")
             print("Ending current scanner early")
+        
+        sorted_history = sorted(self.local_history)
+
+        # if point is less than 5% higher than the 2nd highest point, end scan
+        if len(sorted_history) >= 5:
+            if newPoint < sorted_history[1] * 1.05:
+                self.is_running = False
+                print("Max xb less than target...")
+                print("Ending current scanner early")
+
+        # if point is less than 2nd highest point, end scan
+        if len(sorted_history) >= 5:
+            if newPoint < sorted_history[1]:
+                self.is_running = False
+                print("Max xb less than target...")
+                print("Ending current scanner early")
+
+        # alternate (without using history)
+
+        #if newPoint < sorted_history[0]:
+        #    self.local_xb_fail += 1
+        
+        #if self.local_xb_fail >= 2:
+        #    self.is_running = False
+        #    print("Max xb less than target...")
+        #    print("Ending current scanner early")
+
+        self.local_history.append(newPoint)
 
         return newPoint
 

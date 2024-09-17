@@ -231,7 +231,6 @@ class Scan:
         # make a list of all zoom optimizersa based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
 
-        # target_xb = 0
 
         for iter in range(niter): # make controlling num of iters optionals
 
@@ -243,6 +242,23 @@ class Scan:
 
             for zoom_optimizer in all_zoom_optimizers:
                 
+                '''
+                def check_running(azo):
+                    result = False
+                    for zo in azo:
+                        if zo.is_running:
+                            result = True
+                            break
+                    return result
+
+                while check_running(all_zoom_optimizers):
+                    still_running = False
+                    for i in range:
+                        # code
+                        if i.is_running:
+                            still_running = True
+                '''
+
                 # counter to stop loop if all zoom_optimizer.running == False (to allow running wihout niter)
 
                 if zoom_optimizer.is_running:
@@ -253,13 +269,6 @@ class Scan:
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
-            
-            #if max_xb < target_xb: # move for each zoom_optimizer to check local max (temp_max) and check twice
-            #    print("Max xb less than target...")
-            #    print("Ending scan early")
-            #    break
-
-            #target_xb = self.global_max + (self.global_max * 0.01)
 
             # TODO: Add early stopping conditions
 
