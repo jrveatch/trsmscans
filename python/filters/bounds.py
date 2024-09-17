@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from filters.setupHiggsTools import *
+from filters.setup_higgs_tools import *
 
 from utils.arrays import Arrays
 from utils import tsvutils
