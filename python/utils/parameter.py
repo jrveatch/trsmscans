@@ -88,13 +88,14 @@ class Parameter:
             return
 
         width = self.width()
+        center = self.center()
 
         # scale width by given value
         width *= rangeScale
 
         # find new low and high using the half width
-        self.__low = self.center() - width / 2
-        self.__high = self.center() + width / 2
+        self.__low = center - width / 2
+        self.__high = center + width / 2
 
         # adjust low and high based on lower bound
         if self.__low < self.__lower_bound:
