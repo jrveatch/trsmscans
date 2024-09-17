@@ -133,7 +133,7 @@ def filter_bounds(file_name: str,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        # TODO: get the correct rescalings for either heirarchy
+        # TODO: get the correct rescalings for either hierarchy
         if mH < 150:
             HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(RH),reference="SMHiggsEW")
         else:
