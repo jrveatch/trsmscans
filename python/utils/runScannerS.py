@@ -43,11 +43,26 @@ def run_single_process(ini_name: str,
     # define process
     process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
 
+    directory = "dir_0"
+
+    # create temporary directory if it doesn't exist
+    os.makedirs(directory, exist_ok=True)
+
+    # change to the temporary directory
+    os.chdir(directory)
+
     # run the process
     try:
         run_subprocess(process_args,model_name)
     except TimeoutError:
         raise
+
+    # Move the results to the temporary directory
+    output_file = model_name + ".tsv"
+    tsvutils.save_tsv_output(output_file, "../" + output_file)
+
+    os.chdir("..")
+    shutil.rmtree(directory)
 
     # simple information message
     print("Finished running process")
