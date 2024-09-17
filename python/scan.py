@@ -16,7 +16,7 @@ from utils.params import Params
 from utils.masses import Masses
 from prescan import run_prescan
 from utils import fileutils
-from utils.decayutils import is_valid_decay
+from utils.decay_utils import is_valid_decay
 
 import copy
 import itertools
