@@ -13,8 +13,6 @@ def filter_widths(file_name: str,
                   masses: Masses,
                   config_loader: 'ConfigLoader') -> int:
 
-    # TODO: accept different widths for each H
-
     # initialize column in case it doesn't exist
     tsvutils.initialize_column(file_name=file_name,
                                column_header="filt_width",
