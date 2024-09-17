@@ -11,131 +11,82 @@ from utils import tsvutils
 import argparse
 
 # method to run ScannerS
-def runScannerS(ininame: str,
-                npoints: int,
+def runScannerS(ini_name: str,
+                num_points: int,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
-    # if only one process needed, use subprocess
-    if not use_multiprocessing:
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
+    # raise exception if .ini doesn't exist
+    if not os.path.exists(ini_name):
+        raise FileNotFoundError(ini_name,"doesn't exist. Exiting.")
 
-    # otherwise use multiprocessing
-    else:
-        return run_parallel_processes(ininame=ininame,
-                                      npoints=npoints,
-                                      model_name=model_name)
-
-# run job as a single process
-def run_single_process(ininame: str,
-                       npoints: int,
-                       model_name: str) -> int:
-
-    # simple information message
-    print(f"Running ScannerS as a single process with",npoints,"points.")
-
-    # complain and exit if .ini doesn't exist
-    # TODO: Change this to a try/except
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
-        quit()
-
-    # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(npoints)]
-
-    # run the process
-    try:
-        run_subprocess(process,model_name)
-    except TimeoutError:
-        raise
-
-    # simple information message
-    print("Finished running process")
-
-    # return number of points used
-    return npoints
-
-# run multiple processes in parallel
-def run_parallel_processes(ininame: str,
-                           npoints: int,
-                           model_name: str,
-                           njobs=-1) -> int:
-
-    # complain and exit if .ini doesn't exist
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
-        quit()
+    # initialize number of processes to 1
+    num_processes = 1
 
     # get number of available CPUs
-    ncpu = mp.cpu_count()
-
-    # if there is only 1 CPU available, run a single process
-    if ncpu == 1:
-        print("Only 1 CPU available, running as a single process")
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
-
-    # set number of workers to 80% of the available cores
-    nworkers = int(ncpu * 0.8)
-
-    # by default set nprocesses to nworkers
-    if njobs < 1:
-        num_processes = nworkers
-    # if the number of requested jobs is greater than the number
-    # of workers, limit number of processes to number of workers
-    elif njobs > nworkers:
-        num_processes = nworkers
-    # otherwise set the number of processes to the requested number of jobs
-    else:
-        num_processes = njobs
+    num_cpu = mp.cpu_count()
 
     # minimum number of points per job
     min_points = 10
 
+    # if there is only 1 CPU available, run a single process
+    if num_cpu == 1:
+        print("Only 1 CPU available, running as a single process")
+        use_multiprocessing = False
+
     # if fewer than 2 processes are needed, run a single process
-    if npoints < 2 * min_points:
+    if num_points < 2 * min_points:
         print("Only 1 process needed, running as a single process")
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
+        use_multiprocessing = False
 
-    # get number of points per job, rounded up
-    points_per_job = math.ceil(npoints/num_processes)
+    if use_multiprocessing:
+        # print out some information
+        print(f"Running test job with {min_points} points")
 
-    # if points_per_job is less than min_points, reduce the number of jobs
-    if points_per_job < min_points:
-        num_processes = math.ceil(npoints/min_points) - 1
-        points_per_job = min_points
+        # define test process with 10 points
+        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
 
-    # print out some information
-    print("Running test job with",min_points,"points")
+        # run test process
+        try:
+            run_test_process(test_process_args,model_name)
+        except TimeoutError:
+            raise
 
-    # define test process with 10 points
-    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points)]
+        # print out some information
+        print("Test job was successful")
 
-    # run test process
-    try:
-        run_subprocess(test_process,model_name)
-    except TimeoutError:
-        raise
+        # number of points left to run after test job
+        points_to_run = num_points - min_points
 
-    # print out some information
-    print("Test job was successful")
+        # set number of processes to 80% of the available cores rounded down
+        num_processes = int(num_cpu * 0.8)
 
-    # reset npoints to reflect how many are actually used
-    npoints = points_per_job * num_processes
+        # get number of points per job, rounded up
+        points_per_process = math.ceil(points_to_run/num_processes)
 
-    # print out some information
-    print("Running",npoints,"points as",num_processes,"processes with",points_per_job,"points each")
+        # if points_per_process is less than min_points, reduce the number of jobs
+        if points_per_process < min_points:
+            num_processes = math.ceil(points_to_run/min_points)
+            points_per_process = min_points
+
+        # reset points_to_run to reflect how many are actually used
+        points_to_run = points_per_process * num_processes
+
+        # print out some information
+        print(f"Running remaining {points_to_run} points as {num_processes} processes with {points_per_process} points each")
+
+    else:
+        # print some information
+        print(f"Running ScannerS as a single process with {num_points} points.")
+
+        # use num_points for the single process
+        points_per_process = num_points
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -162,10 +113,10 @@ def run_parallel_processes(ininame: str,
                       file_name=model_name+".tsv")
 
     # return number of points that are actually used, including test job points
-    return npoints + min_points
+    return num_points + min_points
 
 # run a process for multiprocessing
-def run_process(process: list[str],
+def run_process(process_args: list[str],
                 directory: str,
                 counter,
                 num_processes: int) -> None:
@@ -180,7 +131,7 @@ def run_process(process: list[str],
     log = open("ScannerS.log", "w")
 
     # run the process with arguments and suppress output
-    subprocess.run(process, stdout=log, stderr=log)
+    subprocess.run(process_args, stdout=log, stderr=log)
 
     # get Terminal for nicer outputs
     term = Terminal()
@@ -189,9 +140,9 @@ def run_process(process: list[str],
     counter.value += 1
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
-# run a python subprocess for a single job
-def run_subprocess(process: list[str],
-                   model_name: str) -> None:
+# run a python test process as a single job
+def run_test_process(process_args: list[str],
+                     model_name: str) -> None:
 
     # output file name
     outfile = model_name + ".tsv"
@@ -203,7 +154,7 @@ def run_subprocess(process: list[str],
     timeout = 20
 
     # launch process
-    process = subprocess.Popen(process, stdout=log, stderr=log)
+    process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
     # get start time
     start_time = time.time()
@@ -246,26 +197,28 @@ def concatenate_files(directories: list[str],
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(inputfile=directory+"/"+file_name,
-                                 outputfile=file_name)
+        tsvutils.save_tsv_output(input_file=directory+"/"+file_name,
+                                 output_file=file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)
+        # this is a possible fix, but it is likely unstable
+        #shutil.rmtree(directory, ignore_errors=True)
 
 if __name__ == "__main__":
 
     # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
-    argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ininame = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
+    ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ininame=ininame,
-                model_name=args.model,
-                npoints=args.npoints,
-                njobs=args.njobs)
+    runScannerS(ini_name = ini_name,
+                model_name = args.model,
+                num_points = args.npoints,
+                use_multiprocessing = args.use_multiprocessing)

@@ -11,26 +11,26 @@ class Point:
     # initialize point parameters
     def __init__(self,
                  model_name: str,
-                 parvals: dict[str,float] = {},
+                 par_vals: dict[str,float] = {},
                  xb: float = 0.0):
         
         # get model
         self.model = Model(model_name)
 
         # initialize empty dictionary
-        self.parvals: dict[str,float] = {}
+        self.par_vals: dict[str,float] = {}
 
-        # if parvals exists, store it
-        if parvals:
-            self.parvals = parvals
+        # if par_vals exists, store it
+        if par_vals:
+            self.par_vals = par_vals
         # otherwise create default dictionary from model
         else:
             # get list of parameters from model
-            parlist = self.model.parameter_names()
+            par_list = self.model.parameter_names()
 
             # loop over list of parameters and make default dictionary
-            for par in parlist:
-                self.parvals[par] = 0.0
+            for par in par_list:
+                self.par_vals[par] = 0.0
 
         # store xb value
         self.xb = xb
@@ -41,43 +41,43 @@ class Point:
         # if xb is requested, return it
         if varname == "xb":
             return self.xb
-        # otherwise return value from parvals
+        # otherwise return value from par_vals
         else:
-            return self.parvals[varname]
+            return self.par_vals[varname]
 
     # get difference between two values of varname
     def diff(self,
              other: 'Point',
-             parname: str) -> float:
-        return self.get_val(parname) - other.get_val(parname)
+             par_name: str) -> float:
+        return self.get_val(par_name) - other.get_val(par_name)
 
     # get fractional difference between two values of varname
     # TODO: Add divide-by-zero protection
     def diff_frac(self,
                   other: 'Point',
-                  parname: str) -> float:
-        return self.diff(other,parname) / abs(self.get_val(parname))
+                  par_name: str) -> float:
+        return self.diff(other,par_name) / abs(self.get_val(par_name))
     
     # get formatted string of xb
     def format_xb(self) -> str:
-        return f"{Decimal(self.xb):.3E}"
+        return f"{Decimal(self.xb):.2E}"
     
     # get formatted string of parameter
     def format_param(self,
-                     parname: str) -> str:
-        return "value = " + f"{self.get_val(parname):1.{self.model.parameter(parname)['precision']}f}"
+                     par_name: str) -> str:
+        return "value = " + f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
-                    parname: str) -> str:
-        return "diff. = " + f"{self.diff(other,parname):1.{self.model.parameter(parname)['precision']}f}"
+                    par_name: str) -> str:
+        return "diff. = " + f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
                          other: 'Point',
-                         parname: str) -> str:
-        return "rel. diff. = " + f"{self.diff_frac(other,parname):1.2f}"
+                         par_name: str) -> str:
+        return "rel. diff. = " + f"{self.diff_frac(other,par_name):1.2f}"
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
@@ -88,4 +88,4 @@ class Point:
         return self.xb < other.xb
     
     def __mul__(self,scale_factor: float):
-        return Point(self.model.name(), self.parvals, self.xb*scale_factor)
+        return Point(self.model.name(), self.par_vals, self.xb*scale_factor)

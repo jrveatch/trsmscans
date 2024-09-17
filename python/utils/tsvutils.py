@@ -25,34 +25,34 @@ def count_tsv_points(file_name: str) -> int:
     return npoints
 
 # function to save output tsv file
-def save_tsv_output(inputfile: str,
-                    outputfile: str) -> None:
+def save_tsv_output(input_file: str,
+                    output_file: str) -> None:
 
     # normalize paths to absolute paths for comparison
-    inputfile = os.path.abspath(inputfile)
-    outputfile = os.path.abspath(outputfile)
+    input_file = os.path.abspath(input_file)
+    output_file = os.path.abspath(output_file)
     
-    # check if inputfile and outputfile point to the same file
-    if inputfile==outputfile:
-        print(f"Error: Input file path '{inputfile}' and output file path '{outputfile}' are the same.")
+    # check if input_file and output_file point to the same file
+    if input_file==output_file:
+        print(f"Error: Input file path '{input_file}' and output file path '{output_file}' are the same.")
         return
 
     # get number of points already in output file
-    nexisting = count_tsv_points(outputfile)
+    nexisting = count_tsv_points(output_file)
 
     # if output file doesn't exist or is empty, simply rename input file
     if nexisting <= 0:
-        os.rename(inputfile,outputfile)
+        os.rename(input_file,output_file)
         return
 
-    # otherwise append the contents of inputfile to outputfile
-    with open(inputfile,'r') as source_file:
+    # otherwise append the contents of input_file to output_file
+    with open(input_file,'r') as source_file:
 
         # skip the first line to avoid writing headers multiple times
         next(source_file)
 
         # open output .tsv file for appending
-        with open(outputfile,'a') as destination_file:
+        with open(output_file,'a') as destination_file:
 
             # get each line in the new .tsv file
             for count, line in enumerate(source_file):
@@ -65,7 +65,7 @@ def save_tsv_output(inputfile: str,
                 destination_file.write('\t'.join(parts) + '\n')
 
     # delete input .tsv file
-    os.remove(inputfile)
+    os.remove(input_file)
 
     # return after a successful run
     return

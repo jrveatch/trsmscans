@@ -59,6 +59,7 @@ class Scan:
 
         # get configurations from config file
         try:
+            self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
             self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
         except KeyError as e:
             print(f"Error: {e}")
@@ -89,44 +90,50 @@ class Scan:
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
             os.makedirs(self.outdir + "/files")
+            os.makedirs(self.outdir + "/files/details")
             os.makedirs(self.outdir + "/files/ini")
             os.makedirs(self.outdir + "/files/tsv")
 
         # create summary file
-        self.summaryname = self.outdir + "scansummary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
-        summary = open(self.summaryname, "w")
-        summary.write("Iter xbmax")
+        self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        summary = open(self.summary_name, "w")
+        summary.write("xbmax")
         for parameter in self.params.parameters().values():
-            summary.write(" " + parameter.fullname())
+            summary.write("\t" + parameter.get_fullname())
+        summary.write("\titer")
         summary.write("\n")
         summary.close()
 
+        # create raw output file
+        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        tsv_summary = open(self.tsv_summary_name, "w")
+        tsv_summary.close()
+
         # create details file
-        self.detailsname = self.outdir + "scandetails_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
-        details = open(self.detailsname, "w")
+        self.details_name = self.outdir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
 
     # run a prescan to constrain scan parameter ranges
-    # TODO: Come up with a different name for this
-    def runPrescan(self,
-                   npoints: int,
-                   use_multiprocessing: bool = False) -> None:
+    def run_prescan(self,
+                    num_points: int,
+                    use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
         nprescan = self.max_prescan_points
 
         # if fewer points are requested than nprescan, only use that many
-        if npoints < self.max_prescan_points:
-            nprescan = npoints
+        if num_points < self.max_prescan_points:
+            nprescan = num_points
 
         try:
             # call prescan
-            self.prescan_parser = run_prescan(masses=self.masses,
-                                              npoints=nprescan,
-                                              model_name=self.model_name,
-                                              config_loader=self.config_loader,
-                                              use_multiprocessing=use_multiprocessing)
+            self.prescan_parser = run_prescan(masses = self.masses,
+                                              num_points = nprescan,
+                                              model_name = self.model_name,
+                                              config_loader = self.config_loader,
+                                              use_multiprocessing = use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
@@ -165,12 +172,12 @@ class Scan:
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params.lower_bound(parameter_name):
-                self.params.set_lower_bound(parameter_name, new_min - one_percent)
+            if new_min - one_percent > self.params[parameter_name].get_lower_bound():
+                self.params[parameter_name].set_lower_bound(new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params.upper_bound(parameter_name):
-                self.params.set_upper_bound(parameter_name, new_max + one_percent)
+            if new_max + one_percent < self.params[parameter_name].get_upper_bound():
+                self.params[parameter_name].set_upper_bound(new_max + one_percent)
 
             # print min and max to screen after prescan
             self.params.print_bounds(parameter_name)
@@ -182,7 +189,7 @@ class Scan:
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
 
         # write scan details to details file
-        details = open(self.detailsname, "a")
+        details = open(self.details_name, "a")
         details.write("Prescan\n")
         details.write("--------------------\n")
         details.write("Number of prescan points = " + str(nprescan) + "\n")
@@ -198,13 +205,19 @@ class Scan:
         details.close()
 
         # write scan results to summary file
-        summary = open(self.summaryname, "a")
-        summary.write("Pre")
-        summary.write(" " + self.global_max.format_xb())
+        summary = open(self.summary_name, "a")
+        summary.write(self.global_max.format_xb())
         for name, parameter in self.params.parameters().items():
-            summary.write(" " + f"{self.global_max.get_val(name):1.{parameter.precision()}f}")
+            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
+        summary.write("\tPre")
         summary.write("\n")
         summary.close()
+
+        # write scan max xb tsv line to tsv summary file
+        tsv_summary = open(self.tsv_summary_name, "a")
+        tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
+        tsv_summary.write(self.prescan_parser.get_max_xb_line())
+        tsv_summary.close()
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -214,29 +227,33 @@ class Scan:
 
     # run the full scan
     def run_zoom_optimization(self,
-                              npoints: int,
+                              num_points: int,
                               niter: int,
                               use_multiprocessing: bool = False) -> None:
 
         # get scan start time
-        scanstart = time.time()
+        scan_start = time.time()
+
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
 
         # run prescan
-        self.runPrescan(npoints=npoints,
-                        use_multiprocessing=use_multiprocessing)
+        self.run_prescan(num_points = num_points,
+                         use_multiprocessing = use_multiprocessing)
 
         # move into the working directory for scans
         os.chdir(self.outdir)
 
-        # make a list of all zoom optimizersa based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(npoints=npoints)
+        # make a list of all zoom optimizers based on bimodal distribution tests
+        all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
 
 
         for iter in range(niter): # make controlling num of iters optionals
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a seperate function to check for the maximum is best
+            # Consider if having a separate function to check for the maximum is best
 
             # TODO: possibly redistribute points to all active scanners
 
@@ -263,8 +280,10 @@ class Scan:
 
                 if zoom_optimizer.is_running:
 
-                    # store a temp_max to compre against current max_xb
-                    temp_max = zoom_optimizer.run(iter, self.global_max, use_multiprocessing) # pass global max or use __ls__ and __gt__
+                    # store a temp_max to compare against current max_xb
+                    temp_max = zoom_optimizer.run(iter=iter,
+                                                  global_max=self.global_max,
+                                                  use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
 
                     # store max_xb
                     if temp_max > self.global_max:
@@ -273,21 +292,21 @@ class Scan:
             # TODO: Add early stopping conditions
 
         # get total scan time
-        scanend = time.time()
-        scantime = (scanend - scanstart)
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
 
         # print out scan time
         print("\nDone!")
-        print("Scan took", str(datetime.timedelta(seconds=int(scantime))), "(hh:mm:ss)\n")
+        print("Scan took", str(datetime.timedelta(seconds=int(scan_time))), "(hh:mm:ss)\n")
 
         # write time info to details file
-        details = open(self.detailsname, "a")
-        details.write("Scan took " + str(datetime.timedelta(seconds=int(scantime))) + " (hh:mm:ss)")
+        details = open(self.details_name, "a")
+        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
         details.close()
         return
 
     # Function that creates needed zoom optimizers
-    def create_zoom_optimizers(self, npoints: int) -> list['ZoomOptimizer']:
+    def create_zoom_optimizers(self, num_points: int) -> list['ZoomOptimizer']:
 
         # Dictionary that will hold the values of the parameters
         param_dict: dict[str, list[ dict[str, float] ]] = {}
@@ -298,8 +317,8 @@ class Scan:
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params.get_low(parameter_name)
-            max_val = self.params.get_high(parameter_name)
+            min_val = self.params[parameter_name].get_low()
+            max_val = self.params[parameter_name].get_high()
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
@@ -320,10 +339,10 @@ class Scan:
             param_combination_data = {}  # Dictionary to hold all combinations of values
 
             # Zip the names and values together, assigning the data to each parameter
-            for par, values in zip(param_dict.keys(), param_values):
-                params_copy.set_lower_bound(par, values['min'])
-                params_copy.set_upper_bound(par, values['max'])
-                param_combination_data[par] = values
+            for name, parameter in zip(param_dict.keys(), param_values):
+                params_copy[name].set_lower_bound(parameter['min'])
+                params_copy[name].set_upper_bound(parameter['max'])
+                param_combination_data[name] = parameter
 
             all_param_combinations.append((params_copy, param_combination_data))
 
@@ -331,26 +350,24 @@ class Scan:
         all_zoom_optimizers: list['ZoomOptimizer'] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
-        points_per_scanner = max(npoints // len(all_param_combinations), 1)
+        points_per_scanner = max(num_points // len(all_param_combinations), 1)
 
         # Initialize zoom optimizers for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
 
             # Distribute points among zoom optimizers
-            points = points_per_scanner
+            num_scanner_points = points_per_scanner
             if i == len(all_param_combinations) - 1:  # Ensure the last zoom optimizer gets any remaining points
-                points = npoints - (points_per_scanner * (len(all_param_combinations) - 1))
+                num_scanner_points = num_points - (points_per_scanner * (len(all_param_combinations) - 1))
 
             # Create the ZoomOptimizer
             zoom_optimizer = ZoomOptimizer(
-                npoints=points,
-                params=params_copy,
-                decay=self.decay,
-                starting_max=self.global_max,
-                detailsname=self.detailsname,
-                summaryname=self.summaryname,
-                config_loader=self.config_loader,
-                label=f'ZoomOptimizer-{i}'
+                num_points = num_scanner_points,
+                params = params_copy,
+                decay = self.decay,
+                starting_max = self.global_max,
+                config_loader = self.config_loader,
+                label = f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
 
@@ -363,29 +380,29 @@ class Scan:
 if __name__ == "__main__":
 
     # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    argparser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    argparser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    argparser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
-    argparser.add_argument("-i", "--iterations", required=True, type=int, help="Maximum number of iterations")
-    argparser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    argparser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
+    arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-i", "--iterations", default=20, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    args = arg_parser.parse_args()
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
 
-    # creaate scan object
-    myScan = Scan(masses=masses,
-                  model_name=args.model,
-                  decay=args.decay,
-                  overwrite=args.overwrite
-                  )
+    # create scan object
+    myScan = Scan(masses = masses,
+                  model_name = args.model,
+                  decay = args.decay,
+                  overwrite = args.overwrite
+                 )
 
     # run scan using scan object
-    myScan.run_zoom_optimization(npoints=args.npoints,
-                                 niter=args.iterations,
-                                 use_multiprocessing=args.multiprocessing)
+    myScan.run_zoom_optimization(num_points = args.npoints,
+                                 niter = args.iterations,
+                                 use_multiprocessing = args.multiprocessing)
