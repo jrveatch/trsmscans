@@ -82,4 +82,4 @@ fi
 # Cleanup temporary files
 rm -rf "$before_update" "$after_update"
 
-printf "\nAll submodules are updated to the latest commit"
+printf "\nAll submodules are updated to the latest commit\n"

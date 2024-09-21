@@ -257,20 +257,19 @@ class MeanShiftScanner:
                 points.append(self.__get_random_pos())
         elif strategy == 'pair':
             initial_point = self.__get_random_pos()
+            lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
             coeff: float = self.__config_loader.get('meanshift', 'pair_points_coeff') or 0.005
+            offsets = [abs(p) * coeff for p in initial_point]
 
             points.append(initial_point)
 
+            next_point = list(deepcopy(initial_point))
+
             for i in range(1, points_num):
-                pair_point = [*deepcopy(initial_point if i == 0 else points[i - 1])]
+                for i in range(len(next_point)):
+                    next_point[i] += lead_coeffs[i] * offsets[i]
 
-                for i, val in enumerate(pair_point):
-                    lead_coeff = 1 if initial_point[i] >= 0 else -1
-                    abs_val = abs(val)
-
-                    pair_point[i] = lead_coeff * (abs_val - abs_val * coeff)
-
-                points.append(tuple(pair_point))
+                points.append(tuple(deepcopy(next_point)))
 
         return tuple(points)
 
