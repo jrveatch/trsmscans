@@ -184,7 +184,7 @@ class Params:
         if self.__iter_idx >= len(self.__parameters):
             raise StopIteration
         
-        return self.__parameters.values()[self.__iter_idx]
+        return list(self.__parameters.values())[self.__iter_idx]
     
     # length of params
     def __len__(self):

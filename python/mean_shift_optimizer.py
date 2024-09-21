@@ -4,7 +4,6 @@ import datetime
 import glob
 import operator
 import os
-import random
 import sys
 import time
 
@@ -21,6 +20,7 @@ from parse import Parse
 from utils.params import Params, Parameter
 from utils.runScannerS import runScannerS
 from utils.tsvutils import save_tsv_output
+from utils.config_loader import ConfigLoader
 
 class PointVolume:
 
@@ -74,42 +74,56 @@ class MeanShiftOptimizer(PointVolume):
             stop_epochs: int,
             stop_sens: float,
             label: str,
+            initial_pos: tuple[tuple],
             num_points: int,
             decay: str,
-            max_width: float,
             global_params: Params,
-            debug: bool = False,
-            initial_pos: tuple[tuple] = None):
+            config_loader: ConfigLoader,
+            debug: bool = False):
 
         self.__num_points = num_points
         self.__scan_path = scan_path
         self.__plot_path = plot_path
-        self.__scan_volume = scan_volume
-        self.__stop_mode = stop_mode
         self.__model_name = global_params.model_name()
         self.__decay_name = decay
         self.__label = label
-        self.__stop = False
+        self.__scan_volume = scan_volume
+        self.__stop_epochs = stop_epochs
+        self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
-        self.__max_width = max_width
-        self.__epoch_count = 0
+
+        self.__config_loader = config_loader
         self.__debug = debug
+
+        self.__epoch_count = 0
+        self.__stop = False
 
         self.__local_params = copy.deepcopy(global_params)
 
         super().__init__(
-            position=initial_pos or self.get_random_pos(self.__local_params),
-            width=self.__get_widths()
+            position=initial_pos,
+            widths=self.__get_widths()
         )
 
         self.__test_position = self.position
         self.__prev_position = self.position
 
-        for (parname, extents) in list(zip(self.__local_params.parnames(), self.extents())):
-            self.__local_params.parameter(parname).set_low(extents[0])
-            self.__local_params.parameter(parname).set_high(extents[1])
+        for i, param in enumerate(self.__local_params):
+            param.set_low(self.extents()[i][0])
+            param.set_high(self.extents()[i][1])
 
     def run(self, use_multiprocessing: bool):
+        num_points = self.__num_points
+        scan_volume = self.__scan_volume
+        decay_name = self.__decay_name
+        model_name = self.__model_name
+        local_params = self.__local_params
+        config_loader = self.__config_loader
+        stop_sens = self.__stop_sens
+        stop_epochs = self.__stop_epochs
+        stop_mode = self.__stop_mode
+        debug = self.__debug
+
         # get time of iteration start
         iterstart = time.time()
 
@@ -138,9 +152,9 @@ class MeanShiftOptimizer(PointVolume):
             xb = []
 
             runScannerS(
-                ininame=ininame,
-                modelname=self.__model_name,
-                npoints=self.__num_points,
+                ini_name=ininame,
+                num_points=self.__num_points,
+                model_name=self.__model_name,
                 use_multiprocessing=use_multiprocessing
             )
 
@@ -150,30 +164,32 @@ class MeanShiftOptimizer(PointVolume):
             nbounds = None
             npass = None
 
-            try:
-                nwidth, nbounds, npass = apply_filters(tsvname, self.__model_name, self.__local_params.masses(), self.__max_width)
+            nwidth, nbounds, nsignals, npass = apply_filters(
+                file_name=tsvname,
+                masses=local_params.masses(),
+                config_loader=config_loader
+            )
 
-                parser = Parse(self.__local_params.masses(), self.__decay_name, self.__local_params.model_name())
-                parser.read_file(tsvname)
+            parser = Parse(
+                masses=local_params.masses(),
+                model_name=model_name,
+                file_name=tsvname
+            )
 
-                arrays = parser.get_parameter_arrays()
-                xb = parser.get_xb()
+            arrays = parser.get_parameter_arrays()
+            xb = parser.get_xb(decay_name)
 
-                if len(xb) == 0:
-                    raise ValueError("Length of xb array was 0")
-            except Exception as e:
-                print(e)
-                print("\nError parsing tsv output, stopping execution...\n")
-                exit(1)
-
+            if len(xb) == 0:
+                raise ValueError("Length of xb array was 0")
+                
             self.__prev_position = self.position
 
             self.mean_shift(arrays, xb)
 
             # Update params
-            for (parname, extents) in list(zip(self.__local_params.parnames(), self.extents())):
-                self.__local_params.parameter(parname).set_low(extents[0])
-                self.__local_params.parameter(parname).set_high(extents[1])
+            for i, param in enumerate(local_params):
+                param.set_low(self.extents()[i][0])
+                param.set_high(self.extents()[i][1])
 
             self.__stop_check()
 
@@ -187,14 +203,14 @@ class MeanShiftOptimizer(PointVolume):
             # write shift log
             log_file = open(log_file_name, 'w')
             content = f"\niter      = {iter}"
-            content += f"\nnum pts   = {self.__num_points}"
-            content += f"\nscan vol  = {self.__scan_volume}"
+            content += f"\nnum pts   = {num_points}"
+            content += f"\nscan vol  = {scan_volume}"
             content += f"\ncurr_pos  = {' '.join([str(p) for p in self.position])}"
             content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
             content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
             content += f"\nvol_widths  = {' '.join([str(p) for p in self.width])}"
-            content += f"\nst_sens   = {self.__stop_sens}"
-            content += f"\nst_epchs  = {self.__stop_epochs}"
+            content += f"\nst_sens   = {stop_sens}"
+            content += f"\nst_epchs  = {stop_epochs}"
             content += f"\ncur_epch  = {self.__epoch_count}"
             content += f"\navg_xb    = {np.average(xb)}"
             content += f"\nmax_xb    = {np.max(xb)}"
@@ -205,29 +221,29 @@ class MeanShiftOptimizer(PointVolume):
             details_file = open(detailsname, 'a')
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
-            content += f"Using {self.__num_points} scan points\n"
-            content += f"{nwidth}/{self.__num_points} pass width cut of {self.__max_width}\n"
-            content += f"{nbounds}/{self.__num_points} pass bounds check\n"
-            content += f"{npass}/{self.__num_points} pass both checks\n"
+            content += f"Using {num_points} scan points\n"
+            content += f"{nbounds}/{num_points} pass bounds check\n"
+            content += str(nsignals) + "/" + str(self.__num_points) + " pass signals check\n"
+            content += f"{npass}/{num_points} pass both checks\n"
             # content += "--------------------\n"
             # content += "Found new max xsec*BR = " + newPoint.format_xb() + "\n"
             # content += "Update optimal point: " + str(update) + "\n"
             # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
             content += "--------------------\n"
-            for parname in self.__local_params.parnames():
-                content += parname + ":\n"
-                content += f"  {self.__local_params.parameter(parname).format_range()}\n"
+            for name in local_params.parameter_names():
+                content += name + ":\n"
+                content += f"  {local_params[name].format_range()}\n"
             content += "--------------------\n"
             content += f"iter      = {iter}"
-            content += f"\nnum pts   = {self.__num_points}"
-            content += f"\nscan vol  = {self.__scan_volume}"
-            content += f"\ncols      = {' '.join(self.__local_params.parnames())}"
+            content += f"\nnum pts   = {num_points}"
+            content += f"\nscan vol  = {scan_volume}"
+            content += f"\ncols      = {' '.join(local_params.parameter_names())}"
             content += f"\ncurr_pos  = {' '.join([str(p) for p in self.position])}"
             content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
             content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
             content += f"\nvol_widths  = {' '.join([str(p) for p in self.width])}"
-            content += f"\nst_sens   = {self.__stop_sens}"
-            content += f"\nst_epchs  = {self.__stop_epochs}"
+            content += f"\nst_sens   = {stop_sens}"
+            content += f"\nst_epchs  = {stop_epochs}"
             content += f"\ncur_epch  = {self.__epoch_count}"
             content += f"\navg_xb    = {np.average(xb)}"
             content += f"\nmax_xb    = {np.max(xb)}\n"
@@ -238,17 +254,17 @@ class MeanShiftOptimizer(PointVolume):
             details_file.close()
 
             # NOTE: For debugging
-            if self.__debug == True:
-                test_diff = tuple([self.__stop_sens * dimen for dimen in self.width])
+            if debug == True:
+                test_diff = tuple([stop_sens * dimen for dimen in self.width])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.position))])
 
                 print()
                 print(f"iter        = {iter}")
-                print(f"num points  = {self.__num_points}")
-                print(f"scan vol    = {self.__scan_volume}")
-                print(f"stop mode   = {'test pt' if self.__stop_mode == 0 else 'prev pt'}")
-                print(f"stop sens % = {self.__stop_sens}")
-                print(f"stop epochs = {self.__stop_epochs}")
+                print(f"num points  = {num_points}")
+                print(f"scan vol    = {scan_volume}")
+                print(f"stop mode   = {'test pt' if stop_mode == 0 else 'prev pt'}")
+                print(f"stop sens % = {stop_sens}")
+                print(f"stop epochs = {stop_epochs}")
                 print(f"epoch count = {self.__epoch_count}")
                 print(f"avg xb      = {np.average(xb)}")
                 print(f"max xb      = {np.max(xb)}")
@@ -320,20 +336,11 @@ class MeanShiftOptimizer(PointVolume):
 
         return np.array([(X[i] - MIN) / (MAX - MIN) for i in range(len(X))])
 
-    @staticmethod
-    def get_random_pos(params: Params):
-        return tuple(
-            [
-                random.uniform(params.get_low(p), params.get_high(p))
-                for p in params.parnames()
-            ]
-        )
-
     def __get_widths(self):
         return tuple(
             [
-                (self.__scan_volume * (self.__local_params.get_high(p) - self.__local_params.get_low(p)))
-                for p in self.__local_params.parnames()
+                (self.__scan_volume * (self.__local_params[name].get_high() - self.__local_params[name].get_low()))
+                for name in self.__local_params.parameter_names()
             ]
         )
 
@@ -376,7 +383,7 @@ class MeanShiftOptimizer(PointVolume):
                         elem.update(
                             {
                                 f"vol_{p}": a for p, a in zip(
-                                    self.__local_params.parnames(),
+                                    self.__local_params.parameter_names(),
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -385,7 +392,7 @@ class MeanShiftOptimizer(PointVolume):
                         elem.update(
                             {
                                 p: a for p, a in zip(
-                                    self.__local_params.parnames(),
+                                    self.__local_params.parameter_names(),
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -394,7 +401,7 @@ class MeanShiftOptimizer(PointVolume):
                         elem.update(
                             {
                                 f"prev_{p}": a for p, a in zip(
-                                    self.__local_params.parnames(),
+                                    self.__local_params.parameter_names(),
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -403,7 +410,7 @@ class MeanShiftOptimizer(PointVolume):
                         elem.update(
                             {
                                 f"test_{p}": a for p, a in zip(
-                                    self.__local_params.parnames(),
+                                    self.__local_params.parameter_names(),
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -436,10 +443,10 @@ class MeanShiftOptimizer(PointVolume):
         df = pd.read_csv(data_file_path, sep="\t")
 
         # Create param plots
-        for i in range(len(self.__local_params.parnames())):
-            for j in range(i, len(self.__local_params.parnames())):
-                x_label = self.__local_params.parnames()[i]
-                y_label = self.__local_params.parnames()[j]
+        for i in range(len(self.__local_params.parameter_names())):
+            for j in range(i, len(self.__local_params.parameter_names())):
+                x_label = self.__local_params.parameter_names()[i]
+                y_label = self.__local_params.parameter_names()[j]
 
                 plt.plot(df[x_label], df[y_label])
                 plt.plot(df[x_label].iloc[-1], df[y_label].iloc[-1], marker="*")
@@ -452,7 +459,7 @@ class MeanShiftOptimizer(PointVolume):
                 plt.clf()
 
         # Create time series
-        for parname in self.__local_params.parnames():
+        for parname in self.__local_params.parameter_names():
             plt.plot(df["iter"], df[parname], c="tab:blue", label=parname)
             plt.xlabel("iter")
             plt.ylabel(parname)
