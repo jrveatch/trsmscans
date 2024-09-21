@@ -17,3 +17,17 @@ zoom:
   density_growth_rate: 0.2
   zoom_percentile: 95
   min_points_per_iteration: 100
+
+meanshift:
+  # Proportion of total volume to use for scan volume
+  scan_volume: 0.1
+  # Mode to use for stop condidition, 0 = test point, 1 = prev point
+  stop_mode: 1
+  # Scan sensitivity for stopping conditions, values should be between 0 exclusive and 1 exclusive
+  stop_sens: 0.9
+  # Scan epochs used for stopping conditions
+  stop_epochs: 3
+  # Number of points to generate and shift on
+  points: 1
+  # Method of generating starting points
+  point_gen: 'random'
