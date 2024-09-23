@@ -202,7 +202,7 @@ class ZoomOptimizer:
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
         for name, par in self.params.parameters().items():
-            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.precision()}f}")
+            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.get_precision()}f}")
         summary.write("\t" + identifier)
         summary.write("\n")
         summary.close()

@@ -29,16 +29,16 @@ class Params:
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
-        for par in self.__parameter_names:
-            self.__parameters[par] = Parameter(par,self.__model.parameter(par))
+        for name in self.__parameter_names:
+            self.__parameters[name] = Parameter(name,self.__model.parameter(name))
 
     # get dictionary of parameters
-    def parameters(self) -> dict[str,'Parameter']:
+    def parameters(self) -> dict[str, Parameter]:
         return self.__parameters
 
     # get parameter
     def parameter(self,
-                  par_name: str) -> 'Parameter':
+                  par_name: str) -> Parameter:
         return self.__parameters[par_name]
 
     # get parameter names
@@ -46,14 +46,14 @@ class Params:
         return self.__parameter_names
 
     # get masses
-    def masses(self) -> 'Masses':
+    def masses(self) -> Masses:
         return self.__masses
     
-    def midpoint_tuples(self) -> tuple[float]:
-        return tuple([param.get_midpoint() for param in self.__parameters.values()])
+    def center_point(self) -> tuple[float]:
+        return tuple([param.center() for param in self.__parameters.values()])
     
-    def extent_tuples(self) -> tuple[tuple[float]]:
-        return tuple([(param.get_low(), param.get_high()) for param in self.__parameters.values()])
+    def ranges(self) -> tuple[tuple[float]]:
+        return tuple([param.range() for param in self.__parameters.values()])
 
     # get starting min value from model
     def starting_min(self,
@@ -68,21 +68,6 @@ class Params:
     # get model name
     def model_name(self) -> str:
         return self.__model.name()
-
-    # functions to set min and max values
-    # if the current high or low values are beyond
-    # the new min or max, set them
-    # these also set new range values
-
-    def set_lower_bound(self,
-                        par_name: str,
-                        newMin: float) -> None:
-        self.parameter(par_name).set_lower_bound(newMin)
-
-    def set_upper_bound(self,
-                        par_name: str,
-                        newMax: str) -> None:
-        self.parameter(par_name).set_upper_bound(newMax)
 
     # set new value, range, low and high
     def scale_ranges(self,
@@ -105,7 +90,7 @@ class Params:
                 newVal = newPoint.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.__parameters[par_name].scale_range(newVal=newVal,
+            self.__parameters[par_name].scale_width(newVal=newVal,
                                                    rangeScale=rangeScale)
 
     # update both low and high of each parameter using dictionaries
@@ -120,7 +105,7 @@ class Params:
             for par_name, new_low in low_dict.items():
                 if par_name in self.__parameters:
                     # use low_dict to update the low for each parameter
-                    self.__parameters[par_name].update_low(new_low)
+                    self.__parameters[par_name].set_low(new_low)
                 else:
                     print(f"Warning: {par_name} is not known")
             
@@ -131,7 +116,7 @@ class Params:
             for par_name, new_high in high_dict.items():
                 if par_name in self.__parameters:
                     # use high_dict to update the high for each parameter
-                    self.__parameters[par_name].update_high(new_high)
+                    self.__parameters[par_name].set_high(new_high)
                 else:
                     print(f"Warning: {par_name} is not known")
 
@@ -145,37 +130,12 @@ class Params:
         for par in self.__parameters.values():
         
             # make sure range is non-zero
-            if par.get_range() > 1e-13:
+            if par.width() > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.get_range()
+                volume *= par.width()
         
         return volume
-
-    # function to get lower bound value
-    def lower_bound(self,
-                    par_name: str) -> float:
-        return self.parameter(par_name).lower_bound()
-
-    # function to get max value
-    def upper_bound(self,
-                    par_name: str) -> float:
-        return self.parameter(par_name).upper_bound()
-
-    # function to get low value
-    def get_low(self,
-                par_name: str) -> float:
-        return self.parameter(par_name).get_low()
-
-    # function to get high value
-    def get_high(self,
-                 par_name: str) -> float:
-        return self.parameter(par_name).get_high()
-    
-    # function to get parameter ranges
-    def range(self,
-              par_name: str) -> float:
-        return self.parameter(par_name).get_range()
     
     # function to write .ini file with parameters
     def write_ini(self,
@@ -205,3 +165,28 @@ class Params:
     def print_bounds(self,
                      par_name: str) -> None:
         self.parameter(par_name).print_bounds()
+
+    # parameter name indexing
+    def __getitem__(self, key) -> Parameter:
+        return self.parameter(key)
+
+    ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
+
+    # initialize iteration
+    def __iter__(self):
+        self.__iter_idx = -1
+        return self
+    
+    # get next value
+    def __next__(self):
+        self.__iter_idx += 1
+
+        if self.__iter_idx >= len(self.__parameters):
+            raise StopIteration
+        
+        return self.__parameters.values()[self.__iter_idx]
+    
+    # length of params
+    def __len__(self):
+        return len(self.__parameters)
+    
