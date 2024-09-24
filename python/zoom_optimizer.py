@@ -246,12 +246,13 @@ class ZoomOptimizer:
             details.write(end_message)
             details.close()
         
+        # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
 
         if len(sorted_history) >= 5:
             # if new points are on an upward trend, run this code
             if self.local_history[-1] >= self.local_history[-2]:
-                # if point is less than 5% higher than the 2nd highest point, end scan
+                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
                 if new_max < sorted_history[-2] * 1.05:
                     self.local_xb_fail += 1
                     if self.local_xb_fail >= 2:
@@ -262,6 +263,7 @@ class ZoomOptimizer:
                         details = open(self.details_name,"a")
                         details.write(end_message)
                         details.close()
+                # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
             else:
@@ -275,16 +277,7 @@ class ZoomOptimizer:
                     details.write(end_message)
                     details.close()
 
-        # alternate (without using history)
-
-        #if new_max < sorted_history[0]:
-        #    self.local_xb_fail += 1
-        
-        #if self.local_xb_fail >= 2:
-        #    self.is_running = False
-        #    print("Max xb less than target...")
-        #    print("Ending current scanner early")
-
+        # store history of local max of xb
         self.local_history.append(new_max)
             
         return new_max

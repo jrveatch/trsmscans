@@ -248,11 +248,15 @@ class Scan:
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
 
+        # list of which zoom optimizers are running
         running_list = [True]
+
+        # to keep count of which iteration the scan is on
         iter = 0
 
         while any(running_list):
 
+            # check if user has added a set number of iterations
             if niter > 0 and iter >= niter:
                 print(f"Ending after {niter} iterations as request")
                 break
@@ -277,9 +281,11 @@ class Scan:
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
-                    
+                
+                # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
 
+            # count iteration
             iter += 1
 
         # get total scan time
