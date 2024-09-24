@@ -21,6 +21,8 @@ from utils import tsvutils
 from utils import fileutils
 from utils.config_loader import ConfigLoader
 
+from point_sampler import PointSampler
+
 class ZoomOptimizer:
 
     def __init__(self,
@@ -62,6 +64,8 @@ class ZoomOptimizer:
         self.outdir = fileutils.scan_dir(model_name=self.model_name,
                                          decay=decay,
                                          masses=self.params.masses())
+        
+        self.point_sampler = PointSampler(self.outdir, self.model_name, self.config_loader)
 
         # get output information file names
         output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
@@ -72,10 +76,6 @@ class ZoomOptimizer:
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
-
-        # create parse object without a file name
-        self.scanparser = Parse(masses=self.params.masses(),
-                                model_name=self.model_name)
 
         # TODO: Names of details and summary files
 
@@ -93,61 +93,13 @@ class ZoomOptimizer:
             identifier = self.label + "-Iteration-" + iter_label
         print("\nIteration:",identifier)
 
-        # set names of input .ini and output .tsv files
-        ini_name = self.outdir + "files/ini/" + self.model_name + "_" + identifier + ".ini"
-        tsv_name = self.outdir + "files/tsv/" + self.model_name + "_" + identifier + ".tsv"
-        tsv_combined_name = self.outdir + "files/tsv/" + self.model_name + "_" + iter_label + ".tsv"
-        tsv_temp_name = self.outdir + self.model_name + ".tsv"
-
-        # write new .ini file from template and parameters
-        self.params.write_ini(ini_name)
-
-        # make sure num_points doesn't drop below the minimum
-        if self.num_points < self.min_points:
-            self.num_points = self.min_points
-
-        # run ScannerS
-        self.num_points = runScannerS(ini_name = ini_name,
-                                      model_name = self.model_name,
-                                      num_points = self.num_points,
-                                      use_multiprocessing = use_multiprocessing)
-
-        # TODO: Figure out what to do if process throws a TimeoutError
-
-        # rename output .tsv file to tsv_name
-        shutil.move(tsv_temp_name,tsv_name)
+        # Create scanparser using the point_sampler class
+        self.scanparser = self.point_sampler.sample_points(self.params, identifier, self.num_points)
 
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.num_points / volume
-
-        # apply width and bounds filters
-        nwidth, nbounds, nsignals, npass = apply_filters(file_name=tsv_name,
-                                                         masses=self.params.masses(),
-                                                         config_loader=self.config_loader)
-
-        # TODO: Figure out whether these are needed and what return values to use
-        # protection against the case where all points fail width filter
-        if nwidth == 0:
-            details = open(self.details_name,"a")
-            details.write("Iteration = " + str(identifier) + "\n")
-            details.write("Skip due to " + str(nwidth) + " events passing width filter\n")
-            details.write("\n\n\n\n")
-            details.close()
-            return
-
-        # protection against the case where all points fail bounds filter
-        if nbounds == 0:
-            details = open(self.details_name,"a")
-            details.write("Iteration = " + str(identifier) + "\n")
-            details.write("Skip due to " + str(nbounds) + " events passing bounds filter\n")
-            details.write("\n\n")
-            details.close()
-            return
-
-        # read output tsv into parser
-        self.scanparser.read_file(file_name=tsv_name)
-
+        
         # get new point as the maximum from the current scan
         new_max = self.scanparser.get_max_xb_point(self.decay)
 
@@ -174,12 +126,12 @@ class ZoomOptimizer:
         details = open(self.details_name,"a")
         details.write("Iteration = " + str(identifier) + "\n")
         details.write("--------------------\n")
-        details.write("Using " + str(self.num_points) + " scan points\n")
+        details.write("Using " + str(self.point_sampler.all_points_run()) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(nwidth) + "/" + str(self.num_points) + " pass width cut\n")
-        details.write(str(nbounds) + "/" + str(self.num_points) + " pass bounds check\n")
-        details.write(str(nsignals) + "/" + str(self.num_points) + " pass signals check\n")
-        details.write(str(npass) + "/" + str(self.num_points) + " pass all checks\n")
+        details.write(str(self.point_sampler.get_nwidth()) + "/" + str(self.point_sampler.all_points_run()) + " pass width cut\n")
+        details.write(str(self.point_sampler.get_nbounds()) + "/" + str(self.point_sampler.all_points_run()) + " pass bounds check\n")
+        details.write(str(self.point_sampler.get_nsignals()) + "/" + str(self.point_sampler.all_points_run()) + " pass signals check\n")
+        details.write(str(self.point_sampler.get_npass()) + "/" + str(self.point_sampler.all_points_run()) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
         details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
@@ -224,9 +176,6 @@ class ZoomOptimizer:
                 print("Please use 'percentile' (default) or 'rate'")
                 # TODO: Throw an exception here
                 return
-
-        # append .tsv file to combined .tsv file for iteration
-        tsvutils.save_tsv_output(tsv_name, tsv_combined_name)
 
         # add to a counter if new point is less than half of the global max
         if new_max < global_max * 0.5:
