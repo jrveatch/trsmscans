@@ -112,7 +112,7 @@ class PointSampler:
     def get_npass(self):
         return self.npass
 
-    def all_points_run(self):
+    def total_points_run(self):
         return self.curr_points_run
 
 if __name__ == "__main__":
