@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from filters.setupHiggsTools import *
+from filters.setup_higgs_tools import *
 
 from utils.arrays import Arrays
-from utils import tsvutils
+from utils.tsv_utils import initialize_column
 
 from utils.masses import Masses
 
@@ -34,12 +34,12 @@ def filter_bounds(file_name: str,
     XName = masses.XName
 
     # initialize columns in case they don't exist
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header="filt_bounds",
-                               value=1)
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header="filt_signals",
-                               value=1)
+    initialize_column(file_name=file_name,
+                      column_header="filt_bounds",
+                      value=1)
+    initialize_column(file_name=file_name,
+                      column_header="filt_signals",
+                      value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(file_name)
@@ -133,7 +133,7 @@ def filter_bounds(file_name: str,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        # TODO: get the correct rescalings for either heirarchy
+        # TODO: get the correct rescalings for either hierarchy
         if mH < 150:
             HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(RH),reference="SMHiggsEW")
         else:

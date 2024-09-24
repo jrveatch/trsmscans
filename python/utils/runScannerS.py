@@ -7,7 +7,7 @@ import shutil
 import time
 import math
 from blessings import Terminal
-from utils import tsvutils
+from utils.tsv_utils import save_tsv_output
 import argparse
 
 # method to run ScannerS
@@ -18,7 +18,7 @@ def runScannerS(ini_name: str,
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
-        raise FileNotFoundError(ini_name,"doesn't exist. Exiting.")
+        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
 
     # initialize number of processes to 1
     num_processes = 1
@@ -29,17 +29,26 @@ def runScannerS(ini_name: str,
     # minimum number of points per job
     min_points = 10
 
-    # if there is only 1 CPU available, run a single process
+    # use num_points unless modified for parallel processes
+    points_per_process = num_points
+
+    # if multiprocessing flag isn't set, run as a single process
+    if not use_multiprocessing:
+        print(f"Multiprocessing set to False, running as a single process with {num_points} points.")
+
+    # if there is only 1 CPU available, run as a single process
     if num_cpu == 1:
-        print("Only 1 CPU available, running as a single process")
+        print(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
-    # if fewer than 2 processes are needed, run a single process
+    # if fewer than 2 processes are needed, run as a single process
     if num_points < 2 * min_points:
-        print("Only 1 process needed, running as a single process")
+        print(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
+    # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
+
         # print out some information
         print(f"Running test job with {min_points} points")
 
@@ -75,13 +84,6 @@ def runScannerS(ini_name: str,
         # print out some information
         print(f"Running remaining {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
-    else:
-        # print some information
-        print(f"Running ScannerS as a single process with {num_points} points.")
-
-        # use num_points for the single process
-        points_per_process = num_points
-
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
@@ -113,7 +115,7 @@ def runScannerS(ini_name: str,
                       file_name=model_name+".tsv")
 
     # return number of points that are actually used, including test job points
-    return num_points + min_points
+    return num_points
 
 # run a process for multiprocessing
 def run_process(process_args: list[str],
@@ -197,8 +199,8 @@ def concatenate_files(directories: list[str],
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(input_file=directory+"/"+file_name,
-                                 output_file=file_name)
+        save_tsv_output(input_file = directory + "/" + file_name,
+                        output_file = file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)

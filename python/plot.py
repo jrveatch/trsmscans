@@ -6,7 +6,7 @@ import pandas as pd
 import os
 import parse
 import argparse
-from utils import fileutils
+from utils import file_utils
 from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
@@ -25,9 +25,9 @@ class Plot:
         self.model = Model(model_name)
 
         # Create plot output directory
-        self.output_dir = fileutils.plots_dir(model_name=self.model.name(),
-                                              decay=self.decay,
-                                              masses=self.masses)
+        self.output_dir = file_utils.plots_dir(model_name=self.model.name(),
+                                               decay=self.decay,
+                                               masses=self.masses)
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
@@ -43,9 +43,9 @@ class Plot:
         self.all_files: list[str] = []
 
         # Directory for the scan outputs
-        directory = fileutils.scan_dir(model_name=self.model.name(),
-                                       decay=self.decay,
-                                       masses=self.masses) + "files/tsv/"
+        directory = file_utils.scan_dir(model_name=self.model.name(),
+                                        decay=self.decay,
+                                        masses=self.masses) + "files/tsv/"
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -58,8 +58,8 @@ class Plot:
         self.all_files.sort()
 
         # If prescan exists, make it the first file to plot
-        prescan = fileutils.prescan_tsv(model_name=self.model.name(),
-                                        masses=self.masses)
+        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
+                                         masses=self.masses)
         if os.path.exists(prescan):
             self.all_files.insert(0, prescan)
 
