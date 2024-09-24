@@ -15,10 +15,10 @@ from typing import List
 
 class PointSampler:
         
-    #Initializer, Passes output directory, model name, and config loader
+    # Initializer, Passes output directory, model name, and config loader
     def __init__(self, outdir: str, model_name: str, config_loader: ConfigLoader) -> None:
 
-        #Initialize Global Variables
+        # Initialize Class Variables
         self.outdir = outdir
         self.model_name = model_name
         self.config_loader = config_loader
@@ -100,19 +100,19 @@ class PointSampler:
         return self.parser
 
     #Return the variables
-    def get_nwidth(self) -> float:
+    def get_nwidth(self) -> int:
         return self.nwidth
 
-    def get_nbounds(self):
+    def get_nbounds(self) -> int:
         return self.nbounds
 
-    def get_nsignals(self):
+    def get_nsignals(self) -> int:
         return self.nsignals
 
-    def get_npass(self):
+    def get_npass(self) -> int:
         return self.npass
 
-    def total_points_run(self):
+    def total_points_run(self) -> int:
         return self.curr_points_run
 
 if __name__ == "__main__":
