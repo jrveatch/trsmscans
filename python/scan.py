@@ -15,7 +15,7 @@ from utils.point import Point
 from utils.params import Params
 from utils.masses import Masses
 from prescan import run_prescan
-from utils import fileutils
+from utils.file_utils import scan_dir
 from utils.decay_utils import is_valid_decay
 
 import copy
@@ -77,9 +77,9 @@ class Scan:
         self.global_max = Point(model_name=model_name)
 
         # directory where we want the output to go
-        self.outdir = fileutils.scan_dir(model_name=model_name,
-                                         decay=decay,
-                                         masses=masses)
+        self.outdir = scan_dir(model_name=model_name,
+                               decay=decay,
+                               masses=masses)
 
         # remove previous directory if set to overwrite
         if os.path.exists(self.outdir) and overwrite:

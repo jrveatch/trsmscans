@@ -14,7 +14,7 @@ from decimal import Decimal
 # import tools
 from utils.point import Point
 from utils.params import Params
-from utils import fileutils
+from utils.file_utils import scan_dir
 from utils.config_loader import ConfigLoader
 
 from point_sampler import PointSampler
@@ -57,9 +57,9 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        self.outdir = fileutils.scan_dir(model_name=self.model_name,
-                                         decay=decay,
-                                         masses=self.params.masses())
+        self.outdir = scan_dir(model_name=self.model_name,
+                               decay=decay,
+                               masses=self.params.masses())
         
         self.point_sampler = PointSampler(self.outdir, self.model_name, self.config_loader)
 
