@@ -6,7 +6,6 @@ from parse import Parse
 from utils.params import Params
 import filters.filter
 from utils.runScannerS import runScannerS
-import numpy as np
 
 from utils.tsv_utils import save_tsv_output
 from utils.config_loader import ConfigLoader
