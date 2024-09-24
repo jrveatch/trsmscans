@@ -251,7 +251,11 @@ class Scan:
         running_list = [True]
         iter = 0
 
-        while any(running_list): # make controlling num of iters optionals
+        while any(running_list):
+
+            if niter > 0 and iter >= niter:
+                print(f"Ending after {niter} iterations as request")
+                break
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
@@ -262,32 +266,13 @@ class Scan:
             running_list = []
 
             for zoom_optimizer in all_zoom_optimizers:
-                
-                '''
-                def check_running(azo):
-                    result = False
-                    for zo in azo:
-                        if zo.is_running:
-                            result = True
-                            break
-                    return result
-
-                while check_running(all_zoom_optimizers):
-                    still_running = False
-                    for i in range:
-                        # code
-                        if i.is_running:
-                            still_running = True
-                '''
-
-                # counter to stop loop if all zoom_optimizer.running == False (to allow running wihout niter)
 
                 if zoom_optimizer.is_running:
 
                     # store a temp_max to compare against current max_xb
                     temp_max = zoom_optimizer.run(iter=iter,
                                                   global_max=self.global_max,
-                                                  use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
+                                                  use_multiprocessing=use_multiprocessing)
 
                     # store max_xb
                     if temp_max > self.global_max:
@@ -295,7 +280,6 @@ class Scan:
                     
                 running_list.append(zoom_optimizer.is_running)
 
-            # TODO: Add early stopping conditions
             iter += 1
 
         # get total scan time
@@ -394,7 +378,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-i", "--iterations", default=20, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     args = arg_parser.parse_args()

@@ -90,11 +90,14 @@ class Point:
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
     
+    def __le__(self,other: 'Point'):
+        return self.xb <= other.xb
+    
     def __mul__(self,scale_factor: float):
         return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
     
     def __str__(self) -> str:
-        return str(self.xb)
+        return str(self.xb) + '\n' + str(self.par_vals)
     
     def __repr__(self) -> str:
-        return str(self.xb)
+        return str(self.xb) + '\n' + str(self.par_vals)
