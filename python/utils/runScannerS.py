@@ -115,7 +115,7 @@ def runScannerS(ini_name: str,
                       file_name=model_name+".tsv")
 
     # return number of points that are actually used, including test job points
-    return num_points + min_points
+    return num_points
 
 # run a process for multiprocessing
 def run_process(process_args: list[str],
