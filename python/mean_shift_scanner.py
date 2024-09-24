@@ -250,6 +250,8 @@ class MeanShiftScanner:
         )
 
     def __get_initial_positions(self, points_num: int, strategy: str):
+        params = self.__global_params
+
         points = []
         
         if strategy == 'random':
@@ -259,7 +261,7 @@ class MeanShiftScanner:
             initial_point = self.__get_random_pos()
             lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
             coeff: float = self.__config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-            offsets = [abs(p) * coeff for p in initial_point]
+            offsets = [p.width() * coeff for p in params]
 
             points.append(initial_point)
 
