@@ -121,16 +121,16 @@ class Scan:
                     use_multiprocessing: bool = False) -> None:
 
         # default number of prescan points set to 10000
-        nprescan = self.max_prescan_points
+        num_prescan = self.max_prescan_points
 
-        # if fewer points are requested than nprescan, only use that many
+        # if fewer points are requested than num_prescan, only use that many
         if num_points < self.max_prescan_points:
-            nprescan = num_points
+            num_prescan = num_points
 
         try:
             # call prescan
             self.prescan_parser = run_prescan(masses = self.masses,
-                                              num_points = nprescan,
+                                              num_points = num_prescan,
                                               model_name = self.model_name,
                                               config_loader = self.config_loader,
                                               use_multiprocessing = use_multiprocessing)
@@ -183,7 +183,7 @@ class Scan:
             self.params.print_bounds(parameter_name)
 
         # get scan density
-        density = nprescan / self.params.volume()
+        density = num_prescan / self.params.volume()
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
@@ -192,7 +192,7 @@ class Scan:
         details = open(self.details_name, "a")
         details.write("Prescan\n")
         details.write("--------------------\n")
-        details.write("Number of prescan points = " + str(nprescan) + "\n")
+        details.write("Number of prescan points = " + str(num_prescan) + "\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
         details.write("--------------------\n")
