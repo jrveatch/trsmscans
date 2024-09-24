@@ -82,10 +82,25 @@ class Point:
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
         return self.xb > other.xb
+    
+    # define the greater than or equal to (>=) operator
+    def __ge__(self,other: 'Point'):
+        return self.xb >= other.xb
 
     # define the less than (<) operator
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
     
+    # define the less than or equal to (<=) operator
+    def __le__(self,other: 'Point'):
+        return self.xb <= other.xb
+    
+    # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
         return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
+    
+    def __str__(self) -> str:
+        return str(self.xb) + '\n' + str(self.par_vals)
+    
+    def __repr__(self) -> str:
+        return str(self.xb) + '\n' + str(self.par_vals)

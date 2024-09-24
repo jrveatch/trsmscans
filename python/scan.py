@@ -248,9 +248,18 @@ class Scan:
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
 
-        # target_xb = 0
+        # list of which zoom optimizers are running
+        running_list = [True]
 
-        for iter in range(niter): # make controlling num of iters optionals
+        # to keep count of which iteration the scan is on
+        iter = 0
+
+        while any(running_list):
+
+            # check if user has added a set number of iterations
+            if niter > 0 and iter >= niter:
+                print(f"Ending after {niter} iterations as request")
+                break
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
@@ -258,29 +267,26 @@ class Scan:
 
             # TODO: possibly redistribute points to all active scanners
 
+            running_list = []
+
             for zoom_optimizer in all_zoom_optimizers:
-                
-                # counter to stop loop if all zoom_optimizer.running == False (to allow running without niter)
 
                 if zoom_optimizer.is_running:
 
                     # store a temp_max to compare against current max_xb
                     temp_max = zoom_optimizer.run(iter=iter,
                                                   global_max=self.global_max,
-                                                  use_multiprocessing=use_multiprocessing) # pass global max or use __ls__ and __gt__
+                                                  use_multiprocessing=use_multiprocessing)
 
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
-            
-            #if max_xb < target_xb: # move for each zoom_optimizer to check local max (temp_max) and check twice
-            #    print("Max xb less than target...")
-            #    print("Ending scan early")
-            #    break
+                
+                # keeping track of which zoom optimizers are running
+                running_list.append(zoom_optimizer.is_running)
 
-            #target_xb = self.global_max + (self.global_max * 0.01)
-
-            # TODO: Add early stopping conditions
+            # count iteration
+            iter += 1
 
         # get total scan time
         scan_end = time.time()
@@ -378,7 +384,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-i", "--iterations", default=20, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     args = arg_parser.parse_args()
