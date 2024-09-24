@@ -8,7 +8,7 @@ import filters.filter
 from utils.runScannerS import runScannerS
 import numpy as np
 
-from utils import tsvutils
+from utils.tsv_utils import save_tsv_output
 from utils.config_loader import ConfigLoader
 
 from typing import List
@@ -73,8 +73,8 @@ class PointSampler:
                                                                             masses=params.masses(),
                                                                             config_loader=self.config_loader)
 
-            # Concatenate the infromation from temptsv to the tsv file
-            tsvutils.save_tsv_output(temptsv, tsvname)
+            # Concatenate the information from temptsv to the tsv file
+            save_tsv_output(temptsv, tsvname)
 
             # Update the filtered variables
             self.npass += npass

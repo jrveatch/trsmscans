@@ -10,7 +10,7 @@ import argparse
 # import package tools
 from filters.filter import apply_filters, initialize_filters
 from utils.runScannerS import runScannerS
-from utils import tsvutils
+from utils.tsv_utils import count_tsv_points, save_tsv_output
 from utils import fileutils
 from utils.params import Params
 from utils.masses import Masses
@@ -45,7 +45,7 @@ def run_prescan(masses: 'Masses',
     print("\nRunning a prescan with",num_points,"points for",str(masses))
 
     # get number of pre-existing prescan points
-    num_existing = tsvutils.count_tsv_points(tsv_name)
+    num_existing = count_tsv_points(tsv_name)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and num_points < num_existing * 0.2:
@@ -141,8 +141,8 @@ def run_prescan(masses: 'Masses',
     initialize_filters(file_name=tsv_name_initial)
 
     # save output to tsv_name
-    tsvutils.save_tsv_output(input_file = tsv_name_initial,
-                             output_file = tsv_name)
+    save_tsv_output(input_file = tsv_name_initial,
+                    output_file = tsv_name)
 
     # apply width and bounds filters
     apply_filters(file_name = tsv_name,

@@ -5,7 +5,7 @@ import numpy as np
 
 from filters import width
 from filters import bounds
-from utils import tsvutils
+from utils.tsv_utils import initialize_column
 from utils.arrays import Arrays
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
@@ -57,15 +57,15 @@ def apply_filters(file_name: str,
 def initialize_filters(file_name: str) -> None:
 
     # initialize all columns
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header=header_width,
-                               value=1)
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header=header_bounds,
-                               value=1)
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header=header_signals,
-                               value=1)
+    initialize_column(file_name=file_name,
+                      column_header=header_width,
+                      value=1)
+    initialize_column(file_name=file_name,
+                      column_header=header_bounds,
+                      value=1)
+    initialize_column(file_name=file_name,
+                      column_header=header_signals,
+                      value=1)
 
 if __name__ == "__main__":
 

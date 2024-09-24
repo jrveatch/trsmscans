@@ -3,7 +3,7 @@
 import numpy as np
 
 from utils.arrays import Arrays
-from utils import tsvutils
+from utils.tsv_utils import initialize_column
 
 from utils.masses import Masses
 
@@ -14,9 +14,9 @@ def filter_widths(file_name: str,
                   config_loader: 'ConfigLoader') -> int:
 
     # initialize column in case it doesn't exist
-    tsvutils.initialize_column(file_name=file_name,
-                               column_header="filt_width",
-                               value=1)
+    initialize_column(file_name=file_name,
+                      column_header="filt_width",
+                      value=1)
 
     # load in arrays from .tsv file
     arrs = Arrays(file_name)
