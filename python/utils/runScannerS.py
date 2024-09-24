@@ -7,7 +7,7 @@ import shutil
 import time
 import math
 from blessings import Terminal
-from utils import tsvutils
+from utils.tsv_utils import save_tsv_output
 import argparse
 
 # method to run ScannerS
@@ -115,7 +115,7 @@ def runScannerS(ini_name: str,
                       file_name=model_name+".tsv")
 
     # return number of points that are actually used, including test job points
-    return num_points + min_points
+    return num_points
 
 # run a process for multiprocessing
 def run_process(process_args: list[str],
@@ -199,8 +199,8 @@ def concatenate_files(directories: list[str],
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(input_file = directory + "/" + file_name,
-                                 output_file = file_name)
+        save_tsv_output(input_file = directory + "/" + file_name,
+                        output_file = file_name)
 
         # delete the temporary directory
         shutil.rmtree(directory)

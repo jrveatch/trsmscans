@@ -12,13 +12,9 @@ import shutil
 from decimal import Decimal
 
 # import tools
-from parse import Parse
 from utils.point import Point
 from utils.params import Params
-from filters.filter import apply_filters
-from utils.runScannerS import runScannerS
-from utils import tsvutils
-from utils import fileutils
+from utils.file_utils import scan_dir
 from utils.config_loader import ConfigLoader
 
 from point_sampler import PointSampler
@@ -61,9 +57,9 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        self.outdir = fileutils.scan_dir(model_name=self.model_name,
-                                         decay=decay,
-                                         masses=self.params.masses())
+        self.outdir = scan_dir(model_name=self.model_name,
+                               decay=decay,
+                               masses=self.params.masses())
         
         self.point_sampler = PointSampler(self.outdir, self.model_name, self.config_loader)
 
@@ -93,15 +89,15 @@ class ZoomOptimizer:
             identifier = self.label + "-Iteration-" + iter_label
         print("\nIteration:",identifier)
 
-        # Create scanparser using the point_sampler class
-        self.scanparser = self.point_sampler.sample_points(self.params, identifier, self.num_points)
+        # Create scan_parser using the point_sampler class
+        self.scan_parser = self.point_sampler.sample_points(self.params, identifier, self.num_points)
 
         # calculate point density from ranges
         volume = self.params.volume()
         density = self.num_points / volume
         
         # get new point as the maximum from the current scan
-        new_max = self.scanparser.get_max_xb_point(self.decay)
+        new_max = self.scan_parser.get_max_xb_point(self.decay)
 
         # flag to indicate whether new_max is greater than global_max
         is_new_global_max = new_max > global_max
@@ -126,12 +122,12 @@ class ZoomOptimizer:
         details = open(self.details_name,"a")
         details.write("Iteration = " + str(identifier) + "\n")
         details.write("--------------------\n")
-        details.write("Using " + str(self.point_sampler.all_points_run()) + " scan points\n")
+        details.write("Using " + str(self.point_sampler.total_points_run()) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(self.point_sampler.get_nwidth()) + "/" + str(self.point_sampler.all_points_run()) + " pass width cut\n")
-        details.write(str(self.point_sampler.get_nbounds()) + "/" + str(self.point_sampler.all_points_run()) + " pass bounds check\n")
-        details.write(str(self.point_sampler.get_nsignals()) + "/" + str(self.point_sampler.all_points_run()) + " pass signals check\n")
-        details.write(str(self.point_sampler.get_npass()) + "/" + str(self.point_sampler.all_points_run()) + " pass all checks\n")
+        details.write(str(self.point_sampler.get_nwidth()) + "/" + str(self.point_sampler.total_points_run()) + " pass width cut\n")
+        details.write(str(self.point_sampler.get_nbounds()) + "/" + str(self.point_sampler.total_points_run()) + " pass bounds check\n")
+        details.write(str(self.point_sampler.get_nsignals()) + "/" + str(self.point_sampler.total_points_run()) + " pass signals check\n")
+        details.write(str(self.point_sampler.get_npass()) + "/" + str(self.point_sampler.total_points_run()) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
         details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
@@ -208,7 +204,7 @@ class ZoomOptimizer:
     # write max xb point raw .tsv line to info file
     def write_tsv_summary(self) -> None:
         tsv_summary = open(self.tsv_summary_name,"a")
-        tsv_summary.write(self.scanparser.get_max_xb_line())
+        tsv_summary.write(self.scan_parser.get_max_xb_line())
         tsv_summary.close()
 
     # method to zoom in based on a percentile cut on xb
@@ -221,7 +217,7 @@ class ZoomOptimizer:
         percentile_threshold = self.zoom_percentile
 
         # get an array of xb results
-        xb_array = self.scanparser.get_xb(self.decay)
+        xb_array = self.scan_parser.get_xb(self.decay)
 
         # if top_percentile_xb has already been filled, add it to current xb_array
         if self.top_percentile_xb is not None:
@@ -246,7 +242,7 @@ class ZoomOptimizer:
         high_dict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in self.scanparser.get_parameter_arrays().items():
+        for param, values in self.scan_parser.get_parameter_arrays().items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
                 values = np.append(values, self.top_percentile[param])
