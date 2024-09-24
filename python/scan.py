@@ -248,14 +248,18 @@ class Scan:
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
 
+        running_list = [True]
+        iter = 0
 
-        for iter in range(niter): # make controlling num of iters optionals
+        while any(running_list): # make controlling num of iters optionals
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
             # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
             # Consider if having a separate function to check for the maximum is best
 
             # TODO: possibly redistribute points to all active scanners
+
+            running_list = []
 
             for zoom_optimizer in all_zoom_optimizers:
                 
@@ -288,8 +292,11 @@ class Scan:
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
+                    
+                running_list.append(zoom_optimizer.is_running)
 
             # TODO: Add early stopping conditions
+            iter += 1
 
         # get total scan time
         scan_end = time.time()
