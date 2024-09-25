@@ -15,7 +15,10 @@ from typing import List
 class PointSampler:
         
     # Initializer, Passes output directory, model name, and config loader
-    def __init__(self, outdir: str, model_name: str, config_loader: ConfigLoader) -> None:
+    def __init__(self,
+                 outdir: str,
+                 model_name: str,
+                 config_loader: ConfigLoader) -> None:
 
         # Initialize Class Variables
         self.outdir = outdir
@@ -23,10 +26,14 @@ class PointSampler:
         self.config_loader = config_loader
 
     # Method to check the sample points
-    def sample_points(self, params: Params, identifier: str, npoints: int) -> Parse:
+    def sample_points(self,
+                      params: Params,
+                      identifier: str,
+                      npoints: int,
+                      good_points_only: bool = True) -> Parse:
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + "files/" + self.model_name + "_" + identifier
+        outname = self.outdir + self.model_name + "_" + identifier
         self.ininame = outname + ".ini"
         tsvname = outname + ".tsv" 
         temptsv = self.outdir + self.model_name + ".tsv"
@@ -56,10 +63,10 @@ class PointSampler:
             print(f'{npoints} points requested')
 
             # Run ScannerS
-            points = runScannerS(ini_name=self.ininame,
-                                 num_points=npoints,
-                                 model_name=self.model_name,
-                                 use_multiprocessing=True)
+            points = runScannerS(ini_name = self.ininame,
+                                 num_points = npoints,
+                                 model_name = self.model_name,
+                                 use_multiprocessing = True)
 
             # Update the total points run
             self.curr_points_run += points
@@ -81,7 +88,11 @@ class PointSampler:
             self.nwidth += nwidth
             self.nsignals += nsignals
 
-            # Calculate the efficency of the points passed based on points run
+            # Break if all points are being counted
+            if not good_points_only:
+                break
+
+            # Calculate the efficiency of the points passed based on points run
             efficiency = self.npass/self.curr_points_run
 
             # Print points passed and efficiency
