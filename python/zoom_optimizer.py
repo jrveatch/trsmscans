@@ -60,12 +60,12 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        outdir = scan_dir(model_name=self.model_name,
-                          decay=decay,
-                          masses=self.params.masses())
+        out_dir = scan_dir(model_name=self.model_name,
+                           decay=decay,
+                           masses=self.params.masses())
 
         # create PointSampler object
-        self.point_sampler = PointSampler(out_dir = outdir,
+        self.point_sampler = PointSampler(out_dir = out_dir,
                                           model_name = self.model_name,
                                           use_multiprocessing = use_multiprocessing,
                                           config_loader = self.config_loader,
@@ -73,10 +73,10 @@ class ZoomOptimizer:
 
         # get output information file names
         output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
-        self.summary_name = outdir + "scan_summary_" + output_file_postfix
-        self.tsv_summary_name = outdir + "scan_tsv_summary_" + output_file_postfix
-        self.prescan_details_name = outdir + "files/details/prescan_details_" + output_file_postfix
-        self.details_name = outdir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
+        self.summary_name = out_dir + "scan_summary_" + output_file_postfix
+        self.tsv_summary_name = out_dir + "scan_tsv_summary_" + output_file_postfix
+        self.prescan_details_name = out_dir + "files/details/prescan_details_" + output_file_postfix
+        self.details_name = out_dir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)

@@ -81,25 +81,25 @@ class Scan:
         self.global_max = Point(model_name=model_name)
 
         # directory where we want the output to go
-        self.outdir = scan_dir(model_name=model_name,
-                               decay=decay,
-                               masses=masses)
+        self.out_dir = scan_dir(model_name=model_name,
+                                decay=decay,
+                                masses=masses)
 
         # remove previous directory if set to overwrite
-        if os.path.exists(self.outdir) and overwrite:
+        if os.path.exists(self.out_dir) and overwrite:
             # remove directory
-            shutil.rmtree(self.outdir)
+            shutil.rmtree(self.out_dir)
 
         # check if directory exists, if not make it
-        if not os.path.exists(self.outdir):
-            os.makedirs(self.outdir)
-            os.makedirs(self.outdir + "/files")
-            os.makedirs(self.outdir + "/files/details")
-            os.makedirs(self.outdir + "/files/ini")
-            os.makedirs(self.outdir + "/files/tsv")
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
+            os.makedirs(self.out_dir + "/files")
+            os.makedirs(self.out_dir + "/files/details")
+            os.makedirs(self.out_dir + "/files/ini")
+            os.makedirs(self.out_dir + "/files/tsv")
 
         # create summary file
-        self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters().values():
@@ -109,12 +109,12 @@ class Scan:
         summary.close()
 
         # create raw output file
-        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.tsv_summary_name = self.out_dir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         tsv_summary = open(self.tsv_summary_name, "w")
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.outdir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.out_dir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
@@ -142,7 +142,7 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            shutil.rmtree(self.outdir)
+            shutil.rmtree(self.out_dir)
 
             # quit execution
             raise
@@ -244,7 +244,7 @@ class Scan:
         self.run_prescan(num_points = num_points)
 
         # move into the working directory for scans
-        os.chdir(self.outdir)
+        os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)

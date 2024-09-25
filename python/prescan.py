@@ -28,11 +28,11 @@ def run_prescan(masses: 'Masses',
     scan_start = time.time()
 
     # directory where we want the output to go
-    outdir = prescan_dir(model_name = model_name,
-                         masses = masses)
+    out_dir = prescan_dir(model_name = model_name,
+                          masses = masses)
 
     # names of .ini and .tsv files
-    tsv_name = outdir + model_name + "_prescan.tsv"
+    tsv_name = out_dir + model_name + "_prescan.tsv"
 
     # print starting message
     print("\nRunning a prescan with",num_points,"points for",str(masses))
@@ -61,9 +61,9 @@ def run_prescan(masses: 'Masses',
                 print("Please enter 'yes' or 'no'.")
 
     # remove previous directory if set to overwrite
-    if os.path.exists(outdir) and overwrite:
+    if os.path.exists(out_dir) and overwrite:
         # remove directory
-        shutil.rmtree(outdir)
+        shutil.rmtree(out_dir)
         # reset num_existing to 0
         num_existing = 0
 
@@ -87,17 +87,17 @@ def run_prescan(masses: 'Masses',
         print("If you want to overwrite the existing prescan, run with the -o option.")
 
     # check if directory exists, if not make it
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     # store starting directory
     startDir = os.getcwd()
 
     # move into working directory for prescan
-    os.chdir(outdir)
+    os.chdir(out_dir)
 
     # print location
-    print("Running prescan in",outdir)
+    print("Running prescan in",out_dir)
 
     # if config loader is not provided, create one
     if not config_loader:
@@ -114,7 +114,7 @@ def run_prescan(masses: 'Masses',
     params = Params(model_name,masses)
 
     # create PointSampler object
-    point_sampler = PointSampler(out_dir = outdir,
+    point_sampler = PointSampler(out_dir = out_dir,
                                  model_name = model_name,
                                  use_multiprocessing = use_multiprocessing,
                                  config_loader = config_loader)
