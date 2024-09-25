@@ -353,9 +353,9 @@ class Parse:
         self.__prefilter_idx = self.arrays.data('idx')[self.__filters != 0]
 
     # get number of filtered events
-    def get_n_points(self) -> int:
+    def get_num_points(self) -> int:
         return next(iter(self.__par_arrays.values())).size
 
     # get number of unfiltered events
-    def get_n_unfiltered_points(self) -> int:
+    def get_num_unfiltered_points(self) -> int:
         return self.arrays.data().shape[0]

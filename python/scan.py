@@ -145,10 +145,10 @@ class Scan:
             raise
 
         # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.get_n_unfiltered_points()
+        n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_n_points()
+        n_prescan = self.prescan_parser.get_num_points()
 
         # info message about prescan
         print("\nAnalyzing prescan with", n_prescan_unfiltered, "points")
