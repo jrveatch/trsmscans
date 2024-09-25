@@ -31,6 +31,7 @@ def runScannerS(ini_name: str,
 
     # make sure the minimum number of points are used
     if num_points < min_points:
+        print(f"A minimum of {min_points} is required to run, adjusting...")
         num_points = min_points
 
     # use num_points unless modified for parallel processes
