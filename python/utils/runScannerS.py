@@ -29,6 +29,11 @@ def runScannerS(ini_name: str,
     # minimum number of points per job
     min_points = 10
 
+    # make sure the minimum number of points are used
+    if num_points < min_points:
+        print(f"A minimum of {min_points} is required to run, adjusting...")
+        num_points = min_points
+
     # use num_points unless modified for parallel processes
     points_per_process = num_points
 

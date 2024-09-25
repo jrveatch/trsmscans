@@ -32,6 +32,7 @@ class Scan:
                  masses: 'Masses',
                  model_name: str,
                  decay: str,
+                 use_multiprocessing: bool,
                  config_file_name: str = "",
                  overwrite: bool = False
                  ):
@@ -42,6 +43,9 @@ class Scan:
         # store masses and decay information
         self.masses = masses
         self.decay = decay
+
+        # store multiprocessing option
+        self.use_multiprocessing = use_multiprocessing
 
         # check whether decay is valid
         supported = is_valid_decay(self.decay)
@@ -77,25 +81,25 @@ class Scan:
         self.global_max = Point(model_name=model_name)
 
         # directory where we want the output to go
-        self.outdir = scan_dir(model_name=model_name,
-                               decay=decay,
-                               masses=masses)
+        self.out_dir = scan_dir(model_name=model_name,
+                                decay=decay,
+                                masses=masses)
 
         # remove previous directory if set to overwrite
-        if os.path.exists(self.outdir) and overwrite:
+        if os.path.exists(self.out_dir) and overwrite:
             # remove directory
-            shutil.rmtree(self.outdir)
+            shutil.rmtree(self.out_dir)
 
         # check if directory exists, if not make it
-        if not os.path.exists(self.outdir):
-            os.makedirs(self.outdir)
-            os.makedirs(self.outdir + "/files")
-            os.makedirs(self.outdir + "/files/details")
-            os.makedirs(self.outdir + "/files/ini")
-            os.makedirs(self.outdir + "/files/tsv")
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
+            os.makedirs(self.out_dir + "/files")
+            os.makedirs(self.out_dir + "/files/details")
+            os.makedirs(self.out_dir + "/files/ini")
+            os.makedirs(self.out_dir + "/files/tsv")
 
         # create summary file
-        self.summary_name = self.outdir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters().values():
@@ -105,20 +109,19 @@ class Scan:
         summary.close()
 
         # create raw output file
-        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.tsv_summary_name = self.out_dir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         tsv_summary = open(self.tsv_summary_name, "w")
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.outdir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.out_dir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
 
     # run a prescan to constrain scan parameter ranges
     def run_prescan(self,
-                    num_points: int,
-                    use_multiprocessing: bool = False) -> None:
+                    num_points: int) -> None:
 
         # default number of prescan points set to 10000
         num_prescan = self.max_prescan_points
@@ -133,22 +136,22 @@ class Scan:
                                               num_points = num_prescan,
                                               model_name = self.model_name,
                                               config_loader = self.config_loader,
-                                              use_multiprocessing = use_multiprocessing)
+                                              use_multiprocessing = self.use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
 
             # delete directory
-            shutil.rmtree(self.outdir)
+            shutil.rmtree(self.out_dir)
 
             # quit execution
             raise
 
         # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.get_n_unfiltered_points()
+        n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_n_points()
+        n_prescan = self.prescan_parser.get_num_points()
 
         # info message about prescan
         print("\nAnalyzing prescan with", n_prescan_unfiltered, "points")
@@ -228,8 +231,7 @@ class Scan:
     # run the full scan
     def run_zoom_optimization(self,
                               num_points: int,
-                              niter: int,
-                              use_multiprocessing: bool = False) -> None:
+                              niter: int) -> None:
 
         # get scan start time
         scan_start = time.time()
@@ -239,11 +241,10 @@ class Scan:
             num_points = self.num_starting_points
 
         # run prescan
-        self.run_prescan(num_points = num_points,
-                         use_multiprocessing = use_multiprocessing)
+        self.run_prescan(num_points = num_points)
 
         # move into the working directory for scans
-        os.chdir(self.outdir)
+        os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
@@ -275,8 +276,7 @@ class Scan:
 
                     # store a temp_max to compare against current max_xb
                     temp_max = zoom_optimizer.run(iter=iter,
-                                                  global_max=self.global_max,
-                                                  use_multiprocessing=use_multiprocessing)
+                                                  global_max=self.global_max)
 
                     # store max_xb
                     if temp_max > self.global_max:
@@ -362,6 +362,7 @@ class Scan:
                 num_points = num_scanner_points,
                 params = params_copy,
                 decay = self.decay,
+                use_multiprocessing = self.use_multiprocessing,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'
@@ -396,10 +397,10 @@ if __name__ == "__main__":
     myScan = Scan(masses = masses,
                   model_name = args.model,
                   decay = args.decay,
+                  use_multiprocessing = args.multiprocessing,
                   overwrite = args.overwrite
                  )
 
     # run scan using scan object
     myScan.run_zoom_optimization(num_points = args.npoints,
-                                 niter = args.iterations,
-                                 use_multiprocessing = args.multiprocessing)
+                                 niter = args.iterations)
