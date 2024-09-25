@@ -25,6 +25,7 @@ class ZoomOptimizer:
                  params: 'Params',
                  decay: str,
                  num_points: int,
+                 use_multiprocessing: bool,
                  starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
@@ -63,20 +64,19 @@ class ZoomOptimizer:
                           decay=decay,
                           masses=self.params.masses())
 
-        # set output files directory
-        files_directory = outdir + "files/"
-
         # create PointSampler object
-        self.point_sampler = PointSampler(files_directory,
-                                          self.model_name,
-                                          self.config_loader)
+        self.point_sampler = PointSampler(out_dir = outdir,
+                                          model_name = self.model_name,
+                                          use_multiprocessing = use_multiprocessing,
+                                          config_loader = self.config_loader,
+                                          use_file_dir = True)
 
         # get output information file names
         output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
         self.summary_name = outdir + "scan_summary_" + output_file_postfix
         self.tsv_summary_name = outdir + "scan_tsv_summary_" + output_file_postfix
-        self.prescan_details_name = files_directory + "details/prescan_details_" + output_file_postfix
-        self.details_name = files_directory + "details/scan_details_" + self.label + "_" + output_file_postfix
+        self.prescan_details_name = outdir + "files/details/prescan_details_" + output_file_postfix
+        self.details_name = outdir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
@@ -85,8 +85,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
-            global_max: 'Point',
-            use_multiprocessing: bool = False) -> None:
+            global_max: 'Point') -> None:
 
         # get time of iteration start
         iter_start = time.time()

@@ -32,6 +32,7 @@ class Scan:
                  masses: 'Masses',
                  model_name: str,
                  decay: str,
+                 use_multiprocessing: bool,
                  config_file_name: str = "",
                  overwrite: bool = False
                  ):
@@ -42,6 +43,9 @@ class Scan:
         # store masses and decay information
         self.masses = masses
         self.decay = decay
+
+        # store multiprocessing option
+        self.use_multiprocessing = use_multiprocessing
 
         # check whether decay is valid
         supported = is_valid_decay(self.decay)
@@ -117,8 +121,7 @@ class Scan:
 
     # run a prescan to constrain scan parameter ranges
     def run_prescan(self,
-                    num_points: int,
-                    use_multiprocessing: bool = False) -> None:
+                    num_points: int) -> None:
 
         # default number of prescan points set to 10000
         num_prescan = self.max_prescan_points
@@ -133,7 +136,7 @@ class Scan:
                                               num_points = num_prescan,
                                               model_name = self.model_name,
                                               config_loader = self.config_loader,
-                                              use_multiprocessing = use_multiprocessing)
+                                              use_multiprocessing = self.use_multiprocessing)
 
         # if prescan fails, remove directory and quit
         except TimeoutError:
@@ -228,8 +231,7 @@ class Scan:
     # run the full scan
     def run_zoom_optimization(self,
                               num_points: int,
-                              niter: int,
-                              use_multiprocessing: bool = False) -> None:
+                              niter: int) -> None:
 
         # get scan start time
         scan_start = time.time()
@@ -239,8 +241,7 @@ class Scan:
             num_points = self.num_starting_points
 
         # run prescan
-        self.run_prescan(num_points = num_points,
-                         use_multiprocessing = use_multiprocessing)
+        self.run_prescan(num_points = num_points)
 
         # move into the working directory for scans
         os.chdir(self.outdir)
@@ -275,8 +276,7 @@ class Scan:
 
                     # store a temp_max to compare against current max_xb
                     temp_max = zoom_optimizer.run(iter=iter,
-                                                  global_max=self.global_max,
-                                                  use_multiprocessing=use_multiprocessing)
+                                                  global_max=self.global_max)
 
                     # store max_xb
                     if temp_max > self.global_max:
@@ -362,6 +362,7 @@ class Scan:
                 num_points = num_scanner_points,
                 params = params_copy,
                 decay = self.decay,
+                use_multiprocessing = self.use_multiprocessing,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'
@@ -396,10 +397,10 @@ if __name__ == "__main__":
     myScan = Scan(masses = masses,
                   model_name = args.model,
                   decay = args.decay,
+                  use_multiprocessing = args.multiprocessing,
                   overwrite = args.overwrite
                  )
 
     # run scan using scan object
     myScan.run_zoom_optimization(num_points = args.npoints,
-                                 niter = args.iterations,
-                                 use_multiprocessing = args.multiprocessing)
+                                 niter = args.iterations)

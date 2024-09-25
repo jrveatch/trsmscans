@@ -114,8 +114,9 @@ def run_prescan(masses: 'Masses',
     params = Params(model_name,masses)
 
     # create PointSampler object
-    point_sampler = PointSampler(outdir = outdir,
+    point_sampler = PointSampler(out_dir = outdir,
                                  model_name = model_name,
+                                 use_multiprocessing = use_multiprocessing,
                                  config_loader = config_loader)
 
     # sample points

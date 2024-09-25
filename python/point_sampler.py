@@ -16,13 +16,19 @@ class PointSampler:
         
     # Initializer, Passes output directory, model name, and config loader
     def __init__(self,
-                 outdir: str,
+                 out_dir: str,
                  model_name: str,
-                 config_loader: ConfigLoader) -> None:
+                 use_multiprocessing: bool,
+                 config_loader: ConfigLoader,
+                 use_file_dir: bool = False) -> None:
 
         # Initialize Class Variables
-        self.outdir = outdir
+        self.out_dir = out_dir
+        self.file_dir = out_dir
+        if use_file_dir:
+            self.file_dir += "files/"
         self.model_name = model_name
+        self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
 
     # Method to check the sample points
@@ -33,10 +39,10 @@ class PointSampler:
                       good_points_only: bool = True) -> Parse:
 
         # set names of input .ini and output .tsv files
-        outname = self.outdir + self.model_name + "_" + identifier
+        outname = self.file_dir + self.model_name + "_" + identifier
         self.ininame = outname + ".ini"
         tsvname = outname + ".tsv" 
-        temptsv = self.outdir + self.model_name + ".tsv"
+        temptsv = self.out_dir + self.model_name + ".tsv"
 
         #Global variable for number of points
         self.npoints = npoints
@@ -66,7 +72,7 @@ class PointSampler:
             points = runScannerS(ini_name = self.ininame,
                                  num_points = npoints,
                                  model_name = self.model_name,
-                                 use_multiprocessing = True)
+                                 use_multiprocessing = self.use_multiprocessing)
 
             # Update the total points run
             self.curr_points_run += points
