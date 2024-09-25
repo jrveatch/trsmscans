@@ -59,18 +59,24 @@ class ZoomOptimizer:
             raise
 
         # set output directory
-        self.outdir = scan_dir(model_name=self.model_name,
-                               decay=decay,
-                               masses=self.params.masses())
-        
-        self.point_sampler = PointSampler(self.outdir, self.model_name, self.config_loader)
+        outdir = scan_dir(model_name=self.model_name,
+                          decay=decay,
+                          masses=self.params.masses())
+
+        # set output files directory
+        files_directory = outdir + "files/"
+
+        # create PointSampler object
+        self.point_sampler = PointSampler(files_directory,
+                                          self.model_name,
+                                          self.config_loader)
 
         # get output information file names
         output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
-        self.summary_name = self.outdir + "scan_summary_" + output_file_postfix
-        self.tsv_summary_name = self.outdir + "scan_tsv_summary_" + output_file_postfix
-        self.prescan_details_name = self.outdir + "files/details/prescan_details_" + output_file_postfix
-        self.details_name = self.outdir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
+        self.summary_name = outdir + "scan_summary_" + output_file_postfix
+        self.tsv_summary_name = outdir + "scan_tsv_summary_" + output_file_postfix
+        self.prescan_details_name = files_directory + "details/prescan_details_" + output_file_postfix
+        self.details_name = files_directory + "details/scan_details_" + self.label + "_" + output_file_postfix
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
@@ -92,7 +98,9 @@ class ZoomOptimizer:
         print("\nIteration:",identifier)
 
         # Create scan_parser using the point_sampler class
-        self.scan_parser = self.point_sampler.sample_points(self.params, identifier, self.num_points)
+        self.scan_parser = self.point_sampler.sample_points(params = self.params,
+                                                            identifier = identifier,
+                                                            npoints = self.num_points)
 
         # calculate point density from ranges
         volume = self.params.volume()
