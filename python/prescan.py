@@ -8,14 +8,13 @@ import datetime
 import argparse
 
 # import package tools
-from filters.filter import apply_filters, initialize_filters
-from utils.runScannerS import runScannerS
-from utils.tsv_utils import count_tsv_points, save_tsv_output
+from utils.tsv_utils import count_tsv_points
 from utils.file_utils import prescan_dir
 from utils.params import Params
 from utils.masses import Masses
 from parse import Parse
 from utils.config_loader import ConfigLoader
+from point_sampler import PointSampler
 
 def run_prescan(masses: 'Masses',
                 model_name: str,
@@ -29,17 +28,11 @@ def run_prescan(masses: 'Masses',
     scan_start = time.time()
 
     # directory where we want the output to go
-    outdir = prescan_dir(model_name=model_name,
-                         masses=masses)
+    outdir = prescan_dir(model_name = model_name,
+                         masses = masses)
 
     # names of .ini and .tsv files
-    ini_name = outdir + model_name + ".ini"
-    tsv_name_initial = outdir + model_name + ".tsv"
     tsv_name = outdir + model_name + "_prescan.tsv"
-
-    # create parse object without .tsv file name
-    parser = Parse(masses=masses,
-                   model_name=model_name)
 
     # print starting message
     print("\nRunning a prescan with",num_points,"points for",str(masses))
@@ -59,9 +52,10 @@ def run_prescan(masses: 'Masses',
                 break
             # if no, print message and return
             elif response in ["no", "n"]:
-                parser.read_file(tsv_name)
                 print("Exiting prescan")
-                return parser
+                return Parse(masses = masses,
+                             model_name = model_name,
+                             file_name = tsv_name)
             # complain if response is neither yes nor no
             else:
                 print("Please enter 'yes' or 'no'.")
@@ -81,8 +75,9 @@ def run_prescan(masses: 'Masses',
             print("Found a prescan that already has",num_existing,"points.")
             print(num_points,"points request, skipping since no more are needed.")
             print("If you want to overwrite the existing prescan, run with the -o option.")
-            parser.read_file(tsv_name)
-            return parser
+            return Parse(masses = masses,
+                         model_name = model_name,
+                         file_name = tsv_name)
 
         # otherwise reduce the number of points to run with
         num_points_old = num_points
@@ -112,45 +107,22 @@ def run_prescan(masses: 'Masses',
             config_file_name = model_name + "_default.yml"
 
         # load config file
-        config_loader = ConfigLoader(config_file_name=config_file_name)
+        config_loader = ConfigLoader(config_file_name = config_file_name)
 
     # make instance of params
     # this automatically initializes the parameters
     params = Params(model_name,masses)
 
-    # write .ini file from template
-    params.write_ini(ini_name)
+    # create PointSampler object
+    point_sampler = PointSampler(outdir = outdir,
+                                 model_name = model_name,
+                                 config_loader = config_loader)
 
-    # run ScannerS to sample points
-    try:
-        runScannerS(ini_name = ini_name,
-                    model_name = model_name,
-                    num_points = num_points,
-                    use_multiprocessing = use_multiprocessing)
-
-    # if timeout error is caught, delete the directory and raise
-    except TimeoutError:
-
-        # delete directory
-        shutil.rmtree(outdir)
-
-        # return result from process
-        raise
-
-    # make sure new .tsv has filter columns
-    initialize_filters(file_name=tsv_name_initial)
-
-    # save output to tsv_name
-    save_tsv_output(input_file = tsv_name_initial,
-                    output_file = tsv_name)
-
-    # apply width and bounds filters
-    apply_filters(file_name = tsv_name,
-                  masses = masses,
-                  config_loader = config_loader)
-
-    # parse output .tsv file
-    parser.read_file(tsv_name)
+    # sample points
+    parser = point_sampler.sample_points(params = params,
+                                         identifier = "prescan",
+                                         npoints = num_points,
+                                         good_points_only = False)
 
     # get total time taken
     scan_end = time.time()
