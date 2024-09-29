@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 # import various modules to help with logistics
+import argparse
+import datetime
 import os
+import random
 import shutil
 import time
-import datetime
-import argparse
+
+from copy import deepcopy
 
 # import decimal
 from decimal import Decimal
@@ -14,14 +17,15 @@ from decimal import Decimal
 from utils.point import Point
 from utils.params import Params
 from utils.masses import Masses
-from prescan import run_prescan
-from utils.file_utils import scan_dir
+from prescan import prescan
+from utils.file_utils import scan_dir, plots_dir
 from utils.decay_utils import is_valid_decay
 
 import copy
 import itertools
 
 from zoom_optimizer import ZoomOptimizer
+from mean_shift_optimizer import MeanShiftOptimizer
 
 from utils.config_loader import ConfigLoader
 
@@ -74,8 +78,11 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(model_name=model_name,
-                             masses=masses)
+        self.params = Params(
+                model_name=model_name,
+                decay_name=decay,              
+                masses=masses
+            )
 
         # make dummy optimal point
         self.global_max = Point(model_name=model_name)
@@ -102,7 +109,7 @@ class Scan:
         self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
-        for parameter in self.params.parameters().values():
+        for parameter in self.params.get_parameters().values():
             summary.write("\t" + parameter.get_fullname())
         summary.write("\titer")
         summary.write("\n")
@@ -132,7 +139,7 @@ class Scan:
 
         try:
             # call prescan
-            self.prescan_parser = run_prescan(masses = self.masses,
+            self.prescan_parser = prescan(masses = self.masses,
                                               num_points = num_prescan,
                                               model_name = self.model_name,
                                               config_loader = self.config_loader,
@@ -165,7 +172,7 @@ class Scan:
         print("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
@@ -199,10 +206,10 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
         details.write("--------------------\n")
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
             details.write(parameter_name + ":\n")
             details.write("  " + self.global_max.format_param(parameter_name) + "\n")
-            details.write("  " + self.params.parameter(parameter_name).format_range() + "\n")
+            details.write("  " + self.params.parameter_value(parameter_name).format_range() + "\n")
         details.write("--------------------\n")
         details.write("\n\n")
         details.close()
@@ -210,7 +217,7 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
-        for name, parameter in self.params.parameters().items():
+        for name, parameter in self.params.get_parameters().items():
             summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
         summary.write("\tPre")
         summary.write("\n")
@@ -226,6 +233,113 @@ class Scan:
         # scale new low and high values
         self.params.scale_ranges(self.global_max)
 
+        return
+
+    def run_ms_optimization(self, prescan_points: int, points: int, use_multiprocessing: bool = False) -> None:
+
+        # get scan start time
+        scan_start = time.time()
+
+        # run prescan
+        self.run_prescan(prescan_points)
+
+        # move into the working directory for scans
+        os.chdir(self.out_dir)
+
+        # Define helper functions (as inner functions because only for meanshift implementation)
+
+        # Returns a random position within the upper and lower bounds of the params
+        def random_pos() -> tuple[float]:
+            params = self.params
+
+            return tuple(
+                [
+                    random.uniform(params[name].get_low(), params[name].get_high())
+                    for name in params.names
+                ]
+            )
+        
+        # Returns a list of initial positions for shifters
+        # points_num
+        def initial_positions(points: int, strategy: str) -> tuple[tuple[float]]:
+            results = []
+            
+            if strategy == 'random':
+                for i in range(points):
+                    results.append(random_pos())
+            elif strategy == 'pair':
+                initial_point = random_pos()
+                lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
+                coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
+                offsets = [param.width() * coeff for param in self.params]
+
+                results.append(initial_point)
+
+                next_point = list(deepcopy(initial_point))
+
+                for i in range(1, points):
+                    for i in range(len(next_point)):
+                        next_point[i] += lead_coeffs[i] * offsets[i]
+
+                    results.append(tuple(deepcopy(next_point)))
+
+            return tuple(results)
+
+        # Load config
+        config_loader = self.config_loader
+        stop_epochs: int = config_loader.get('meanshift', 'stop_epochs')
+        stop_mode: int = config_loader.get('meanshift', 'stop_mode')
+        stop_sens: float = config_loader.get('meanshift', 'stop_sensitivity')
+        scan_perc: float = config_loader.get('meanshift', 'scan_perc')
+        points_num: int = config_loader.get('meanshift', 'points_num')
+        points_gen: str = config_loader.get('meanshift', 'points_gen')
+        debug: bool = config_loader.get('meanshift', 'debug')
+
+        # Clear plots dir
+        plot_dir = plots_dir(model_name=self.model_name, decay=self.decay,masses=self.masses)
+        shutil.rmtree(plot_dir, ignore_errors=True)
+
+        initial_pos_set = initial_positions(points_num, points_gen)
+
+        print("\nInitial points:")
+        for p in initial_pos_set:
+            print(f"\t{p}")
+
+        for i, initial_pos in enumerate(initial_pos_set):
+            label = f"MeanShiftOptimizer-{i}"
+
+            opt = MeanShiftOptimizer(
+                scan_perc=scan_perc,
+                stop_mode=stop_mode,
+                stop_epochs=stop_epochs,
+                stop_sens=stop_sens,
+                label=label,
+                initial_pos=initial_pos,
+                points=points,
+                global_params=self.params,
+                config_loader=config_loader,
+                use_multiprocessing=use_multiprocessing,
+                debug=debug
+            ).run(use_multiprocessing)
+
+            with open(self.summary_name, 'a') as scan_summary:
+                scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
+                scan_summary.write(f"Opt_{i} {' '.join([str(e) for e in opt])}\n")
+
+        # SCAN LOGIC END HERE
+
+        # get total scan time
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # print out scan time
+        print("\nDone!")
+        print("Scan took", str(datetime.timedelta(seconds=int(scan_time))), "(hh:mm:ss)\n")
+
+        # write time info to details file
+        details = open(self.details_name, "a")
+        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
+        details.close()
         return
 
     # run the full scan
@@ -309,7 +423,7 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
@@ -386,6 +500,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-optim", "--optimizer", required=True, type = str, help="Which optimization strategy to use")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     args = arg_parser.parse_args()
@@ -401,6 +516,18 @@ if __name__ == "__main__":
                   overwrite = args.overwrite
                  )
 
-    # run scan using scan object
-    myScan.run_zoom_optimization(num_points = args.npoints,
-                                 niter = args.iterations)
+    match args.optimizer:
+        case "zoom":
+            # run scan using scan object
+            myScan.run_zoom_optimization(
+                    num_points = args.npoints,
+                    niter = args.iterations
+                )
+        case "ms":
+            myScan.run_ms_optimization(
+                    prescan_points = args.npoints,
+                    points = args.npoints,
+                    use_multiprocessing = args.multiprocessing
+                )
+        case _:
+            raise ValueError("Invalid optimizer selection")

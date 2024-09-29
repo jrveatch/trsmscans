@@ -113,7 +113,7 @@ def runScannerS(ini_name: str,
         pool.join()
 
     # success message
-    print("All processes finished. Merging outputs...")
+    print("All processes finished.\nMerging outputs...")
 
     # combine the outputs into a single file
     concatenate_files(directories=directories,

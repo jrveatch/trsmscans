@@ -11,7 +11,8 @@ class Params:
 
     def __init__(self,
                  model_name: str,
-                 masses: 'Masses'):
+                 masses: 'Masses',
+                 decay_name: str = ""):
 
         # store masses
         self.__masses = masses
@@ -24,6 +25,10 @@ class Params:
         # get model using model_name
         self.__model = Model(model_name)
 
+        # Store model and decay names
+        self.__model_name = model_name
+        self.__decay_name = decay_name
+
         # get list of parameter names
         self.__parameter_names: list[str] = self.__model.parameter_names()
 
@@ -32,28 +37,43 @@ class Params:
         for name in self.__parameter_names:
             self.__parameters[name] = Parameter(name,self.__model.parameter(name))
 
+    ## Class member getters
+
     # get dictionary of parameters
-    def parameters(self) -> dict[str, Parameter]:
+    def get_parameters(self) -> dict[str, Parameter]:
         return self.__parameters
 
-    # get parameter
-    def parameter(self,
-                  par_name: str) -> Parameter:
-        return self.__parameters[par_name]
-
     # get parameter names
-    def parameter_names(self) -> list[str]:
+    def get_parameter_names(self) -> list[str]:
         return self.__parameter_names
 
     # get masses
-    def masses(self) -> Masses:
+    def get_masses(self) -> Masses:
         return self.__masses
     
-    def center_point(self) -> tuple[float]:
+    # get model name
+    def get_model_name(self) -> str:
+        return self.__model_name
+    
+    # get decay name
+    def get_decay_name(self) -> str:
+        return self.__decay_name
+
+    ## Calculated values
+
+    # get parameter from dict
+    def parameter_value(self,
+                  par_name: str) -> Parameter:
+        return self.__parameters[par_name]
+
+    def center_points(self) -> tuple[float]:
         return tuple([param.center() for param in self.__parameters.values()])
     
     def ranges(self) -> tuple[tuple[float]]:
         return tuple([param.range() for param in self.__parameters.values()])
+
+    def widths(self) -> tuple[float]:
+        return tuple([param.width() for param in self.__parameters.values()])
 
     # get starting min value from model
     def starting_min(self,
@@ -66,7 +86,7 @@ class Params:
         return self.__model.starting_max(par_name)
     
     # get model name
-    def model_name(self) -> str:
+    def get_model_name(self) -> str:
         return self.__model.name()
 
     # set new value, range, low and high
@@ -92,6 +112,13 @@ class Params:
             # update parameter with new value and range scale
             self.__parameters[par_name].scale_width(newVal=newVal,
                                                    rangeScale=rangeScale)
+
+    # change bounds of each parameter based on new center point
+    def reposition_center(self, point: tuple[float]):
+        for (center, param) in zip(point, self.__parameters.values()):
+            extent = param.width() / 2
+
+            param.set_low_high(center - extent, center + extent)
 
     # update both low and high of each parameter using dictionaries
     def update_low_high(self,
@@ -152,9 +179,9 @@ class Params:
         ini_data = ini_data.replace("MH3",str(self.__mH3))
 
         # loop over parameters and fill low/high values
-        for par in self.parameters().values():
-            ini_data = ini_data.replace(par.name()+"_LOW",str(par.get_low()))
-            ini_data = ini_data.replace(par.name()+"_HIGH",str(par.get_high()))
+        for par in self.get_parameters().values():
+            ini_data = ini_data.replace(par.get_name()+"_LOW",str(par.get_low()))
+            ini_data = ini_data.replace(par.get_name()+"_HIGH",str(par.get_high()))
 
         # write to .ini file
         outfile = open(ini_name,"w")
@@ -164,11 +191,33 @@ class Params:
     # print min and max for a parameter
     def print_bounds(self,
                      par_name: str) -> None:
-        self.parameter(par_name).print_bounds()
+        self.parameter_value(par_name).print_bounds()
+
+    ## Aliases
+
+    # Alias for self.center_point()
+    @property
+    def vol_position(self) -> tuple[float]:
+        return self.center_points()
+    
+    # Alias for self.widths()
+    @property
+    def vol_width(self) -> tuple[float]:
+        return self.widths()
+    
+    # Alias for self.ranges()
+    @property
+    def vol_range(self) -> tuple[tuple[float, float]]:
+        return self.ranges()
+    
+    # Alias for self.get_parameter_names()
+    @property
+    def names(self) -> list[str]:
+        return self.get_parameter_names()
 
     # parameter name indexing
     def __getitem__(self, key) -> Parameter:
-        return self.parameter(key)
+        return self.parameter_value(key)
 
     ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
 
@@ -184,7 +233,7 @@ class Params:
         if self.__iter_idx >= len(self.__parameters):
             raise StopIteration
         
-        return self.__parameters.values()[self.__iter_idx]
+        return list(self.__parameters.values())[self.__iter_idx]
     
     # length of params
     def __len__(self):

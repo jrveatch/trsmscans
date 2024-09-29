@@ -17,3 +17,21 @@ zoom:
   density_growth_rate: 0.2
   zoom_percentile: 95
   min_points_per_iteration: 100
+
+meanshift:
+  # Proportion of total volume to use for scan volume
+  scan_perc: 0.1
+  # Mode to use for stop condidition, 0 = test point, 1 = prev point
+  stop_mode: 1
+  # Scan sensitivity for stopping conditions, values should be between 0 exclusive and 1 exclusive, higher = greater sensitivity
+  stop_sensitivity: 0.8
+  # Scan epochs used for stopping conditions
+  stop_epochs: 3
+  # Number of points to generate and shift on, represents separate meanshift instances, initialization strategy based on pionts_gen
+  points_num: 3
+  # Method of generating starting points, try "random" or "pair"
+  points_gen: 'pair'
+  # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
+  pair_points_coeff: 0.005
+  # Debug mode
+  debug: False

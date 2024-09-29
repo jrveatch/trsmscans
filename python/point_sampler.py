@@ -51,7 +51,7 @@ class PointSampler:
         params.write_ini(self.ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.masses(), self.model_name)
+        self.parser = Parse(params.get_masses(), self.model_name)
 
         # Initialize global variables given by filters
         self.nwidth = 0
@@ -82,7 +82,7 @@ class PointSampler:
 
             # Apply width and bounds filters
             nwidth, nbounds, nsignals, npass = filters.filter.apply_filters(file_name=temp_tsv,
-                                                                            masses=params.masses(),
+                                                                            masses=params.get_masses(),
                                                                             config_loader=self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
@@ -98,6 +98,9 @@ class PointSampler:
             if not good_points_only:
                 break
 
+            if self.curr_points_run == 0:
+                raise ValueError("Current points run = 0, would result in divide by 0")
+
             # Calculate the efficiency of the points passed based on points run
             efficiency = self.npass/self.curr_points_run
 
@@ -106,6 +109,11 @@ class PointSampler:
 
             # Add cushion to the efficiency
             efficiency *= 1.05
+
+            if self.npoints == float('inf'):
+                raise ValueError("npoints was inf, cannot multiply inf")
+            if self.npass == float('inf'):
+                raise ValueError("npass was inf, cannot multiply inf")
 
             # Calculate number of points needed for next iteration -- round to nearest whole number
             npoints = round((self.npoints-self.npass)/efficiency)

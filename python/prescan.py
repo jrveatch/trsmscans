@@ -16,7 +16,7 @@ from parse import Parse
 from utils.config_loader import ConfigLoader
 from point_sampler import PointSampler
 
-def run_prescan(masses: 'Masses',
+def prescan(masses: 'Masses',
                 model_name: str,
                 num_points: int,
                 config_loader: ConfigLoader | None = None,
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
 
-    run_prescan(masses = masses,
+    prescan(masses = masses,
                 model_name = args.model,
                 num_points = args.npoints,
                 overwrite = args.overwrite,
