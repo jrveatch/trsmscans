@@ -27,13 +27,13 @@ comm -13 "$installed_packages_temp" "python/requirements.txt" > "$requirements_t
 
 # check if there are any differences between installed packages and requirements
 if [ -s "$requirements_temp" ]; then
-    printf "Requirements file has changed"
+    printf "Requirements file has changed\n"
     cat "$requirements_temp"
-    printf "Updating packages..."
+    printf "Updating packages...\n"
     pip install -r "$requirements_temp"
-    printf "Packages updated"
+    printf "Packages updated\n"
 else
-    printf "Python packages are all up-to-date"
+    printf "Python packages are all up-to-date\n"
 fi
 
 # clean up temporary files
