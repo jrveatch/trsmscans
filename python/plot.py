@@ -102,7 +102,7 @@ class Plot:
             for name, par in allParams.items():
             # Ensure the variable list exists for the parameter name
 
-                #Check the parameter name
+                # If parameter name doesn't exist in dict, add it
                 if name not in self.var_lists:
                     self.var_lists[name] = []
 
