@@ -64,7 +64,7 @@ class Plot:
             self.all_files.insert(0, prescan)
 
         # Store number of files for easy access
-        self.nfiles = len(self.all_files)
+        self.num_files = len(self.all_files)
 
     # Function to load data from files
     def load_data(self) -> None:
@@ -77,7 +77,7 @@ class Plot:
             self.var_names.append('xb')
 
         # Get number of variables for easy access
-        self.nvars = len(self.var_names)
+        self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: list[Point] = []
@@ -145,18 +145,18 @@ class Plot:
         start_rgb, end_rgb = self.select_colors()
 
         # Iterate through the list of all variables to plot each variable combination from each file
-        for v in range(self.nvars-1):
+        for v in range(self.num_vars-1):
 
             # Get the first variable 2D-list from the all variable list
             var1 = self.var_lists[self.var_names[v]]
             
-            for j in range(v+1, self.nvars):
+            for j in range(v+1, self.num_vars):
 
                 # Get the second variable 2D-List from the all variable list
                 var2 = self.var_lists[self.var_names[j]]
 
                 # Set the opacity to be between values 0.19 and 1 depending on the number of files
-                op = (0.8 / self.nfiles)
+                op = (0.8 / self.num_files)
                 opacity = op + 0.19
 
                 # Create a new scatter figure
@@ -166,7 +166,7 @@ class Plot:
                 for i in range(len(self.var_lists['xb'])):
 
                     # Decipher the color used for the scatter plot
-                    t = i / self.nfiles
+                    t = i / self.num_files
                     color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
                     # Plot the variables by file
@@ -189,7 +189,7 @@ class Plot:
                     point1 = self.max_point_list[q].get_val(variable1)
                     point2 = self.max_point_list[q].get_val(variable2)
 
-                    # Plot the max point from the scatterplot [star]
+                    # Plot the max point from the scatter plot [star]
                     if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
                         plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
                     else: #If point is maximum point plot as a bigger star
@@ -198,7 +198,7 @@ class Plot:
                     # Adjust the opacity
                     opacity += op
 
-                # Initialize scatterplot labels
+                # Initialize scatter plot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
                 plt.xlabel(f"{self.var_names[v]}")
                 plt.ylabel(f"{self.var_names[j]}")
@@ -231,7 +231,7 @@ class Plot:
             self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = nbins, labels = False)
 
         # Loop over var names twice to get every pair
-        for v1 in range(self.nvars-1):
+        for v1 in range(self.num_vars-1):
 
             # Get the first variable name from the all variable list
             var1 = self.var_names[v1]
@@ -240,7 +240,7 @@ class Plot:
             if var1 == 'xb':
                 continue
             
-            for v2 in range(v1+1, self.nvars):
+            for v2 in range(v1+1, self.num_vars):
 
                 # Get the first variable name from the all variable list
                 var2 = self.var_names[v2]
