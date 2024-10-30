@@ -218,7 +218,7 @@ class Plot:
         print("Making max XB plots for",self.model.name(),self.decay,self.masses)
 
         # Define number of bins to use in each dimension
-        nbins = 100
+        num_bins = 100
 
         # Loop over var names and bin the corresponding columns
         for var in self.var_names:
@@ -228,7 +228,7 @@ class Plot:
                 continue
 
             # Bin column
-            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = nbins, labels = False)
+            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = num_bins, labels = False)
 
         # Loop over var names twice to get every pair
         for v1 in range(self.num_vars-1):
