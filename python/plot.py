@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 import os
 import parse
@@ -10,6 +11,7 @@ from utils import file_utils
 from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
+from collections import defaultdict
 
 # Plot class
 class Plot:
@@ -41,6 +43,14 @@ class Plot:
 
         # Empty array that will hold the files found
         self.all_files: list[str] = []
+        #self.all_files_dict: dict[str,list[str]] = {}
+        self.all_files_dict = defaultdict(list[str])
+
+        # If prescan exists, make it the first file to plot
+        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
+                                         masses=self.masses)
+        if os.path.exists(prescan):
+            self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
         directory = file_utils.scan_dir(model_name=self.model.name(),
@@ -51,7 +61,11 @@ class Plot:
         for file_name in os.listdir(directory):
 
             # Check if the file is a .tsv file, if it is, append to the list
-            if ".tsv" in file_name:
+            if file_name.endswith(".tsv"):
+                print(file_name)
+                key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
+                print(key)
+                self.all_files_dict[key].append(directory + file_name)
                 self.all_files.append(directory + file_name)
 
         # Sort the array so files are in order
@@ -65,6 +79,12 @@ class Plot:
 
         # Store number of files for easy access
         self.num_files = len(self.all_files)
+        total_count = sum(len(lst) for lst in self.all_files_dict.values())
+
+        print(self.num_files)
+        print(total_count)
+
+        #print(self.all_files_dict)
 
     # Function to load data from files
     def load_data(self) -> None:
@@ -83,35 +103,37 @@ class Plot:
         self.max_point_list: list[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists = {}
+        #self.var_lists: dict[str,list[NDArray]] = {}
+        self.var_lists = defaultdict(list[NDArray])
 
         # Iterate through each file
         for file_name in self.all_files:
+
+            #print(file_name)
 
             # Retrieve the variables from the list
             parser = parse.Parse(file_name=file_name,
                                  masses=self.masses,
                                  model_name=self.model.name())
-            allParams = parser.get_parameter_arrays()
+            all_params = parser.get_parameter_arrays()
             xb = parser.get_xb(self.decay)
 
             # Retrieve maximum point based on the file's variables
             max_point = parser.get_max_xb_point(self.decay)
 
             # Iterate through the information of each parameter
-            for name, par in allParams.items():
-            # Ensure the variable list exists for the parameter name
+            for name, par in all_params.items():
 
                 # If parameter name doesn't exist in dict, add it
-                if name not in self.var_lists:
-                    self.var_lists[name] = []
+                #if name not in self.var_lists:
+                #    self.var_lists[name] = []
 
                 # Append the variable value to the corresponding list
                 self.var_lists[name].append(par)
 
             # Check if xb exists in the variable list
-            if 'xb' not in self.var_lists:
-                self.var_lists['xb'] = []
+            #if 'xb' not in self.var_lists:
+            #    self.var_lists['xb'] = []
 
             # Append xb to the corresponding list
             self.var_lists['xb'].append(xb)
