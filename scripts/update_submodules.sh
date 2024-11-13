@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Print some information for user
-printf "Checking for submodule updates"
+printf "Checking for submodule updates\n"
 
 # Function to get the current commit hash and path of each submodule
 get_submodule_hashes() {
@@ -34,7 +34,7 @@ while IFS= read -r before; do
     if [ "$before_hash" != "$after_hash" ]; then
 
         # Print info to screen
-        printf "Updating $submodule_path"
+        printf "Updating $submodule_path\n"
 
         # Store list of updated submodules
         updated_submodules+=("$submodule_path")
@@ -71,15 +71,15 @@ done < "$before_update"
 
 # Print the results
 if [ ${#updated_submodules[@]} -eq 0 ]; then
-  printf "No submodules were updated"
+  printf "No submodules were updated\n"
 else
-  printf "The following submodules were updated:"
+  printf "The following submodules were updated:\n"
   for submodule in "${updated_submodules[@]}"; do
-    printf "- $submodule"
+    printf "- $submodule\n"
   done
 fi
 
 # Cleanup temporary files
 rm -rf "$before_update" "$after_update"
 
-printf "All submodules are updated to the latest commit"
+printf "All submodules are updated to the latest commit\n"
