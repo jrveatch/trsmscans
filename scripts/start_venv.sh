@@ -3,15 +3,17 @@
 # deactivate any previously activated virtual environment
 if [[ "$VIRTUAL_ENV" != "" ]]
 then
-    deactivate
+    printf "Deactivating previous venv\n"
+    ( deactivate )
 fi
 
 # start the python virtual environment
+printf "Activating venv\n"
 source trsm_venv/bin/activate
 
 # check whether requirements file exists
 if ! [ -f "python/requirements.txt" ]; then
-    printf "python/requirements.txt not found."
+    printf "python/requirements.txt not found\n"
     return
 fi
 

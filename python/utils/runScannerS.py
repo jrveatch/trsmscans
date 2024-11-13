@@ -208,9 +208,23 @@ def concatenate_files(directories: list[str],
                         output_file = file_name)
 
         # delete the temporary directory
-        shutil.rmtree(directory)
-        # this is a possible fix, but it is likely unstable
-        #shutil.rmtree(directory, ignore_errors=True)
+        remove_temp_dir(directory)
+
+# if rmtree fails due to non-empty directory, try a few more times
+# this seems necessary on lxplus and maybe some other systems
+def remove_temp_dir(directory, retries=5, delay=1):
+    for attempt in range(retries):
+        try:
+            shutil.rmtree(directory)
+            print(f"Successfully removed: {directory}")
+            return
+        except OSError as e:
+            if 'Directory not empty' in str(e):
+                print(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                time.sleep(delay)  # Wait before retrying
+            else:
+                raise  # Raise if it's another type of error
+    print(f"Failed to remove {directory} after {retries} retries.")
 
 if __name__ == "__main__":
 

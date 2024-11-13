@@ -41,5 +41,4 @@ fi
 
 printf "CMake version $cmake_version is installed\n" 
 
-printf "All dependencies are installed and meet the minimum version requirements.\n"
-
+printf "All dependencies are installed and meet the minimum version requirements\n"
