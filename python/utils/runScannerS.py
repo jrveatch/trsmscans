@@ -9,6 +9,10 @@ import math
 from blessings import Terminal
 from utils.tsv_utils import save_tsv_output
 import argparse
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
 
 # method to run ScannerS
 def runScannerS(ini_name: str,
@@ -216,15 +220,15 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            print(f"Successfully removed: {directory}")
+            logger.debug(f"Successfully removed: {directory}")
             return
         except OSError as e:
             if 'Directory not empty' in str(e):
-                print(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                logger.debug(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
-    print(f"Failed to remove {directory} after {retries} retries.")
+    logger.error(f"Failed to remove {directory} after {retries} retries.")
 
 if __name__ == "__main__":
 
