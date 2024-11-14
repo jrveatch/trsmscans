@@ -42,8 +42,6 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files: list[str] = []
-        #self.all_files_dict: dict[str,list[str]] = {}
         self.all_files_dict = defaultdict(list[str])
 
         # If prescan exists, make it the first file to plot
@@ -62,29 +60,11 @@ class Plot:
 
             # Check if the file is a .tsv file, if it is, append to the list
             if file_name.endswith(".tsv"):
-                print(file_name)
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
-                print(key)
                 self.all_files_dict[key].append(directory + file_name)
-                self.all_files.append(directory + file_name)
-
-        # Sort the array so files are in order
-        self.all_files.sort()
-
-        # If prescan exists, make it the first file to plot
-        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
-                                         masses=self.masses)
-        if os.path.exists(prescan):
-            self.all_files.insert(0, prescan)
 
         # Store number of files for easy access
-        self.num_files = len(self.all_files)
-        total_count = sum(len(lst) for lst in self.all_files_dict.values())
-
-        print(self.num_files)
-        print(total_count)
-
-        #print(self.all_files_dict)
+        self.num_files = sum(len(lst) for lst in self.all_files_dict.values())
 
     # Function to load data from files
     def load_data(self) -> None:
@@ -103,43 +83,48 @@ class Plot:
         self.max_point_list: list[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
-        #self.var_lists: dict[str,list[NDArray]] = {}
         self.var_lists = defaultdict(list[NDArray])
 
-        # Iterate through each file
-        for file_name in self.all_files:
+        # Loop through each iteration
+        for file_list in self.all_files_dict.values():
+            
+            first_file = True
+            for file_name in file_list:
 
-            #print(file_name)
+                # Retrieve the variables from the file
+                parser = parse.Parse(file_name=file_name,
+                                     masses=self.masses,
+                                     model_name=self.model.name())
+                all_params = parser.get_parameter_arrays()
+                xb = parser.get_xb(self.decay)
+                max_point = parser.get_max_xb_point(self.decay)
 
-            # Retrieve the variables from the list
-            parser = parse.Parse(file_name=file_name,
-                                 masses=self.masses,
-                                 model_name=self.model.name())
-            all_params = parser.get_parameter_arrays()
-            xb = parser.get_xb(self.decay)
+                if first_file:
+                    # Iterate through the information of each parameter
+                    for name, par in all_params.items():
 
-            # Retrieve maximum point based on the file's variables
-            max_point = parser.get_max_xb_point(self.decay)
+                        # Append the variable value to the corresponding list
+                        self.var_lists[name].append(par)
 
-            # Iterate through the information of each parameter
-            for name, par in all_params.items():
+                    # Append xb to the corresponding list
+                    self.var_lists['xb'].append(xb)
 
-                # If parameter name doesn't exist in dict, add it
-                #if name not in self.var_lists:
-                #    self.var_lists[name] = []
+                    # Append the maximum point to the list
+                    self.max_point_list.append(max_point)
 
-                # Append the variable value to the corresponding list
-                self.var_lists[name].append(par)
+                else:
+                    # Iterate through the information of each parameter
+                    for name, par in all_params.items():
 
-            # Check if xb exists in the variable list
-            #if 'xb' not in self.var_lists:
-            #    self.var_lists['xb'] = []
+                        # Append the variable value to the corresponding list
+                        self.var_lists[name][-1] = np.concatenate(self.var_lists[name][-1], par)
 
-            # Append xb to the corresponding list
-            self.var_lists['xb'].append(xb)
+                    # Append xb to the corresponding list
+                    self.var_lists['xb'][-1] = np.concatenate(self.var_lists['xb'][-1], xb)
 
-            # Append the maximum point to the list
-            self.max_point_list.append(max_point)
+                    # Append the maximum point to the list if it is a new max
+                    if max_point > self.max_point_list[-1]:
+                        self.max_point_list[-1] = max_point
 
         # Initialize a dictionary to hold combined arrays
         self.comb_arrays = {}
