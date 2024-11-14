@@ -2,18 +2,22 @@
 import os
 import yaml
 from typing import Any, Optional
+import logging
 
 class ConfigLoader:
 
     def __init__(self,
                  config_file_name: str,
                  config_path: str = ""):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # if not config path is given, use default path defined as environment variable
         if not config_path:
             config_path = os.environ['CONFIGDIR']
 
-        print(f"Loading configuration from {config_path + config_file_name}")
+        self.logger.debug(f"Loading configuration from {config_path + config_file_name}\n")
 
         self.config = self.load_config(config_path + config_file_name)
 
