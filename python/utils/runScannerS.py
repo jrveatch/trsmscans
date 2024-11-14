@@ -87,7 +87,7 @@ def runScannerS(ini_name: str,
         points_to_run = points_per_process * num_processes
 
         # print out some information
-        print(f"Running remaining {points_to_run} points as {num_processes} processes with {points_per_process} points each")
+        print(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
