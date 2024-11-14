@@ -99,6 +99,7 @@ class Plot:
                 xb = parser.get_xb(self.decay)
                 max_point = parser.get_max_xb_point(self.decay)
 
+                # If this is the first file for the iteration, create numpy arrays
                 if first_file:
                     # Iterate through the information of each parameter
                     for name, par in all_params.items():
@@ -112,6 +113,7 @@ class Plot:
                     # Append the maximum point to the list
                     self.max_point_list.append(max_point)
 
+                # Otherwise append to the existing numpy arrays
                 else:
                     # Iterate through the information of each parameter
                     for name, par in all_params.items():
