@@ -6,6 +6,7 @@ import shutil
 import time
 import datetime
 import argparse
+import logging
 
 # import decimal
 from decimal import Decimal
@@ -36,6 +37,9 @@ class Scan:
                  config_file_name: str = "",
                  overwrite: bool = False
                  ):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store model name
         self.model_name = model_name
@@ -154,8 +158,8 @@ class Scan:
         n_prescan = self.prescan_parser.get_num_points()
 
         # info message about prescan
-        print("\nAnalyzing prescan with", n_prescan_unfiltered, "points")
-        print(n_prescan, "points passed filters")
+        self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
+        self.logger.debug(f"{n_prescan} passed filters")
 
         # if the prescan ranges are more than 1% of the max range
         # away from the boundaries, change the boundaries to restrict
@@ -389,6 +393,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     args = arg_parser.parse_args()
+
+    # set up logging
+    logging.basicConfig(level=logging.INFO,
+                        format="%(levelname)s - %(name)s - %(message)s")
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)

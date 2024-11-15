@@ -6,6 +6,7 @@ import shutil
 import time
 import datetime
 import argparse
+import logging
 
 # import package tools
 from utils.tsv_utils import count_tsv_points
@@ -15,6 +16,9 @@ from utils.masses import Masses
 from parse import Parse
 from utils.config_loader import ConfigLoader
 from point_sampler import PointSampler
+
+# get logger
+logger = logging.getLogger(__name__)
 
 def run_prescan(masses: 'Masses',
                 model_name: str,
@@ -35,7 +39,7 @@ def run_prescan(masses: 'Masses',
     tsv_name = out_dir + model_name + "_prescan.tsv"
 
     # print starting message
-    print("\nRunning a prescan with",num_points,"points for",str(masses))
+    print("Running a prescan with",num_points,"points for",str(masses))
 
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
@@ -97,7 +101,7 @@ def run_prescan(masses: 'Masses',
     os.chdir(out_dir)
 
     # print location
-    print("Running prescan in",out_dir)
+    logger.debug("Running prescan in",out_dir)
 
     # if config loader is not provided, create one
     if not config_loader:
@@ -150,6 +154,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     args = arg_parser.parse_args()
+
+    # set up logging
+    logging.basicConfig(level=logging.INFO,
+                        format="%(levelname)s - %(name)s - %(message)s")
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)

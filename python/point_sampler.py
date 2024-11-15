@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 # import tools
 import filters.filter
 from parse import Parse
@@ -21,6 +23,9 @@ class PointSampler:
                  use_multiprocessing: bool,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # Initialize class variables
         self.out_dir = out_dir
@@ -46,7 +51,7 @@ class PointSampler:
         tsv_name = self.tsv_dir + out_name + ".tsv"
         temp_tsv = self.out_dir + self.model_name + ".tsv"
 
-        #Global variable for number of points
+        # Global variable for number of points
         self.npoints = npoints
 
         # write new .ini file from template and parameters
@@ -64,11 +69,17 @@ class PointSampler:
         # Initialize the amount of points run
         self.curr_points_run = 0
 
+        # Print total number of points requested
+        print(f"{self.npoints} points requested")
+
         # Run until points passed is >= points asked for
         while self.npass < self.npoints:
 
+            # Print number of points that pass so far
+            self.logger.debug(f"{self.npass} of {self.npoints} requested points done")
+
             # Print number of points requested
-            print(f'{npoints} points requested')
+            self.logger.debug(f'Generating {npoints} points')
 
             # Run ScannerS
             points = runScannerS(ini_name = ini_name,
@@ -79,13 +90,13 @@ class PointSampler:
             # Update the total points run
             self.curr_points_run += points
 
-            # Print
-            print("Applying filters...")
+            # Print info about applying filters
+            self.logger.debug("Applying filters...")
 
             # Apply width and bounds filters
-            nwidth, nbounds, nsignals, npass = filters.filter.apply_filters(file_name=temp_tsv,
-                                                                            masses=params.masses(),
-                                                                            config_loader=self.config_loader)
+            nwidth, nbounds, nsignals, npass = filters.filter.apply_filters(file_name = temp_tsv,
+                                                                            masses = params.masses(),
+                                                                            config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
@@ -104,7 +115,8 @@ class PointSampler:
             efficiency = self.npass/self.curr_points_run
 
             # Print points passed and efficiency
-            print(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%\n')
+            self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
+            self.logger.debug(f'A total of {self.npass} points have passed\n')
 
             # Add cushion to the efficiency
             efficiency *= 1.05
@@ -112,12 +124,15 @@ class PointSampler:
             # Calculate number of points needed for next iteration -- round to nearest whole number
             npoints = round((self.npoints-self.npass)/efficiency)
 
-        # read output tsv into parser
+        # Print final number of events that pass
+        print(f"Generated {self.npass} points that pass filters")
+
+        # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
 
         return self.parser
 
-    #Return the variables
+    # Return the variables
     def get_nwidth(self) -> int:
         return self.nwidth
 

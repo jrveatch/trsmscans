@@ -9,6 +9,10 @@ import math
 from blessings import Terminal
 from utils.tsv_utils import save_tsv_output
 import argparse
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
 
 # method to run ScannerS
 def runScannerS(ini_name: str,
@@ -31,7 +35,7 @@ def runScannerS(ini_name: str,
 
     # make sure the minimum number of points are used
     if num_points < min_points:
-        print(f"A minimum of {min_points} is required to run, adjusting...")
+        logger.debug(f"A minimum of {min_points} is required to run, adjusting...")
         num_points = min_points
 
     # use num_points unless modified for parallel processes
@@ -39,23 +43,23 @@ def runScannerS(ini_name: str,
 
     # if multiprocessing flag isn't set, run as a single process
     if not use_multiprocessing:
-        print(f"Multiprocessing set to False, running as a single process with {num_points} points.")
+        logger.warning(f"Multiprocessing set to False, running as a single process with {num_points} points.")
 
     # if there is only 1 CPU available, run as a single process
     if num_cpu == 1:
-        print(f"Only 1 CPU available, running as a single process with {num_points} points.")
+        logger.warning(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
     if num_points < 2 * min_points:
-        print(f"Only 1 process needed, running as a single process with {num_points} points.")
+        logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
     # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
 
         # print out some information
-        print(f"Running test job with {min_points} points")
+        logger.debug(f"Running a test job with {min_points} points")
 
         # define test process with 10 points
         test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
@@ -67,7 +71,7 @@ def runScannerS(ini_name: str,
             raise
 
         # print out some information
-        print("Test job was successful")
+        logger.debug("Test job was successful")
 
         # number of points left to run after test job
         points_to_run = num_points - min_points
@@ -87,7 +91,7 @@ def runScannerS(ini_name: str,
         points_to_run = points_per_process * num_processes
 
         # print out some information
-        print(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
+        logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -216,15 +220,15 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            print(f"Successfully removed: {directory}")
+            logger.debug(f"Successfully removed: {directory}")
             return
         except OSError as e:
             if 'Directory not empty' in str(e):
-                print(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                logger.debug(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
-    print(f"Failed to remove {directory} after {retries} retries.")
+    logger.error(f"Failed to remove {directory} after {retries} retries.")
 
 if __name__ == "__main__":
 
