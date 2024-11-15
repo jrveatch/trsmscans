@@ -52,7 +52,7 @@ class PointSampler:
         temp_tsv = self.out_dir + self.model_name + ".tsv"
 
         # Global variable for number of points
-        self.num_points_total = npoints
+        self.npoints = npoints
 
         # write new .ini file from template and parameters
         params.write_ini(ini_name)
@@ -70,13 +70,13 @@ class PointSampler:
         self.curr_points_run = 0
 
         # Print total number of points requested
-        print(f"{self.num_points_total} requested")
+        print(f"{self.npoints} points requested")
 
         # Run until points passed is >= points asked for
-        while self.npass < self.num_points_total:
+        while self.npass < self.npoints:
 
             # Print number of points that pass so far
-            self.logger.debug(f"{self.npass} of {self.num_points_total} requested points done")
+            self.logger.debug(f"{self.npass} of {self.npoints} requested points done")
 
             # Print number of points requested
             self.logger.debug(f'Generating {npoints} points')
@@ -122,7 +122,7 @@ class PointSampler:
             efficiency *= 1.05
 
             # Calculate number of points needed for next iteration -- round to nearest whole number
-            npoints = round((self.num_points_total-self.npass)/efficiency)
+            npoints = round((self.npoints-self.npass)/efficiency)
 
         # Print final number of events that pass
         print(f"Generated {self.npass} points that pass filters")
