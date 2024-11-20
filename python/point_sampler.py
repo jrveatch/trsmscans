@@ -72,7 +72,7 @@ class PointSampler:
         self.curr_points_run = 0
 
         # Print total number of points requested
-        print(f"{self.npoints} points requested")
+        print(f"{self.total_points_requested} points requested")
 
         # Run until points passed is >= points asked for
         while self.npass < self.total_points_requested:
@@ -81,15 +81,14 @@ class PointSampler:
             num_points_requested = math.ceil((self.total_points_requested-self.npass)/self.efficiency)
 
             # Print number of points that pass so far
-            self.logger.debug(f"{self.npass} of {self.npoints} requested points done")
+            self.logger.debug(f"{self.npass} of {self.total_points_requested} requested points done")
 
             # Print number of points requested
-
-            self.logger.debug(f'Generating {npoints} points')
+            self.logger.debug(f'Generating {num_points_requested} points')
 
             # Run ScannerS
             points = runScannerS(ini_name = ini_name,
-                                 num_points = npoints,
+                                 num_points = num_points_requested,
                                  model_name = self.model_name,
                                  use_multiprocessing = self.use_multiprocessing)
 
@@ -133,6 +132,8 @@ class PointSampler:
                 efficiency *= 0.98
 
                 self.efficiency = efficiency
+
+                self.logger.debug(f'Better efficiency of {self.efficiency} found')
 
             else:
 
