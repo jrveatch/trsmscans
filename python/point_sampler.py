@@ -123,21 +123,20 @@ class PointSampler:
             self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
             self.logger.debug(f'A total of {self.npass} points have passed\n')
 
+            # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/efficiency)-1) > 0.05:
 
                 # Print points passed and efficiency
-                print(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%\n')
+                self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%\n')
 
                 # Add cushion to the efficiency
                 efficiency *= 0.98
 
                 self.efficiency = efficiency
 
-                self.logger.debug(f'Better efficiency of {self.efficiency} found')
-
             else:
 
-                print(f'{npass} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
+                self.logger.debug(f'{npass} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
 
         # Print final number of events that pass
         print(f"Generated {self.npass} points that pass filters")
