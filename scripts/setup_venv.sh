@@ -22,7 +22,7 @@ fi
 python3_version=$($python3_exe --version 2>&1 | cut -d' ' -f2)
 
 # print info to screen
-printf "Using $python3_exe (version $python3_version)"
+printf "Using $python3_exe (version $python3_version)\n"
 
 $python3_exe -m venv trsm_venv
 source trsm_venv/bin/activate

@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 import os
 import parse
@@ -10,6 +11,7 @@ from utils import file_utils
 from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
+from collections import defaultdict
 
 # Plot class
 class Plot:
@@ -40,7 +42,13 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files: list[str] = []
+        self.all_files_dict = defaultdict(list[str])
+
+        # If prescan exists, make it the first file to plot
+        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
+                                         masses=self.masses)
+        if os.path.exists(prescan):
+            self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
         directory = file_utils.scan_dir(model_name=self.model.name(),
@@ -51,20 +59,12 @@ class Plot:
         for file_name in os.listdir(directory):
 
             # Check if the file is a .tsv file, if it is, append to the list
-            if ".tsv" in file_name:
-                self.all_files.append(directory + file_name)
-
-        # Sort the array so files are in order
-        self.all_files.sort()
-
-        # If prescan exists, make it the first file to plot
-        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
-                                         masses=self.masses)
-        if os.path.exists(prescan):
-            self.all_files.insert(0, prescan)
+            if file_name.endswith(".tsv"):
+                key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
+                self.all_files_dict[key].append(directory + file_name)
 
         # Store number of files for easy access
-        self.nfiles = len(self.all_files)
+        self.num_files = sum(len(lst) for lst in self.all_files_dict.values())
 
     # Function to load data from files
     def load_data(self) -> None:
@@ -77,47 +77,56 @@ class Plot:
             self.var_names.append('xb')
 
         # Get number of variables for easy access
-        self.nvars = len(self.var_names)
+        self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: list[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists = {}
+        self.var_lists = defaultdict(list[NDArray])
 
-        # Iterate through each file
-        for file_name in self.all_files:
+        # Loop through each iteration
+        for file_list in self.all_files_dict.values():
+            
+            first_file = True
+            for file_name in file_list:
 
-            # Retrieve the variables from the list
-            parser = parse.Parse(file_name=file_name,
-                                 masses=self.masses,
-                                 model_name=self.model.name())
-            allParams = parser.get_parameter_arrays()
-            xb = parser.get_xb(self.decay)
+                # Retrieve the variables from the file
+                parser = parse.Parse(file_name=file_name,
+                                     masses=self.masses,
+                                     model_name=self.model.name())
+                all_params = parser.get_parameter_arrays()
+                xb = parser.get_xb(self.decay)
+                max_point = parser.get_max_xb_point(self.decay)
 
-            # Retrieve maximum point based on the file's variables
-            max_point = parser.get_max_xb_point(self.decay)
+                # If this is the first file for the iteration, create numpy arrays
+                if first_file:
+                    # Iterate through the information of each parameter
+                    for name, par in all_params.items():
 
-            # Iterate through the information of each parameter
-            for name, par in allParams.items():
-            # Ensure the variable list exists for the parameter name
+                        # Append the variable value to the corresponding list
+                        self.var_lists[name].append(par)
 
-                #Check the parameter name
-                if name not in self.var_lists:
-                    self.var_lists[name] = []
+                    # Append xb to the corresponding list
+                    self.var_lists['xb'].append(xb)
 
-                # Append the variable value to the corresponding list
-                self.var_lists[name].append(par)
+                    # Append the maximum point to the list
+                    self.max_point_list.append(max_point)
 
-            # Check if xb exists in the variable list
-            if 'xb' not in self.var_lists:
-                self.var_lists['xb'] = []
+                # Otherwise append to the existing numpy arrays
+                else:
+                    # Iterate through the information of each parameter
+                    for name, par in all_params.items():
 
-            # Append xb to the corresponding list
-            self.var_lists['xb'].append(xb)
+                        # Append the variable value to the corresponding list
+                        self.var_lists[name][-1] = np.concatenate(self.var_lists[name][-1], par)
 
-            # Append the maximum point to the list
-            self.max_point_list.append(max_point)
+                    # Append xb to the corresponding list
+                    self.var_lists['xb'][-1] = np.concatenate(self.var_lists['xb'][-1], xb)
+
+                    # Append the maximum point to the list if it is a new max
+                    if max_point > self.max_point_list[-1]:
+                        self.max_point_list[-1] = max_point
 
         # Initialize a dictionary to hold combined arrays
         self.comb_arrays = {}
@@ -145,18 +154,18 @@ class Plot:
         start_rgb, end_rgb = self.select_colors()
 
         # Iterate through the list of all variables to plot each variable combination from each file
-        for v in range(self.nvars-1):
+        for v in range(self.num_vars-1):
 
             # Get the first variable 2D-list from the all variable list
             var1 = self.var_lists[self.var_names[v]]
             
-            for j in range(v+1, self.nvars):
+            for j in range(v+1, self.num_vars):
 
                 # Get the second variable 2D-List from the all variable list
                 var2 = self.var_lists[self.var_names[j]]
 
                 # Set the opacity to be between values 0.19 and 1 depending on the number of files
-                op = (0.8 / self.nfiles)
+                op = (0.8 / self.num_files)
                 opacity = op + 0.19
 
                 # Create a new scatter figure
@@ -166,7 +175,7 @@ class Plot:
                 for i in range(len(self.var_lists['xb'])):
 
                     # Decipher the color used for the scatter plot
-                    t = i / self.nfiles
+                    t = i / self.num_files
                     color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
 
                     # Plot the variables by file
@@ -189,7 +198,7 @@ class Plot:
                     point1 = self.max_point_list[q].get_val(variable1)
                     point2 = self.max_point_list[q].get_val(variable2)
 
-                    # Plot the max point from the scatterplot [star]
+                    # Plot the max point from the scatter plot [star]
                     if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
                         plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
                     else: #If point is maximum point plot as a bigger star
@@ -198,7 +207,7 @@ class Plot:
                     # Adjust the opacity
                     opacity += op
 
-                # Initialize scatterplot labels
+                # Initialize scatter plot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
                 plt.xlabel(f"{self.var_names[v]}")
                 plt.ylabel(f"{self.var_names[j]}")
@@ -218,7 +227,7 @@ class Plot:
         print("Making max XB plots for",self.model.name(),self.decay,self.masses)
 
         # Define number of bins to use in each dimension
-        nbins = 100
+        num_bins = 100
 
         # Loop over var names and bin the corresponding columns
         for var in self.var_names:
@@ -228,10 +237,10 @@ class Plot:
                 continue
 
             # Bin column
-            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = nbins, labels = False)
+            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = num_bins, labels = False)
 
         # Loop over var names twice to get every pair
-        for v1 in range(self.nvars-1):
+        for v1 in range(self.num_vars-1):
 
             # Get the first variable name from the all variable list
             var1 = self.var_names[v1]
@@ -240,7 +249,7 @@ class Plot:
             if var1 == 'xb':
                 continue
             
-            for v2 in range(v1+1, self.nvars):
+            for v2 in range(v1+1, self.num_vars):
 
                 # Get the first variable name from the all variable list
                 var2 = self.var_names[v2]
