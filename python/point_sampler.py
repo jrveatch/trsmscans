@@ -3,14 +3,15 @@
 import logging
 
 # import tools
-import filters.filter
 from parse import Parse
 from utils.params import Params
 import filters.filter
+from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
-
 from utils.tsv_utils import save_tsv_output
 from utils.config_loader import ConfigLoader
+
+import math
 
 from typing import List
 
@@ -37,12 +38,13 @@ class PointSampler:
         self.model_name = model_name
         self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
+        self.efficiency = 1.0
 
     # Method to sample a number of points
     def sample_points(self,
                       params: Params,
                       identifier: str,
-                      npoints: int,
+                      num_points_requested: int,
                       good_points_only: bool = True) -> Parse:
 
         # set names of input .ini and output .tsv files
@@ -51,8 +53,8 @@ class PointSampler:
         tsv_name = self.tsv_dir + out_name + ".tsv"
         temp_tsv = self.out_dir + self.model_name + ".tsv"
 
-        # Global variable for number of points
-        self.npoints = npoints
+        #Global variable for number of points
+        self.total_points_requested = num_points_requested
 
         # write new .ini file from template and parameters
         params.write_ini(ini_name)
@@ -73,12 +75,16 @@ class PointSampler:
         print(f"{self.npoints} points requested")
 
         # Run until points passed is >= points asked for
-        while self.npass < self.npoints:
+        while self.npass < self.total_points_requested:
+
+            # Calculate number of points needed for next iteration -- round up to nearest whole number
+            num_points_requested = math.ceil((self.total_points_requested-self.npass)/self.efficiency)
 
             # Print number of points that pass so far
             self.logger.debug(f"{self.npass} of {self.npoints} requested points done")
 
             # Print number of points requested
+
             self.logger.debug(f'Generating {npoints} points')
 
             # Run ScannerS
@@ -94,7 +100,7 @@ class PointSampler:
             self.logger.debug("Applying filters...")
 
             # Apply width and bounds filters
-            nwidth, nbounds, nsignals, npass = filters.filter.apply_filters(file_name = temp_tsv,
+            nwidth, nbounds, nsignals, npass = apply_filters(file_name = temp_tsv,
                                                                             masses = params.masses(),
                                                                             config_loader = self.config_loader)
 
@@ -118,11 +124,19 @@ class PointSampler:
             self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
             self.logger.debug(f'A total of {self.npass} points have passed\n')
 
-            # Add cushion to the efficiency
-            efficiency *= 1.05
+            if abs((self.efficiency/efficiency)-1) > 0.05:
 
-            # Calculate number of points needed for next iteration -- round to nearest whole number
-            npoints = round((self.npoints-self.npass)/efficiency)
+                # Print points passed and efficiency
+                print(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%\n')
+
+                # Add cushion to the efficiency
+                efficiency *= 0.98
+
+                self.efficiency = efficiency
+
+            else:
+
+                print(f'{npass} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
 
         # Print final number of events that pass
         print(f"Generated {self.npass} points that pass filters")
