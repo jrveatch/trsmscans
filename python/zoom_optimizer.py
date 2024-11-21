@@ -5,7 +5,7 @@ import shutil
 import time
 import datetime
 import pandas as pd
-import shutil
+import logging
 
 # import decimal
 from decimal import Decimal
@@ -28,6 +28,9 @@ class ZoomOptimizer:
                  starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # some basic scanner information
         self.params = params
@@ -50,7 +53,7 @@ class ZoomOptimizer:
             self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
-            self.min_points: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+            self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except KeyError as e:
             print(f"Error: {e}")
             raise
@@ -94,6 +97,11 @@ class ZoomOptimizer:
         if self.label:
             identifier = self.label + "-Iteration-" + iter_label
         print("\nIteration:",identifier)
+
+        # make sure num_points doesn't drop below min_points_per_iteration
+        if self.num_points < self.min_points_per_iteration:
+            self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
+            self.num_points = self.min_points_per_iteration
 
         # Create scan_parser using the point_sampler class
         self.scan_parser = self.point_sampler.sample_points(params = self.params,
