@@ -116,7 +116,7 @@ class PointSampler:
 
             # Print points passed and efficiency
             self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
-            self.logger.debug(f'A total of {self.npass} points have passed\n')
+            self.logger.debug(f'A total of {self.npass} points have passed')
 
             # Add cushion to the efficiency
             efficiency *= 1.05
