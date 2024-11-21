@@ -7,6 +7,8 @@ from utils.tsv_utils import initialize_column
 
 from utils.masses import Masses
 
+import pandas as pd
+
 # TODO: Make this work for other models
 def filter_bounds(file_name: str,
                   model_name: str,
@@ -34,6 +36,7 @@ def filter_bounds(file_name: str,
     XName = masses.XName
 
     # initialize columns in case they don't exist
+    # TODO: Is this still needed?
     initialize_column(file_name=file_name,
                       column_header="filt_bounds",
                       value=1)
@@ -45,12 +48,12 @@ def filter_bounds(file_name: str,
     arrs = Arrays(file_name)
 
     # get filter arrays
-    filt_bounds = arrs.data('filt_bounds')
-    filt_signals = arrs.data('filt_signals')
+    filt_bounds = []
+    filt_signals = []
 
-    for i in range(arrs.data('idx').size):
+    for i in range(len(arrs.data().index)):
 
-        idx = int(arrs.data('idx')[i])
+        idx = i
 
         # masses
         mH = float(arrs.data('m'+HName)[i])
@@ -308,17 +311,17 @@ def filter_bounds(file_name: str,
             print(HS_allowed)
 
         # save whether requirements are passed
-        filt_bounds[i] = int(bounds_result.allowed)
-        filt_signals[i] = int(HS_allowed)
+        filt_bounds.append(int(bounds_result.allowed))
+        filt_signals.append(int(HS_allowed))
 
     # save arrays of results and write to output file
-    arrs.set_array('filt_bounds',filt_bounds)
-    arrs.set_array('filt_signals',filt_signals)
+    arrs.set_array('filt_bounds',pd.Series(filt_bounds, index=arrs.data().index))
+    arrs.set_array('filt_signals',pd.Series(filt_signals, index=arrs.data().index))
     arrs.write_file(file_name)
 
     # number of entries that pass
-    nbounds = filt_bounds.sum()
-    nsignals = filt_signals.sum()
+    nbounds = sum(filt_bounds)
+    nsignals = sum(filt_signals)
     return nbounds, nsignals
 
 def print_bounds_result(bounds_result,

@@ -4,8 +4,7 @@
 import shutil
 import time
 import datetime
-import numpy as np
-import math
+import pandas as pd
 import shutil
 
 # import decimal
@@ -264,18 +263,18 @@ class ZoomOptimizer:
 
         # if top_percentile_xb has already been filled, add it to current xb_array
         if self.top_percentile_xb is not None:
-            xb_array = np.append(xb_array, self.top_percentile_xb)
+            xb_array = pd.concat([xb_array, self.top_percentile_xb])
 
         # ensure min_points are looked
-        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
-            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+        if len(xb_array) * (1.0 - percentile_threshold) < min_points:
+            percentile_threshold = 1.0 - min_points / xb_array.size
 
         # make sure percentile threshold is >= 0
         if percentile_threshold < 0:
             percentile_threshold = 0
 
         # create a threshold to look at the top percentile of xb points
-        xb_threshold = np.percentile(xb_array, percentile_threshold)
+        xb_threshold = xb_array.quantile(percentile_threshold)
 
         # get top percentile of xb
         self.top_percentile_xb = xb_array[xb_array > xb_threshold]
@@ -288,7 +287,7 @@ class ZoomOptimizer:
         for param, values in self.scan_parser.get_parameter_arrays().items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
-                values = np.append(values, self.top_percentile[param])
+                values = pd.concat([values, self.top_percentile[param]])
             # update top_percentile accounting for new values
             self.top_percentile[param] = values[xb_array > xb_threshold]
             # set lows and highs of each parameter

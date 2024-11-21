@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import numpy as np
 
 from filters import width
 from filters import bounds
@@ -48,7 +47,7 @@ def apply_filters(file_name: str,
     filt_width = arrays.data(header_width)
     filt_bounds = arrays.data(header_bounds)
     filt_signals = arrays.data(header_signals)
-    filt_total = np.multiply(filt_width,filt_bounds,filt_signals)
+    filt_total = filt_width * filt_bounds * filt_signals
     npass: int = filt_total.sum()
 
     # return numbers of events passing each filter

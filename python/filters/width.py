@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
 from utils.arrays import Arrays
 from utils.tsv_utils import initialize_column
 
@@ -27,9 +25,9 @@ def filter_widths(file_name: str,
     XName = masses.XName
 
     # get arrays of widths
-    width_H = np.divide(arrs.get_array('w_'+HName),arrs.get_array('m'+HName))
-    width_S = np.divide(arrs.get_array('w_'+SName),arrs.get_array('m'+SName))
-    width_X = np.divide(arrs.get_array('w_'+XName),arrs.get_array('m'+XName))
+    width_H = arrs.data('w_'+HName) / arrs.data('m'+HName)
+    width_S = arrs.data('w_'+SName) / arrs.data('m'+SName)
+    width_X = arrs.data('w_'+XName) / arrs.data('m'+XName)
 
     # get max_width from config file
     try:
