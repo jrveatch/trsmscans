@@ -9,6 +9,11 @@ from utils.masses import Masses
 
 from utils.config_loader import ConfigLoader
 
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
 def filter_widths(file_name: str,
                   masses: Masses,
                   config_loader: 'ConfigLoader') -> int:
@@ -37,10 +42,10 @@ def filter_widths(file_name: str,
         max_width_S: float = config_loader.get('width', 'max_width_S')
         max_width_X: float = config_loader.get('width', 'max_width_X')
     except KeyError as e:
-        print(f"Error: {e}")
+        logger.error(e)
         raise
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
         raise
 
     # check whether each width is below the max width
