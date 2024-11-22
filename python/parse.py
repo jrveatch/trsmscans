@@ -311,7 +311,7 @@ class Parse:
 
             # all other cases
             case _:
-                self.logger.error("Unrecognized decay",decay)
+                self.logger.error(f"Unrecognized decay {decay}")
                 self.logger.error("This should not have happened")
                 quit()
 

@@ -58,7 +58,7 @@ class ConfigLoader:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
             return value
         except KeyError as e:
-            self.logger.error(f"Error: {e}")
+            self.logger.error(e)
             raise  # Depending on your needs, you can choose to raise or handle differently
         except Exception as e:
             self.logger.error(f"Unexpected error accessing config key '{section}.{key}': {e}")

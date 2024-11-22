@@ -55,7 +55,7 @@ class Scan:
         # check whether decay is valid
         supported = is_valid_decay(self.decay)
         if not supported:
-            self.logger.error("Unrecognized decay", self.decay)
+            self.logger.error(f"Unrecognized decay {self.decay}")
             self.logger.error("Quitting...")
             quit()
 
@@ -71,7 +71,7 @@ class Scan:
             self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
             self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
         except KeyError as e:
-            self.logger.error(f"Error: {e}")
+            self.logger.error(e)
             raise
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
