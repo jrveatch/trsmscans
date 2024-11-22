@@ -16,6 +16,7 @@ from utils.masses import Masses
 from parse import Parse
 from utils.config_loader import ConfigLoader
 from point_sampler import PointSampler
+from utils.logging_utils import setup_logging
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -39,30 +40,30 @@ def run_prescan(masses: 'Masses',
     tsv_name = out_dir + model_name + "_prescan.tsv"
 
     # print starting message
-    print("Running a prescan with",num_points,"points for",str(masses))
+    logger.info(f"Running a prescan with {num_points} points for {str(masses)}")
 
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
 
     # if requested points are < 20% of existing points, request confirmation to overwrite
     if overwrite and num_points < num_existing * 0.2:
-        print("You are requesting",num_points,"points but there are already",num_existing,"points")
+        logger.info(f"You are requesting {num_points} points but there are already {num_existing} points")
         while True:
             # get user response
             response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
             # if yes, print message and break out of while loop
             if response in ["yes", "y"]:
-                print("Overwriting existing prescan")
+                logger.info("Overwriting existing prescan")
                 break
             # if no, print message and return
             elif response in ["no", "n"]:
-                print("Exiting prescan")
+                logger.info("Exiting prescan")
                 return Parse(masses = masses,
                              model_name = model_name,
                              file_name = tsv_name)
             # complain if response is neither yes nor no
             else:
-                print("Please enter 'yes' or 'no'.")
+                logger.warning("Please enter 'yes' or 'no'.")
 
     # remove previous directory if set to overwrite
     if os.path.exists(out_dir) and overwrite:
@@ -76,9 +77,9 @@ def run_prescan(masses: 'Masses',
 
         # if enough points already exist, parse and return
         if num_existing >= num_points:
-            print("Found a prescan that already has",num_existing,"points.")
-            print(num_points,"points request, skipping since no more are needed.")
-            print("If you want to overwrite the existing prescan, run with the -o option.")
+            logger.info(f"Found a prescan that already has {num_existing} points")
+            logger.info(f"{num_points} points requested, skipping since no more are needed")
+            logger.info("If you want to overwrite the existing prescan, run with the -o option")
             return Parse(masses = masses,
                          model_name = model_name,
                          file_name = tsv_name)
@@ -86,9 +87,9 @@ def run_prescan(masses: 'Masses',
         # otherwise reduce the number of points to run with
         num_points_old = num_points
         num_points -= num_existing
-        print(num_points_old,"prescan points requested and found existing prescan with",num_existing,"points.")
-        print("Running with the additional",num_points,"points.")
-        print("If you want to overwrite the existing prescan, run with the -o option.")
+        logger.info(f"{num_points_old} prescan points requested and found existing prescan with {num_existing} points")
+        logger.info(f"Running with the additional {num_points} points")
+        logger.info("If you want to overwrite the existing prescan, run with the -o option")
 
     # check if directory exists, if not make it
     if not os.path.exists(out_dir):
@@ -101,7 +102,7 @@ def run_prescan(masses: 'Masses',
     os.chdir(out_dir)
 
     # print location
-    logger.debug("Running prescan in",out_dir)
+    logger.debug(f"Running prescan in {out_dir}")
 
     # if config loader is not provided, create one
     if not config_loader:
@@ -137,7 +138,7 @@ def run_prescan(masses: 'Masses',
     os.chdir(startDir)
 
     # print total time to the screen
-    print("Prescan took",str(datetime.timedelta(seconds=int(scan_time))),"(hh:mm:ss)")
+    logger.info(f"Prescan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)")
 
     # return parser after a successful run
     return parser
@@ -156,8 +157,7 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # set up logging
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)s - %(name)s - %(message)s")
+    setup_logging(level=logging.INFO)
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)

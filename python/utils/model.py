@@ -1,12 +1,16 @@
 
 import os
 import yaml
+import logging
 
 # class that holds information about the model being used
 class Model:
 
     def __init__(self,
                  name: str):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
         self.__name = name
@@ -47,7 +51,7 @@ class Model:
         
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
-            print('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
             return
         
         # store SM-like Higgs
