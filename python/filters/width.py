@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 
-from utils.arrays import Arrays
-from utils.tsv_utils import initialize_column
-
 from utils.masses import Masses
 
 from utils.config_loader import ConfigLoader
 
-def filter_widths(file_name: str,
+import pandas as pd
+
+def filter_widths(dataframe: pd.DataFrame,
                   masses: Masses,
-                  config_loader: 'ConfigLoader') -> int:
-
-    # initialize column in case it doesn't exist
-    initialize_column(file_name=file_name,
-                      column_header="filt_width",
-                      value=1)
-
-    # load in arrays from .tsv file
-    arrs = Arrays(file_name)
+                  config_loader: 'ConfigLoader'
+                 ) -> pd.Series:
 
     # get strings for 3 bosons
     HName = masses.HName
@@ -25,9 +17,9 @@ def filter_widths(file_name: str,
     XName = masses.XName
 
     # get arrays of widths
-    width_H = arrs.data('w_'+HName) / arrs.data('m'+HName)
-    width_S = arrs.data('w_'+SName) / arrs.data('m'+SName)
-    width_X = arrs.data('w_'+XName) / arrs.data('m'+XName)
+    width_H = dataframe['w_'+HName] / dataframe['m'+HName]
+    width_S = dataframe['w_'+SName] / dataframe['m'+SName]
+    width_X = dataframe['w_'+XName] / dataframe['m'+XName]
 
     # get max_width from config file
     try:
@@ -52,12 +44,4 @@ def filter_widths(file_name: str,
     # create array of 0 and 1 based on mask
     filt_width = mask.astype(int)
 
-    # overwrite filt_width array with new array
-    arrs.set_array('filt_width',filt_width)
-
-    # write new data to file
-    arrs.write_file(file_name)
-
-    # number of entries that pass
-    npass = filt_width.sum()
-    return npass
+    return filt_width

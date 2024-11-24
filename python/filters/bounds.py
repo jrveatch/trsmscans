@@ -2,18 +2,16 @@
 
 from filters.setup_higgs_tools import *
 
-from utils.arrays import Arrays
-from utils.tsv_utils import initialize_column
-
 from utils.masses import Masses
 
 import pandas as pd
 
 # TODO: Make this work for other models
-def filter_bounds(file_name: str,
+def filter_bounds(dataframe: pd.DataFrame,
                   model_name: str,
                   masses: Masses,
-                  debug = False) -> int:
+                  debug = False
+                 ) -> tuple[pd.Series,pd.Series]:
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -35,97 +33,85 @@ def filter_bounds(file_name: str,
     SName = masses.SName
     XName = masses.XName
 
-    # initialize columns in case they don't exist
-    # TODO: Is this still needed?
-    initialize_column(file_name=file_name,
-                      column_header="filt_bounds",
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header="filt_signals",
-                      value=1)
+    # get filter lists
+    list_bounds = []
+    list_signals = []
 
-    # load in arrays from .tsv file
-    arrs = Arrays(file_name)
-
-    # get filter arrays
-    filt_bounds = []
-    filt_signals = []
-
-    for i in range(len(arrs.data().index)):
+    for i in range(len(dataframe.index)):
 
         idx = i
 
         # masses
-        mH = float(arrs.data('m'+HName)[i])
-        mS = float(arrs.data('m'+SName)[i])
-        mX = float(arrs.data('m'+XName)[i])
+        mH = float(dataframe['m'+HName][i])
+        mS = float(dataframe['m'+SName][i])
+        mX = float(dataframe['m'+XName][i])
 
         # rescalings
         if HName == "H2":
-            RS = float(arrs.data('R11')[i])
-            RH = float(arrs.data('R21')[i])
+            RS = float(dataframe['R11'][i])
+            RH = float(dataframe['R21'][i])
         else:
-            RH = float(arrs.data('R11')[i])
-            RS = float(arrs.data('R21')[i])
-        RX = float(arrs.data('R31')[i])
+            RH = float(dataframe['R11'][i])
+            RS = float(dataframe['R21'][i])
+        RX = float(dataframe['R31'][i])
 
         if debug is True:
             print('rescalings are ', RH,RS,RX)
 
         # H BRs
-        b_H_WW = float(arrs.data('b_'+HName+'_WW')[i])
-        b_H_ZZ = float(arrs.data('b_'+HName+'_ZZ')[i])
-        b_H_Zgam = float(arrs.data('b_'+HName+'_Zgam')[i])
-        b_H_bb = float(arrs.data('b_'+HName+'_bb')[i])
-        b_H_cc = float(arrs.data('b_'+HName+'_cc')[i])
-        b_H_gamgam = float(arrs.data('b_'+HName+'_gamgam')[i])
-        b_H_gg = float(arrs.data('b_'+HName+'_gg')[i])
-        b_H_mumu = float(arrs.data('b_'+HName+'_mumu')[i])
-        b_H_ss = float(arrs.data('b_'+HName+'_ss')[i])
-        b_H_tautau = float(arrs.data('b_'+HName+'_tautau')[i])
-        b_H_tt = float(arrs.data('b_'+HName+'_tt')[i])
+        b_H_WW = float(dataframe['b_'+HName+'_WW'][i])
+        b_H_ZZ = float(dataframe['b_'+HName+'_ZZ'][i])
+        b_H_Zgam = float(dataframe['b_'+HName+'_Zgam'][i])
+        b_H_bb = float(dataframe['b_'+HName+'_bb'][i])
+        b_H_cc = float(dataframe['b_'+HName+'_cc'][i])
+        b_H_gamgam = float(dataframe['b_'+HName+'_gamgam'][i])
+        b_H_gg = float(dataframe['b_'+HName+'_gg'][i])
+        b_H_mumu = float(dataframe['b_'+HName+'_mumu'][i])
+        b_H_ss = float(dataframe['b_'+HName+'_ss'][i])
+        b_H_tautau = float(dataframe['b_'+HName+'_tautau'][i])
+        b_H_tt = float(dataframe['b_'+HName+'_tt'][i])
         # H->SS BR is 0 for mS > mH, otherwise get its value
         b_H_SS = 0
         if HName == "H2": # mH > mS
-            b_H_SS = float(arrs.data('b_H2_H1H1')[i])
+            b_H_SS = float(dataframe['b_H2_H1H1'][i])
 
         # H2 BRs
-        b_S_WW = float(arrs.data('b_'+SName+'_WW')[i])
-        b_S_ZZ = float(arrs.data('b_'+SName+'_ZZ')[i])
-        b_S_Zgam = float(arrs.data('b_'+SName+'_Zgam')[i])
-        b_S_bb = float(arrs.data('b_'+SName+'_bb')[i])
-        b_S_cc = float(arrs.data('b_'+SName+'_cc')[i])
-        b_S_gamgam = float(arrs.data('b_'+SName+'_gamgam')[i])
-        b_S_gg = float(arrs.data('b_'+SName+'_gg')[i])
-        b_S_mumu = float(arrs.data('b_'+SName+'_mumu')[i])
-        b_S_ss = float(arrs.data('b_'+SName+'_ss')[i])
-        b_S_tautau = float(arrs.data('b_'+SName+'_tautau')[i])
-        b_S_tt = float(arrs.data('b_'+SName+'_tt')[i])
+        b_S_WW = float(dataframe['b_'+SName+'_WW'][i])
+        b_S_ZZ = float(dataframe['b_'+SName+'_ZZ'][i])
+        b_S_Zgam = float(dataframe['b_'+SName+'_Zgam'][i])
+        b_S_bb = float(dataframe['b_'+SName+'_bb'][i])
+        b_S_cc = float(dataframe['b_'+SName+'_cc'][i])
+        b_S_gamgam = float(dataframe['b_'+SName+'_gamgam'][i])
+        b_S_gg = float(dataframe['b_'+SName+'_gg'][i])
+        b_S_mumu = float(dataframe['b_'+SName+'_mumu'][i])
+        b_S_ss = float(dataframe['b_'+SName+'_ss'][i])
+        b_S_tautau = float(dataframe['b_'+SName+'_tautau'][i])
+        b_S_tt = float(dataframe['b_'+SName+'_tt'][i])
         # S->HH BR is 0 for mH > mS, otherwise get its value
         b_S_HH = 0
         if SName == "H2": # mH < mS
-            b_S_HH = float(arrs.data('b_H2_H1H1')[i])
+            b_S_HH = float(dataframe['b_H2_H1H1'][i])
 
         # X BRs
-        b_X_WW = float(arrs.data('b_'+XName+'_WW')[i])
-        b_X_ZZ = float(arrs.data('b_'+XName+'_ZZ')[i])
-        b_X_Zgam = float(arrs.data('b_'+XName+'_Zgam')[i])
-        b_X_bb = float(arrs.data('b_'+XName+'_bb')[i])
-        b_X_cc = float(arrs.data('b_'+XName+'_cc')[i])
-        b_X_gamgam = float(arrs.data('b_'+XName+'_gamgam')[i])
-        b_X_gg = float(arrs.data('b_'+XName+'_gg')[i])
-        b_X_mumu = float(arrs.data('b_'+XName+'_mumu')[i])
-        b_X_ss = float(arrs.data('b_'+XName+'_ss')[i])
-        b_X_tautau = float(arrs.data('b_'+XName+'_tautau')[i])
-        b_X_tt = float(arrs.data('b_'+XName+'_tt')[i])
-        b_X_HH = float(arrs.data('b_H3_'+HName+HName)[i])
-        b_X_SS = float(arrs.data('b_H3_'+SName+SName)[i])
-        b_X_SH = float(arrs.data('b_H3_H1H2')[i])
+        b_X_WW = float(dataframe['b_'+XName+'_WW'][i])
+        b_X_ZZ = float(dataframe['b_'+XName+'_ZZ'][i])
+        b_X_Zgam = float(dataframe['b_'+XName+'_Zgam'][i])
+        b_X_bb = float(dataframe['b_'+XName+'_bb'][i])
+        b_X_cc = float(dataframe['b_'+XName+'_cc'][i])
+        b_X_gamgam = float(dataframe['b_'+XName+'_gamgam'][i])
+        b_X_gg = float(dataframe['b_'+XName+'_gg'][i])
+        b_X_mumu = float(dataframe['b_'+XName+'_mumu'][i])
+        b_X_ss = float(dataframe['b_'+XName+'_ss'][i])
+        b_X_tautau = float(dataframe['b_'+XName+'_tautau'][i])
+        b_X_tt = float(dataframe['b_'+XName+'_tt'][i])
+        b_X_HH = float(dataframe['b_H3_'+HName+HName][i])
+        b_X_SS = float(dataframe['b_H3_'+SName+SName][i])
+        b_X_SH = float(dataframe['b_H3_H1H2'][i])
 
         # Widths
-        w_H = float(arrs.data('w_'+HName)[i])
-        w_S = float(arrs.data('w_'+SName)[i])
-        w_X = float(arrs.data('w_'+XName)[i])
+        w_H = float(dataframe['w_'+HName][i])
+        w_S = float(dataframe['w_'+SName][i])
+        w_X = float(dataframe['w_'+XName][i])
         
         # i do everything at once here
         H.setMass(mH)
@@ -151,12 +137,6 @@ def filter_bounds(file_name: str,
             HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(RX),reference="SMHiggsEW")
         else:
             HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(RX))
-
-        # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
-        # then set the BRs according to the calculation
-        # H.setMass(mH)
-        # S.setMass(mS)
-        # X.setMass(mX)
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
@@ -311,18 +291,14 @@ def filter_bounds(file_name: str,
             print(HS_allowed)
 
         # save whether requirements are passed
-        filt_bounds.append(int(bounds_result.allowed))
-        filt_signals.append(int(HS_allowed))
+        list_bounds.append(int(bounds_result.allowed))
+        list_signals.append(int(HS_allowed))
 
-    # save arrays of results and write to output file
-    arrs.set_array('filt_bounds',pd.Series(filt_bounds, index=arrs.data().index))
-    arrs.set_array('filt_signals',pd.Series(filt_signals, index=arrs.data().index))
-    arrs.write_file(file_name)
+    # convert lists of results into pd.Series
+    filt_bounds = pd.Series(list_bounds, index=dataframe.index)
+    filt_signals = pd.Series(list_signals, index=dataframe.index)
 
-    # number of entries that pass
-    nbounds = sum(filt_bounds)
-    nsignals = sum(filt_signals)
-    return nbounds, nsignals
+    return filt_bounds, filt_signals
 
 def print_bounds_result(bounds_result,
                         idx: int,

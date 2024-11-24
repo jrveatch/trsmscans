@@ -15,10 +15,11 @@ header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
                   masses: Masses,
-                  config_loader: 'ConfigLoader') -> tuple[int,int,int]:
+                  config_loader: 'ConfigLoader'
+                 ) -> tuple[int,int,int]:
 
-    # initialize filter columns
-    initialize_filters(file_name)
+    # load in arrays from .tsv file
+    arrays = Arrays(file_name)
 
     # get model name from config file
     try:
@@ -31,23 +32,28 @@ def apply_filters(file_name: str,
         raise
 
     # apply width filter
-    nwidth = width.filter_widths(file_name=file_name,
-                                 masses=masses,
-                                 config_loader=config_loader)
+    filt_width = width.filter_widths(dataframe=arrays.data(),
+                                     masses=masses,
+                                     config_loader=config_loader)
 
-    # apply bounds filter
-    nbounds, nsignals = bounds.filter_bounds(file_name=file_name,
-                                             model_name=model_name,
-                                             masses=masses)
+    # apply bounds and signals filters
+    filt_bounds, filt_signals = bounds.filter_bounds(dataframe=arrays.data(),
+                                                     model_name=model_name,
+                                                     masses=masses)
 
-    # get arrays from output file
-    arrays = Arrays(file_name)
+    # add filter results to dataframe
+    arrays.set_array(header_width,filt_width)
+    arrays.set_array(header_bounds,filt_bounds)
+    arrays.set_array(header_signals,filt_signals)
 
-    # find how many points pass both filters
-    filt_width = arrays.data(header_width)
-    filt_bounds = arrays.data(header_bounds)
-    filt_signals = arrays.data(header_signals)
+    # write updated dataframe to .tsv
+    arrays.write_file(file_name)
+
+    # find how many points pass all filters
     filt_total = filt_width * filt_bounds * filt_signals
+    nwidth: int = filt_width.sum()
+    nbounds: int = filt_bounds.sum()
+    nsignals: int = filt_signals.sum()
     npass: int = filt_total.sum()
 
     # return numbers of events passing each filter
