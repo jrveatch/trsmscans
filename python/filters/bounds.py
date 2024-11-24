@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 # TODO: Make this work for other models
 def filter_bounds(file_name: str,
                   model_name: str,
-                  masses: Masses,
-                  debug = False) -> int:
+                  masses: Masses) -> int:
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
