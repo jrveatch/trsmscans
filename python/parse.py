@@ -353,7 +353,7 @@ class Parse:
 
     # get number of filtered events
     def get_num_points(self) -> int:
-        return next(iter(self.__par_arrays.values())).size
+        return self.__prefilter_idx.size
 
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:
