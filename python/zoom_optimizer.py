@@ -182,7 +182,6 @@ class ZoomOptimizer:
                         self.is_running = False
                         self.logger.info("Local max is increasing by less than 5%")
                         self.logger.info("Terminating zoom optimizer")
-                        self.logger.info(end_message)
                         details = open(self.details_name,"a")
                         details.write("Local max is increasing by less than 5%")
                         details.write("Terminating zoom optimizer")
