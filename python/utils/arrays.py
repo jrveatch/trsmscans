@@ -15,7 +15,8 @@ class Arrays:
 
     # get array data
     def data(self,
-             column: Union[str, None] = None) -> Union[pd.Series, pd.DataFrame]:
+             column: Union[str, None] = None
+            ) -> Union[pd.Series, pd.DataFrame]:
         if column:
             return self.dataframe[column]
         else:
