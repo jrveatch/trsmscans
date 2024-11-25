@@ -113,7 +113,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         w_S = float(dataframe['w_'+SName][i])
         w_X = float(dataframe['w_'+XName][i])
         
-        # i do everything at once here
+        # Set masses and widths
         H.setMass(mH)
         S.setMass(mS)
         X.setMass(mX)
