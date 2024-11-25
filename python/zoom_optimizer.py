@@ -56,10 +56,10 @@ class ZoomOptimizer:
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
             self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except KeyError as e:
-            print(f"Error: {e}")
+            self.logger.error(e)
             raise
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            self.logger.error(f"Unexpected error: {e}")
             raise
 
         # set output directory
@@ -97,7 +97,7 @@ class ZoomOptimizer:
         iter_label = f"{iter:04d}"
         if self.label:
             identifier = self.label + "-Iteration-" + iter_label
-        print("\nIteration:",identifier)
+        self.logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
         if self.num_points < self.min_points_per_iteration:
@@ -126,12 +126,86 @@ class ZoomOptimizer:
         if new_max > self.local_max:
             self.local_max = new_max
 
+        # if a new optimal point is found
+        if is_new_global_max:
+
+            # write max xb point summary to info file
+            self.write_summary(identifier)
+
+            # write max xb point raw .tsv line to info file
+            self.write_tsv_summary()
+
+        # check zoom strategy and call method accordingly
+        match self.strategy:
+
+            # zoom in using percentile
+            case "percentile":
+                self.percentile_zoom()
+
+            # zoom in using rate
+            case "rate":
+                self.rate_zoom()
+
+            # all other cases
+            case _:
+                self.logger.error("Unrecognized zoom strategy")
+                self.logger.error("Please use 'percentile' (default) or 'rate'")
+                # TODO: Throw an exception here
+                return
+
+        # add to a counter if new point is less than half of the global max
+        if new_max < global_max * 0.5:
+            self.global_xb_fail += 1
+        else:
+            self.global_xb_fail = 0
+        
+        # end the ZoomOptimizer if counter reaches 2
+        if self.global_xb_fail >= 2:
+            self.is_running = False
+            self.logger.info("Local max is consistently less than half of global max")
+            self.logger.info("Terminating zoom optimizer")
+            details = open(self.details_name,"a")
+            details.write("Local max is consistently less than half of global max")
+            details.write("Terminating zoom optimizer")
+            details.close()
+        
+        # get a sorted list of the history of the local max xb
+        sorted_history = sorted(self.local_history, key=lambda point: point.xb)
+
+        if len(sorted_history) >= 5:
+            # if new points are on an upward trend, run this code
+            if self.local_history[-1] >= self.local_history[-2]:
+                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
+                if new_max < sorted_history[-2] * 1.05:
+                    self.local_xb_fail += 1
+                    if self.local_xb_fail >= 2:
+                        self.is_running = False
+                        self.logger.info("Local max is increasing by less than 5%")
+                        self.logger.info("Terminating zoom optimizer")
+                        details = open(self.details_name,"a")
+                        details.write("Local max is increasing by less than 5%")
+                        details.write("Terminating zoom optimizer")
+                        details.close()
+                # reset local_xb_fail
+                else:
+                    self.local_xb_fail = 0
+            else:
+                # if point is less than 2nd highest point, end scan
+                if new_max < sorted_history[-2]:
+                    self.is_running = False
+                    self.logger.info("Local max is not increasing")
+                    self.logger.info("Terminating zoom optimizer")
+                    details = open(self.details_name,"a")
+                    details.write("Local max is not increasing")
+                    details.write("Terminating zoom optimizer")
+                    details.close()
+
+        # store history of local max of xb
+        self.local_history.append(new_max)
+
         # get iteration end time
         iter_end = time.time()
         iter_time = iter_end - iter_start
-
-        # print iteration time to screen
-        print("Iteration took",str(datetime.timedelta(seconds=int(iter_time))),"(hh:mm:ss)")
 
         # TODO: Factorize this to a function after sample_points change is merged
         # TODO: Add details about R11, R21, R31
@@ -163,82 +237,8 @@ class ZoomOptimizer:
         details.write("\n\n")
         details.close()
 
-        # if a new optimal point is found
-        if is_new_global_max:
-
-            # write max xb point summary to info file
-            self.write_summary(identifier)
-
-            # write max xb point raw .tsv line to info file
-            self.write_tsv_summary()
-
-        # check zoom strategy and call method accordingly
-        match self.strategy:
-
-            # zoom in using percentile
-            case "percentile":
-                self.percentile_zoom()
-
-            # zoom in using rate
-            case "rate":
-                self.rate_zoom()
-
-            # all other cases
-            case _:
-                print("Unrecognized zoom strategy")
-                print("Please use 'percentile' (default) or 'rate'")
-                # TODO: Throw an exception here
-                return
-
-        # add to a counter if new point is less than half of the global max
-        if new_max < global_max * 0.5:
-            self.global_xb_fail += 1
-        else:
-            self.global_xb_fail = 0
-        
-        # end the ZoomOptimizer if counter reaches 2
-        if self.global_xb_fail >= 2:
-            self.is_running = False
-            end_message = "Local max is consistently less than half of global max\n"
-            end_message += "Terminating zoom optimizer"
-            print(end_message)
-            details = open(self.details_name,"a")
-            details.write(end_message)
-            details.close()
-        
-        # get a sorted list of the history of the local max xb
-        sorted_history = sorted(self.local_history, key=lambda point: point.xb)
-
-        if len(sorted_history) >= 5:
-            # if new points are on an upward trend, run this code
-            if self.local_history[-1] >= self.local_history[-2]:
-                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
-                if new_max < sorted_history[-2] * 1.05:
-                    self.local_xb_fail += 1
-                    if self.local_xb_fail >= 2:
-                        self.is_running = False
-                        end_message = "Local max is increasing by less than 5%\n"
-                        end_message += "Terminating zoom optimizer"
-                        print(end_message)
-                        details = open(self.details_name,"a")
-                        details.write(end_message)
-                        details.close()
-                # reset local_xb_fail
-                else:
-                    self.local_xb_fail = 0
-            else:
-                # if point is less than 2nd highest point, end scan
-                if new_max < sorted_history[-2]:
-                    self.is_running = False
-                    end_message = "Local max is not increasing\n"
-                    end_message += "Terminating zoom optimizer"
-                    print(end_message)
-                    details = open(self.details_name,"a")
-                    details.write(end_message)
-                    details.close()
-
-        # store history of local max of xb
-        self.local_history.append(new_max)
+        # print iteration time to screen
+        self.logger.info(f"Iteration took {str(datetime.timedelta(seconds=int(iter_time)))} (hh:mm:ss)\n")
             
         return new_max
 

@@ -2,6 +2,10 @@
 import os
 import shutil
 import subprocess
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
 
 # function to get number of points in a file
 # returns 0 if file does not exist
@@ -34,7 +38,7 @@ def save_tsv_output(input_file: str,
     
     # check if input_file and output_file point to the same file
     if input_file==output_file:
-        print(f"Error: Input file path '{input_file}' and output file path '{output_file}' are the same.")
+        logger.warning(f"Input file path '{input_file}' and output file path '{output_file}' are the same.")
         return
 
     # get number of points already in output file

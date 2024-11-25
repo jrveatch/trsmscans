@@ -70,7 +70,7 @@ class PointSampler:
         self.curr_points_run = 0
 
         # Print total number of points requested
-        print(f"{self.npoints} points requested")
+        self.logger.info(f"{self.npoints} points requested")
 
         # Run until points passed is >= points asked for
         while self.npass < self.npoints:
@@ -125,7 +125,8 @@ class PointSampler:
             npoints = round((self.npoints-self.npass)/efficiency)
 
         # Print final number of events that pass
-        print(f"Generated {self.npass} points that pass filters")
+        self.logger.info(f"Generated {self.npass} points that pass filters")
+        self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)

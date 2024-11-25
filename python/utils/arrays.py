@@ -3,11 +3,15 @@ import numpy as np
 from numpy.typing import NDArray
 import random
 from io import StringIO
+import logging
 
 class Arrays:
 
     def __init__(self,
                  file_name: str):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store file name
         self.__file_name = file_name
@@ -59,8 +63,8 @@ class Arrays:
 
         # if headers have not be loaded, load them now
         if not self.__headers:
-            print("Headers were not loaded, loading now")
-            self.load_headers()
+            self.logger.debug("Headers were not loaded, loading now")
+            self.__load_headers()
 
         with open(self.__file_name, 'r') as f:
             _ = f.readline()
