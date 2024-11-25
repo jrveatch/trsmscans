@@ -17,6 +17,7 @@ from parse import Parse
 from utils.config_loader import ConfigLoader
 from point_sampler import PointSampler
 from utils.logging_utils import setup_logging
+from utils.logging_utils import LOG_LEVELS
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -154,10 +155,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
     args = arg_parser.parse_args()
 
     # set up logging
-    setup_logging(level=logging.INFO)
+    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)

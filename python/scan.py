@@ -19,6 +19,7 @@ from prescan import run_prescan
 from utils.file_utils import scan_dir
 from utils.decay_utils import is_valid_decay
 from utils.logging_utils import setup_logging
+from utils.logging_utils import LOG_LEVELS
 
 import copy
 import itertools
@@ -394,10 +395,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
     args = arg_parser.parse_args()
 
     # set up logging
-    setup_logging(level=logging.DEBUG)
+    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
