@@ -17,6 +17,9 @@ from utils.masses import Masses
 # import model class to initialize Point class
 from utils.model import Model
 
+# logging capability
+import logging
+
 # class to parse arrays and provide details about data
 class Parse:
 
@@ -25,6 +28,9 @@ class Parse:
                  masses: Masses,
                  model_name: str,
                  file_name: str = ""):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
         
         # initialize model name
         self.__model_name = model_name
@@ -301,8 +307,8 @@ class Parse:
 
             # all other cases
             case _:
-                print("Unrecognized decay",decay)
-                print("This should not have happened")
+                self.logger.error(f"Unrecognized decay {decay}")
+                self.logger.error("This should not have happened")
                 quit()
 
         # return the decay BR

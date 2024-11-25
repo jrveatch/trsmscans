@@ -6,6 +6,11 @@ from utils.config_loader import ConfigLoader
 
 import pandas as pd
 
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
 def filter_widths(dataframe: pd.DataFrame,
                   masses: Masses,
                   config_loader: 'ConfigLoader'
@@ -27,10 +32,10 @@ def filter_widths(dataframe: pd.DataFrame,
         max_width_S: float = config_loader.get('width', 'max_width_S')
         max_width_X: float = config_loader.get('width', 'max_width_X')
     except KeyError as e:
-        print(f"Error: {e}")
+        logger.error(e)
         raise
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
         raise
 
     # check whether each width is below the max width

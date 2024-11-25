@@ -1,11 +1,15 @@
 
 import pandas as pd
 from typing import Union
+import logging
 
 class Arrays:
 
     def __init__(self,
                  file_name: str):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store file name
         self.__file_name = file_name
