@@ -6,11 +6,15 @@ from utils.masses import Masses
 
 import pandas as pd
 
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
 # TODO: Make this work for other models
 def filter_bounds(dataframe: pd.DataFrame,
                   model_name: str,
-                  masses: Masses,
-                  debug = False
+                  masses: Masses
                  ) -> tuple[pd.Series,pd.Series]:
 
     # get bounds and signals data
@@ -55,8 +59,7 @@ def filter_bounds(dataframe: pd.DataFrame,
             RS = float(dataframe['R21'][i])
         RX = float(dataframe['R31'][i])
 
-        if debug is True:
-            print('rescalings are ', RH,RS,RX)
+        logger.verbose(f'rescalings are {RH} {RS} {RX}')
 
         # H BRs
         b_H_WW = float(dataframe['b_'+HName+'_WW'][i])
@@ -144,8 +147,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        if debug is True:
-            print ("widths are ",w_H,w_S,w_X)
+        logger.verbose(f"widths are {w_H} {w_S} {w_X}")
 
         if w_H > 1e-13 :
             H.setBr('bb', 0.)
@@ -174,20 +176,19 @@ def filter_bounds(dataframe: pd.DataFrame,
             if HName == "H2":
                 H.setBr('S', 'S', b_H_SS)
 
-            # some debug printouts to check BRs
-            if debug is True:
-                print ('brs so far ', b_H_bb, b_H_tautau, b_H_mumu, b_H_cc, b_H_ss, b_H_tt, b_H_gg, b_H_gamgam, b_H_Zgam, b_H_WW, b_H_ZZ, b_H_SS)
-                print('sum before zz', b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS)
-                print('sum after zz',b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ)
-                print('width ',w_H)
+            # some verbose printouts to check BRs
+            logger.verbose(f'brs so far: {b_H_bb} {b_H_tautau} {b_H_mumu} {b_H_cc} {b_H_ss} {b_H_tt} {b_H_gg} {b_H_gamgam} {b_H_Zgam} {b_H_WW} {b_H_ZZ} {b_H_SS}')
+            logger.verbose(f'sum before zz = {b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS}')
+            logger.verbose(f'sum after zz = {b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ}')
+            logger.verbose(f'width = {w_H}')
+
             sum_H = b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ
 
             # if BR sum is too large, adjust H->ZZ BR
-            if sum_H > 1:
-                b_H_ZZ=b_H_ZZ-sum_H+1
-                if debug is True:
-                    print ('adjusted last br by ',sum-1)
-                    print ('new zz', b_H_ZZ)
+            if sum_H > 1.0:
+                b_H_ZZ = b_H_ZZ - sum_H + 1.0
+                logger.verbose(f'adjusted last br by {sum_H - 1.0}')
+                logger.verbose(f'new zz = {b_H_ZZ}')
 
             # add H->ZZ BR
             H.setBr('ZZ',b_H_ZZ)
@@ -218,20 +219,19 @@ def filter_bounds(dataframe: pd.DataFrame,
             if SName == "H2":
                 S.setBr('H', 'H', b_S_HH)
 
-            # some debug printouts to check BRs
-            if debug is True:
-                print ('brs so far ', b_S_bb, b_S_tautau, b_S_mumu, b_S_cc, b_S_ss, b_S_tt, b_S_gg, b_S_gamgam, b_S_Zgam, b_S_WW, b_S_ZZ, b_S_HH)
-                print('sum before zz', b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH)
-                print('sum after zz',b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ)
-                print('width ',w_S)
+            # some verbose printouts to check BRs
+            logger.verbose(f'brs so far: {b_S_bb} {b_S_tautau} {b_S_mumu} {b_S_cc} {b_S_ss} {b_S_tt} {b_S_gg} {b_S_gamgam} {b_S_Zgam} {b_S_WW} {b_S_ZZ} {b_S_HH}')
+            logger.verbose(f'sum before zz = {b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH}')
+            logger.verbose(f'sum after zz = {b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ}')
+            logger.verbose(f'width = {w_S}')
+
             sum_S = b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ
 
             # if BR sum is too large, adjust S->ZZ BR
-            if sum_S > 1:
-                b_S_ZZ=b_S_ZZ-sum_S+1
-                if debug is True:
-                    print ('adjusted last br by ',sum-1)
-                    print ('new zz', b_S_ZZ)
+            if sum_S > 1.0:
+                b_S_ZZ = b_S_ZZ - sum_S + 1.0
+                logger.verbose(f'adjusted last br by {sum_H - 1.0}')
+                logger.verbose(f'new zz = {b_S_ZZ}')
 
             # add S->ZZ BR
             S.setBr('ZZ',b_S_ZZ)
@@ -281,14 +281,14 @@ def filter_bounds(dataframe: pd.DataFrame,
             HS_allowed = False
 
         # print out debug information
-        if debug is True:
+        if logger.isEnabledFor(logging.VERBOSE):
             print_bounds_result(bounds_result=bounds_result,
                                 idx=idx,
                                 mX=mX,
                                 mS=mS,
                                 mH=mH)
-            print(signals_result)
-            print(HS_allowed)
+            logger.verbose(signals_result)
+            logger.verbose(HS_allowed)
 
         # save whether requirements are passed
         list_bounds.append(int(bounds_result.allowed))
@@ -306,8 +306,8 @@ def print_bounds_result(bounds_result,
                         mS: float,
                         mH: float) -> None:
 
-    print(bounds_result)
-    print(bounds_result.allowed)
+    logger.verbose(bounds_result)
+    logger.verbose(bounds_result.allowed)
     
     if bounds_result.allowed is False:
         limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]
@@ -319,13 +319,13 @@ def print_bounds_result(bounds_result,
         # we will want to ignore 13022 at least near 125 since it excludes SM
         for lim in limits1:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                print('\t hbexcl1 ', idx,'\t 1',  mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                logger.verbose(f'\t hbexcl1 {idx} \t 1 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits2:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                print('\t hbexcl2 ', idx,'\t 2', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                logger.verbose(f'\t hbexcl2 {idx} \t 2 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits3:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                print('\t hbexcl3 ', idx,'\t 3', mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                logger.verbose(f'\t hbexcl3 {idx} \t 3 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                print('\t hbexcl ', idx, mH, mS, mX, lim.limit().id(), lim.obsRatio(), lim.expRatio())
+                logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')

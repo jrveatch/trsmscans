@@ -9,6 +9,11 @@ from utils.arrays import Arrays
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
 
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 header_signals = "filt_signals"
@@ -25,10 +30,10 @@ def apply_filters(file_name: str,
     try:
         model_name: float = config_loader.get('model', 'model_name')
     except KeyError as e:
-        print(f"Error: {e}")
+        logger.error(e)
         raise
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
         raise
 
     # apply width filter

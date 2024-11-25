@@ -5,13 +5,18 @@ from collections import OrderedDict
 from scipy.interpolate import interp1d
 import os
 
+import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
 # round to sig significant figures
 def round_sig(x: float,
               sig: int = 2) -> float:
     if x == 0.:
         return 0.
     if math.isnan(x) is True:
-        print('Warning, NaN!')
+        logger.warning('NaN!')
         return 0.
     return round(x, sig-int(math.floor(math.log10(abs(x))))-1)
 
@@ -103,7 +108,7 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
     heavyBRs_fixed: list[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
-    #print('sumBRs=',sumBRs)
+    logger.verbose('sumBRs = {sumBRs}')
     for j in range(len(heavyBRs)-1):
         heavyBRs_fixed.append(heavyBRs[j]/sumBRs)
     heavyBRs_fixed.append(heavyBRs[-1])
@@ -121,7 +126,7 @@ def calculate_heavy_BRs_only(interpolators_SM: list[interp1d],
         Gamma_SM = interpolators_SM[-1](mh2)
     else:
         Gamma_SM = interpolators_SM[-1](1000.)
-        print("WARNING: mh2 > 1000.! (tree level)")
+        logger.warning("mh2 > 1000.! (tree level)")
     # get the rescaling factor of the SM BRs:
     rescale_fac = RES_BR_h2_to_xx(sin_theta, Gamma_SM, mh1, mh2, l112)
     # loop over the SM BRs and rescale with the factor:
