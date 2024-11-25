@@ -340,13 +340,13 @@ def print_bounds_result(bounds_result,
         # we will want to ignore 13022 at least near 125 since it excludes SM
         for lim in limits1:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose('\t hbexcl1 {idx} \t 1 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl1 {idx} \t 1 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits2:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose('\t hbexcl2 {idx} \t 2 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl2 {idx} \t 2 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits3:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose('\t hbexcl3 {idx} \t 3 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl3 {idx} \t 3 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose('\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
