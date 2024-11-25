@@ -104,7 +104,7 @@ def runScannerS(ini_name: str,
     counter = manager.Value("i",0)
 
     # print empty job completion counter
-    logger.info(f"{counter.value}/{num_processes} processes finished")
+    print(f"{counter.value}/{num_processes} processes finished")
 
     # create a pool of processes
     with mp.Pool(processes=num_processes) as pool:
@@ -149,7 +149,7 @@ def run_process(process_args: list[str],
 
     # increment the counter and print out how many processes are finished
     counter.value += 1
-    logger.info(term.move_up() + f"{counter.value}/{num_processes} processes finished")
+    print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
 def run_test_process(process_args: list[str],
