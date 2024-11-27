@@ -13,9 +13,11 @@ logger = logging.getLogger(__name__)
 
 # TODO: Make this work for other models
 def filter_bounds(dataframe: pd.DataFrame,
+                  header_bounds: str,
+                  header_signals: str,
                   model_name: str,
                   masses: Masses
-                 ) -> tuple[pd.Series,pd.Series]:
+                 ) -> None:
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -38,8 +40,8 @@ def filter_bounds(dataframe: pd.DataFrame,
     XName = masses.XName
 
     # get filter lists
-    list_bounds = []
-    list_signals = []
+    filt_bounds = []
+    filt_signals = []
 
     for i in range(len(dataframe.index)):
 
@@ -291,14 +293,14 @@ def filter_bounds(dataframe: pd.DataFrame,
             logger.verbose(HS_allowed)
 
         # save whether requirements are passed
-        list_bounds.append(int(bounds_result.allowed))
-        list_signals.append(int(HS_allowed))
+        filt_bounds.append(int(bounds_result.allowed))
+        filt_signals.append(int(HS_allowed))
 
-    # convert lists of results into pd.Series
-    filt_bounds = pd.Series(list_bounds, index=dataframe.index)
-    filt_signals = pd.Series(list_signals, index=dataframe.index)
+    # add filters to dataframe
+    dataframe[header_bounds] = filt_bounds
+    dataframe[header_signals] = filt_signals
 
-    return filt_bounds, filt_signals
+    return
 
 def print_bounds_result(bounds_result,
                         idx: int,

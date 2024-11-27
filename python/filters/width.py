@@ -12,9 +12,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 def filter_widths(dataframe: pd.DataFrame,
+                  header_width: str,
                   masses: Masses,
                   config_loader: 'ConfigLoader'
-                 ) -> pd.Series:
+                 ) -> None:
 
     # get strings for 3 bosons
     HName = masses.HName
@@ -46,7 +47,10 @@ def filter_widths(dataframe: pd.DataFrame,
     # create the product of the 3 masks
     mask = maskH & maskS & maskX
 
-    # create array of 0 and 1 based on mask
+    # create series of 0 and 1 based on mask
     filt_width = mask.astype(int)
 
-    return filt_width
+    # add filter to dataframe
+    dataframe[header_width] = filt_width
+
+    return

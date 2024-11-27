@@ -36,30 +36,32 @@ def apply_filters(file_name: str,
         raise
 
     # apply width filter
-    filt_width = width.filter_widths(dataframe=dataframe,
-                                     masses=masses,
-                                     config_loader=config_loader)
+    width.filter_widths(dataframe=dataframe,
+                        header_width=header_width,
+                        masses=masses,
+                        config_loader=config_loader)
 
     # apply bounds and signals filters
-    filt_bounds, filt_signals = bounds.filter_bounds(dataframe=dataframe,
-                                                     model_name=model_name,
-                                                     masses=masses)
-
-    # add filter results to dataframe
-    dataframe[header_width] = filt_width
-    dataframe[header_bounds] = filt_bounds
-    dataframe[header_signals] = filt_signals
+    bounds.filter_bounds(dataframe=dataframe,
+                         header_bounds=header_bounds,
+                         header_signals=header_signals,
+                         model_name=model_name,
+                         masses=masses)
 
     # write updated dataframe to .tsv
     write_to_tsv(dataframe=dataframe,
                  file_name=file_name)
 
+    # get results of each filter for counting
+    filt_width = dataframe[header_width]
+    filt_bounds = dataframe[header_bounds]
+    filt_signals = dataframe[header_signals]
+
     # find how many points pass all filters
-    filt_total = filt_width * filt_bounds * filt_signals
     nwidth: int = filt_width.sum()
     nbounds: int = filt_bounds.sum()
     nsignals: int = filt_signals.sum()
-    npass: int = filt_total.sum()
+    npass: int = (filt_width * filt_bounds * filt_signals).sum()
 
     # return numbers of events passing each filter
     return nwidth, nbounds, nsignals, npass
