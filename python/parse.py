@@ -363,4 +363,4 @@ class Parse:
 
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:
-        return self.arrays.data().shape[0]
+        return len(self.arrays.data())
