@@ -4,7 +4,6 @@ import argparse
 
 from filters import width
 from filters import bounds
-from utils.tsv_utils import initialize_column
 from utils.df_utils import get_df, write_to_tsv
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
@@ -64,19 +63,6 @@ def apply_filters(file_name: str,
 
     # return numbers of events passing each filter
     return nwidth, nbounds, nsignals, npass
-
-def initialize_filters(file_name: str) -> None:
-
-    # initialize all columns
-    initialize_column(file_name=file_name,
-                      column_header=header_width,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_bounds,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_signals,
-                      value=1)
 
 if __name__ == "__main__":
 
