@@ -2,8 +2,8 @@
 # import pandas library
 import pandas as pd
 
-# import list of arrays
-from utils.arrays import Arrays
+# import utilities for pandas dataframes
+from utils.df_utils import get_df, get_header_string, write_to_tsv
 
 # import point
 from utils.point import Point
@@ -74,13 +74,9 @@ class Parse:
     def read_file(self,
                   file_name: str) -> None:
 
-        # create arrays object if it does not exist
-        if not hasattr(self,"arrays"):
-            self.arrays = Arrays(file_name)
-
-        # load arrays from new file if arrays object already exists
-        else:
-            self.arrays.load_arrays(file_name)
+        # create dataframe object if it does not exist
+        if not hasattr(self,"tsv_data"):
+            self.tsv_data = get_df(file_name)
 
         # read and store raw file content
         file = open(file_name)
@@ -129,7 +125,7 @@ class Parse:
 
     # get header for .tsv
     def get_tsv_header(self) -> str:
-        return self.arrays.get_header_string()
+        return get_header_string(self.tsv_data)
 
     # get minimum value of a parameter
     def get_min(self,
@@ -316,7 +312,7 @@ class Parse:
 
     # get arrays of the filters
     def __set_filters(self) -> None:
-        self.__filters = (self.arrays.data('filt_width') * self.arrays.data('filt_bounds') * self.arrays.data('filt_signals')).astype(bool)
+        self.__filters = (self.tsv_data['filt_width'] * self.tsv_data['filt_bounds'] * self.tsv_data['filt_signals']).astype(bool)
 
     # apply filters as mask
     def __make_filtered_arrays(self) -> None:
@@ -329,7 +325,7 @@ class Parse:
         ##############################
 
         # create filtered dataframe
-        filtered_df = self.arrays.data()[self.__filters].reset_index()
+        filtered_df = self.tsv_data[self.__filters].reset_index()
 
         # loop over parameters
         for name, par in self.__model.parameters().items():
@@ -363,4 +359,4 @@ class Parse:
 
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:
-        return len(self.arrays.data())
+        return len(self.tsv_data)

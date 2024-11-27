@@ -5,7 +5,7 @@ import argparse
 from filters import width
 from filters import bounds
 from utils.tsv_utils import initialize_column
-from utils.arrays import Arrays
+from utils.df_utils import get_df, write_to_tsv
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
 
@@ -23,8 +23,8 @@ def apply_filters(file_name: str,
                   config_loader: 'ConfigLoader'
                  ) -> tuple[int,int,int]:
 
-    # load in arrays from .tsv file
-    arrays = Arrays(file_name)
+    # load in dataframe from .tsv file
+    dataframe = get_df(file_name)
 
     # get model name from config file
     try:
@@ -37,22 +37,23 @@ def apply_filters(file_name: str,
         raise
 
     # apply width filter
-    filt_width = width.filter_widths(dataframe=arrays.data(),
+    filt_width = width.filter_widths(dataframe=dataframe,
                                      masses=masses,
                                      config_loader=config_loader)
 
     # apply bounds and signals filters
-    filt_bounds, filt_signals = bounds.filter_bounds(dataframe=arrays.data(),
+    filt_bounds, filt_signals = bounds.filter_bounds(dataframe=dataframe,
                                                      model_name=model_name,
                                                      masses=masses)
 
     # add filter results to dataframe
-    arrays.set_array(header_width,filt_width)
-    arrays.set_array(header_bounds,filt_bounds)
-    arrays.set_array(header_signals,filt_signals)
+    dataframe[header_width] = filt_width
+    dataframe[header_bounds] = filt_bounds
+    dataframe[header_signals] = filt_signals
 
     # write updated dataframe to .tsv
-    arrays.write_file(file_name)
+    write_to_tsv(dataframe=dataframe,
+                 file_name=file_name)
 
     # find how many points pass all filters
     filt_total = filt_width * filt_bounds * filt_signals
