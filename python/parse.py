@@ -3,7 +3,7 @@
 import pandas as pd
 
 # import utilities for pandas dataframes
-from utils.df_utils import get_df, get_header_string, write_to_tsv
+from utils.df_utils import get_df, get_header_string
 
 # import point
 from utils.point import Point
