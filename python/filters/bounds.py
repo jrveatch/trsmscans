@@ -120,6 +120,7 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         # set BRs for H
         if w_H > 1e-13 :
+            logger.verbose("H")
             set_BRs(particle=H,
                     BRs_SM=br_H_SM,
                     BRs_BSM=br_H_BSM,
@@ -127,6 +128,7 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         # set BRs for S
         if w_S > 1e-13:
+            logger.verbose("S")
             set_BRs(particle=S,
                     BRs_SM=br_S_SM,
                     BRs_BSM=br_S_BSM,
@@ -134,6 +136,7 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         # set BRs for X
         if w_X > 1e-13:
+            logger.verbose("X")
             set_BRs(particle=X,
                     BRs_SM=br_X_SM,
                     BRs_BSM=br_X_BSM,
@@ -205,6 +208,8 @@ def set_BRs(particle,
         if adjust_ZZ and decay == "ZZ":
             continue
 
+        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+
         # set SM BRs
         particle.setBr(decay,BR)
 
@@ -216,6 +221,8 @@ def set_BRs(particle,
 
         # add BSM BRs to sum
         sum_BR += BR
+
+        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
     if adjust_ZZ:
 
