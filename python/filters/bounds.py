@@ -161,8 +161,8 @@ def filter_bounds(dataframe: pd.DataFrame,
                                 mX=mX,
                                 mS=mS,
                                 mH=mH)
-            logger.verbose(signals_result)
-            logger.verbose(HS_allowed)
+            logger.verbose(f"signals_result = {signals_result}")
+            logger.verbose(f"HS_allowed = {HS_allowed}")
 
         # save whether requirements are passed
         filt_bounds.append(int(bounds_result.allowed))
@@ -245,7 +245,7 @@ def print_bounds_result(bounds_result,
                         mH: float) -> None:
 
     logger.verbose(bounds_result)
-    logger.verbose(bounds_result.allowed)
+    logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
     
     if bounds_result.allowed is False:
         limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]
