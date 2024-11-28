@@ -13,7 +13,7 @@ from collections import defaultdict
 # get logger
 logger = logging.getLogger(__name__)
 
-SM_decays = ["WW", "ZZ", "Zgam", "bb", "tt", "ss", "cc", "gamgam", "gg", "mumu", "tautau"]
+SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
 
 # TODO: Make this work for other models
 def filter_bounds(dataframe: pd.DataFrame,
@@ -195,20 +195,21 @@ def set_BRs(particle,
     # keep track of the sum of BRs
     sum_BR = 0.0
 
+    # reset SM BRs to 0 to start from a clean slate
+    for decay in BRs_SM.keys():
+        particle.setBr(decay,0)
+
     # loop over SM decay modes
     for decay, BR in BRs_SM.items():
-
-        # reset BRs to start from a clean slate
-        particle.setBr(decay,0)
 
         # add SM BRs to sum
         sum_BR += BR
 
+        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+
         # skip ZZ decay
         if adjust_ZZ and decay == "ZZ":
             continue
-
-        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
         # set SM BRs
         particle.setBr(decay,BR)
@@ -232,6 +233,8 @@ def set_BRs(particle,
         # if BR sum is too large, adjust ZZ BR
         if sum_BR > 1.0:
             BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
+        
+        logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
