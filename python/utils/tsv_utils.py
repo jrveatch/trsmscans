@@ -22,10 +22,10 @@ def count_tsv_points(file_name: str) -> int:
     output = result.stdout.strip()
 
     # get the number of previously scanned points
-    npoints = int(output.split()[0]) - 1
+    num_points = int(output.split()[0]) - 1
 
     # return number of points
-    return npoints
+    return num_points
 
 # function to save output tsv file
 def save_tsv_output(input_file: str,
@@ -41,10 +41,10 @@ def save_tsv_output(input_file: str,
         return
 
     # get number of points already in output file
-    nexisting = count_tsv_points(output_file)
+    num_existing = count_tsv_points(output_file)
 
     # if output file doesn't exist or is empty, simply rename input file
-    if nexisting <= 0:
+    if num_existing <= 0:
         os.rename(input_file,output_file)
         return
 
@@ -62,7 +62,7 @@ def save_tsv_output(input_file: str,
 
                 # replace the index with a unique value
                 parts = line.strip().split('\t')
-                parts[0] = str(count + nexisting)
+                parts[0] = str(count + num_existing)
 
                 # append each line to final .tsv file
                 destination_file.write('\t'.join(parts) + '\n')

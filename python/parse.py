@@ -153,14 +153,14 @@ class Parse:
         xb = self.get_xb(decay)
 
         # number of points available
-        npoints = len(xb)
+        num_points = len(xb)
 
         # minimum number of points for test
         min_points = 200
 
         # modify percentile threshold to ensure there are at least min_points
-        if npoints * (1.0 - percentile_threshold ) < min_points:
-            percentile_threshold = 1.0 - min_points/npoints
+        if num_points * (1.0 - percentile_threshold ) < min_points:
+            percentile_threshold = 1.0 - min_points/num_points
 
         # make sure percentile threshold is >= 0
         if percentile_threshold < 0:
