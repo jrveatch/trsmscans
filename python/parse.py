@@ -76,7 +76,7 @@ class Parse:
 
         # create dataframe object if it does not exist
         if not hasattr(self,"tsv_data"):
-            self.tsv_data = get_df(file_name)
+            self.data = get_df(file_name)
 
         # read and store raw file content
         file = open(file_name)
@@ -125,7 +125,7 @@ class Parse:
 
     # get header for .tsv
     def get_tsv_header(self) -> str:
-        return get_header_string(self.tsv_data)
+        return get_header_string(self.data)
 
     # get minimum value of a parameter
     def get_min(self,
@@ -312,7 +312,7 @@ class Parse:
 
     # get arrays of the filters
     def __set_filters(self) -> None:
-        self.__filters = (self.tsv_data['filt_width'] * self.tsv_data['filt_bounds'] * self.tsv_data['filt_signals']).astype(bool)
+        self.__filters = (self.data['filt_width'] * self.data['filt_bounds'] * self.data['filt_signals']).astype(bool)
 
     # apply filters as mask
     def __make_filtered_arrays(self) -> None:
@@ -325,33 +325,33 @@ class Parse:
         ##############################
 
         # create filtered dataframe
-        filtered_df = self.tsv_data[self.__filters].reset_index()
+        self.filtered_data = self.data[self.__filters].reset_index()
 
         # loop over parameters
         for name, par in self.__model.parameters().items():
             # populate dictionary of parameter arrays
-            self.__par_arrays[name] = filtered_df[par['fullname']]
+            self.__par_arrays[name] = self.filtered_data[par['fullname']]
 
         # H xsec and BR values
-        self.__b_H_bb = filtered_df['b_'+self.__HName+'_bb']
-        self.__b_H_tautau = filtered_df['b_'+self.__HName+'_tautau']
-        self.__b_H_WW = filtered_df['b_'+self.__HName+'_WW']
-        self.__b_H_ZZ = filtered_df['b_'+self.__HName+'_ZZ']
-        self.__b_H_gamgam = filtered_df['b_'+self.__HName+'_gamgam']
+        self.__b_H_bb = self.filtered_data['b_'+self.__HName+'_bb']
+        self.__b_H_tautau = self.filtered_data['b_'+self.__HName+'_tautau']
+        self.__b_H_WW = self.filtered_data['b_'+self.__HName+'_WW']
+        self.__b_H_ZZ = self.filtered_data['b_'+self.__HName+'_ZZ']
+        self.__b_H_gamgam = self.filtered_data['b_'+self.__HName+'_gamgam']
 
         # S xsec and BR values
-        self.__b_S_bb = filtered_df['b_'+self.__SName+'_bb']
-        self.__b_S_tautau = filtered_df['b_'+self.__SName+'_tautau']
-        self.__b_S_WW = filtered_df['b_'+self.__SName+'_WW']
-        self.__b_S_ZZ = filtered_df['b_'+self.__SName+'_ZZ']
-        self.__b_S_gamgam = filtered_df['b_'+self.__SName+'_gamgam']
+        self.__b_S_bb = self.filtered_data['b_'+self.__SName+'_bb']
+        self.__b_S_tautau = self.filtered_data['b_'+self.__SName+'_tautau']
+        self.__b_S_WW = self.filtered_data['b_'+self.__SName+'_WW']
+        self.__b_S_ZZ = self.filtered_data['b_'+self.__SName+'_ZZ']
+        self.__b_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
 
         # X xsec and BR values
-        self.__x_X_gg = filtered_df['x_H3_gg']
-        self.__b_X_SH = filtered_df['b_H3_H1H2']
+        self.__x_X_gg = self.filtered_data['x_H3_gg']
+        self.__b_X_SH = self.filtered_data['b_H3_H1H2']
 
         # original indices
-        self.__prefilter_idx = filtered_df['index']
+        self.__prefilter_idx = self.filtered_data['index']
 
     # get number of filtered events
     def get_num_points(self) -> int:
@@ -359,4 +359,4 @@ class Parse:
 
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:
-        return len(self.tsv_data)
+        return len(self.data)
