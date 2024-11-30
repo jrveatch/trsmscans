@@ -354,8 +354,8 @@ class Parse:
         self.__prefilter_idx = self.filtered_data['index']
 
     # get number of filtered events
-    def get_num_points(self) -> int:
-        return self.__prefilter_idx.size
+    def get_num_filtered_points(self) -> int:
+        return len(self.filtered_data)
 
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:

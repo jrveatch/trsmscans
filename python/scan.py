@@ -157,7 +157,7 @@ class Scan:
         n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_num_points()
+        n_prescan = self.prescan_parser.get_num_filtered_points()
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
