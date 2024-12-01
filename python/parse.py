@@ -42,20 +42,6 @@ class Parse:
         self.__HName = masses.HName
         self.__SName = masses.SName
 
-        # initialize x-sec, BR and indices arrays
-        self.__b_H_bb: pd.Series = None
-        self.__b_H_tautau: pd.Series = None
-        self.__b_H_WW: pd.Series = None
-        self.__b_H_ZZ: pd.Series = None
-        self.__b_H_gamgam: pd.Series = None
-        self.__b_S_bb: pd.Series = None
-        self.__b_S_tautau: pd.Series = None
-        self.__b_S_WW: pd.Series = None
-        self.__b_S_ZZ: pd.Series = None
-        self.__b_S_gamgam: pd.Series = None
-        self.__x_X_gg: pd.Series = None
-        self.__b_X_SH: pd.Series = None
-
         # initialize dictionary of parameter arrays
         self.__par_arrays: dict[str,pd.Series] = {}
 
@@ -76,26 +62,19 @@ class Parse:
 
     # find the point that maximizes xb
     def get_max_xb_point(self,
-                         decay: str) -> 'Point':
+                         decay: str) -> Point:
         
         # get xb
         xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
         self.max_idx = xb.idxmax()
-
-        # get max xsec times BR
-        max_xb = xb[self.max_idx]
         
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals: dict[str,float] = {}
-
-        # loop over parameter arrays and store optimal value of each
-        for par, array in self.__par_arrays.items():
-            max_xb_par_vals[par] = array[self.max_idx]
+        max_xb_par_vals = {par: array[self.max_idx] for par, array in self.__par_arrays.items()}
 
         # return a point object holding xb and other parameters
-        return Point(xb = max_xb,
+        return Point(xb = xb[self.max_idx],
                      model_name = self.__model_name,
                      par_vals = max_xb_par_vals)
 
@@ -182,7 +161,8 @@ class Parse:
         # TODO: take decay as argument for other production modes
 
         # get production cross section
-        xb_prod = self.__x_X_gg * self.__b_X_SH
+        # currently for gg->X->SH
+        xb_prod = self.filtered_data['x_H3_gg'] * self.filtered_data['b_H3_H1H2']
 
         return xb_prod
 
@@ -190,91 +170,105 @@ class Parse:
     def __get_xb_decay(self,
                        decay: str) -> pd.Series:
 
+        # H xsec and BR values
+        br_H_bb = self.filtered_data['b_'+self.__HName+'_bb']
+        br_H_tautau = self.filtered_data['b_'+self.__HName+'_tautau']
+        br_H_WW = self.filtered_data['b_'+self.__HName+'_WW']
+        br_H_ZZ = self.filtered_data['b_'+self.__HName+'_ZZ']
+        br_H_gamgam = self.filtered_data['b_'+self.__HName+'_gamgam']
+
+        # S xsec and BR values
+        br_S_bb = self.filtered_data['b_'+self.__SName+'_bb']
+        br_S_tautau = self.filtered_data['b_'+self.__SName+'_tautau']
+        br_S_WW = self.filtered_data['b_'+self.__SName+'_WW']
+        br_S_ZZ = self.filtered_data['b_'+self.__SName+'_ZZ']
+        br_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
+
         # get appropriate BR for decay mode
         match decay:
 
             # 4b case
             case "SHbbbb":
-                xb_decay = self.__b_S_bb * self.__b_H_bb
+                xb_decay = br_S_bb * br_H_bb
 
             # bbtautau cases
             case "SbbHtautau":
-                xb_decay = self.__b_S_bb * self.__b_H_tautau
+                xb_decay = br_S_bb * br_H_tautau
             case "StautauHbb":
-                xb_decay = self.__b_S_tautau * self.__b_H_bb
+                xb_decay = br_S_tautau * br_H_bb
             case "SHbbtautau":
-                arr1 = self.__b_S_bb * self.__b_H_tautau
-                arr2 = self.__b_S_tautau * self.__b_H_bb
+                arr1 = br_S_bb * br_H_tautau
+                arr2 = br_S_tautau * br_H_bb
                 xb_decay = arr1 + arr2
 
             # bbWW cases
             case "SbbHWW":
-                xb_decay = self.__b_S_bb * self.__b_H_WW
+                xb_decay = br_S_bb * br_H_WW
             case "SWWHbb":
-                xb_decay = self.__b_S_WW * self.__b_H_bb
+                xb_decay = br_S_WW * br_H_bb
             case "SHbbWW":
-                arr1 = self.__b_S_bb * self.__b_H_WW
-                arr2 = self.__b_S_WW * self.__b_H_bb
+                arr1 = br_S_bb * br_H_WW
+                arr2 = br_S_WW * br_H_bb
                 xb_decay = arr1 + arr2
 
             # bbZZ cases
             case "SbbHZZ":
-                xb_decay = self.__b_S_bb * self.__b_H_ZZ
+                xb_decay = br_S_bb * br_H_ZZ
             case "SZZHbb":
-                xb_decay = self.__b_S_ZZ * self.__b_H_bb
+                xb_decay = br_S_ZZ * br_H_bb
             case "SHbbZZ":
-                arr1 = self.__b_S_bb * self.__b_H_ZZ
-                arr2 = self.__b_S_ZZ * self.__b_H_bb
+                arr1 = br_S_bb * br_H_ZZ
+                arr2 = br_S_ZZ * br_H_bb
                 xb_decay = arr1 + arr2
 
             # VVtautau cases
             case "SVVHbb":
-                xb_decay = (self.__b_S_WW + self.__b_S_ZZ) * self.__b_H_bb
+                xb_decay = (br_S_WW + br_S_ZZ) * br_H_bb
             case "SbbHVV":
-                xb_decay = self.__b_S_bb * (self.__b_H_WW + self.__b_H_ZZ)
+                xb_decay = br_S_bb * (br_H_WW + br_H_ZZ)
             case "SHVVbb":
-                arr1 = (self.__b_S_WW + self.__b_S_ZZ) * self.__b_H_bb
-                arr2 = self.__b_S_bb + (self.__b_H_WW + self.__b_H_ZZ)
+                arr1 = (br_S_WW + br_S_ZZ) * br_H_bb
+                arr2 = br_S_bb + (br_H_WW + br_H_ZZ)
                 xb_decay = arr1 + arr2
 
             # WWtautau cases
             case "SWWHtautau":
-                xb_decay = self.__b_S_WW * self.__b_H_tautau
+                xb_decay = br_S_WW * br_H_tautau
             case "StautauHWW":
-                xb_decay = self.__b_S_tautau * self.__b_H_WW
+                xb_decay = br_S_tautau * br_H_WW
             case "SHWWtautau":
-                arr1 = self.__b_S_WW * self.__b_H_tautau
-                arr2 = self.__b_S_tautau * self.__b_H_WW
+                arr1 = br_S_WW * br_H_tautau
+                arr2 = br_S_tautau * br_H_WW
                 xb_decay = arr1 + arr2
 
             # ZZtautau cases
             case "SZZHtautau":
-                xb_decay = self.__b_S_ZZ * self.__b_H_tautau
+                xb_decay = br_S_ZZ * br_H_tautau
             case "StautauHZZ":
-                xb_decay = self.__b_S_tautau * self.__b_H_ZZ
+                xb_decay = br_S_tautau * br_H_ZZ
             case "SHZZtautau":
-                arr1 = self.__b_S_ZZ * self.__b_H_tautau
-                arr2 = self.__b_S_tautau * self.__b_H_ZZ
+                arr1 = br_S_ZZ * br_H_tautau
+                arr2 = br_S_tautau * br_H_ZZ
                 xb_decay = arr1 + arr2
 
             # VVtautau cases
             case "SVVHtautau":
-                xb_decay = (self.__b_S_WW + self.__b_S_ZZ) * self.__b_H_tautau
+                xb_decay = (br_S_WW + br_S_ZZ) * br_H_tautau
             case "StautauHVV":
-                xb_decay = self.__b_S_tautau * (self.__b_H_WW + self.__b_H_ZZ)
+                xb_decay = br_S_tautau * (br_H_WW + br_H_ZZ)
             case "SHVVtautau":
-                arr1 = (self.__b_S_WW + self.__b_S_ZZ) * self.__b_H_tautau
-                arr2 = self.__b_S_tautau * (self.__b_H_WW + self.__b_H_ZZ)
+                arr1 = (br_S_WW + br_S_ZZ) * br_H_tautau
+                arr2 = br_S_tautau * (br_H_WW + br_H_ZZ)
                 xb_decay = arr1 + arr2
 
             # bbgamgam cases
             case "SbbHgamgam":
-                xb_decay = self.__b_S_bb * self.__b_H_gamgam
+                xb_decay = br_S_bb * br_H_gamgam
             case "SgamgamHbb":
-                xb_decay = self.__b_S_gamgam * self.__b_H_bb
+                xb_decay = br_S_gamgam * br_H_bb
             case "SHbbgamgam":
-                arr1 = self.__b_S_bb * self.__b_H_gamgam
-                arr2 = self.__b_S_gamgam * self.__b_H_bb
+                arr1 = br_S_bb * br_H_gamgam
+                arr2 = br_S_gamgam * br_H_bb
                 xb_decay = arr1 + arr2
 
             # all other cases
@@ -296,35 +290,9 @@ class Parse:
         # get array of filters to use as a mask
         self.__set_filters()
 
-        ##############################
-        # create local arrays by applying filter mask
-        ##############################
-
-        # create filtered dataframe
-        self.filtered_data = self.data[self.__filters]
-
-        # loop over parameters
-        for name, par in self.__model.parameters().items():
-            # populate dictionary of parameter arrays
-            self.__par_arrays[name] = self.filtered_data[par['fullname']]
-
-        # H xsec and BR values
-        self.__b_H_bb = self.filtered_data['b_'+self.__HName+'_bb']
-        self.__b_H_tautau = self.filtered_data['b_'+self.__HName+'_tautau']
-        self.__b_H_WW = self.filtered_data['b_'+self.__HName+'_WW']
-        self.__b_H_ZZ = self.filtered_data['b_'+self.__HName+'_ZZ']
-        self.__b_H_gamgam = self.filtered_data['b_'+self.__HName+'_gamgam']
-
-        # S xsec and BR values
-        self.__b_S_bb = self.filtered_data['b_'+self.__SName+'_bb']
-        self.__b_S_tautau = self.filtered_data['b_'+self.__SName+'_tautau']
-        self.__b_S_WW = self.filtered_data['b_'+self.__SName+'_WW']
-        self.__b_S_ZZ = self.filtered_data['b_'+self.__SName+'_ZZ']
-        self.__b_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
-
-        # X xsec and BR values
-        self.__x_X_gg = self.filtered_data['x_H3_gg']
-        self.__b_X_SH = self.filtered_data['b_H3_H1H2']
+        # populate a dictionary of series for each model parameter
+        parameters = self.__model.parameters()
+        self.__par_arrays = {name: self.filtered_data[par['fullname']] for name, par in parameters.items()}
 
     # get number of filtered events
     def get_num_filtered_points(self) -> int:
@@ -340,7 +308,7 @@ class Parse:
                          ) -> None:
 
         # get max xb row from dataframe
-        row = self.filtered_data.iloc[[self.max_idx]]
+        row = self.data.loc[[self.max_idx]]
 
         # write it to the summary .tsv
         row.to_csv(file_name,
@@ -350,3 +318,7 @@ class Parse:
                    header=False)
 
         return
+
+    @property
+    def filtered_data(self) -> pd.DataFrame:
+        return self.data[self.__filters]
