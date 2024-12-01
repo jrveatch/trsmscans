@@ -132,7 +132,6 @@ class ZoomOptimizer:
             self.write_summary(identifier)
 
             # write max xb point raw .tsv line to info file
-            #self.write_tsv_summary()
             self.scan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # check zoom strategy and call method accordingly
@@ -251,12 +250,6 @@ class ZoomOptimizer:
         summary.write("\t" + identifier)
         summary.write("\n")
         summary.close()
-
-    # write max xb point raw .tsv line to info file
-    def write_tsv_summary(self) -> None:
-        tsv_summary = open(self.tsv_summary_name,"a")
-        tsv_summary.write(self.scan_parser.get_max_xb_line())
-        tsv_summary.close()
 
     # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:

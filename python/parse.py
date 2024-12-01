@@ -55,13 +55,9 @@ class Parse:
         self.__b_S_gamgam: pd.Series = None
         self.__x_X_gg: pd.Series = None
         self.__b_X_SH: pd.Series = None
-        self.__prefilter_idx: pd.Series = None
 
         # initialize dictionary of parameter arrays
         self.__par_arrays: dict[str,pd.Series] = {}
-
-        # initialize max_xb line from .tsv file
-        self.__max_xb_line: str = ""
 
         # get arrays from file name if it is provided
         if file_name:
@@ -77,9 +73,6 @@ class Parse:
 
         # get arrays masked by filters
         self.__make_filtered_arrays()
-
-        # reset max_xb line to make errors obvious
-        self.__max_xb_line: str = ""
 
     # find the point that maximizes xb
     def get_max_xb_point(self,
@@ -105,10 +98,6 @@ class Parse:
         return Point(xb = max_xb,
                      model_name = self.__model_name,
                      par_vals = max_xb_par_vals)
-
-    # get line from .tsv corresponding to max xb point
-    def get_max_xb_line(self) -> str:
-        return self.__max_xb_line
 
     # get header for .tsv
     def get_tsv_header(self) -> str:

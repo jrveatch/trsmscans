@@ -72,13 +72,3 @@ def save_tsv_output(input_file: str,
 
     # return after a successful run
     return
-
-# function to check whether a column already exists in file
-def column_exists(file_name: str,
-                  column_header: str) -> bool:
-
-    with open(file_name, 'r') as f_in:
-        # read the header
-        header = f_in.readline().strip().split('\t')
-        # check if the column header exists in the header
-        return column_header in header

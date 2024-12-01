@@ -1,6 +1,5 @@
 
 import pandas as pd
-from typing import Union
 
 index_label = "idx"
 
