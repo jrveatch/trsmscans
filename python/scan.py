@@ -225,8 +225,9 @@ class Scan:
         # write scan max xb tsv line to tsv summary file
         tsv_summary = open(self.tsv_summary_name, "a")
         tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
-        tsv_summary.write(self.prescan_parser.get_max_xb_line())
         tsv_summary.close()
+
+        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # TODO: Is this needed?
         # scale new low and high values

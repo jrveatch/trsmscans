@@ -132,7 +132,8 @@ class ZoomOptimizer:
             self.write_summary(identifier)
 
             # write max xb point raw .tsv line to info file
-            self.write_tsv_summary()
+            #self.write_tsv_summary()
+            self.scan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # check zoom strategy and call method accordingly
         match self.strategy:

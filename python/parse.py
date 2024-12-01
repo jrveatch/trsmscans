@@ -60,9 +60,6 @@ class Parse:
         # initialize dictionary of parameter arrays
         self.__par_arrays: dict[str,pd.Series] = {}
 
-        # initialize file data
-        self.__file_content: list[str] = []
-
         # initialize max_xb line from .tsv file
         self.__max_xb_line: str = ""
 
@@ -78,10 +75,6 @@ class Parse:
         if not hasattr(self,"tsv_data"):
             self.data = get_df(file_name)
 
-        # read and store raw file content
-        file = open(file_name)
-        self.__file_content = file.readlines()
-
         # get arrays masked by filters
         self.__make_filtered_arrays()
 
@@ -96,23 +89,17 @@ class Parse:
         xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
-        max_idx = xb.idxmax()
+        self.max_idx = xb.idxmax()
 
         # get max xsec times BR
-        max_xb = xb[max_idx]
-
-        # get prefilter index of max xb point
-        prefilter_idx = self.__prefilter_idx[max_idx]
-
-        # store max xb line - add 1 to account for header
-        self.__max_xb_line = self.__file_content[prefilter_idx+1]
+        max_xb = xb[self.max_idx]
         
         # make dictionary for parameter values for max_xb
         max_xb_par_vals: dict[str,float] = {}
 
         # loop over parameter arrays and store optimal value of each
         for par, array in self.__par_arrays.items():
-            max_xb_par_vals[par] = array[max_idx]
+            max_xb_par_vals[par] = array[self.max_idx]
 
         # return a point object holding xb and other parameters
         return Point(xb = max_xb,
@@ -325,7 +312,7 @@ class Parse:
         ##############################
 
         # create filtered dataframe
-        self.filtered_data = self.data[self.__filters].reset_index()
+        self.filtered_data = self.data[self.__filters]
 
         # loop over parameters
         for name, par in self.__model.parameters().items():
@@ -350,9 +337,6 @@ class Parse:
         self.__x_X_gg = self.filtered_data['x_H3_gg']
         self.__b_X_SH = self.filtered_data['b_H3_H1H2']
 
-        # original indices
-        self.__prefilter_idx = self.filtered_data['index']
-
     # get number of filtered events
     def get_num_filtered_points(self) -> int:
         return len(self.filtered_data)
@@ -360,3 +344,20 @@ class Parse:
     # get number of unfiltered events
     def get_num_unfiltered_points(self) -> int:
         return len(self.data)
+    
+    # write max xb line to a .tsv file
+    def write_max_xb_line(self,
+                          file_name: str
+                         ) -> None:
+
+        # get max xb row from dataframe
+        row = self.filtered_data.iloc[[self.max_idx]]
+
+        # write it to the summary .tsv
+        row.to_csv(file_name,
+                   sep='\t',
+                   index=True,
+                   mode='a',
+                   header=False)
+
+        return
