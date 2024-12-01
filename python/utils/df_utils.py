@@ -10,8 +10,10 @@ def get_df(file_name: str) -> pd.DataFrame:
     # load the file into a dataframe
     dataframe = pd.read_csv(file_name,
                             sep='\t',
-                            header=0,
-                            usecols=lambda col: col != 'idx' and col != '')
+                            header=0)
+    
+    # drop first column to avoid compounding indices
+    dataframe = dataframe.iloc[:, 1:]
     
     return dataframe
 
@@ -23,6 +25,7 @@ def get_header_string(dataframe: pd.DataFrame) -> str:
 def write_to_tsv(dataframe: pd.DataFrame,
                  file_name: str
                 ) -> None:
+
     dataframe.to_csv(file_name,
                      sep='\t',
                      index=True,
