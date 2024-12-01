@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-from filters.setup_higgs_tools import *
+# standard libraries
+import logging
+from collections import defaultdict
 
-from utils.masses import Masses
-
+# third-party libraries
 import pandas as pd
 
-import logging
-
-from collections import defaultdict
+# local modules
+from filters.setup_higgs_tools import *
+from utils.masses import Masses
 
 # get logger
 logger = logging.getLogger(__name__)

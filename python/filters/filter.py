@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import argparse
+import logging
 
+# local modules
 from filters import width
 from filters import bounds
 from utils.df_utils import get_df, write_to_tsv
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
-
-import logging
 
 # get logger
 logger = logging.getLogger(__name__)

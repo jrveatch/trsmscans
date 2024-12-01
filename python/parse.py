@@ -1,24 +1,16 @@
 
-# import pandas library
+# standard libraries
+import logging
+
+# third-party libraries
 import pandas as pd
-
-# import utilities for pandas dataframes
-from utils.df_utils import get_df, get_header_string
-
-# import point
-from utils.point import Point
-
-# import dip test for unimodality
 import diptest
 
-# import masses class to handle mass orderings
+# local modules
+from utils.df_utils import get_df, get_header_string
+from utils.point import Point
 from utils.masses import Masses
-
-# import model class to initialize Point class
 from utils.model import Model
-
-# logging capability
-import logging
 
 # class to parse arrays and provide details about data
 class Parse:

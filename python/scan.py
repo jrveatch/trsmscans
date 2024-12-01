@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
-# import various modules to help with logistics
+# standard libraries
 import os
 import shutil
 import time
 import datetime
 import argparse
 import logging
-
-# import decimal
 from decimal import Decimal
+import copy
+import itertools
 
-# import tools
+# local modules
 from utils.point import Point
 from utils.params import Params
 from utils.masses import Masses
@@ -20,12 +20,7 @@ from utils.file_utils import scan_dir
 from utils.decay_utils import is_valid_decay
 from utils.logging_utils import setup_logging
 from utils.logging_utils import LOG_LEVELS
-
-import copy
-import itertools
-
 from zoom_optimizer import ZoomOptimizer
-
 from utils.config_loader import ConfigLoader
 
 # class to organize and run a complete scan

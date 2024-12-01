@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
-from utils.masses import Masses
+# standard libraries
+import logging
 
-from utils.config_loader import ConfigLoader
-
+# third-party libraries
 import pandas as pd
 
-import logging
+# local modules
+from utils.masses import Masses
+from utils.config_loader import ConfigLoader
 
 # get logger
 logger = logging.getLogger(__name__)

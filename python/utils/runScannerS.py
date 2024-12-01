@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import subprocess
 import multiprocessing as mp
 import os
 import shutil
 import time
 import math
-from blessings import Terminal
-from utils.tsv_utils import save_tsv_output
 import argparse
 import logging
+
+# third-party libraries
+from blessings import Terminal
+
+# local modules
+from utils.tsv_utils import save_tsv_output
 
 # get logger
 logger = logging.getLogger(__name__)
