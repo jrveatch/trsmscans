@@ -13,7 +13,7 @@ from utils.tsv_utils import count_tsv_points
 from utils.file_utils import prescan_dir
 from utils.params import Params
 from utils.masses import Masses
-from parse import Parse
+from utils.parse import Parse
 from utils.config_loader import ConfigLoader
 from point_sampler import PointSampler
 from utils.logging_utils import setup_logging

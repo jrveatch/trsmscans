@@ -5,7 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 import os
-import parse
+from utils.parse import Parse
 import argparse
 from utils import file_utils
 from utils.masses import Masses
@@ -92,9 +92,9 @@ class Plot:
             for file_name in file_list:
 
                 # Retrieve the variables from the file
-                parser = parse.Parse(file_name=file_name,
-                                     masses=self.masses,
-                                     model_name=self.model.name())
+                parser = Parse(file_name=file_name,
+                               masses=self.masses,
+                               model_name=self.model.name())
                 all_params = parser.get_parameter_arrays()
                 xb = parser.get_xb(self.decay)
                 max_point = parser.get_max_xb_point(self.decay)
