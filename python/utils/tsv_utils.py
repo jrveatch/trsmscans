@@ -1,6 +1,5 @@
 
 import os
-import shutil
 import subprocess
 import logging
 
@@ -73,52 +72,3 @@ def save_tsv_output(input_file: str,
 
     # return after a successful run
     return
-
-# function to check whether a column already exists in file
-def column_exists(file_name: str,
-                  column_header: str) -> bool:
-
-    with open(file_name, 'r') as f_in:
-        # read the header
-        header = f_in.readline().strip().split('\t')
-        # check if the column header exists in the header
-        return column_header in header
-
-# function to add and initialize columns
-# TODO: Rework this to accept a list of columns and values
-def initialize_column(file_name: str,
-                      column_header: str,
-                      value: float) -> None:
-
-    # temp output file name
-    temp_file = "temp.tsv"
-
-    # return if column already exists
-    if column_exists(file_name=file_name,column_header=column_header):
-        return
-
-    with open(file_name, 'r') as f_in, open(temp_file, 'w') as f_out:
-        
-        # read the header
-        header = f_in.readline().strip().split('\t')
-        
-        # add new column header
-        header.append(column_header)
-        
-        # write the updated header to the output file
-        f_out.write('\t'.join(header) + '\n')
-        
-        # iterate through each line in the input file
-        for line in f_in:
-            
-            # split the line into columns
-            columns = line.strip().split('\t')
-            
-            # append the new column data
-            columns.append(str(value))
-
-            # write the updated line to the output file
-            f_out.write('\t'.join(columns) + '\n')
-
-    # replace the input file with the temp file
-    shutil.move(temp_file, file_name)

@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 
-from filters.setup_higgs_tools import *
-
-from utils.arrays import Arrays
-from utils.tsv_utils import initialize_column
-
-from utils.masses import Masses
-
+# standard libraries
 import logging
+from collections import defaultdict
+
+# third-party libraries
+import pandas as pd
+
+# local modules
+from filters.setup_higgs_tools import *
+from utils.masses import Masses
 
 # get logger
 logger = logging.getLogger(__name__)
 
+SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
+
 # TODO: Make this work for other models
-def filter_bounds(file_name: str,
+def filter_bounds(dataframe: pd.DataFrame,
+                  header_bounds: str,
+                  header_signals: str,
                   model_name: str,
-                  masses: Masses) -> int:
+                  masses: Masses
+                 ) -> None:
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -37,97 +44,60 @@ def filter_bounds(file_name: str,
     SName = masses.SName
     XName = masses.XName
 
-    # initialize columns in case they don't exist
-    initialize_column(file_name=file_name,
-                      column_header="filt_bounds",
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header="filt_signals",
-                      value=1)
+    # dictionaries of branching ratios
+    br_H_SM = defaultdict(float)
+    br_S_SM = defaultdict(float)
+    br_X_SM = defaultdict(float)
 
-    # load in arrays from .tsv file
-    arrs = Arrays(file_name)
+    br_H_BSM = defaultdict(float)
+    br_S_BSM = defaultdict(float)
+    br_X_BSM = defaultdict(float)
 
-    # get filter arrays
-    filt_bounds = arrs.data('filt_bounds')
-    filt_signals = arrs.data('filt_signals')
+    # get filter lists
+    filt_bounds = []
+    filt_signals = []
 
-    for i in range(arrs.data('idx').size):
+    for i in range(len(dataframe.index)):
 
-        idx = int(arrs.data('idx')[i])
+        idx = i
 
         # masses
-        mH = float(arrs.data('m'+HName)[i])
-        mS = float(arrs.data('m'+SName)[i])
-        mX = float(arrs.data('m'+XName)[i])
+        mH = float(dataframe['m'+HName][i])
+        mS = float(dataframe['m'+SName][i])
+        mX = float(dataframe['m'+XName][i])
 
         # rescalings
         if HName == "H2":
-            RS = float(arrs.data('R11')[i])
-            RH = float(arrs.data('R21')[i])
+            RS = float(dataframe['R11'][i])
+            RH = float(dataframe['R21'][i])
         else:
-            RH = float(arrs.data('R11')[i])
-            RS = float(arrs.data('R21')[i])
-        RX = float(arrs.data('R31')[i])
+            RH = float(dataframe['R11'][i])
+            RS = float(dataframe['R21'][i])
+        RX = float(dataframe['R31'][i])
 
         logger.verbose(f'rescalings are {RH} {RS} {RX}')
 
-        # H BRs
-        b_H_WW = float(arrs.data('b_'+HName+'_WW')[i])
-        b_H_ZZ = float(arrs.data('b_'+HName+'_ZZ')[i])
-        b_H_Zgam = float(arrs.data('b_'+HName+'_Zgam')[i])
-        b_H_bb = float(arrs.data('b_'+HName+'_bb')[i])
-        b_H_cc = float(arrs.data('b_'+HName+'_cc')[i])
-        b_H_gamgam = float(arrs.data('b_'+HName+'_gamgam')[i])
-        b_H_gg = float(arrs.data('b_'+HName+'_gg')[i])
-        b_H_mumu = float(arrs.data('b_'+HName+'_mumu')[i])
-        b_H_ss = float(arrs.data('b_'+HName+'_ss')[i])
-        b_H_tautau = float(arrs.data('b_'+HName+'_tautau')[i])
-        b_H_tt = float(arrs.data('b_'+HName+'_tt')[i])
-        # H->SS BR is 0 for mS > mH, otherwise get its value
-        b_H_SS = 0
+        # get SM BRs
+        for decay in SM_decays:
+            br_H_SM[decay] = float(dataframe['b_'+HName+'_'+decay][i])
+            br_S_SM[decay] = float(dataframe['b_'+SName+'_'+decay][i])
+            br_X_SM[decay] = float(dataframe['b_'+XName+'_'+decay][i])
+        
+        # get BSM BRs
         if HName == "H2": # mH > mS
-            b_H_SS = float(arrs.data('b_H2_H1H1')[i])
-
-        # H2 BRs
-        b_S_WW = float(arrs.data('b_'+SName+'_WW')[i])
-        b_S_ZZ = float(arrs.data('b_'+SName+'_ZZ')[i])
-        b_S_Zgam = float(arrs.data('b_'+SName+'_Zgam')[i])
-        b_S_bb = float(arrs.data('b_'+SName+'_bb')[i])
-        b_S_cc = float(arrs.data('b_'+SName+'_cc')[i])
-        b_S_gamgam = float(arrs.data('b_'+SName+'_gamgam')[i])
-        b_S_gg = float(arrs.data('b_'+SName+'_gg')[i])
-        b_S_mumu = float(arrs.data('b_'+SName+'_mumu')[i])
-        b_S_ss = float(arrs.data('b_'+SName+'_ss')[i])
-        b_S_tautau = float(arrs.data('b_'+SName+'_tautau')[i])
-        b_S_tt = float(arrs.data('b_'+SName+'_tt')[i])
-        # S->HH BR is 0 for mH > mS, otherwise get its value
-        b_S_HH = 0
+            br_H_BSM['S','S'] = float(dataframe['b_H2_H1H1'][i])
         if SName == "H2": # mH < mS
-            b_S_HH = float(arrs.data('b_H2_H1H1')[i])
-
-        # X BRs
-        b_X_WW = float(arrs.data('b_'+XName+'_WW')[i])
-        b_X_ZZ = float(arrs.data('b_'+XName+'_ZZ')[i])
-        b_X_Zgam = float(arrs.data('b_'+XName+'_Zgam')[i])
-        b_X_bb = float(arrs.data('b_'+XName+'_bb')[i])
-        b_X_cc = float(arrs.data('b_'+XName+'_cc')[i])
-        b_X_gamgam = float(arrs.data('b_'+XName+'_gamgam')[i])
-        b_X_gg = float(arrs.data('b_'+XName+'_gg')[i])
-        b_X_mumu = float(arrs.data('b_'+XName+'_mumu')[i])
-        b_X_ss = float(arrs.data('b_'+XName+'_ss')[i])
-        b_X_tautau = float(arrs.data('b_'+XName+'_tautau')[i])
-        b_X_tt = float(arrs.data('b_'+XName+'_tt')[i])
-        b_X_HH = float(arrs.data('b_H3_'+HName+HName)[i])
-        b_X_SS = float(arrs.data('b_H3_'+SName+SName)[i])
-        b_X_SH = float(arrs.data('b_H3_H1H2')[i])
+            br_S_BSM['H','H'] = float(dataframe['b_H2_H1H1'][i])
+        br_X_BSM['H','H'] = float(dataframe['b_H3_'+HName+HName][i])
+        br_X_BSM['S','S'] = float(dataframe['b_H3_'+SName+SName][i])
+        br_X_BSM['S','H'] = float(dataframe['b_H3_H1H2'][i])
 
         # Widths
-        w_H = float(arrs.data('w_'+HName)[i])
-        w_S = float(arrs.data('w_'+SName)[i])
-        w_X = float(arrs.data('w_'+XName)[i])
+        w_H = float(dataframe['w_'+HName][i])
+        w_S = float(dataframe['w_'+SName][i])
+        w_X = float(dataframe['w_'+XName][i])
         
-        # i do everything at once here
+        # Set masses and widths
         H.setMass(mH)
         S.setMass(mS)
         X.setMass(mX)
@@ -137,26 +107,9 @@ def filter_bounds(file_name: str,
         X.setTotalWidth(w_X)
 
         # TODO: get the correct rescalings for either hierarchy
-        if mH < 150:
-            HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(RH),reference="SMHiggsEW")
-        else:
-            HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(RH))
-
-        if mS < 150:
-            HP.effectiveCouplingInput(S, HP.scaledSMlikeEffCouplings(RS),reference="SMHiggsEW")
-        else:
-            HP.effectiveCouplingInput(S, HP.scaledSMlikeEffCouplings(RS))
-
-        if mX < 150:
-            HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(RX),reference="SMHiggsEW")
-        else:
-            HP.effectiveCouplingInput(X, HP.scaledSMlikeEffCouplings(RX))
-
-        # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
-        # then set the BRs according to the calculation
-        # H.setMass(mH)
-        # S.setMass(mS)
-        # X.setMass(mX)
+        set_effective_couplings(particle=H,mass=mH,rescaling=RH)
+        set_effective_couplings(particle=S,mass=mS,rescaling=RS)
+        set_effective_couplings(particle=X,mass=mX,rescaling=RX)
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
@@ -166,120 +119,29 @@ def filter_bounds(file_name: str,
 
         logger.verbose(f"widths are {w_H} {w_S} {w_X}")
 
+        # set BRs for H
         if w_H > 1e-13 :
-            H.setBr('bb', 0.)
-            H.setBr('tautau', 0.)
-            H.setBr('mumu', 0.)
-            H.setBr('cc', 0.)
-            H.setBr('ss', 0.)
-            H.setBr('tt', 0.)
-            H.setBr('gg', 0.)
-            H.setBr('gamgam', 0.)
-            H.setBr('Zgam', 0.)
-            H.setBr('WW', 0.)
-            H.setBr('ZZ', 0.)
+            logger.verbose("H")
+            set_BRs(particle=H,
+                    BRs_SM=br_H_SM,
+                    BRs_BSM=br_H_BSM,
+                    adjust_ZZ=True)
 
-            H.setBr('bb',b_H_bb)
-            H.setBr('tautau',b_H_tautau)
-            H.setBr('mumu',b_H_mumu)
-            H.setBr('cc',b_H_cc)
-            H.setBr('ss',b_H_ss)
-            H.setBr('tt',b_H_tt)
-            H.setBr('gg',b_H_gg)
-            H.setBr('gamgam',b_H_gamgam)
-            H.setBr('Zgam',b_H_Zgam)
-            H.setBr('WW',b_H_WW)
-            # include H->SS if mH > mS
-            if HName == "H2":
-                H.setBr('S', 'S', b_H_SS)
-
-            # some verbose printouts to check BRs
-            logger.verbose(f'brs so far: {b_H_bb} {b_H_tautau} {b_H_mumu} {b_H_cc} {b_H_ss} {b_H_tt} {b_H_gg} {b_H_gamgam} {b_H_Zgam} {b_H_WW} {b_H_ZZ} {b_H_SS}')
-            logger.verbose(f'sum before zz = {b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS}')
-            logger.verbose(f'sum after zz = {b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ}')
-            logger.verbose(f'width = {w_H}')
-
-            sum_H = b_H_bb + b_H_tautau + b_H_mumu + b_H_cc + b_H_ss + b_H_tt + b_H_gg + b_H_gamgam + b_H_Zgam + b_H_WW + b_H_SS + b_H_ZZ
-
-            # if BR sum is too large, adjust H->ZZ BR
-            if sum_H > 1.0:
-                b_H_ZZ = b_H_ZZ - sum_H + 1.0
-                logger.verbose(f'adjusted last br by {sum_H - 1.0}')
-                logger.verbose(f'new zz = {b_H_ZZ}')
-
-            # add H->ZZ BR
-            H.setBr('ZZ',b_H_ZZ)
-
+        # set BRs for S
         if w_S > 1e-13:
-            S.setBr('bb', 0.)
-            S.setBr('tautau', 0.)
-            S.setBr('mumu', 0.)
-            S.setBr('cc', 0.)
-            S.setBr('ss', 0.)
-            S.setBr('tt', 0.)
-            S.setBr('gg', 0.)
-            S.setBr('gamgam', 0.)
-            S.setBr('Zgam', 0.)
-            S.setBr('WW', 0.)
-            S.setBr('ZZ', 0.)
+            logger.verbose("S")
+            set_BRs(particle=S,
+                    BRs_SM=br_S_SM,
+                    BRs_BSM=br_S_BSM,
+                    adjust_ZZ=True)
 
-            S.setBr('bb',b_S_bb)
-            S.setBr('tautau',b_S_tautau)
-            S.setBr('mumu',b_S_mumu)
-            S.setBr('cc',b_S_cc)
-            S.setBr('ss',b_S_ss)
-            S.setBr('tt',b_S_tt)
-            S.setBr('gg',b_S_gg)
-            S.setBr('gamgam',b_S_gamgam)
-            S.setBr('Zgam',b_S_Zgam)
-            S.setBr('WW',b_S_WW)
-            if SName == "H2":
-                S.setBr('H', 'H', b_S_HH)
-
-            # some verbose printouts to check BRs
-            logger.verbose(f'brs so far: {b_S_bb} {b_S_tautau} {b_S_mumu} {b_S_cc} {b_S_ss} {b_S_tt} {b_S_gg} {b_S_gamgam} {b_S_Zgam} {b_S_WW} {b_S_ZZ} {b_S_HH}')
-            logger.verbose(f'sum before zz = {b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH}')
-            logger.verbose(f'sum after zz = {b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ}')
-            logger.verbose(f'width = {w_S}')
-
-            sum_S = b_S_bb + b_S_tautau + b_S_mumu + b_S_cc + b_S_ss + b_S_tt + b_S_gg + b_S_gamgam + b_S_Zgam + b_S_WW + b_S_HH + b_S_ZZ
-
-            # if BR sum is too large, adjust S->ZZ BR
-            if sum_S > 1.0:
-                b_S_ZZ = b_S_ZZ - sum_S + 1.0
-                logger.verbose(f'adjusted last br by {sum_H - 1.0}')
-                logger.verbose(f'new zz = {b_S_ZZ}')
-
-            # add S->ZZ BR
-            S.setBr('ZZ',b_S_ZZ)
-
+        # set BRs for X
         if w_X > 1e-13:
-            X.setBr('bb', 0.)
-            X.setBr('tautau', 0.)
-            X.setBr('mumu', 0.)
-            X.setBr('cc', 0.)
-            X.setBr('ss', 0.)
-            X.setBr('tt', 0.)
-            X.setBr('gg', 0.)
-            X.setBr('gamgam', 0.)
-            X.setBr('Zgam', 0.)
-            X.setBr('WW', 0.)
-            X.setBr('ZZ', 0.)
-
-            X.setBr('bb',b_X_bb)
-            X.setBr('tautau',b_X_tautau)
-            X.setBr('mumu',b_X_mumu)
-            X.setBr('cc',b_X_cc)
-            X.setBr('ss',b_X_ss)
-            X.setBr('tt',b_X_tt)
-            X.setBr('gg',b_X_gg)
-            X.setBr('gamgam',b_X_gamgam)
-            X.setBr('Zgam',b_X_Zgam)
-            X.setBr('WW',b_X_WW)
-            X.setBr('ZZ',b_X_ZZ)
-            X.setBr('H', 'H', b_X_HH)
-            X.setBr('S', 'S', b_X_SS)
-            X.setBr('H', 'S', b_X_SH)
+            logger.verbose("X")
+            set_BRs(particle=X,
+                    BRs_SM=br_X_SM,
+                    BRs_BSM=br_X_BSM,
+                    adjust_ZZ=False)
 
         # get bounds and signals results
         bounds_result = bounds(pred)
@@ -287,15 +149,11 @@ def filter_bounds(file_name: str,
 
         # get HiggsSignals result using model and SM
         # this is now specific for bp1
-        HS_allowed = False
         # bp1 and bp4 and low low
         #if mH3-mH1-mH2< 0:
         # bp2 and bp5 and high low
         #if mH2-2*mH1 < 0:
-        if signals_result - signals_result_SM < 4.00:
-            HS_allowed = True
-        else:
-            HS_allowed = False
+        HS_allowed = signals_result - signals_result_SM < 4.00
 
         # print out debug information
         if logger.isEnabledFor(logging.VERBOSE):
@@ -304,22 +162,85 @@ def filter_bounds(file_name: str,
                                 mX=mX,
                                 mS=mS,
                                 mH=mH)
-            logger.verbose(signals_result)
-            logger.verbose(HS_allowed)
+            logger.verbose(f"signals_result = {signals_result}")
+            logger.verbose(f"HS_allowed = {HS_allowed}")
 
         # save whether requirements are passed
-        filt_bounds[i] = int(bounds_result.allowed)
-        filt_signals[i] = int(HS_allowed)
+        filt_bounds.append(int(bounds_result.allowed))
+        filt_signals.append(int(HS_allowed))
 
-    # save arrays of results and write to output file
-    arrs.set_array('filt_bounds',filt_bounds)
-    arrs.set_array('filt_signals',filt_signals)
-    arrs.write_file(file_name)
+    # add filters to dataframe
+    dataframe[header_bounds] = filt_bounds
+    dataframe[header_signals] = filt_signals
 
-    # number of entries that pass
-    nbounds = filt_bounds.sum()
-    nsignals = filt_signals.sum()
-    return nbounds, nsignals
+    return
+
+def set_effective_couplings(particle,
+                            mass: float,
+                            rescaling: float
+                           ) -> None:
+    
+    if mass < 150:
+        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
+    else:
+        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling))
+    
+    return
+
+def set_BRs(particle,
+            BRs_SM: dict[str,float],
+            BRs_BSM: dict[tuple[str,str],float],
+            adjust_ZZ: bool = False
+           ) -> None:
+    
+    # keep track of the sum of BRs
+    sum_BR = 0.0
+
+    # reset SM BRs to 0 to start from a clean slate
+    for decay in BRs_SM.keys():
+        particle.setBr(decay,0)
+
+    # loop over SM decay modes
+    for decay, BR in BRs_SM.items():
+
+        # add SM BRs to sum
+        sum_BR += BR
+
+        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+
+        # skip ZZ decay
+        if adjust_ZZ and decay == "ZZ":
+            continue
+
+        # set SM BRs
+        particle.setBr(decay,BR)
+
+    # loop over BSM decay modes
+    for decay, BR in BRs_BSM.items():
+
+        # set BSM DRs
+        particle.setBr(decay[0],decay[1],BR)
+
+        # add BSM BRs to sum
+        sum_BR += BR
+
+        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+
+    if adjust_ZZ:
+
+        # original ZZ BR
+        BR_ZZ = BRs_SM['ZZ']
+
+        # if BR sum is too large, adjust ZZ BR
+        if sum_BR > 1.0:
+            BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
+        
+        logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
+
+        # set ZZ BR
+        particle.setBr('ZZ',BR_ZZ)
+
+    return
 
 def print_bounds_result(bounds_result,
                         idx: int,
@@ -328,7 +249,7 @@ def print_bounds_result(bounds_result,
                         mH: float) -> None:
 
     logger.verbose(bounds_result)
-    logger.verbose(bounds_result.allowed)
+    logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
     
     if bounds_result.allowed is False:
         limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]

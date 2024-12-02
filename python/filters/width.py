@@ -1,30 +1,23 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
-from utils.arrays import Arrays
-from utils.tsv_utils import initialize_column
-
-from utils.masses import Masses
-
-from utils.config_loader import ConfigLoader
-
+# standard libraries
 import logging
+
+# third-party libraries
+import pandas as pd
+
+# local modules
+from utils.masses import Masses
+from utils.config_loader import ConfigLoader
 
 # get logger
 logger = logging.getLogger(__name__)
 
-def filter_widths(file_name: str,
+def filter_widths(dataframe: pd.DataFrame,
+                  header_width: str,
                   masses: Masses,
-                  config_loader: 'ConfigLoader') -> int:
-
-    # initialize column in case it doesn't exist
-    initialize_column(file_name=file_name,
-                      column_header="filt_width",
-                      value=1)
-
-    # load in arrays from .tsv file
-    arrs = Arrays(file_name)
+                  config_loader: 'ConfigLoader'
+                 ) -> None:
 
     # get strings for 3 bosons
     HName = masses.HName
@@ -32,9 +25,9 @@ def filter_widths(file_name: str,
     XName = masses.XName
 
     # get arrays of widths
-    width_H = np.divide(arrs.get_array('w_'+HName),arrs.get_array('m'+HName))
-    width_S = np.divide(arrs.get_array('w_'+SName),arrs.get_array('m'+SName))
-    width_X = np.divide(arrs.get_array('w_'+XName),arrs.get_array('m'+XName))
+    width_H = dataframe['w_'+HName] / dataframe['m'+HName]
+    width_S = dataframe['w_'+SName] / dataframe['m'+SName]
+    width_X = dataframe['w_'+XName] / dataframe['m'+XName]
 
     # get max_width from config file
     try:
@@ -56,15 +49,10 @@ def filter_widths(file_name: str,
     # create the product of the 3 masks
     mask = maskH & maskS & maskX
 
-    # create array of 0 and 1 based on mask
+    # create series of 0 and 1 based on mask
     filt_width = mask.astype(int)
 
-    # overwrite filt_width array with new array
-    arrs.set_array('filt_width',filt_width)
+    # add filter to dataframe
+    dataframe[header_width] = filt_width
 
-    # write new data to file
-    arrs.write_file(file_name)
-
-    # number of entries that pass
-    npass = filt_width.sum()
-    return npass
+    return

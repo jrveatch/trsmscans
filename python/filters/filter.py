@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import argparse
-import numpy as np
+import logging
 
+# local modules
 from filters import width
 from filters import bounds
-from utils.tsv_utils import initialize_column
-from utils.arrays import Arrays
+from utils.df_utils import get_df, write_to_tsv
 from utils.masses import Masses
 from utils.config_loader import ConfigLoader
-
-import logging
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -21,10 +20,11 @@ header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
                   masses: Masses,
-                  config_loader: 'ConfigLoader') -> tuple[int,int,int]:
+                  config_loader: 'ConfigLoader'
+                 ) -> tuple[int,int,int]:
 
-    # initialize filter columns
-    initialize_filters(file_name)
+    # load in dataframe from .tsv file
+    dataframe = get_df(file_name)
 
     # get model name from config file
     try:
@@ -37,40 +37,35 @@ def apply_filters(file_name: str,
         raise
 
     # apply width filter
-    nwidth = width.filter_widths(file_name=file_name,
-                                 masses=masses,
-                                 config_loader=config_loader)
+    width.filter_widths(dataframe=dataframe,
+                        header_width=header_width,
+                        masses=masses,
+                        config_loader=config_loader)
 
-    # apply bounds filter
-    nbounds, nsignals = bounds.filter_bounds(file_name=file_name,
-                                             model_name=model_name,
-                                             masses=masses)
+    # apply bounds and signals filters
+    bounds.filter_bounds(dataframe=dataframe,
+                         header_bounds=header_bounds,
+                         header_signals=header_signals,
+                         model_name=model_name,
+                         masses=masses)
 
-    # get arrays from output file
-    arrays = Arrays(file_name)
+    # write updated dataframe to .tsv
+    write_to_tsv(dataframe=dataframe,
+                 file_name=file_name)
 
-    # find how many points pass both filters
-    filt_width = arrays.data(header_width)
-    filt_bounds = arrays.data(header_bounds)
-    filt_signals = arrays.data(header_signals)
-    filt_total = np.multiply(filt_width,filt_bounds,filt_signals)
-    npass: int = filt_total.sum()
+    # get results of each filter for counting
+    filt_width = dataframe[header_width]
+    filt_bounds = dataframe[header_bounds]
+    filt_signals = dataframe[header_signals]
+
+    # find how many points pass all filters
+    nwidth: int = filt_width.sum()
+    nbounds: int = filt_bounds.sum()
+    nsignals: int = filt_signals.sum()
+    npass: int = (filt_width * filt_bounds * filt_signals).sum()
 
     # return numbers of events passing each filter
     return nwidth, nbounds, nsignals, npass
-
-def initialize_filters(file_name: str) -> None:
-
-    # initialize all columns
-    initialize_column(file_name=file_name,
-                      column_header=header_width,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_bounds,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_signals,
-                      value=1)
 
 if __name__ == "__main__":
 

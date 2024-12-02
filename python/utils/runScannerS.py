@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import subprocess
 import multiprocessing as mp
 import os
 import shutil
 import time
 import math
-from blessings import Terminal
-from utils.tsv_utils import save_tsv_output
 import argparse
 import logging
+
+# third-party libraries
+from blessings import Terminal
+
+# local modules
+from utils.tsv_utils import save_tsv_output
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -104,7 +109,7 @@ def runScannerS(ini_name: str,
     counter = manager.Value("i",0)
 
     # print empty job completion counter
-    logger.info(f"{counter.value}/{num_processes} processes finished")
+    print(f"{counter.value}/{num_processes} processes finished")
 
     # create a pool of processes
     with mp.Pool(processes=num_processes) as pool:
@@ -149,7 +154,7 @@ def run_process(process_args: list[str],
 
     # increment the counter and print out how many processes are finished
     counter.value += 1
-    logger.info(term.move_up() + f"{counter.value}/{num_processes} processes finished")
+    print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
 def run_test_process(process_args: list[str],
