@@ -4,7 +4,7 @@ import logging
 
 # import tools
 import filters.filter
-from parse import Parse
+from utils.parse import Parse
 from utils.params import Params
 import filters.filter
 from utils.runScannerS import runScannerS
