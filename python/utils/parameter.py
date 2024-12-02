@@ -1,4 +1,5 @@
 from typing import Any, Optional
+import logging
 
 # class to hold and update a single model parameter
 class Parameter:
@@ -6,6 +7,9 @@ class Parameter:
     def __init__(self,
                  name: str,
                  dict: dict[str, Any]):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize parameter name
         self.__name = name
@@ -84,7 +88,7 @@ class Parameter:
 
         # if both newVal is None and rangeScale is 1.0, complain and return existing low
         if newVal is None and rangeScale == 1.0:
-            print("Attempting to update parameter with no new information... returning...")
+            self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         width = self.width()

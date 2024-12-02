@@ -6,13 +6,17 @@ from utils.parameter import Parameter
 
 from typing import Optional
 
+import logging
+
 # class to hold and update full set of parameters used in a scan
 class Params:
 
     def __init__(self,
                  model_name: str,
-                 masses: 'Masses',
-                 decay_name: str = ""):
+                 masses: 'Masses'):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store masses
         self.__masses = masses
@@ -96,7 +100,7 @@ class Params:
 
         # if both newPoint is None and rangeScale is 1.0, complain and return existing low
         if newPoint is None and rangeScale == 1.0:
-            print("Attempting to update parameter with no new information... returning...")
+            self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         # loop over parameters
@@ -134,7 +138,7 @@ class Params:
                     # use low_dict to update the low for each parameter
                     self.__parameters[par_name].set_low(new_low)
                 else:
-                    print(f"Warning: {par_name} is not known")
+                    self.logger.warning(f"{par_name} is not known")
             
         # check to see if high_dict exists
         if high_dict is not None:
@@ -145,7 +149,7 @@ class Params:
                     # use high_dict to update the high for each parameter
                     self.__parameters[par_name].set_high(new_high)
                 else:
-                    print(f"Warning: {par_name} is not known")
+                    self.logger.warning(f"{par_name} is not known")
 
     # function to calculate volume of parameter space
     def volume(self) -> float:

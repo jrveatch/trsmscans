@@ -143,9 +143,9 @@ def tanb_to_lambda112(mH: float,
     
     return lambda112
 
-def testpoint(mX: float,
-              sintheta: float,
-              tanb: float) -> None:
+def test_point(mX: float,
+               sintheta: float,
+               tanb: float) -> None:
 
     # SM Higgs mass and VEV
     mH = 125.09
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     sintheta = -8.9105204943541461E-002
     tanb = 0.96965458337420274
 
-    testpoint(mX,sintheta,tanb)
+    test_point(mX,sintheta,tanb)
