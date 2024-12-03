@@ -5,7 +5,6 @@ import logging
 # import tools
 from parse import Parse
 from utils.params import Params
-import filters.filter
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
 from utils.tsv_utils import save_tsv_output
@@ -23,6 +22,7 @@ class PointSampler:
                  model_name: str,
                  use_multiprocessing: bool,
                  config_loader: ConfigLoader,
+                 efficiency = "",
                  use_file_dir: bool = False) -> None:
         
         # get logger
@@ -38,14 +38,14 @@ class PointSampler:
         self.model_name = model_name
         self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
-        self.efficiency = 1.0
+        self.efficiency = bool(efficiency)
 
     # Method to sample a number of points
     def sample_points(self,
                       params: Params,
                       identifier: str,
                       num_points_requested: int,
-                      good_points_only: bool = True) -> Parse:
+                      good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
         out_name = self.model_name + "_" + identifier
@@ -76,6 +76,10 @@ class PointSampler:
 
         # Run until points passed is >= points asked for
         while self.npass < self.total_points_requested:
+
+            # Guarantee that there is no division by 0
+            if self.efficiency == 0.0:
+                self.efficiency = 1.0
 
             # Calculate number of points needed for next iteration -- round up to nearest whole number
             num_points_requested = math.ceil((self.total_points_requested-self.npass)/self.efficiency)

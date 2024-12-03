@@ -15,7 +15,7 @@ from utils.params import Params
 from utils.masses import Masses
 from parse import Parse
 from utils.config_loader import ConfigLoader
-from point_sampler import PointSampler
+from utils.point_sampler import PointSampler
 
 # get logger
 logger = logging.getLogger(__name__)
