@@ -56,13 +56,10 @@ def runScannerS(ini_name: str,
     # get number of available CPUs
     num_cpu = mp.cpu_count()
 
-    # minimum number of points per job
-    min_points = 10
-
     # make sure the minimum number of points are used
-    if num_points < min_points:
-        logger.debug(f"A minimum of {min_points} is required to run, adjusting...")
-        num_points = min_points
+    if num_points < min_points_per_job:
+        logger.debug(f"A minimum of {min_points_per_job} is required to run, adjusting...")
+        num_points = min_points_per_job
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
@@ -77,7 +74,7 @@ def runScannerS(ini_name: str,
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
-    if num_points < 2 * min_points:
+    if num_points < 2 * min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
@@ -108,10 +105,10 @@ def runScannerS(ini_name: str,
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
 
-        # if points_per_process is less than min_points, reduce the number of jobs
-        if points_per_process < min_points:
-            num_processes = math.ceil(points_to_run/min_points)
-            points_per_process = min_points
+        # if points_per_process is less than min_points_per_job, reduce the number of jobs
+        if points_per_process < min_points_per_job:
+            num_processes = math.ceil(points_to_run/min_points_per_job)
+            points_per_process = min_points_per_job
 
         # reset points_to_run to reflect how many are actually used
         points_to_run = points_per_process * num_processes
