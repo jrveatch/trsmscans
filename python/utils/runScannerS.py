@@ -69,11 +69,11 @@ def runScannerS(ini_name: str,
 
     # if multiprocessing flag isn't set, run as a single process
     if not use_multiprocessing:
-        logger.warning(f"Multiprocessing set to False, running as a single process with {num_points} points.")
+        logger.debug(f"Multiprocessing set to False, running as a single process with {num_points} points.")
 
     # if there is only 1 CPU available, run as a single process
     if num_cpu == 1:
-        logger.warning(f"Only 1 CPU available, running as a single process with {num_points} points.")
+        logger.debug(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
