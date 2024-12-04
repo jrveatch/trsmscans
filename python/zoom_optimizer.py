@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
-# import various modules to help with logistics
+# standard libraries
 import shutil
 import time
 import datetime
-import numpy as np
-import math
-import shutil
+import logging
 
-# import decimal
+# third-party libraries
 from decimal import Decimal
+import pandas as pd
 
-# import tools
+# local modules
 from utils.point import Point
 from utils.params import Params
 from utils.file_utils import scan_dir
 from utils.config_loader import ConfigLoader
-
 from utils.point_sampler import PointSampler
 
 class ZoomOptimizer:
@@ -29,6 +27,9 @@ class ZoomOptimizer:
                  starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # some basic scanner information
         self.params = params
@@ -51,12 +52,12 @@ class ZoomOptimizer:
             self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
-            self.min_points: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+            self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except KeyError as e:
-            print(f"Error: {e}")
+            self.logger.error(e)
             raise
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            self.logger.error(f"Unexpected error: {e}")
             raise
 
         # set output directory
@@ -94,7 +95,12 @@ class ZoomOptimizer:
         iter_label = f"{iter:04d}"
         if self.label:
             identifier = self.label + "-Iteration-" + iter_label
-        print("\nIteration:",identifier)
+        self.logger.info(f"Iteration: {identifier}")
+
+        # make sure num_points doesn't drop below min_points_per_iteration
+        if self.num_points < self.min_points_per_iteration:
+            self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
+            self.num_points = self.min_points_per_iteration
 
         # Create scan_parser using the point_sampler class
         self.scan_parser = self.point_sampler.sample_points(params = self.params,
@@ -118,12 +124,86 @@ class ZoomOptimizer:
         if new_max > self.local_max:
             self.local_max = new_max
 
+        # if a new optimal point is found
+        if is_new_global_max:
+
+            # write max xb point summary to info file
+            self.write_summary(identifier)
+
+            # write max xb point raw .tsv line to info file
+            self.scan_parser.write_max_xb_line(self.tsv_summary_name)
+
+        # check zoom strategy and call method accordingly
+        match self.strategy:
+
+            # zoom in using percentile
+            case "percentile":
+                self.percentile_zoom()
+
+            # zoom in using rate
+            case "rate":
+                self.rate_zoom()
+
+            # all other cases
+            case _:
+                self.logger.error("Unrecognized zoom strategy")
+                self.logger.error("Please use 'percentile' (default) or 'rate'")
+                # TODO: Throw an exception here
+                return
+
+        # add to a counter if new point is less than half of the global max
+        if new_max < global_max * 0.5:
+            self.global_xb_fail += 1
+        else:
+            self.global_xb_fail = 0
+        
+        # end the ZoomOptimizer if counter reaches 2
+        if self.global_xb_fail >= 2:
+            self.is_running = False
+            self.logger.info("Local max is consistently less than half of global max")
+            self.logger.info("Terminating zoom optimizer")
+            details = open(self.details_name,"a")
+            details.write("Local max is consistently less than half of global max")
+            details.write("Terminating zoom optimizer")
+            details.close()
+        
+        # get a sorted list of the history of the local max xb
+        sorted_history = sorted(self.local_history, key=lambda point: point.xb)
+
+        if len(sorted_history) >= 5:
+            # if new points are on an upward trend, run this code
+            if self.local_history[-1] >= self.local_history[-2]:
+                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
+                if new_max < sorted_history[-2] * 1.05:
+                    self.local_xb_fail += 1
+                    if self.local_xb_fail >= 2:
+                        self.is_running = False
+                        self.logger.info("Local max is increasing by less than 5%")
+                        self.logger.info("Terminating zoom optimizer")
+                        details = open(self.details_name,"a")
+                        details.write("Local max is increasing by less than 5%")
+                        details.write("Terminating zoom optimizer")
+                        details.close()
+                # reset local_xb_fail
+                else:
+                    self.local_xb_fail = 0
+            else:
+                # if point is less than 2nd highest point, end scan
+                if new_max < sorted_history[-2]:
+                    self.is_running = False
+                    self.logger.info("Local max is not increasing")
+                    self.logger.info("Terminating zoom optimizer")
+                    details = open(self.details_name,"a")
+                    details.write("Local max is not increasing")
+                    details.write("Terminating zoom optimizer")
+                    details.close()
+
+        # store history of local max of xb
+        self.local_history.append(new_max)
+
         # get iteration end time
         iter_end = time.time()
         iter_time = iter_end - iter_start
-
-        # print iteration time to screen
-        print("Iteration took",str(datetime.timedelta(seconds=int(iter_time))),"(hh:mm:ss)")
 
         # TODO: Factorize this to a function after sample_points change is merged
         # TODO: Add details about R11, R21, R31
@@ -155,82 +235,8 @@ class ZoomOptimizer:
         details.write("\n\n")
         details.close()
 
-        # if a new optimal point is found
-        if is_new_global_max:
-
-            # write max xb point summary to info file
-            self.write_summary(identifier)
-
-            # write max xb point raw .tsv line to info file
-            self.write_tsv_summary()
-
-        # check zoom strategy and call method accordingly
-        match self.strategy:
-
-            # zoom in using percentile
-            case "percentile":
-                self.percentile_zoom()
-
-            # zoom in using rate
-            case "rate":
-                self.rate_zoom()
-
-            # all other cases
-            case _:
-                print("Unrecognized zoom strategy")
-                print("Please use 'percentile' (default) or 'rate'")
-                # TODO: Throw an exception here
-                return
-
-        # add to a counter if new point is less than half of the global max
-        if new_max < global_max * 0.5:
-            self.global_xb_fail += 1
-        else:
-            self.global_xb_fail = 0
-        
-        # end the ZoomOptimizer if counter reaches 2
-        if self.global_xb_fail >= 2:
-            self.is_running = False
-            end_message = "Local max is consistently less than half of global max\n"
-            end_message += "Terminating zoom optimizer"
-            print(end_message)
-            details = open(self.details_name,"a")
-            details.write(end_message)
-            details.close()
-        
-        # get a sorted list of the history of the local max xb
-        sorted_history = sorted(self.local_history, key=lambda point: point.xb)
-
-        if len(sorted_history) >= 5:
-            # if new points are on an upward trend, run this code
-            if self.local_history[-1] >= self.local_history[-2]:
-                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
-                if new_max < sorted_history[-2] * 1.05:
-                    self.local_xb_fail += 1
-                    if self.local_xb_fail >= 2:
-                        self.is_running = False
-                        end_message = "Local max is increasing by less than 5%\n"
-                        end_message += "Terminating zoom optimizer"
-                        print(end_message)
-                        details = open(self.details_name,"a")
-                        details.write(end_message)
-                        details.close()
-                # reset local_xb_fail
-                else:
-                    self.local_xb_fail = 0
-            else:
-                # if point is less than 2nd highest point, end scan
-                if new_max < sorted_history[-2]:
-                    self.is_running = False
-                    end_message = "Local max is not increasing\n"
-                    end_message += "Terminating zoom optimizer"
-                    print(end_message)
-                    details = open(self.details_name,"a")
-                    details.write(end_message)
-                    details.close()
-
-        # store history of local max of xb
-        self.local_history.append(new_max)
+        # print iteration time to screen
+        self.logger.info(f"Iteration took {str(datetime.timedelta(seconds=int(iter_time)))} (hh:mm:ss)\n")
             
         return new_max
 
@@ -243,12 +249,6 @@ class ZoomOptimizer:
         summary.write("\t" + identifier)
         summary.write("\n")
         summary.close()
-
-    # write max xb point raw .tsv line to info file
-    def write_tsv_summary(self) -> None:
-        tsv_summary = open(self.tsv_summary_name,"a")
-        tsv_summary.write(self.scan_parser.get_max_xb_line())
-        tsv_summary.close()
 
     # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:
@@ -264,18 +264,18 @@ class ZoomOptimizer:
 
         # if top_percentile_xb has already been filled, add it to current xb_array
         if self.top_percentile_xb is not None:
-            xb_array = np.append(xb_array, self.top_percentile_xb)
+            xb_array = pd.concat([xb_array, self.top_percentile_xb])
 
         # ensure min_points are looked
-        if len(xb_array) * (1.0 - percentile_threshold / 100) < min_points:
-            percentile_threshold = math.floor(100 * (1.0 - min_points/len(xb_array)))
+        if len(xb_array) * (1.0 - percentile_threshold) < min_points:
+            percentile_threshold = 1.0 - min_points / xb_array.size
 
         # make sure percentile threshold is >= 0
         if percentile_threshold < 0:
             percentile_threshold = 0
 
         # create a threshold to look at the top percentile of xb points
-        xb_threshold = np.percentile(xb_array, percentile_threshold)
+        xb_threshold = xb_array.quantile(percentile_threshold)
 
         # get top percentile of xb
         self.top_percentile_xb = xb_array[xb_array > xb_threshold]
@@ -288,7 +288,7 @@ class ZoomOptimizer:
         for param, values in self.scan_parser.get_parameter_arrays().items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
-                values = np.append(values, self.top_percentile[param])
+                values = pd.concat([values, self.top_percentile[param]])
             # update top_percentile accounting for new values
             self.top_percentile[param] = values[xb_array > xb_threshold]
             # set lows and highs of each parameter

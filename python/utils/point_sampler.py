@@ -3,7 +3,8 @@
 import logging
 
 # import tools
-from parse import Parse
+
+from utils.parse import Parse
 from utils.params import Params
 from filters.filter import apply_filters
 from utils.runScannerS import runScannerS
@@ -72,7 +73,7 @@ class PointSampler:
         self.curr_points_run = 0
 
         # Print total number of points requested
-        print(f"{self.total_points_requested} points requested")
+        self.logger.info(f"{self.total_points_requested} points requested")
 
         # Run until points passed is >= points asked for
         while self.npass < self.total_points_requested:
@@ -125,7 +126,7 @@ class PointSampler:
 
             # Print points passed and efficiency
             self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
-            self.logger.debug(f'A total of {self.npass} points have passed\n')
+            self.logger.debug(f'A total of {self.npass} points have passed')
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/efficiency)-1) > 0.05:
@@ -143,7 +144,8 @@ class PointSampler:
                 self.logger.debug(f'{npass} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
 
         # Print final number of events that pass
-        print(f"Generated {self.npass} points that pass filters")
+        self.logger.info(f"Generated {self.npass} points that pass filters")
+        self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)

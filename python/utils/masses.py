@@ -1,4 +1,6 @@
 
+import logging
+
 # class to hold onto masses and handle translation
 # between X/S/H and H1/H2/H3 bases
 class Masses:
@@ -7,6 +9,9 @@ class Masses:
                  mX: float,
                  mS: float,
                  mH: float):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # set X/S/H masses
         self.mX = mX
@@ -38,7 +43,7 @@ class Masses:
         
         # complain and exit if X is not the heaviest
         else:
-            print("Only mX > mS,mH is currently supported")
+            self.logger.error("Only mX > mS,mH is currently supported")
             return
 
         """

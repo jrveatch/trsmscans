@@ -1,29 +1,26 @@
 #!/usr/bin/env python3
 
-# import various modules to help with logistics
+# standard libraries
 import os
 import shutil
 import time
 import datetime
 import argparse
 import logging
-
-# import decimal
 from decimal import Decimal
+import copy
+import itertools
 
-# import tools
+# local modules
 from utils.point import Point
 from utils.params import Params
 from utils.masses import Masses
 from prescan import run_prescan
 from utils.file_utils import scan_dir
 from utils.decay_utils import is_valid_decay
-
-import copy
-import itertools
-
+from utils.logging_utils import setup_logging
+from utils.logging_utils import LOG_LEVELS
 from zoom_optimizer import ZoomOptimizer
-
 from utils.config_loader import ConfigLoader
 
 # class to organize and run a complete scan
@@ -54,8 +51,8 @@ class Scan:
         # check whether decay is valid
         supported = is_valid_decay(self.decay)
         if not supported:
-            print("Unrecognized decay", self.decay)
-            print("Quitting...")
+            self.logger.error(f"Unrecognized decay {self.decay}")
+            self.logger.error("Quitting...")
             quit()
 
         # use default config file name if none is provided
@@ -70,10 +67,10 @@ class Scan:
             self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
             self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
         except KeyError as e:
-            print(f"Error: {e}")
+            self.logger.error(e)
             raise
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            self.logger.error(f"Unexpected error: {e}")
             raise
 
         # make instance of params
@@ -155,7 +152,7 @@ class Scan:
         n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_num_points()
+        n_prescan = self.prescan_parser.get_num_filtered_points()
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
@@ -166,7 +163,7 @@ class Scan:
         # scan range and minimize scan points that are wasted
 
         # print header about prescan ranges to the screen
-        print("Found the following ranges from the prescan:")
+        self.logger.info("Found the following ranges from the prescan:")
 
         # loop over parameters
         for parameter_name in self.params.parameter_names():
@@ -223,8 +220,9 @@ class Scan:
         # write scan max xb tsv line to tsv summary file
         tsv_summary = open(self.tsv_summary_name, "a")
         tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
-        tsv_summary.write(self.prescan_parser.get_max_xb_line())
         tsv_summary.close()
+
+        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -263,7 +261,7 @@ class Scan:
 
             # check if user has added a set number of iterations
             if niter > 0 and iter >= niter:
-                print(f"Ending after {niter} iterations as request")
+                self.logger.info(f"Ending after {niter} iterations as requested")
                 break
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
@@ -297,8 +295,8 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # print out scan time
-        print("\nDone!")
-        print("Scan took", str(datetime.timedelta(seconds=int(scan_time))), "(hh:mm:ss)\n")
+        self.logger.info("Done!")
+        self.logger.info(f"Scan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)\n")
 
         # write time info to details file
         details = open(self.details_name, "a")
@@ -374,7 +372,8 @@ class Scan:
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        print(f"\nUsing {len(all_zoom_optimizers)} ZoomOptimizer(s)")
+        print("\n")
+        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
@@ -392,11 +391,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
     args = arg_parser.parse_args()
 
     # set up logging
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)s - %(name)s - %(message)s")
+    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
