@@ -6,12 +6,17 @@ from utils.parameter import Parameter
 
 from typing import Optional
 
+import logging
+
 # class to hold and update full set of parameters used in a scan
 class Params:
 
     def __init__(self,
                  model_name: str,
                  masses: 'Masses'):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store masses
         self.__masses = masses
@@ -29,60 +34,45 @@ class Params:
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
-        for par in self.__parameter_names:
-            self.__parameters[par] = Parameter(par,self.__model.parameter(par))
+        for name in self.__parameter_names:
+            self.__parameters[name] = Parameter(name,self.__model.parameter(name))
 
     # get dictionary of parameters
-    def parameters(self) -> dict[str,'Parameter']:
+    def parameters(self) -> dict[str, Parameter]:
         return self.__parameters
 
     # get parameter
     def parameter(self,
-                  parname: str) -> 'Parameter':
-        return self.__parameters[parname]
+                  par_name: str) -> Parameter:
+        return self.__parameters[par_name]
 
     # get parameter names
     def parameter_names(self) -> list[str]:
         return self.__parameter_names
 
     # get masses
-    def masses(self) -> 'Masses':
+    def masses(self) -> Masses:
         return self.__masses
     
-    def midpoint_tuples(self) -> tuple[float]:
-        return tuple([param.get_midpoint() for param in self.__parameters.values()])
+    def center_point(self) -> tuple[float]:
+        return tuple([param.center() for param in self.__parameters.values()])
     
-    def extent_tuples(self) -> tuple[tuple[float]]:
-        return tuple([(param.get_low(), param.get_high()) for param in self.__parameters.values()])
+    def ranges(self) -> tuple[tuple[float]]:
+        return tuple([param.range() for param in self.__parameters.values()])
 
     # get starting min value from model
     def starting_min(self,
-                     parname: str) -> float:
-        return self.__model.starting_min(parname)
+                     par_name: str) -> float:
+        return self.__model.starting_min(par_name)
 
     # get starting max value from model
     def starting_max(self,
-                     parname: str) -> float:
-        return self.__model.starting_max(parname)
+                     par_name: str) -> float:
+        return self.__model.starting_max(par_name)
     
     # get model name
     def model_name(self) -> str:
         return self.__model.name()
-
-    # functions to set min and max values
-    # if the current high or low values are beyond
-    # the new min or max, set them
-    # these also set new range values
-
-    def set_lower_bound(self,
-                        parname: str,
-                        newMin: float) -> None:
-        self.parameter(parname).set_lower_bound(newMin)
-
-    def set_upper_bound(self,
-                        parname: str,
-                        newMax: str) -> None:
-        self.parameter(parname).set_upper_bound(newMax)
 
     # set new value, range, low and high
     def scale_ranges(self,
@@ -91,49 +81,49 @@ class Params:
 
         # if both newPoint is None and rangeScale is 1.0, complain and return existing low
         if newPoint is None and rangeScale == 1.0:
-            print("Attempting to update parameter with no new information... returning...")
+            self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         # loop over parameters
-        for parname in self.__parameter_names:
+        for par_name in self.__parameter_names:
 
             # initialize new value to be None
             newVal = None
 
             # if new point is provided, get new value from it
             if newPoint:
-                newVal = newPoint.get_val(parname)
+                newVal = newPoint.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.__parameters[parname].scale_range(newVal=newVal,
+            self.__parameters[par_name].scale_width(newVal=newVal,
                                                    rangeScale=rangeScale)
 
     # update both low and high of each parameter using dictionaries
     def update_low_high(self,
-                        lowdict:dict=None,
-                        highdict:dict=None) -> None:
+                        low_dict: dict = None,
+                        high_dict: dict = None) -> None:
 
-        # check to see if lowdict exists
-        if lowdict is not None:
+        # check to see if low_dict exists
+        if low_dict is not None:
 
             # loop over parameters
-            for parname, newlow in lowdict.items():
-                if parname in self.__parameters:
-                    # use lowdict to update the low for each parameter
-                    self.__parameters[parname].update_low(newlow)
+            for par_name, new_low in low_dict.items():
+                if par_name in self.__parameters:
+                    # use low_dict to update the low for each parameter
+                    self.__parameters[par_name].set_low(new_low)
                 else:
-                    print(f"Warning: {parname} is not known")
+                    self.logger.warning(f"{par_name} is not known")
             
-        # check to see if highdict exists
-        if highdict is not None:
+        # check to see if high_dict exists
+        if high_dict is not None:
 
             # loop over parameters
-            for parname, newhigh in highdict.items():
-                if parname in self.__parameters:
-                    # use highdict to update the high for each parameter
-                    self.__parameters[parname].update_high(newhigh)
+            for par_name, new_high in high_dict.items():
+                if par_name in self.__parameters:
+                    # use high_dict to update the high for each parameter
+                    self.__parameters[par_name].set_high(new_high)
                 else:
-                    print(f"Warning: {parname} is not known")
+                    self.logger.warning(f"{par_name} is not known")
 
     # function to calculate volume of parameter space
     def volume(self) -> float:
@@ -145,48 +135,23 @@ class Params:
         for par in self.__parameters.values():
         
             # make sure range is non-zero
-            if par.get_range() > 1e-13:
+            if par.width() > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.get_range()
+                volume *= par.width()
         
         return volume
-
-    # function to get lower bound value
-    def lower_bound(self,
-                    parname: str) -> float:
-        return self.parameter(parname).lower_bound()
-
-    # function to get max value
-    def upper_bound(self,
-                    parname: str) -> float:
-        return self.parameter(parname).upper_bound()
-
-    # function to get low value
-    def get_low(self,
-                parname: str) -> float:
-        return self.parameter(parname).get_low()
-
-    # function to get high value
-    def get_high(self,
-                 parname: str) -> float:
-        return self.parameter(parname).get_high()
-    
-    # function to get parameter ranges
-    def range(self,
-              parname: str) -> float:
-        return self.parameter(parname).get_range()
     
     # function to write .ini file with parameters
     def write_ini(self,
-                  ininame: str) -> None:
+                  ini_name: str) -> None:
 
         # read in template .ini file
         template = open(self.__model.template_ini(),"r")
         ini_data = template.read()
         template.close()
 
-        # create inidata with parameters
+        # create ini_data with parameters
         ini_data = ini_data.replace("MH1",str(self.__mH1))
         ini_data = ini_data.replace("MH2",str(self.__mH2))
         ini_data = ini_data.replace("MH3",str(self.__mH3))
@@ -197,11 +162,36 @@ class Params:
             ini_data = ini_data.replace(par.name()+"_HIGH",str(par.get_high()))
 
         # write to .ini file
-        outfile = open(ininame,"w")
+        outfile = open(ini_name,"w")
         outfile.write(ini_data)
         outfile.close()
 
     # print min and max for a parameter
     def print_bounds(self,
-                     parname: str) -> None:
-        self.parameter(parname).print_bounds()
+                     par_name: str) -> None:
+        self.parameter(par_name).print_bounds()
+
+    # parameter name indexing
+    def __getitem__(self, key) -> Parameter:
+        return self.parameter(key)
+
+    ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
+
+    # initialize iteration
+    def __iter__(self):
+        self.__iter_idx = -1
+        return self
+    
+    # get next value
+    def __next__(self):
+        self.__iter_idx += 1
+
+        if self.__iter_idx >= len(self.__parameters):
+            raise StopIteration
+        
+        return self.__parameters.values()[self.__iter_idx]
+    
+    # length of params
+    def __len__(self):
+        return len(self.__parameters)
+    

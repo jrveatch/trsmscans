@@ -20,8 +20,8 @@ python3_minor=$(echo "$python3_version" | cut -d. -f2)
 
 # Check if Python version is less than 3.10
 if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_minimum_major && $python3_minor -lt $python3_minimum_minor) ]]; then
-    echo "Error: Python3 version $python3_version is below $python3_minimum"
-    echo "Please install $python3_minimum and try again"
+    printf "Error: Python3 version $python3_version is below $python3_minimum\n"
+    printf "Please install $python3_minimum and try again\n"
     return 1
 fi
 
@@ -34,12 +34,12 @@ cmake_minor=$(echo "$cmake_version" | cut -d. -f2)
 
 # Check if Python version is less than 3.10
 if [[ $cmake_major -lt $cmake_minimum_major || ($cmake_major -eq $cmake_minimum_major && $cmake_minor -lt $cmake_minimum_minor) ]]; then
-    echo "Error: CMake version $cmake_version is below $cmake_minimum"
-    echo "Please install $cmake_minimum and try again"
+    printf "Error: CMake version $cmake_version is below $cmake_minimum\n"
+    printf "Please install $cmake_minimum and try again\n"
     return 1
 fi
 
-echo "CMake version $cmake_version is installed" 
+printf "CMake version $cmake_version is installed\n" 
 
-echo "All dependencies are installed and meet the minimum version requirements."
+printf "All dependencies are installed and meet the minimum version requirements\n"
 

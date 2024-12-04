@@ -42,3 +42,6 @@ SHVVtautau
 SbbHgamgam
 SgamgamHbb
 SHbbgamgam
+
+# no decay to get production cross-section only
+NoDecay

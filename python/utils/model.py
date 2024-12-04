@@ -1,12 +1,16 @@
 
 import os
 import yaml
+import logging
 
 # class that holds information about the model being used
 class Model:
 
     def __init__(self,
                  name: str):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
         self.__name = name
@@ -15,10 +19,10 @@ class Model:
         self.__model_dir = os.environ['DATADIR']+"models/"
 
         # model yaml file
-        self.__ymlname = self.__model_dir + self.__name + "_params.yml"
+        self.__yaml_name = self.__model_dir + self.__name + "_params.yml"
 
         # template .ini file name
-        self.__templateini = self.__model_dir + self.__name + "_template.ini"
+        self.__template_ini = self.__model_dir + self.__name + "_template.ini"
 
         self.__read_yaml()
 
@@ -29,10 +33,10 @@ class Model:
         self.particles = {}
 
         # create empty __model_params dictionary
-        self.__model_params = {}
+        self.__model_params: dict[str,any] = {}
 
         # read in model yaml file
-        with open(self.__ymlname,'r') as file:
+        with open(self.__yaml_name,'r') as file:
             # read yaml data for model
             yaml_data = yaml.safe_load(file)[self.__name]
             # read particles
@@ -47,7 +51,7 @@ class Model:
         
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
-            print('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
             return
         
         # store SM-like Higgs
@@ -69,20 +73,20 @@ class Model:
         return self.__model_params
 
     # get a single model parameter
-    def parameter(self,parname) -> dict:
-        return self.__model_params[parname]
+    def parameter(self,par_name) -> dict[str,any]:
+        return self.__model_params[par_name]
 
     # get list of model parameter names
-    def parameter_names(self) -> list:
+    def parameter_names(self) -> list[str]:
         return list(self.__model_params.keys())
 
     # get model parameter starting min
-    def starting_min(self,parname) -> float:
-        return self.__model_params[parname]['min']
+    def starting_min(self,par_name) -> float:
+        return self.__model_params[par_name]['min']
 
     # get model parameter starting max
-    def starting_max(self,parname) -> float:
-        return self.__model_params[parname]['max']
+    def starting_max(self,par_name) -> float:
+        return self.__model_params[par_name]['max']
 
     # get model name
     def name(self) -> str:
@@ -90,4 +94,4 @@ class Model:
 
     # get model template .ini file
     def template_ini(self) -> str:
-        return self.__templateini
+        return self.__template_ini

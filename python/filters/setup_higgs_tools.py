@@ -47,19 +47,19 @@ def get_higgs_predictions(model_name: str):
 def get_higgs_signals():
 
     # get data directory
-    datadir = os.environ['DATADIR']
+    data_directory = os.environ['DATADIR']
 
     # get HS dataset
-    signals = HS.Signals(datadir+'hsdataset')
+    signals = HS.Signals(data_directory+'hsdataset')
 
     return signals
 
 def get_higgs_bounds():
 
     # get data directory
-    datadir = os.environ['DATADIR']
+    data_directory = os.environ['DATADIR']
 
     # get HB dataset
-    bounds = HB.Bounds(datadir+'hbdataset')
+    bounds = HB.Bounds(data_directory+'hbdataset')
 
     return bounds

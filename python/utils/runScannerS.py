@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import subprocess
 import multiprocessing as mp
 import os
 import shutil
 import time
 import math
-from blessings import Terminal
-from utils import tsvutils
 import argparse
+import logging
+
+# third-party libraries
+from blessings import Terminal
+
+# local modules
+from utils.tsv_utils import save_tsv_output
+
 from utils.config_loader import ConfigLoader
+
+# get logger
+logger = logging.getLogger(__name__)
 
 config_loader = ConfigLoader(config_file_name="ScannerS.yml")
 # get configurations from config file
@@ -27,129 +37,93 @@ except Exception as e:
     print(f"Unexpected error: {e}")
     raise
 
+# get logger
+logger = logging.getLogger(__name__)
+
 # method to run ScannerS
-def runScannerS(ininame: str,
-                npoints: int,
+def runScannerS(ini_name: str,
+                num_points: int,
                 model_name: str,
                 use_multiprocessing: bool) -> int:
 
-    # if only one process needed, use subprocess
-    if not use_multiprocessing:
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
+    # raise exception if .ini doesn't exist
+    if not os.path.exists(ini_name):
+        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
 
-    # otherwise use multiprocessing
-    else:
-        return run_parallel_processes(ininame=ininame,
-                                      npoints=npoints,
-                                      model_name=model_name)
-
-# run job as a single process
-def run_single_process(ininame: str,
-                       npoints: int,
-                       model_name: str) -> int:
-
-    # simple information message
-    print(f"Running ScannerS as a single process with",npoints,"points.")
-
-    # complain and exit if .ini doesn't exist
-    # TODO: Change this to a try/except
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
-        quit()
-
-    # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(npoints)]
-
-    # run the process
-    try:
-        run_subprocess(process,model_name)
-    except TimeoutError:
-        raise
-
-    # simple information message
-    print("Finished running process")
-
-    # return number of points used
-    return npoints
-
-# run multiple processes in parallel
-def run_parallel_processes(ininame: str,
-                           npoints: int,
-                           model_name: str,
-                           njobs=-1) -> int:
-
-    # complain and exit if .ini doesn't exist
-    if not os.path.exists(ininame):
-        print(ininame,"doesn't exist. Exiting.")
-        quit()
+    # initialize number of processes to 1
+    num_processes = 1
 
     # get number of available CPUs
-    ncpu = mp.cpu_count()
+    num_cpu = mp.cpu_count()
 
-    # if there is only 1 CPU available, run a single process
-    if ncpu == 1:
-        print("Only 1 CPU available, running as a single process")
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
+    # minimum number of points per job
+    min_points = 10
 
-    # set number of workers to fraction of the available cores (rounded down)
-    nworkers = int(ncpu * frac_cpu)
+    # make sure the minimum number of points are used
+    if num_points < min_points:
+        logger.debug(f"A minimum of {min_points} is required to run, adjusting...")
+        num_points = min_points
 
-    # by default set nprocesses to nworkers
-    if njobs < 1:
-        num_processes = nworkers
-    # if the number of requested jobs is greater than the number
-    # of workers, limit number of processes to number of workers
-    elif njobs > nworkers:
-        num_processes = nworkers
-    # otherwise set the number of processes to the requested number of jobs
-    else:
-        num_processes = njobs
+    # use num_points unless modified for parallel processes
+    points_per_process = num_points
 
-    # get number of points per job, rounded up
-    points_per_job = math.ceil(npoints/num_processes)
+    # if multiprocessing flag isn't set, run as a single process
+    if not use_multiprocessing:
+        logger.warning(f"Multiprocessing set to False, running as a single process with {num_points} points.")
 
-    # if points_per_job is less than min_points_per_job, reduce the number of jobs
-    if points_per_job < min_points_per_job:
-        num_processes = math.ceil(npoints/min_points_per_job) - 1
-        points_per_job = min_points_per_job
+    # if there is only 1 CPU available, run as a single process
+    if num_cpu == 1:
+        logger.warning(f"Only 1 CPU available, running as a single process with {num_points} points.")
+        use_multiprocessing = False
 
-    # if fewer than 2 processes are needed, run a single process
-    if num_processes < 2:
-        print("Only 1 process needed, running as a single process")
-        return run_single_process(ininame=ininame,
-                                  npoints=npoints,
-                                  model_name=model_name)
+    # if fewer than 2 processes are needed, run as a single process
+    if num_points < 2 * min_points:
+        logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
+        use_multiprocessing = False
 
-    # print out some information
-    print("Running test job with",min_points_per_job,"points")
+    # if using multiprocessing, run a test job and then calculate number of jobs and points per job
+    if use_multiprocessing:
 
-    # define test process with 10 points
-    test_process = [model_name, "--config", ininame, "scan", "-n", str(min_points_per_job)]
+        # print out some information
+        logger.debug(f"Running a test job with {min_points_per_job} points")
 
-    # run test process
-    try:
-        run_subprocess(test_process,model_name)
-    except TimeoutError:
-        raise
+        # define test process with 10 points
+        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
 
-    # print out some information
-    print("Test job was successful")
+        # run test process
+        try:
+            run_test_process(test_process_args,model_name)
+        except TimeoutError:
+            raise
 
-    # reset npoints to reflect how many are actually used
-    npoints = points_per_job * num_processes
+        # print out some information
+        logger.debug("Test job was successful")
 
-    # print out some information
-    print("Running",npoints,"points as",num_processes,"processes with",points_per_job,"points each")
+        # number of points left to run after test job
+        points_to_run = num_points - min_points_per_job
+
+        # set number of processes to 80% of the available cores rounded down
+        num_processes = int(num_cpu * frac_cpu)
+
+        # get number of points per job, rounded up
+        points_per_process = math.ceil(points_to_run/num_processes)
+
+        # if points_per_process is less than min_points, reduce the number of jobs
+        if points_per_process < min_points:
+            num_processes = math.ceil(points_to_run/min_points)
+            points_per_process = min_points
+
+        # reset points_to_run to reflect how many are actually used
+        points_to_run = points_per_process * num_processes
+
+        # print out some information
+        logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ininame, "scan", "-n", str(points_per_job)]
+    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
     # create a manager and a shared counter to track the number of finished processes
     manager = mp.Manager()
@@ -169,17 +143,17 @@ def run_parallel_processes(ininame: str,
         pool.join()
 
     # success message
-    print("All processes finished. Merging outputs...")
+    logger.info("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
     concatenate_files(directories=directories,
                       file_name=model_name+".tsv")
 
-    # return number of points that are actually used
-    return npoints
+    # return number of points that are actually used, including test job points
+    return num_points
 
 # run a process for multiprocessing
-def run_process(process: list[str],
+def run_process(process_args: list[str],
                 directory: str,
                 counter,
                 num_processes: int) -> None:
@@ -194,7 +168,7 @@ def run_process(process: list[str],
     log = open("ScannerS.log", "w")
 
     # run the process with arguments and suppress output
-    subprocess.run(process, stdout=log, stderr=log)
+    subprocess.run(process_args, stdout=log, stderr=log)
 
     # get Terminal for nicer outputs
     term = Terminal()
@@ -203,9 +177,9 @@ def run_process(process: list[str],
     counter.value += 1
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
-# run a python subprocess for a single job
-def run_subprocess(process: list[str],
-                   model_name: str) -> None:
+# run a python test process as a single job
+def run_test_process(process_args: list[str],
+                     model_name: str) -> None:
 
     # output file name
     outfile = model_name + ".tsv"
@@ -214,7 +188,7 @@ def run_subprocess(process: list[str],
     log = open("ScannerS.log", "w")
 
     # launch process
-    process = subprocess.Popen(process, stdout=log, stderr=log)
+    process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
     # get start time
     start_time = time.time()
@@ -257,26 +231,42 @@ def concatenate_files(directories: list[str],
     for directory in directories:
 
         # write/append .tsv from directory to output file
-        tsvutils.save_tsv_output(inputfile=directory+"/"+file_name,
-                                 outputfile=file_name)
+        save_tsv_output(input_file = directory + "/" + file_name,
+                        output_file = file_name)
 
         # delete the temporary directory
-        shutil.rmtree(directory)
+        remove_temp_dir(directory)
+
+# if rmtree fails due to non-empty directory, try a few more times
+# this seems necessary on lxplus and maybe some other systems
+def remove_temp_dir(directory, retries=5, delay=1):
+    for attempt in range(retries):
+        try:
+            shutil.rmtree(directory)
+            logger.debug(f"Successfully removed: {directory}")
+            return
+        except OSError as e:
+            if 'Directory not empty' in str(e):
+                logger.debug(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                time.sleep(delay)  # Wait before retrying
+            else:
+                raise  # Raise if it's another type of error
+    logger.error(f"Failed to remove {directory} after {retries} retries.")
 
 if __name__ == "__main__":
 
     # Parse command line arguments
-    argparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    argparser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    argparser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
-    argparser.add_argument("-j", "--njobs", default=4, type=int, help="Number of jobs")
-    args = argparser.parse_args()
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
+    args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ininame = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
+    ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ininame=ininame,
-                model_name=args.model,
-                npoints=args.npoints,
-                njobs=args.njobs)
+    runScannerS(ini_name = ini_name,
+                model_name = args.model,
+                num_points = args.npoints,
+                use_multiprocessing = args.use_multiprocessing)
