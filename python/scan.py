@@ -17,7 +17,7 @@ from utils.params import Params
 from utils.masses import Masses
 from prescan import run_prescan
 from utils.file_utils import scan_dir
-from utils.decay_utils import is_valid_decay
+from utils.decay_utils import is_valid_decay, valid_decays
 from utils.logging_utils import setup_logging
 from utils.logging_utils import LOG_LEVELS
 from zoom_optimizer import ZoomOptimizer
@@ -49,11 +49,11 @@ class Scan:
         self.use_multiprocessing = use_multiprocessing
 
         # check whether decay is valid
-        supported = is_valid_decay(self.decay)
-        if not supported:
-            self.logger.error(f"Unrecognized decay {self.decay}")
-            self.logger.error("Quitting...")
-            quit()
+        if not is_valid_decay(self.decay):
+            raise ValueError(
+                f"Unrecognized decay {self.decay}\n"
+                f"Allowed decays are: {', '.join(valid_decays())}."
+            )
 
         # use default config file name if none is provided
         if not config_file_name:

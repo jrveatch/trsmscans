@@ -2,22 +2,26 @@
 
 import os
 
-def is_valid_decay(decay_mode: str) -> bool:
+def valid_decays() -> set[str]:
 
     # decay mode file name
     file_name = os.environ['DATADIR'] + "decaymodes.txt"
 
-    # search for decay mode in file
-    with open(file_name, 'r') as file:
-        # loop over every line in the file
-        for line in file:
-            # skip blank lines
-            if line.strip():
-                # get first word from each line
-                first_word = line.split()[0]
-                if first_word == decay_mode:
-                    # if it is found, return True
-                    return True
+    # initialize empty set for the available decay modes
+    strings_set = set()
 
-    # if it isn't found, return False
-    return False
+    # open the file
+    with open(file_name, "r") as file:
+        for line in file:
+            # strip leading/trailing whitespace
+            stripped_line = line.strip()
+            # skip comments and blank lines
+            if not stripped_line or stripped_line.startswith("#"):
+                continue
+            # add the valid string to the set
+            strings_set.add(stripped_line)
+    return strings_set
+
+def is_valid_decay(decay_mode: str) -> bool:
+
+    return decay_mode in valid_decays()
