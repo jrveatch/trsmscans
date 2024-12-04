@@ -16,6 +16,27 @@ from blessings import Terminal
 # local modules
 from utils.tsv_utils import save_tsv_output
 
+from utils.config_loader import ConfigLoader
+
+# get logger
+logger = logging.getLogger(__name__)
+
+config_loader = ConfigLoader(config_file_name="ScannerS.yml")
+# get configurations from config file
+try:
+    # fraction of cpus to use when parallel processing
+    frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
+    # minimum number of points per job
+    min_points_per_job: float = config_loader.get('ScannerS', 'min_points_per_job')
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout: float = config_loader.get('ScannerS', 'timeout')
+except KeyError as e:
+    print(f"Error: {e}")
+    raise
+except Exception as e:
+    print(f"Unexpected error: {e}")
+    raise
+
 # get logger
 logger = logging.getLogger(__name__)
 
@@ -35,28 +56,25 @@ def runScannerS(ini_name: str,
     # get number of available CPUs
     num_cpu = mp.cpu_count()
 
-    # minimum number of points per job
-    min_points = 10
-
     # make sure the minimum number of points are used
-    if num_points < min_points:
-        logger.debug(f"A minimum of {min_points} is required to run, adjusting...")
-        num_points = min_points
+    if num_points < min_points_per_job:
+        logger.debug(f"A minimum of {min_points_per_job} is required to run, adjusting...")
+        num_points = min_points_per_job
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
 
     # if multiprocessing flag isn't set, run as a single process
     if not use_multiprocessing:
-        logger.warning(f"Multiprocessing set to False, running as a single process with {num_points} points.")
+        logger.debug(f"Multiprocessing set to False, running as a single process with {num_points} points.")
 
     # if there is only 1 CPU available, run as a single process
     if num_cpu == 1:
-        logger.warning(f"Only 1 CPU available, running as a single process with {num_points} points.")
+        logger.debug(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
-    if num_points < 2 * min_points:
+    if num_points < 2 * min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
@@ -64,10 +82,10 @@ def runScannerS(ini_name: str,
     if use_multiprocessing:
 
         # print out some information
-        logger.debug(f"Running a test job with {min_points} points")
+        logger.debug(f"Running a test job with {min_points_per_job} points")
 
         # define test process with 10 points
-        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
+        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
 
         # run test process
         try:
@@ -79,18 +97,18 @@ def runScannerS(ini_name: str,
         logger.debug("Test job was successful")
 
         # number of points left to run after test job
-        points_to_run = num_points - min_points
+        points_to_run = num_points - min_points_per_job
 
         # set number of processes to 80% of the available cores rounded down
-        num_processes = int(num_cpu * 0.8)
+        num_processes = int(num_cpu * frac_cpu)
 
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
 
-        # if points_per_process is less than min_points, reduce the number of jobs
-        if points_per_process < min_points:
-            num_processes = math.ceil(points_to_run/min_points)
-            points_per_process = min_points
+        # if points_per_process is less than min_points_per_job, reduce the number of jobs
+        if points_per_process < min_points_per_job:
+            num_processes = math.ceil(points_to_run/min_points_per_job)
+            points_per_process = min_points_per_job
 
         # reset points_to_run to reflect how many are actually used
         points_to_run = points_per_process * num_processes
@@ -165,9 +183,6 @@ def run_test_process(process_args: list[str],
 
     # log file
     log = open("ScannerS.log", "w")
-
-    # time in seconds at which process will be killed if nothing is printed out
-    timeout = 20
 
     # launch process
     process = subprocess.Popen(process_args, stdout=log, stderr=log)
