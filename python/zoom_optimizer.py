@@ -104,8 +104,8 @@ class ZoomOptimizer:
 
         # Create scan_parser using the point_sampler class
         self.scan_parser = self.point_sampler.sample_points(params = self.params,
-                                                            identifier = identifier,
-                                                            num_points_requested = self.num_points)
+                                                            num_points_requested = self.num_points,
+                                                            identifier = identifier)
 
         # calculate point density from ranges
         volume = self.params.volume()

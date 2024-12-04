@@ -23,7 +23,6 @@ class PointSampler:
                  model_name: str,
                  use_multiprocessing: bool,
                  config_loader: ConfigLoader,
-                 efficiency = "",
                  use_file_dir: bool = False) -> None:
         
         # get logger
@@ -39,13 +38,13 @@ class PointSampler:
         self.model_name = model_name
         self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
-        self.efficiency = bool(efficiency)
+        self.efficiency = 1.0
 
     # Method to sample a number of points
     def sample_points(self,
                       params: Params,
-                      identifier: str,
                       num_points_requested: int,
+                      identifier = "",
                       good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
