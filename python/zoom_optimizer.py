@@ -60,6 +60,16 @@ class ZoomOptimizer:
             self.logger.error(f"Unexpected error: {e}")
             raise
 
+        # supported strategies
+        allowed_strategies = {"zoom","percentile"}
+
+        # check the strategy and throw an error if it is not supported
+        if self.strategy not in allowed_strategies:
+            raise ValueError(
+                f"Unrecognized zoom strategy: '{self.strategy}'. "
+                f"Allowed strategies are: {', '.join(allowed_strategies)}."
+            )
+
         # set output directory
         out_dir = scan_dir(model_name=self.model_name,
                            decay=decay,
@@ -81,8 +91,6 @@ class ZoomOptimizer:
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
-
-        # TODO: Names of details and summary files
 
     def run(self,
             iter: int,
@@ -146,10 +154,7 @@ class ZoomOptimizer:
 
             # all other cases
             case _:
-                self.logger.error("Unrecognized zoom strategy")
-                self.logger.error("Please use 'percentile' (default) or 'rate'")
-                # TODO: Throw an exception here
-                return
+                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
 
         # add to a counter if new point is less than half of the global max
         if new_max < global_max * 0.5:
