@@ -31,10 +31,10 @@ try:
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
 except KeyError as e:
-    print(f"Error: {e}")
+    logger.error(e)
     raise
 except Exception as e:
-    print(f"Unexpected error: {e}")
+    logger.error(e)
     raise
 
 # get logger
