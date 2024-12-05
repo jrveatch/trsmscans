@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 import os
+from functools import lru_cache
 
+@lru_cache(maxsize=None)
 def valid_decays() -> set[str]:
 
     # decay mode file name
-    file_name = os.environ['DATADIR'] + "decaymodes.txt"
+    file_name = os.path.join(os.environ['DATADIR'], "decaymodes.txt")
 
     # initialize empty set for the available decay modes
     strings_set = set()
