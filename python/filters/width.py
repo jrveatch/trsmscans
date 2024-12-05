@@ -41,13 +41,8 @@ def filter_widths(dataframe: pd.DataFrame,
         logger.error(f"Unexpected error: {e}")
         raise
 
-    # check whether each width is below the max width
-    maskH = width_H < max_width_H
-    maskS = width_S < max_width_S
-    maskX = width_X < max_width_X
-
-    # create the product of the 3 masks
-    mask = maskH & maskS & maskX
+    # create mask that checks each width is below the max width
+    mask = (width_H < max_width_H) & (width_S < max_width_S) & (width_X < max_width_X)
 
     # create series of 0 and 1 based on mask
     filt_width = mask.astype(int)
