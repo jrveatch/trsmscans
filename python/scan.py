@@ -139,13 +139,13 @@ class Scan:
                                               config_loader = self.config_loader,
                                               use_multiprocessing = self.use_multiprocessing)
 
-        # if prescan fails, remove directory and quit
+        # if prescan fails, remove directory and raise an error
         except TimeoutError:
 
             # delete directory
             shutil.rmtree(self.out_dir)
 
-            # quit execution
+            # raise error
             raise
 
         # get the number of unfiltered prescan points available
