@@ -64,7 +64,7 @@ install the necessary python modules.
 ## Every login
 
 The code needs to be run from a python virtual environment that
-needs to be set up everytime you start a new shell. The virtual
+needs to be set up every time you start a new shell. The virtual
 environment can be set up with `source setup.sh`.
 
 ## Running
