@@ -5,7 +5,9 @@ import Higgs.signals as HS
 from utils.model import Model
 
 import os
+from functools import lru_cache
 
+@lru_cache(maxsize=None)
 def get_higgs_predictions(model_name: str):
 
     # create model object
@@ -44,6 +46,7 @@ def get_higgs_predictions(model_name: str):
 
     return pred
 
+@lru_cache(maxsize=None)
 def get_higgs_signals():
 
     # get data directory
@@ -54,6 +57,7 @@ def get_higgs_signals():
 
     return signals
 
+@lru_cache(maxsize=None)
 def get_higgs_bounds():
 
     # get data directory
