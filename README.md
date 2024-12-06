@@ -45,12 +45,12 @@ It is recommended that you install the latest version of Python.
 These tools rely on `ScannerS` and `HiggsTools`, both of which are set
 up as submodules that will be automatically cloned and compiled using the
 provided scripts. In order to access both, it is necessary to have SSH
-keys set up on `[https://gitlab.com](https://gitlab.com).
+keys set up on [https://gitlab.com](https://gitlab.com).
 
 The submodule repositories can be found using these links:
 
-  * [`ScannerS`](https://gitlab.com/jonaswittbrodt/ScannerS)
-  * [`HiggsTools`](https://gitlab.com/higgsbounds/higgstools)
+  * [ScannerS](https://gitlab.com/jonaswittbrodt/ScannerS)
+  * [HiggsTools](https://gitlab.com/higgsbounds/higgstools)
 
 ## Installation
 
