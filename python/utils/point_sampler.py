@@ -81,7 +81,7 @@ class PointSampler:
         while self.npass < self.total_points_requested:
 
             # Guarantee that there is no division by 0
-            if abs(self.efficiency - 0.0) < (e-12):
+            if abs(self.efficiency - 0.0) < 1e-12:
                 self.efficiency = 1.0
 
             # Calculate number of points needed for next iteration -- round up to nearest whole number
