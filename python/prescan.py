@@ -15,7 +15,7 @@ from utils.params import Params
 from utils.masses import Masses
 from utils.parse import Parse
 from utils.config_loader import ConfigLoader
-from point_sampler import PointSampler
+from utils.point_sampler import PointSampler
 from utils.logging_utils import setup_logging
 from utils.logging_utils import LOG_LEVELS
 
@@ -127,8 +127,8 @@ def run_prescan(masses: 'Masses',
 
     # sample points
     parser = point_sampler.sample_points(params = params,
-                                         identifier = "prescan",
                                          npoints = num_points,
+                                         identifier = "prescan",
                                          good_points_only = False)
 
     # get total time taken
