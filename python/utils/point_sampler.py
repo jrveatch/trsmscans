@@ -48,7 +48,10 @@ class PointSampler:
                       good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
-        out_name = self.model_name + "_" + identifier
+        out_name = self.model_name
+        # Check if identifier is defined
+        if identifier:
+            out_name += "_" + identifier
         ini_name = self.ini_dir + out_name + ".ini"
         tsv_name = self.tsv_dir + out_name + ".tsv"
         temp_tsv = self.out_dir + self.model_name + ".tsv"
@@ -78,7 +81,7 @@ class PointSampler:
         while self.npass < self.total_points_requested:
 
             # Guarantee that there is no division by 0
-            if self.efficiency == 0.0:
+            if abs(self.efficiency - 0.0) < (e-12):
                 self.efficiency = 1.0
 
             # Calculate number of points needed for next iteration -- round up to nearest whole number
