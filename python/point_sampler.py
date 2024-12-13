@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import logging
-
-# import tools
-import filters.filter
-from utils.parse import Parse
-from utils.params import Params
-import filters.filter
-from utils.runScannerS import runScannerS
-
-from utils.tsv_utils import save_tsv_output
-from utils.config_loader import ConfigLoader
-
 from typing import List
+
+# local modules
+import filters.filter
+from utils.config_loader import ConfigLoader
+from utils.params import Params
+from utils.parse import Parse
+from utils.runScannerS import runScannerS
+from utils.tsv_utils import save_tsv_output
+
 
 class PointSampler:
         

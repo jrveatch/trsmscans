@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from filters.setup_higgs_tools import *
-
 from utils.test_point_utils import *
 
 # SETUP STARTS HERE

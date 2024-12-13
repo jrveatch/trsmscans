@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 
-# import various modules to help with logistics
+# standard libraries
+import argparse
+import datetime
+import logging
 import os
 import shutil
 import time
-import datetime
-import argparse
-import logging
 
-# import package tools
-from utils.tsv_utils import count_tsv_points
-from utils.file_utils import prescan_dir
-from utils.params import Params
-from utils.masses import Masses
-from utils.parse import Parse
-from utils.config_loader import ConfigLoader
+# local modules
 from point_sampler import PointSampler
-from utils.logging_utils import setup_logging
-from utils.logging_utils import LOG_LEVELS
+from utils.config_loader import ConfigLoader
+from utils.file_utils import prescan_dir
+from utils.logging_utils import LOG_LEVELS, setup_logging
+from utils.masses import Masses
+from utils.params import Params
+from utils.parse import Parse
+from utils.tsv_utils import count_tsv_points
 
 # get logger
 logger = logging.getLogger(__name__)
