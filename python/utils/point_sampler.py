@@ -2,6 +2,7 @@
 
 # standard libraries
 import logging
+import math
 
 # local modules
 from filters.filter import apply_filters
