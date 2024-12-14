@@ -11,11 +11,11 @@ from decimal import Decimal
 import pandas as pd
 
 # local modules
-from point_sampler import PointSampler
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
 from utils.params import Params
 from utils.point import Point
+from utils.point_sampler import PointSampler
 
 class ZoomOptimizer:
 
@@ -112,8 +112,8 @@ class ZoomOptimizer:
 
         # Create scan_parser using the point_sampler class
         self.scan_parser = self.point_sampler.sample_points(params = self.params,
-                                                            identifier = identifier,
-                                                            npoints = self.num_points)
+                                                            num_points_requested = self.num_points,
+                                                            identifier = identifier)
 
         # calculate point density from ranges
         volume = self.params.volume()

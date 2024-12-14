@@ -9,13 +9,13 @@ import shutil
 import time
 
 # local modules
-from point_sampler import PointSampler
 from utils.config_loader import ConfigLoader
 from utils.file_utils import prescan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.masses import Masses
 from utils.params import Params
 from utils.parse import Parse
+from utils.point_sampler import PointSampler
 from utils.tsv_utils import count_tsv_points
 
 # get logger
@@ -126,8 +126,8 @@ def run_prescan(masses: 'Masses',
 
     # sample points
     parser = point_sampler.sample_points(params = params,
-                                         identifier = "prescan",
                                          npoints = num_points,
+                                         identifier = "prescan",
                                          good_points_only = False)
 
     # get total time taken
