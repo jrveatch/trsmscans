@@ -143,7 +143,7 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            shutil.rmtree(self.out_dir)
+            self.clean_up_failure()
 
             # raise error
             raise
@@ -377,6 +377,9 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
+    
+    def clean_up_failure(self) -> None:
+        shutil.rmtree(self.out_dir)
 
 if __name__ == "__main__":
 
@@ -392,10 +395,12 @@ if __name__ == "__main__":
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
+    arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name (default: scan.log).")
     args = arg_parser.parse_args()
 
     # set up logging
-    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
+    setup_logging(log_file=args.log,
+                  level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)

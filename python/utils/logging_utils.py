@@ -28,7 +28,46 @@ LOG_LEVELS = {
 }
 
 # Setup logging configuration
-def setup_logging(level=logging.INFO, log_format="%(levelname)s: %(message)s"):
-    logging.basicConfig(level=level, format=log_format)
-    # Example: Set default level to VERBOSE if needed
-    logging.getLogger().setLevel(level)
+def setup_logging(log_file: str,
+                  level = logging.INFO,
+                  log_format = None) -> None:
+    """
+    Set up logging to output to both a file and the console.
+
+    Parameters:
+        log_file (str): Path to the log file.
+        level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
+        log_format (str): Custom format for log messages. Defaults to a standard format.
+    """
+
+    # Create a logger
+    logger = logging.getLogger()
+    logger.setLevel(level)
+
+    # Define the log message format
+    if log_format is None:
+        log_format = '%(levelname)s: %(message)s'
+
+    formatter = logging.Formatter(log_format)
+
+    # Ensure the log file is overwritten
+    with open(log_file, 'w'):
+        pass  # This clears the file contents
+
+    # Create file handler for logging to a file
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(level)
+    file_handler.setFormatter(formatter)
+
+    # Create console handler for logging to the screen
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(level)
+    console_handler.setFormatter(formatter)
+
+    # Remove any existing handlers to prevent duplicates
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    # Add handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
