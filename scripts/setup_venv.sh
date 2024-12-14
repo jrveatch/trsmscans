@@ -1,4 +1,11 @@
 
+# deactivate any previously activated virtual environment
+if [[ "$VIRTUAL_ENV" != "" ]]
+then
+    printf "Deactivating previous venv\n"
+    ( deactivate )
+fi
+
 # get default python executable and version
 python3_default_exe=$(which python3)
 python3_default_version=$(python3 --version 2>&1 | cut -d' ' -f2)

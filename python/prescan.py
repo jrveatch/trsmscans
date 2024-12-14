@@ -126,7 +126,7 @@ def run_prescan(masses: 'Masses',
 
     # sample points
     parser = point_sampler.sample_points(params = params,
-                                         npoints = num_points,
+                                         num_points_requested = num_points,
                                          identifier = "prescan",
                                          good_points_only = False)
 
