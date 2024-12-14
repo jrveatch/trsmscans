@@ -2,7 +2,6 @@
 
 # standard libraries
 import logging
-from typing import List
 
 # local modules
 from filters.filter import apply_filters
