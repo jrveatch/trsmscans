@@ -115,7 +115,7 @@ def runScannerS(ini_name: str,
         # print out some information
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
-        num_points = points_to_run + min_points
+        num_points = points_to_run + min_points_per_job
         
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
