@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import subprocess
+import argparse
+import logging
+import math
 import multiprocessing as mp
 import os
 import shutil
+import subprocess
 import time
-import math
-import argparse
-import logging
 
 # third-party libraries
 from blessings import Terminal
 
 # local modules
-from utils.tsv_utils import save_tsv_output
-
 from utils.config_loader import ConfigLoader
+from utils.tsv_utils import save_tsv_output
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -116,6 +115,8 @@ def runScannerS(ini_name: str,
         # print out some information
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
+        num_points = points_to_run + min_points
+        
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 

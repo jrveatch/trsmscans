@@ -5,11 +5,10 @@ import argparse
 import logging
 
 # local modules
-from filters import width
-from filters import bounds
+from filters import bounds, width
+from utils.config_loader import ConfigLoader
 from utils.df_utils import get_df, write_to_tsv
 from utils.masses import Masses
-from utils.config_loader import ConfigLoader
 
 # get logger
 logger = logging.getLogger(__name__)

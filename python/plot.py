@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 
+# standard libraries
+import argparse
+import os
+from collections import defaultdict
+
+# third-party libraries
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
-import os
-from utils.parse import Parse
-import argparse
+from numpy.typing import NDArray
+
+# local modules
 from utils import file_utils
 from utils.masses import Masses
 from utils.model import Model
+from utils.parse import Parse
 from utils.point import Point
-from collections import defaultdict
+
 
 # Plot class
 class Plot:

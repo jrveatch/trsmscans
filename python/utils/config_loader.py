@@ -1,8 +1,11 @@
 
-import os
-import yaml
-from typing import Any, Optional
+# standard libraries
 import logging
+import os
+from typing import Any, Optional
+
+# third-party libraries
+import yaml
 
 class ConfigLoader:
 

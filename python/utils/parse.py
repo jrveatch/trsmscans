@@ -3,15 +3,15 @@
 import logging
 
 # third-party libraries
-import pandas as pd
 import diptest
+import pandas as pd
 
 # local modules
+from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
-from utils.point import Point
 from utils.masses import Masses
 from utils.model import Model
-from utils.decay_utils import valid_decays
+from utils.point import Point
 
 # class to parse arrays and provide details about data
 class Parse:

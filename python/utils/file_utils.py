@@ -1,5 +1,8 @@
 
+# standard libraries
 import os
+
+# local modules
 from utils.masses import Masses
 
 # get scan directory
