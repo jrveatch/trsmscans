@@ -7,6 +7,7 @@ numpy==2.2.0
 packaging==24.0
 pandas==2.2.3
 prettytable==3.10.0
+PyYAML==6.0.2
 requests==2.31.0
 scipy==1.14.1
 six==1.16.0
