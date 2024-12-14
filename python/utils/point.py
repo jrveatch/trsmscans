@@ -1,9 +1,9 @@
 
-# import model class to initialize Point class
-from utils.model import Model
-
-# import decimal class for nicely formatted strings
+# standard libraries
 from decimal import Decimal
+
+# local modules
+from utils.model import Model
 
 # class that holds parameter and xb values for a single point
 class Point:

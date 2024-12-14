@@ -1,12 +1,13 @@
 
-from utils.masses import Masses
-from utils.model import Model
-from utils.point import Point
-from utils.parameter import Parameter
-
+# standard libraries
+import logging
 from typing import Optional
 
-import logging
+# local modules
+from utils.masses import Masses
+from utils.model import Model
+from utils.parameter import Parameter
+from utils.point import Point
 
 # class to hold and update full set of parameters used in a scan
 class Params:

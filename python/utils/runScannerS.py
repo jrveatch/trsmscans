@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import subprocess
+import argparse
+import logging
+import math
 import multiprocessing as mp
 import os
 import shutil
+import subprocess
 import time
-import math
-import argparse
-import logging
 
 # third-party libraries
 from blessings import Terminal
 
 # local modules
-from utils.tsv_utils import save_tsv_output
-
 from utils.config_loader import ConfigLoader
+from utils.tsv_utils import save_tsv_output
 
 # get logger
 logger = logging.getLogger(__name__)

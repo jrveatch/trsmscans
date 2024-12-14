@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import shutil
-import time
 import datetime
 import logging
+import shutil
+import time
+from decimal import Decimal
 
 # third-party libraries
-from decimal import Decimal
 import pandas as pd
 
 # local modules
-from utils.point import Point
-from utils.params import Params
-from utils.file_utils import scan_dir
 from utils.config_loader import ConfigLoader
+from utils.file_utils import scan_dir
+from utils.params import Params
+from utils.point import Point
 from utils.point_sampler import PointSampler
 
 class ZoomOptimizer:

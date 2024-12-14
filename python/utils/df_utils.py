@@ -1,7 +1,9 @@
 
-import pandas as pd
-
+# standard libraries
 import logging
+
+# third-party libraries
+import pandas as pd
 
 # get logger
 logger = logging.getLogger(__name__)

@@ -1,7 +1,10 @@
 
-import os
-import yaml
+# standard libraries
 import logging
+import os
+
+# third-party libraries
+import yaml
 
 # class that holds information about the model being used
 class Model:

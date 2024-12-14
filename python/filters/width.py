@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 
 # local modules
-from utils.masses import Masses
 from utils.config_loader import ConfigLoader
+from utils.masses import Masses
 
 # get logger
 logger = logging.getLogger(__name__)
