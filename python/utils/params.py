@@ -69,7 +69,6 @@ class Params:
     def decay(self) -> str:
         """Decay mode being used"""
         return self.__decay
-
     ## Calculated values
 
     # get parameter from dict
