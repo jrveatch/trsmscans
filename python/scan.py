@@ -99,7 +99,7 @@ class Scan:
             os.makedirs(self.out_dir + "/files/tsv")
 
         # create summary file
-        self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters.values():
@@ -108,12 +108,12 @@ class Scan:
         summary.close()
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
         tsv_summary = open(self.tsv_summary_name, "w")
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.out_dir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.out_dir + f"files/details/prescan_details_{self.model_name}_{self.decay}_{self.masses}.txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
