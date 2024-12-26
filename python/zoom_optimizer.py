@@ -77,7 +77,7 @@ class ZoomOptimizer:
         self.point_sampler = PointSampler(out_dir = out_dir,
                                           model_name = params.model_name,
                                           use_multiprocessing = use_multiprocessing,
-                                          config_loader = self.config_loader,
+                                          config_loader = config_loader,
                                           use_file_dir = True)
 
         # get output information file names
