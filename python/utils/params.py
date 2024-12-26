@@ -59,10 +59,6 @@ class Params:
     def get_model_name(self) -> str:
         return self.__model_name
 
-    # get decay name
-    def get_decay_name(self) -> str:
-        return self.__decay_name
-
     ## Calculated values
 
     # get parameter from dict
@@ -88,10 +84,6 @@ class Params:
     def starting_max(self,
                      par_name: str) -> float:
         return self.__model.starting_max(par_name)
-    
-    # get model name - TODO: delete
-    def get_model_name(self) -> str:
-        return self.__model.name()
 
     # set new value, range, low and high
     def scale_ranges(self,
