@@ -74,7 +74,8 @@ class Scan:
         # make instance of params
         # this automatically initializes the parameters
         self.params = Params(model_name=model_name,
-                             masses=masses)
+                             masses=masses,
+                             decay=decay)
 
         # make dummy optimal point
         self.global_max = Point(model_name=model_name)
@@ -101,8 +102,8 @@ class Scan:
         self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
-        for parameter in self.params.parameters().values():
-            summary.write(f"\t{parameter.get_fullname()}")
+        for parameter in self.params.parameters.values():
+            summary.write(f"\t{parameter.fullname}")
         summary.write("\titer\n")
         summary.close()
 
@@ -146,10 +147,10 @@ class Scan:
             raise
 
         # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
+        n_prescan_unfiltered = self.prescan_parser.num_unfiltered_points
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_num_filtered_points()
+        n_prescan = self.prescan_parser.num_filtered_points
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
@@ -159,7 +160,7 @@ class Scan:
         self.logger.info("Found the following ranges from the prescan:\n")
 
         # loop over parameters
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.parameter_names:
 
             """
             if the prescan ranges are more than 1% of the max range
@@ -175,12 +176,12 @@ class Scan:
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params[parameter_name].get_lower_bound():
-                self.params[parameter_name].set_lower_bound(new_min - one_percent)
+            if new_min - one_percent > self.params[parameter_name].lower_bound:
+                self.params[parameter_name].lower_bound = (new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params[parameter_name].get_upper_bound():
-                self.params[parameter_name].set_upper_bound(new_max + one_percent)
+            if new_max + one_percent < self.params[parameter_name].upper_bound:
+                self.params[parameter_name].upper_bound = (new_max + one_percent)
 
             # print min and max to screen after prescan
             self.params.print_bounds(parameter_name)
@@ -199,7 +200,7 @@ class Scan:
         details.write(f"Scan density = {density:.3E}\n")
         details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
         details.write("--------------------\n")
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.parameter_names:
             details.write(parameter_name + ":\n")
             details.write(f"  {self.global_max.format_param(parameter_name)}\n")
             details.write(f"  {self.params.parameter(parameter_name).format_range()}\n")
@@ -209,14 +210,14 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
-        for name, parameter in self.params.parameters().items():
-            summary.write(f"\t{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
+        for name, parameter in self.params.parameters.items():
+            summary.write(f"\t{self.global_max.get_val(name):1.{parameter.precision}f}")
         summary.write("\tPre\n")
         summary.close()
 
         # write scan max xb tsv line to tsv summary file
         tsv_summary = open(self.tsv_summary_name, "a")
-        tsv_summary.write(f"{self.prescan_parser.get_tsv_header()}\n")
+        tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
         tsv_summary.close()
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
@@ -308,13 +309,13 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.parameter_names:
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params[parameter_name].get_low()
-            max_val = self.params[parameter_name].get_high()
+            min_val = self.params[parameter_name].low
+            max_val = self.params[parameter_name].high
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
@@ -336,8 +337,8 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for name, parameter in zip(param_dict.keys(), param_values):
-                params_copy[name].set_lower_bound(parameter['min'])
-                params_copy[name].set_upper_bound(parameter['max'])
+                params_copy[name].lower_bound = parameter['min']
+                params_copy[name].upper_bound = parameter['max']
                 param_combination_data[name] = parameter
 
             all_param_combinations.append((params_copy, param_combination_data))
@@ -360,7 +361,6 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 params = params_copy,
-                decay = self.decay,
                 use_multiprocessing = self.use_multiprocessing,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,

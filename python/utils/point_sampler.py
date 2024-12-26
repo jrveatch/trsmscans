@@ -61,13 +61,13 @@ class PointSampler:
         params.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.masses(), self.model_name)
+        self.parser = Parse(params.masses, self.model_name)
 
         # Initialize global variables given by filters
-        self.nwidth = 0
-        self.nbounds = 0
-        self.npass = 0
-        self.nsignals = 0
+        self.__nwidth = 0
+        self.__nbounds = 0
+        self.__nsignals = 0
+        self.__npass = 0
 
         # Initialize the amount of points run
         self.curr_points_run = 0
@@ -105,17 +105,17 @@ class PointSampler:
 
             # Apply width and bounds filters
             nwidth, nbounds, nsignals, npass = apply_filters(file_name = temp_tsv,
-                                                                            masses = params.masses(),
+                                                                            masses = params.masses,
                                                                             config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
 
             # Update the filtered variables
-            self.npass += npass
-            self.nbounds += nbounds
-            self.nwidth += nwidth
-            self.nsignals += nsignals
+            self.__nwidth += nwidth
+            self.__nbounds += nbounds
+            self.__nsignals += nsignals
+            self.__npass += npass
 
             # Break if all points are being counted
             if not good_points_only:
@@ -152,20 +152,29 @@ class PointSampler:
 
         return self.parser
 
-    # Return the variables
-    def get_nwidth(self) -> int:
-        return self.nwidth
+    @property
+    def nwidth(self) -> int:
+        """Number of points passing width check"""
+        return self.__nwidth
 
-    def get_nbounds(self) -> int:
-        return self.nbounds
+    @property
+    def nbounds(self) -> int:
+        """Number of points passing bounds check"""
+        return self.__nbounds
 
-    def get_nsignals(self) -> int:
-        return self.nsignals
+    @property
+    def nsignals(self) -> int:
+        """Number of points passing signals check"""
+        return self.__nsignals
 
-    def get_npass(self) -> int:
-        return self.npass
+    @property
+    def npass(self) -> int:
+        """Number of points passing all checks"""
+        return self.__npass
 
+    @property
     def total_points_run(self) -> int:
+        """Number of points that have been run"""
         return self.curr_points_run
 
 if __name__ == "__main__":

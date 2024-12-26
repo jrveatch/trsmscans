@@ -101,7 +101,7 @@ class Plot:
                 parser = Parse(file_name=file_name,
                                masses=self.masses,
                                model_name=self.model.name())
-                all_params = parser.get_parameter_arrays()
+                all_params = parser.parameter_arrays
                 xb = parser.get_xb(self.decay)
                 max_point = parser.get_max_xb_point(self.decay)
 

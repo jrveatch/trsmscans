@@ -71,8 +71,9 @@ class Parse:
                      model_name = self.__model_name,
                      par_vals = max_xb_par_vals)
 
-    # get header for .tsv
-    def get_tsv_header(self) -> str:
+    @property
+    def tsv_header(self) -> str:
+        """Header from .tsv file"""
         return get_header_string(self.data)
 
     # get minimum value of a parameter
@@ -85,8 +86,9 @@ class Parse:
                 par_name: str) -> float:
         return self.__par_arrays[par_name].max()
     
-    # get arrays of all parameter as a dictionary
-    def get_parameter_arrays(self) -> dict[str,pd.Series]:
+    @property
+    def parameter_arrays(self) -> dict[str,pd.Series]:
+        """Dictionary of the parameter arrays"""
         return self.__par_arrays
 
     # function that checks whether xb is unimodal in a parameter
@@ -293,12 +295,14 @@ class Parse:
         parameters = self.__model.parameters()
         self.__par_arrays = {name: self.filtered_data[par['fullname']] for name, par in parameters.items()}
 
-    # get number of filtered events
-    def get_num_filtered_points(self) -> int:
+    @property
+    def num_filtered_points(self) -> int:
+        """Number of filtered points"""
         return len(self.filtered_data)
 
-    # get number of unfiltered events
-    def get_num_unfiltered_points(self) -> int:
+    @property
+    def num_unfiltered_points(self) -> int:
+        """Number of unfiltered points"""
         return len(self.data)
     
     # write max xb line to a .tsv file

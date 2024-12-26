@@ -20,7 +20,6 @@ class ZoomOptimizer:
 
     def __init__(self,
                  params: 'Params',
-                 decay: str,
                  num_points: int,
                  use_multiprocessing: bool,
                  starting_max: 'Point',
@@ -32,11 +31,10 @@ class ZoomOptimizer:
 
         # some basic scanner information
         self.params = params
-        self.decay = decay
+        self.decay = params.decay
         self.num_points = num_points
         self.local_max = starting_max
         self.label = label
-        self.model_name = params.model_name()
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
@@ -70,19 +68,19 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model_name=self.model_name,
-                           decay=decay,
-                           masses=self.params.masses())
+        out_dir = scan_dir(model_name = params.model_name,
+                           decay = params.decay,
+                           masses = params.masses)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          model_name = self.model_name,
+                                          model_name = params.model_name,
                                           use_multiprocessing = use_multiprocessing,
-                                          config_loader = self.config_loader,
+                                          config_loader = config_loader,
                                           use_file_dir = True)
 
         # get output information file names
-        output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.masses()) + ".txt"
+        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.masses}.txt"
         self.summary_name = out_dir + "scan_summary_" + output_file_postfix
         self.tsv_summary_name = out_dir + "scan_tsv_summary_" + output_file_postfix
         self.prescan_details_name = out_dir + "files/details/prescan_details_" + output_file_postfix
@@ -215,21 +213,21 @@ class ZoomOptimizer:
         details = open(self.details_name,"a")
         details.write(f"Iteration = {identifier}\n")
         details.write("--------------------\n")
-        details.write(f"Using {self.point_sampler.total_points_run()} scan points\n")
+        details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
         details.write(f"Scan density = {density:.3E}\n")
-        details.write(f"{self.point_sampler.get_nwidth()}/{self.point_sampler.total_points_run()} pass width check\n")
-        details.write(f"{self.point_sampler.get_nbounds()}/{self.point_sampler.total_points_run()} pass bounds check\n")
-        details.write(f"{self.point_sampler.get_nsignals()}/{self.point_sampler.total_points_run()} pass signals check\n")
-        details.write(f"{self.point_sampler.get_npass()}/{self.point_sampler.total_points_run()} pass all checks\n")
+        details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
+        details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
+        details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
+        details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
         details.write("--------------------\n")
         details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
         details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
         details.write(f"Global max xsec*BR = {global_max.format_xb()}\n")
         details.write(f"Found new global max point: {is_new_global_max}\n")
         details.write("--------------------\n")
-        for par in self.params.parameter_names():
+        for par in self.params.parameter_names:
             details.write(f"{par}:\n")
-            details.write(f"  {self.params.parameter(par).format_range()}\n")
+            details.write(f"  {self.params.parameter_value(par).format_range()}\n")
             if is_new_global_max:
                 details.write(f"  new global max {self.local_max.format_param(par)}\n")
                 details.write(f"  {self.local_max.format_diff(local_max_old,par)}\n")
@@ -247,8 +245,8 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
-        for name, par in self.params.parameters().items():
-            summary.write(f"\t{self.local_max.get_val(name):1.{par.get_precision()}f}")
+        for name, par in self.params.parameters.items():
+            summary.write(f"\t{self.local_max.get_val(name):1.{par.precision}f}")
         summary.write(f"\t{identifier}\n")
         summary.close()
 
@@ -287,7 +285,7 @@ class ZoomOptimizer:
         high_dict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in self.scan_parser.get_parameter_arrays().items():
+        for param, values in self.scan_parser.parameter_arrays.items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
                 values = pd.concat([values, self.top_percentile[param]])
