@@ -70,13 +70,6 @@ class Params:
                   par_name: str) -> Parameter:
         return self.__parameters[par_name]
 
-    ## Calculated values
-
-    # get parameter from dict
-    def parameter_value(self,
-                  par_name: str) -> Parameter:
-        return self.__parameters[par_name]
-
     def center_points(self) -> tuple[float]:
         return tuple([param.center() for param in self.__parameters.values()])
     
