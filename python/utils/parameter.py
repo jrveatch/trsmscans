@@ -26,62 +26,91 @@ class Parameter:
         self.__low = self.__lower_bound
         self.__high = self.__upper_bound
 
-    # get name
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
+        """Name of the parameter"""
         return self.__name
 
-    # get low
-    def get_low(self) -> float:
+    @property
+    def low(self) -> float:
+        """Low value of the parameter"""
         return self.__low
 
-    # get high
-    def get_high(self) -> float:
-        return self.__high
+    @low.setter
+    def low(self,
+            new_low: float) -> None:
+        if new_low < self.__lower_bound:
+            """Restrict low if outside bound"""
+            self.__low = self.__lower_bound
+        else:
+            """Update to new value"""
+            self.__low = new_low
 
-    # get lower bound
-    def get_lower_bound(self) -> float:
+    @property
+    def high(self) -> float:
+        """High value of the parameter"""
+        return self.__high
+    
+    @high.setter
+    def high(self,
+             new_high: float) -> None:
+        if new_high > self.__upper_bound:
+            """Restrict high if outside bound"""
+            self.__high = self.__upper_bound
+        else:
+            """Update to new value"""
+            self.__high = new_high
+
+    @property
+    def lower_bound(self) -> float:
+        """Lower bound of the parameter"""
         return self.__lower_bound
 
-    # get upper bound
-    def get_upper_bound(self) -> float:
-        return self.__upper_bound
-
-    # get fullname
-    def get_fullname(self) -> str:
-        return self.__fullname
-
-    # get precision
-    def get_precision(self) -> int:
-        return self.__precision
-
-    # get the parameter center given current low and high
-    def center(self) -> float:
-        return (self.__low + self.__high) / 2
-    
-    # get range (inclusive)
-    def range(self) -> tuple:
-        return (self.__low, self.__high)
-
-    # get range given current low and high
-    def width(self) -> float:
-        return abs(self.__high - self.__low)
-
-    # functions to set min and max values
-    # if the current high or low values are beyond
-    # the new min or max, set them
-    # this also sets new range values
-
-    def set_lower_bound(self,
-                        newMin: float) -> None:
-        self.__lower_bound = newMin
+    @lower_bound.setter
+    def lower_bound(self,
+                    new_lower_bound: float) -> None:
+        self.__lower_bound = new_lower_bound
+        """If current low is less than lower bound, adjust it"""
         if self.__low < self.__lower_bound:
             self.__low = self.__lower_bound
 
-    def set_upper_bound(self,
-                        newMax: float) -> None:
-        self.__upper_bound = newMax
+    @property
+    def upper_bound(self) -> float:
+        """Upper bound of the parameter"""
+        return self.__upper_bound
+
+    @upper_bound.setter
+    def upper_bound(self,
+                    new_upper_bound: float) -> None:
+        self.__upper_bound = new_upper_bound
+        """If current high is greater than lower bound, adjust it"""
         if self.__high > self.__upper_bound:
             self.__high = self.__upper_bound
+
+    @property
+    def fullname(self) -> str:
+        """Full name of the parameter"""
+        return self.__fullname
+
+    @property
+    def precision(self) -> int:
+        """Precision of the parameter"""
+        return self.__precision
+
+    @property
+    def center(self) -> float:
+        """Center value of the parameter"""
+        return (self.__low + self.__high) / 2
+    
+    @property
+    def range(self) -> tuple:
+        """Range value of the parameter"""
+        return (self.__low, self.__high)
+
+    @property
+    def width(self) -> float:
+        """Width value of the parameter"""
+        return abs(self.__high - self.__low)
     
     # set new value, range, low and high
     def scale_width(self,
@@ -93,8 +122,8 @@ class Parameter:
             self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
-        width = self.width()
-        center = self.center()
+        width = self.width
+        center = self.center
 
         # scale width by given value
         width *= rangeScale
@@ -138,29 +167,11 @@ class Parameter:
         return
 
     # update both low and high values
-    def set_low_high(self, lo: float, hi: float):
-        self.set_low(lo)
-        self.set_high(hi)
-
-    # update the low to a new value
-    def set_low(self, value: float) -> None:
-
-        if value < self.__lower_bound:
-            # restrict low if outside bound
-            self.__low = self.__lower_bound
-        else:
-            # update low to our new value
-            self.__low = value
-    
-    # update the high to a new value
-    def set_high(self, value: float) -> None:
-
-        if value > self.__upper_bound:
-            # restrict high if outside bound
-            self.__high = self.__upper_bound
-        else:
-            # update high to our new value
-            self.__high = value
+    def set_low_high(self,
+                     new_low: float,
+                     new_high: float):
+        self.low(new_low)
+        self.high(new_high)
 
     # print min and max
     def print_bounds(self) -> None:

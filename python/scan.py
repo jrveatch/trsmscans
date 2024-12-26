@@ -102,8 +102,8 @@ class Scan:
         self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
-        for parameter in self.params.get_parameters().values():
-            summary.write("\t" + parameter.get_fullname())
+        for parameter in self.params.parameters.values():
+            summary.write("\t" + parameter.fullname)
         summary.write("\titer")
         summary.write("\n")
         summary.close()
@@ -165,7 +165,7 @@ class Scan:
         self.logger.info("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for parameter_name in self.params.get_parameter_names():
+        for parameter_name in self.params.parameter_names:
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
@@ -175,12 +175,12 @@ class Scan:
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params[parameter_name].get_lower_bound():
-                self.params[parameter_name].set_lower_bound(new_min - one_percent)
+            if new_min - one_percent > self.params[parameter_name].lower_bound:
+                self.params[parameter_name].lower_bound = (new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params[parameter_name].get_upper_bound():
-                self.params[parameter_name].set_upper_bound(new_max + one_percent)
+            if new_max + one_percent < self.params[parameter_name].upper_bound:
+                self.params[parameter_name].upper_bound = (new_max + one_percent)
 
             # print min and max to screen after prescan
             self.params.print_bounds(parameter_name)
@@ -199,7 +199,7 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
         details.write("--------------------\n")
-        for parameter_name in self.params.get_parameter_names():
+        for parameter_name in self.params.parameter_names:
             details.write(parameter_name + ":\n")
             details.write("  " + self.global_max.format_param(parameter_name) + "\n")
             details.write("  " + self.params.parameter_value(parameter_name).format_range() + "\n")
@@ -210,8 +210,8 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
-        for name, parameter in self.params.get_parameters().items():
-            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
+        for name, parameter in self.params.parameters.items():
+            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.precision}f}")
         summary.write("\tPre")
         summary.write("\n")
         summary.close()
@@ -310,13 +310,13 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for parameter_name in self.params.get_parameter_names():
+        for parameter_name in self.params.parameter_names:
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params[parameter_name].get_low()
-            max_val = self.params[parameter_name].get_high()
+            min_val = self.params[parameter_name].low
+            max_val = self.params[parameter_name].high
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
@@ -338,8 +338,8 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for name, parameter in zip(param_dict.keys(), param_values):
-                params_copy[name].set_lower_bound(parameter['min'])
-                params_copy[name].set_upper_bound(parameter['max'])
+                params_copy[name].lower_bound = parameter['min']
+                params_copy[name].upper_bound = parameter['max']
                 param_combination_data[name] = parameter
 
             all_param_combinations.append((params_copy, param_combination_data))

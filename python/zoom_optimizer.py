@@ -37,7 +37,6 @@ class ZoomOptimizer:
         self.num_points = num_points
         self.local_max = starting_max
         self.label = label
-        self.model_name = params.get_model_name()
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
@@ -71,19 +70,19 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model_name=self.model_name,
+        out_dir = scan_dir(model_name=self.params.model_name,
                            decay=decay,
-                           masses=self.params.get_masses())
+                           masses=self.params.masses)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          model_name = self.model_name,
+                                          model_name = self.params.model_name,
                                           use_multiprocessing = use_multiprocessing,
                                           config_loader = self.config_loader,
                                           use_file_dir = True)
 
         # get output information file names
-        output_file_postfix = self.model_name + "_" + self.decay + "_" + str(self.params.get_masses()) + ".txt"
+        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.masses}.txt"
         self.summary_name = out_dir + "scan_summary_" + output_file_postfix
         self.tsv_summary_name = out_dir + "scan_tsv_summary_" + output_file_postfix
         self.prescan_details_name = out_dir + "files/details/prescan_details_" + output_file_postfix
@@ -228,7 +227,7 @@ class ZoomOptimizer:
         details.write("Global max xsec*BR = " + global_max.format_xb() + "\n")
         details.write("Found new global max point: " + str(is_new_global_max) + "\n")
         details.write("--------------------\n")
-        for par in self.params.get_parameter_names():
+        for par in self.params.parameter_names:
             details.write(par+":\n")
             details.write("  "+self.params.parameter_value(par).format_range()+"\n")
             if is_new_global_max:
@@ -249,8 +248,8 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
-        for name, par in self.params.get_parameters().items():
-            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.get_precision()}f}")
+        for name, par in self.params.parameters.items():
+            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.precision}f}")
         summary.write("\t" + identifier)
         summary.write("\n")
         summary.close()

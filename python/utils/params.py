@@ -41,29 +41,33 @@ class Params:
         for name in self.__parameter_names:
             self.__parameters[name] = Parameter(name,self.__model.parameter(name))
 
-    ## Class member getters
+    ## Class properties
 
-    # get dictionary of parameters
-    def get_parameters(self) -> dict[str, Parameter]:
+    @property
+    def parameters(self) -> dict[str, Parameter]:
+        """Dictionary of parameters"""
         return self.__parameters
 
-    # get parameter names
-    def get_parameter_names(self) -> list[str]:
+    @property
+    def parameter_names(self) -> list[str]:
+        """List of parameter name"""
         return self.__parameter_names
 
-    # get masses
-    def get_masses(self) -> Masses:
+    @property
+    def masses(self) -> Masses:
+        """Masses used in run"""
         return self.__masses
 
-    # get model name
-    def get_model_name(self) -> str:
+    @property
+    def model_name(self) -> str:
+        """Name of model being used"""
         return self.__model_name
 
     ## Calculated values
 
     # get parameter from dict
     def parameter_value(self,
-                  par_name: str) -> Parameter:
+                        par_name: str) -> Parameter:
         return self.__parameters[par_name]
     
     def center_points(self) -> tuple[float]:
@@ -128,7 +132,7 @@ class Params:
             for par_name, new_low in low_dict.items():
                 if par_name in self.__parameters:
                     # use low_dict to update the low for each parameter
-                    self.__parameters[par_name].set_low(new_low)
+                    self.__parameters[par_name].low = new_low
                 else:
                     self.logger.warning(f"{par_name} is not known")
             
@@ -139,7 +143,7 @@ class Params:
             for par_name, new_high in high_dict.items():
                 if par_name in self.__parameters:
                     # use high_dict to update the high for each parameter
-                    self.__parameters[par_name].set_high(new_high)
+                    self.__parameters[par_name].high = new_high
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -153,10 +157,10 @@ class Params:
         for par in self.__parameters.values():
         
             # make sure range is non-zero
-            if par.width() > 1e-13:
+            if par.width > 1e-13:
         
                 # multiply volume by parameter range
-                volume *= par.width()
+                volume *= par.width
         
         return volume
     
@@ -175,9 +179,9 @@ class Params:
         ini_data = ini_data.replace("MH3",str(self.__mH3))
 
         # loop over parameters and fill low/high values
-        for par in self.get_parameters().values():
-            ini_data = ini_data.replace(par.get_name()+"_LOW",str(par.get_low()))
-            ini_data = ini_data.replace(par.get_name()+"_HIGH",str(par.get_high()))
+        for par in self.parameters.values():
+            ini_data = ini_data.replace(par.name+"_LOW",str(par.low))
+            ini_data = ini_data.replace(par.name+"_HIGH",str(par.high))
 
         # write to .ini file
         outfile = open(ini_name,"w")
@@ -206,11 +210,6 @@ class Params:
     def vol_range(self) -> tuple[tuple[float, float]]:
         return self.ranges()
 
-    # Alias for self.get_parameter_names()
-    @property
-    def names(self) -> list[str]:
-        return self.get_parameter_names()
-
     # parameter name indexing
     def __getitem__(self, key) -> Parameter:
         return self.parameter_value(key)
@@ -234,4 +233,3 @@ class Params:
     # length of params
     def __len__(self):
         return len(self.__parameters)
-    
