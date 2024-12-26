@@ -75,7 +75,8 @@ class Scan:
         # make instance of params
         # this automatically initializes the parameters
         self.params = Params(model_name=model_name,
-                             masses=masses)
+                             masses=masses,
+                             decay=decay)
 
         # make dummy optimal point
         self.global_max = Point(model_name=model_name)
@@ -362,7 +363,6 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 params = params_copy,
-                decay = self.decay,
                 use_multiprocessing = self.use_multiprocessing,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,
