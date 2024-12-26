@@ -137,6 +137,11 @@ class Parameter:
 
         return
 
+    # update both low and high values
+    def set_low_high(self, lo: float, hi: float):
+        self.set_low(lo)
+        self.set_high(hi)
+
     # update the low to a new value
     def set_low(self, value: float) -> None:
 
