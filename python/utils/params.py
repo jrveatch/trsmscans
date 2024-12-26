@@ -69,14 +69,6 @@ class Params:
     def parameter_value(self,
                   par_name: str) -> Parameter:
         return self.__parameters[par_name]
-    
-    # get model name
-    def get_model_name(self) -> str:
-        return self.__model_name
-    
-    # get decay name
-    def get_decay_name(self) -> str:
-        return self.__decay_name
 
     ## Calculated values
 
@@ -223,10 +215,12 @@ class Params:
     @property
     def vol_width(self) -> tuple[float]:
         return self.widths()
+
     # Alias for self.ranges()
     @property
     def vol_range(self) -> tuple[tuple[float, float]]:
         return self.ranges()
+
     # Alias for self.get_parameter_names()
     @property
     def names(self) -> list[str]:
