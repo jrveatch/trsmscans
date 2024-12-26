@@ -50,26 +50,16 @@ def setup_logging(log_file: str,
     if log_format is None:
         log_format = '%(levelname)s: %(message)s'
 
-    formatter = logging.Formatter(log_format)
+    # Clear existing handlers
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
 
-    # Ensure the log file is overwritten
-    with open(log_file, 'w'):
-        pass  # This clears the file contents
-
-    # Create file handler for logging to a file
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(level)
-    file_handler.setFormatter(formatter)
-
-    # Create console handler for logging to the screen
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(level)
-    console_handler.setFormatter(formatter)
-
-    # Remove any existing handlers to prevent duplicates
-    if logger.hasHandlers():
-        logger.handlers.clear()
-
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+    # Set up logging to file and console
+    logging.basicConfig(
+        level=level,
+        format=log_format,
+        handlers=[
+            logging.FileHandler(log_file, mode='w'),  # File logging
+            logging.StreamHandler()                   # Console logging
+        ]
+    )
