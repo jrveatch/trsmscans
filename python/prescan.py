@@ -151,7 +151,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
@@ -167,6 +167,6 @@ if __name__ == "__main__":
 
     run_prescan(masses = masses,
                 model_name = args.model,
-                num_points = args.npoints,
+                num_points = args.num_points,
                 overwrite = args.overwrite,
                 use_multiprocessing = args.multiprocessing)

@@ -389,7 +389,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
@@ -413,5 +413,5 @@ if __name__ == "__main__":
                  )
 
     # run scan using scan object
-    myScan.run_zoom_optimization(num_points = args.npoints,
+    myScan.run_zoom_optimization(num_points = args.num_points,
                                  niter = args.iterations)
