@@ -19,7 +19,7 @@ from utils import file_utils
 
 from utils.params import Params
 from utils.config_loader import ConfigLoader
-from point_sampler import PointSampler
+from utils.point_sampler import PointSampler
 
 class MeanShiftOptimizer:
 
@@ -43,9 +43,9 @@ class MeanShiftOptimizer:
         self.__stop_epochs = stop_epochs
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
-        self.__model_name = global_params.get_model_name()
-        self.__decay_name = global_params.get_decay_name()
-        self.__masses = global_params.get_masses()
+        self.__model_name = global_params.model_name
+        self.__decay_name = global_params.decay
+        self.__masses = global_params.masses
 
         # Initialize paths
         self.__scan_path = file_utils.scan_dir(
@@ -131,7 +131,7 @@ class MeanShiftOptimizer:
             outpath = f"{self.__scan_path}files/"
             log_file_name = f"{self.__scan_path}files/log/{self.__model_name}_{identifier}_log.txt"
             ininame = outpath + f"/ini/{self.__model_name}_{identifier}.ini"
-            detailsname = f"{self.__scan_path}scandetails_{self.__model_name}_{self.__decay_name}_{str(self.__local_params.get_masses())}.txt"
+            detailsname = f"{self.__scan_path}scandetails_{self.__model_name}_{self.__decay_name}_{str(self.__local_params.masses)}.txt"
 
             # write new .ini file from template and parameters
             self.__local_params.write_ini(ininame)
@@ -144,7 +144,7 @@ class MeanShiftOptimizer:
                                                                 identifier = identifier,
                                                                 npoints = self.__points)
 
-            arrays = parser.get_parameter_arrays()
+            arrays = parser.parameter_arrays
             xb = parser.get_xb(self.__decay_name)
 
             if len(xb) == 0:
@@ -408,7 +408,7 @@ class MeanShiftOptimizer:
                 plt.xlabel(x_label)
                 plt.ylabel(y_label)
                 # plt.scatter(X, Y)
-                plt.savefig(f"{self.__plot_path}{self.__local_params.get_model_name()}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
+                plt.savefig(f"{self.__plot_path}{self.__local_params.model_name}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
                 plt.cla()
                 plt.clf()
 
@@ -428,6 +428,6 @@ class MeanShiftOptimizer:
             handles.reverse()
             labels.reverse()
             plt.legend(handles = handles, labels = labels, loc = "lower right", )
-            plt.savefig(f"{self.__plot_path}{self.__local_params.get_model_name()}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
+            plt.savefig(f"{self.__plot_path}{self.__local_params.model_name}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
             plt.cla()
             plt.clf()
