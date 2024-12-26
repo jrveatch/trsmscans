@@ -146,15 +146,9 @@ class Scan:
             # raise error
             raise
 
-        # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.num_unfiltered_points
-
-        # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.num_filtered_points
-
         # info message about prescan
-        self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
-        self.logger.debug(f"{n_prescan} passed filters")
+        self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
+        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters")
 
         # print header about prescan ranges to the screen
         self.logger.info("Found the following ranges from the prescan:\n")
