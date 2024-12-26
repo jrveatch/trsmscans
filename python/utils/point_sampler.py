@@ -61,7 +61,7 @@ class PointSampler:
         params.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.masses(), self.model_name)
+        self.parser = Parse(params.get_masses(), self.model_name)
 
         # Initialize global variables given by filters
         self.nwidth = 0
@@ -105,7 +105,7 @@ class PointSampler:
 
             # Apply width and bounds filters
             nwidth, nbounds, nsignals, npass = apply_filters(file_name = temp_tsv,
-                                                                            masses = params.masses(),
+                                                                            masses = params.get_masses(),
                                                                             config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file

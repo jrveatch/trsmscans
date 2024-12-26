@@ -102,7 +102,7 @@ class Scan:
         self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
-        for parameter in self.params.parameters().values():
+        for parameter in self.params.get_parameters().values():
             summary.write("\t" + parameter.get_fullname())
         summary.write("\titer")
         summary.write("\n")
@@ -165,7 +165,7 @@ class Scan:
         self.logger.info("Found the following ranges from the prescan:")
 
         # loop over parameters
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
@@ -199,10 +199,10 @@ class Scan:
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
         details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
         details.write("--------------------\n")
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
             details.write(parameter_name + ":\n")
             details.write("  " + self.global_max.format_param(parameter_name) + "\n")
-            details.write("  " + self.params.parameter(parameter_name).format_range() + "\n")
+            details.write("  " + self.params.parameter_value(parameter_name).format_range() + "\n")
         details.write("--------------------\n")
         details.write("\n\n")
         details.close()
@@ -210,7 +210,7 @@ class Scan:
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
-        for name, parameter in self.params.parameters().items():
+        for name, parameter in self.params.get_parameters().items():
             summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
         summary.write("\tPre")
         summary.write("\n")
@@ -310,7 +310,7 @@ class Scan:
         param_dict: dict[str, list[ dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for parameter_name in self.params.parameter_names():
+        for parameter_name in self.params.get_parameter_names():
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
