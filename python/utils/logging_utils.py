@@ -63,3 +63,40 @@ def setup_logging(log_file: str,
             logging.StreamHandler()                   # Console logging
         ]
     )
+
+def format_table(headers: list[str], rows: list[list[any]]) -> str:
+    """
+    Format a table as a string.
+
+    :param headers: List of column headers.
+    :param rows: List of rows, where each row is a list of column values.
+    :return: Nicely formatted table as a string.
+    """
+    # Calculate column widths
+    column_widths = [max(len(str(item)) for item in [header] + [row[i] for row in rows]) for i, header in enumerate(headers)]
+
+    # Create a horizontal separator
+    separator = " | ".join("-" * width for width in column_widths)
+
+    # Format the header row
+    header_row = " | ".join(f"{header:<{width}}" for header, width in zip(headers, column_widths))
+
+    # Format the data rows
+    data_rows = [" | ".join(f"{str(item):<{width}}" for item, width in zip(row, column_widths)) for row in rows]
+
+    # Combine everything into a table string
+    table = f"{header_row}\n{separator}\n" + "\n".join(data_rows)
+    return table
+
+def log_table(logger: logging.Logger, headers: list[str], rows: list[list[any]], level=logging.INFO) -> None:
+    """
+    Log a nicely formatted table.
+
+    :param logger: Logger instance.
+    :param headers: List of column headers.
+    :param rows: List of rows, where each row is a list of column values.
+    :param level: Logging level (default: INFO).
+    """
+    table_str = format_table(headers, rows)
+    if logger.isEnabledFor(level):
+        logger.log(level, f"\n{table_str}")
