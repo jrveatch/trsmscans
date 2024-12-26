@@ -27,7 +27,7 @@ class Parameter:
         self.__high = self.__upper_bound
 
     # get name
-    def name(self) -> str:
+    def get_name(self) -> str:
         return self.__name
 
     # get low
@@ -136,6 +136,11 @@ class Parameter:
             self.__high = self.__upper_bound
 
         return
+
+    # update both low and high values
+    def set_low_high(self, lo: float, hi: float):
+        self.set_low(lo)
+        self.set_high(hi)
 
     # update the low to a new value
     def set_low(self, value: float) -> None:
