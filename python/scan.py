@@ -9,7 +9,6 @@ import logging
 import os
 import shutil
 import time
-from decimal import Decimal
 
 # local modules
 from prescan import run_prescan
@@ -103,9 +102,8 @@ class Scan:
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters().values():
-            summary.write("\t" + parameter.get_fullname())
-        summary.write("\titer")
-        summary.write("\n")
+            summary.write(f"\t{parameter.get_fullname()}")
+        summary.write("\titer\n")
         summary.close()
 
         # create raw output file
@@ -157,15 +155,17 @@ class Scan:
         self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
         self.logger.debug(f"{n_prescan} passed filters")
 
-        # if the prescan ranges are more than 1% of the max range
-        # away from the boundaries, change the boundaries to restrict
-        # scan range and minimize scan points that are wasted
-
         # print header about prescan ranges to the screen
-        self.logger.info("Found the following ranges from the prescan:")
+        self.logger.info("Found the following ranges from the prescan:\n")
 
         # loop over parameters
         for parameter_name in self.params.parameter_names():
+
+            """
+            if the prescan ranges are more than 1% of the max range
+            away from the boundaries, change the boundaries to restrict
+            scan range and minimize scan points that are wasted
+            """
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
@@ -195,30 +195,28 @@ class Scan:
         details = open(self.details_name, "a")
         details.write("Prescan\n")
         details.write("--------------------\n")
-        details.write("Number of prescan points = " + str(num_prescan) + "\n")
-        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
+        details.write(f"Number of prescan points = {num_prescan}\n")
+        details.write(f"Scan density = {density:.3E}\n")
+        details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
         details.write("--------------------\n")
         for parameter_name in self.params.parameter_names():
             details.write(parameter_name + ":\n")
-            details.write("  " + self.global_max.format_param(parameter_name) + "\n")
-            details.write("  " + self.params.parameter(parameter_name).format_range() + "\n")
-        details.write("--------------------\n")
-        details.write("\n\n")
+            details.write(f"  {self.global_max.format_param(parameter_name)}\n")
+            details.write(f"  {self.params.parameter(parameter_name).format_range()}\n")
+        details.write("--------------------\n\n\n")
         details.close()
 
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
         for name, parameter in self.params.parameters().items():
-            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
-        summary.write("\tPre")
-        summary.write("\n")
+            summary.write(f"\t{self.global_max.get_val(name):1.{parameter.get_precision()}f}")
+        summary.write("\tPre\n")
         summary.close()
 
         # write scan max xb tsv line to tsv summary file
         tsv_summary = open(self.tsv_summary_name, "a")
-        tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
+        tsv_summary.write(f"{self.prescan_parser.get_tsv_header()}\n")
         tsv_summary.close()
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
@@ -295,11 +293,11 @@ class Scan:
 
         # print out scan time
         self.logger.info("Done!")
-        self.logger.info(f"Scan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)\n")
+        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
 
         # write time info to details file
         details = open(self.details_name, "a")
-        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
+        details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
         details.close()
         return
 
