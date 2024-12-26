@@ -14,7 +14,8 @@ class Params:
 
     def __init__(self,
                  model_name: str,
-                 masses: 'Masses'):
+                 masses: 'Masses',
+                 decay: str = ""):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -32,6 +33,7 @@ class Params:
 
         # Store model and decay names
         self.__model_name = model_name
+        self.__decay = decay
 
         # get list of parameter names
         self.__parameter_names: list[str] = self.__model.parameter_names()
@@ -62,6 +64,11 @@ class Params:
     def model_name(self) -> str:
         """Name of model being used"""
         return self.__model_name
+
+    @property
+    def decay(self) -> str:
+        """Decay mode being used"""
+        return self.__decay
 
     ## Calculated values
 

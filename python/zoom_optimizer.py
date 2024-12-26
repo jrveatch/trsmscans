@@ -21,7 +21,6 @@ class ZoomOptimizer:
 
     def __init__(self,
                  params: 'Params',
-                 decay: str,
                  num_points: int,
                  use_multiprocessing: bool,
                  starting_max: 'Point',
@@ -33,7 +32,7 @@ class ZoomOptimizer:
 
         # some basic scanner information
         self.params = params
-        self.decay = decay
+        self.decay = params.decay
         self.num_points = num_points
         self.local_max = starting_max
         self.label = label
@@ -70,15 +69,15 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model_name=self.params.model_name,
-                           decay=decay,
-                           masses=self.params.masses)
+        out_dir = scan_dir(model_name = params.model_name,
+                           decay = params.decay,
+                           masses = params.masses)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          model_name = self.params.model_name,
+                                          model_name = params.model_name,
                                           use_multiprocessing = use_multiprocessing,
-                                          config_loader = self.config_loader,
+                                          config_loader = config_loader,
                                           use_file_dir = True)
 
         # get output information file names
