@@ -97,7 +97,7 @@ class Point:
         return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
     
     def __str__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
+        return f"{self.xb}\n{self.par_vals}"
     
     def __repr__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
+        return f"{self.xb}\n{self.par_vals}"
