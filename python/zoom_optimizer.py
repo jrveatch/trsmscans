@@ -237,7 +237,7 @@ class ZoomOptimizer:
         details.close()
 
         # print iteration time to screen
-        self.logger.info(f"Iteration took {str(datetime.timedelta(seconds=int(iter_time)))} (hh:mm:ss)\n")
+        self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
             
         return new_max
 

@@ -40,7 +40,7 @@ def run_prescan(masses: 'Masses',
     tsv_name = out_dir + model_name + "_prescan.tsv"
 
     # print starting message
-    logger.info(f"Running a prescan with {num_points} points for {str(masses)}")
+    logger.info(f"Running a prescan with {num_points} points for {masses}")
 
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
@@ -138,7 +138,7 @@ def run_prescan(masses: 'Masses',
     os.chdir(startDir)
 
     # print total time to the screen
-    logger.info(f"Prescan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)")
+    logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")
 
     # return parser after a successful run
     return parser
