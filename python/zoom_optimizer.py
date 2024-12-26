@@ -215,12 +215,12 @@ class ZoomOptimizer:
         details = open(self.details_name,"a")
         details.write("Iteration = " + str(identifier) + "\n")
         details.write("--------------------\n")
-        details.write("Using " + str(self.point_sampler.total_points_run()) + " scan points\n")
+        details.write("Using " + str(self.point_sampler.total_points_run) + " scan points\n")
         details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(self.point_sampler.get_nwidth()) + "/" + str(self.point_sampler.total_points_run()) + " pass width cut\n")
-        details.write(str(self.point_sampler.get_nbounds()) + "/" + str(self.point_sampler.total_points_run()) + " pass bounds check\n")
-        details.write(str(self.point_sampler.get_nsignals()) + "/" + str(self.point_sampler.total_points_run()) + " pass signals check\n")
-        details.write(str(self.point_sampler.get_npass()) + "/" + str(self.point_sampler.total_points_run()) + " pass all checks\n")
+        details.write(str(self.point_sampler.nwidth) + "/" + str(self.point_sampler.total_points_run) + " pass width cut\n")
+        details.write(str(self.point_sampler.nbounds) + "/" + str(self.point_sampler.total_points_run) + " pass bounds check\n")
+        details.write(str(self.point_sampler.nsignals) + "/" + str(self.point_sampler.total_points_run) + " pass signals check\n")
+        details.write(str(self.point_sampler.npass) + "/" + str(self.point_sampler.total_points_run) + " pass all checks\n")
         details.write("--------------------\n")
         details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
         details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
@@ -289,7 +289,7 @@ class ZoomOptimizer:
         high_dict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in self.scan_parser.get_parameter_arrays().items():
+        for param, values in self.scan_parser.parameter_arrays.items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
                 values = pd.concat([values, self.top_percentile[param]])

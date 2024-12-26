@@ -148,10 +148,10 @@ class Scan:
             raise
 
         # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.get_num_unfiltered_points()
+        n_prescan_unfiltered = self.prescan_parser.num_unfiltered_points
 
         # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.get_num_filtered_points()
+        n_prescan = self.prescan_parser.num_filtered_points
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
@@ -218,7 +218,7 @@ class Scan:
 
         # write scan max xb tsv line to tsv summary file
         tsv_summary = open(self.tsv_summary_name, "a")
-        tsv_summary.write(self.prescan_parser.get_tsv_header() + "\n")
+        tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
         tsv_summary.close()
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
