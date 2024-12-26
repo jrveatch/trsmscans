@@ -27,7 +27,7 @@ class Parameter:
         self.__high = self.__upper_bound
 
     # get name
-    def name(self) -> str:
+    def get_name(self) -> str:
         return self.__name
 
     # get low

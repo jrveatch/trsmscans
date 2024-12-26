@@ -159,8 +159,8 @@ class Params:
 
         # loop over parameters and fill low/high values
         for par in self.parameters().values():
-            ini_data = ini_data.replace(par.name()+"_LOW",str(par.get_low()))
-            ini_data = ini_data.replace(par.name()+"_HIGH",str(par.get_high()))
+            ini_data = ini_data.replace(par.get_name()+"_LOW",str(par.get_low()))
+            ini_data = ini_data.replace(par.get_name()+"_HIGH",str(par.get_high()))
 
         # write to .ini file
         outfile = open(ini_name,"w")
