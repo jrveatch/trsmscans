@@ -170,8 +170,8 @@ class Parameter:
     def set_low_high(self,
                      new_low: float,
                      new_high: float):
-        self.low(new_low)
-        self.high(new_high)
+        self.low = new_low
+        self.high = new_high
 
     # print min and max
     def print_bounds(self) -> None:
