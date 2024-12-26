@@ -3,14 +3,15 @@
 import logging
 
 # third-party libraries
-import pandas as pd
 import diptest
+import pandas as pd
 
 # local modules
+from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
-from utils.point import Point
 from utils.masses import Masses
 from utils.model import Model
+from utils.point import Point
 
 # class to parse arrays and provide details about data
 class Parse:
@@ -138,11 +139,16 @@ class Parse:
         # get production cross section
         xb_prod = self.__get_xb_prod()
 
-        # get branching ratio
-        xb_decay = self.__get_xb_decay(decay)
+        # if NoDecay is specified, only return production cross-section
+        if decay == "NoDecay":
+            xb = xb_prod
+        # otherwise include decay BR in xb
+        else:
+            # get branching ratio
+            xb_decay = self.__get_xb_decay(decay)
 
-        # get total xsec times BR
-        xb = xb_prod * xb_decay
+            # get total xsec times BR
+            xb = xb_prod * xb_decay
 
         # return total xsec time BR
         return xb
@@ -263,11 +269,12 @@ class Parse:
                 arr2 = br_S_gamgam * br_H_bb
                 xb_decay = arr1 + arr2
 
-            # all other cases
+            # raise an exception in all other cases
             case _:
-                self.logger.error(f"Unrecognized decay {decay}")
-                self.logger.error("This should not have happened")
-                quit()
+                raise ValueError(
+                    f"Unrecognized decay {decay}\n"
+                    f"Allowed decays are: {', '.join(valid_decays())}."
+                )
 
         # return the decay BR
         return xb_decay

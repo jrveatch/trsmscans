@@ -4,11 +4,12 @@
 import logging
 
 # third-party libraries
+import numpy as np
 import pandas as pd
 
 # local modules
-from utils.masses import Masses
 from utils.config_loader import ConfigLoader
+from utils.masses import Masses
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -24,11 +25,6 @@ def filter_widths(dataframe: pd.DataFrame,
     SName = masses.SName
     XName = masses.XName
 
-    # get arrays of widths
-    width_H = dataframe['w_'+HName] / dataframe['m'+HName]
-    width_S = dataframe['w_'+SName] / dataframe['m'+SName]
-    width_X = dataframe['w_'+XName] / dataframe['m'+XName]
-
     # get max_width from config file
     try:
         max_width_H: float = config_loader.get('width', 'max_width_H')
@@ -41,18 +37,15 @@ def filter_widths(dataframe: pd.DataFrame,
         logger.error(f"Unexpected error: {e}")
         raise
 
-    # check whether each width is below the max width
-    maskH = width_H < max_width_H
-    maskS = width_S < max_width_S
-    maskX = width_X < max_width_X
+    # get arrays of widths, masses and thresholds
+    arr_widths = dataframe[['w_' + HName, 'w_' + SName, 'w_' + XName]].to_numpy()
+    arr_masses = dataframe[['m' + HName, 'm' + SName, 'm' + XName]].to_numpy()
+    arr_thresholds = np.array([max_width_H, max_width_S, max_width_X])
 
-    # create the product of the 3 masks
-    mask = maskH & maskS & maskX
-
-    # create series of 0 and 1 based on mask
-    filt_width = mask.astype(int)
+    # create filter as a mask that checks each width is below the max width
+    filt_width = np.all(arr_widths < arr_masses * arr_thresholds, axis=1)
 
     # add filter to dataframe
-    dataframe[header_width] = filt_width
+    dataframe[header_width] = filt_width.astype(int)
 
     return

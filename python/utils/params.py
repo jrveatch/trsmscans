@@ -1,12 +1,13 @@
 
-from utils.masses import Masses
-from utils.model import Model
-from utils.point import Point
-from utils.parameter import Parameter
-
+# standard libraries
+import logging
 from typing import Optional
 
-import logging
+# local modules
+from utils.masses import Masses
+from utils.model import Model
+from utils.parameter import Parameter
+from utils.point import Point
 
 # class to hold and update full set of parameters used in a scan
 class Params:
@@ -31,7 +32,6 @@ class Params:
 
         # Store model and decay names
         self.__model_name = model_name
-        self.__decay_name = decay_name
 
         # get list of parameter names
         self.__parameter_names: list[str] = self.__model.parameter_names()
@@ -54,6 +54,21 @@ class Params:
     # get masses
     def get_masses(self) -> Masses:
         return self.__masses
+
+    # get model name
+    def get_model_name(self) -> str:
+        return self.__model_name
+
+    # get decay name
+    def get_decay_name(self) -> str:
+        return self.__decay_name
+
+    ## Calculated values
+
+    # get parameter from dict
+    def parameter_value(self,
+                  par_name: str) -> Parameter:
+        return self.__parameters[par_name]
     
     # get model name
     def get_model_name(self) -> str:
@@ -89,7 +104,7 @@ class Params:
                      par_name: str) -> float:
         return self.__model.starting_max(par_name)
     
-    # get model name
+    # get model name - TODO: delete
     def get_model_name(self) -> str:
         return self.__model.name()
 
@@ -203,17 +218,15 @@ class Params:
     @property
     def vol_position(self) -> tuple[float]:
         return self.center_points()
-    
+
     # Alias for self.widths()
     @property
     def vol_width(self) -> tuple[float]:
         return self.widths()
-    
     # Alias for self.ranges()
     @property
     def vol_range(self) -> tuple[tuple[float, float]]:
         return self.ranges()
-    
     # Alias for self.get_parameter_names()
     @property
     def names(self) -> list[str]:
@@ -242,4 +255,3 @@ class Params:
     # length of params
     def __len__(self):
         return len(self.__parameters)
-    

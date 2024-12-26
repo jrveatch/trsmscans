@@ -1,5 +1,12 @@
 
+# standard libraries
+import logging
+
+# third-party libraries
 import pandas as pd
+
+# get logger
+logger = logging.getLogger(__name__)
 
 index_label = "idx"
 
@@ -25,7 +32,11 @@ def write_to_tsv(dataframe: pd.DataFrame,
                  file_name: str
                 ) -> None:
 
-    dataframe.to_csv(file_name,
-                     sep='\t',
-                     index=True,
-                     index_label=index_label)
+    try:
+        dataframe.to_csv(file_name,
+                         sep='\t',
+                         index=True,
+                         index_label=index_label)
+    except Exception as e:
+        logger.error(f"Error writing to file {file_name}: {e}")
+        raise

@@ -1,11 +1,14 @@
+
+# standard libraries
+import logging
 import math
 import operator
-from prettytable import PrettyTable
-from collections import OrderedDict
-from scipy.interpolate import interp1d
 import os
+from collections import OrderedDict
 
-import logging
+# third-party libraries
+from prettytable import PrettyTable
+from scipy.interpolate import interp1d
 
 # get logger
 logger = logging.getLogger(__name__)

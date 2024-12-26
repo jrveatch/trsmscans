@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
 
 # standard libraries
+import argparse
+from copy import deepcopy
+import datetime
+from decimal import Decimal
+import itertools
+import logging
 import os
 import random
 import shutil
 import time
-from copy import deepcopy
-import datetime
-import argparse
-import logging
-from decimal import Decimal
-import itertools
 
 # local modules
-from utils.point import Point
-from utils.params import Params
-from utils.masses import Masses
-from prescan import prescan
-from utils.file_utils import scan_dir, plots_dir
-from utils.decay_utils import is_valid_decay
-from utils.logging_utils import setup_logging
-from utils.logging_utils import LOG_LEVELS
-from zoom_optimizer import ZoomOptimizer
-from mean_shift_optimizer import MeanShiftOptimizer
+from prescan import run_prescan
 from utils.config_loader import ConfigLoader
+from utils.decay_utils import is_valid_decay, valid_decays
+from utils.file_utils import scan_dir, plots_dir
+from utils.logging_utils import LOG_LEVELS, setup_logging
+from utils.masses import Masses
+from utils.params import Params
+from utils.point import Point
+from mean_shift_optimizer import MeanShiftOptimizer
+from zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
 class Scan:
@@ -51,11 +50,11 @@ class Scan:
         self.use_multiprocessing = use_multiprocessing
 
         # check whether decay is valid
-        supported = is_valid_decay(self.decay)
-        if not supported:
-            self.logger.error(f"Unrecognized decay {self.decay}")
-            self.logger.error("Quitting...")
-            quit()
+        if not is_valid_decay(self.decay):
+            raise ValueError(
+                f"Unrecognized decay {self.decay}\n"
+                f"Allowed decays are: {', '.join(valid_decays())}."
+            )
 
         # use default config file name if none is provided
         if not config_file_name:
@@ -144,13 +143,13 @@ class Scan:
                                               config_loader = self.config_loader,
                                               use_multiprocessing = self.use_multiprocessing)
 
-        # if prescan fails, remove directory and quit
+        # if prescan fails, remove directory and raise an error
         except TimeoutError:
 
             # delete directory
             shutil.rmtree(self.out_dir)
 
-            # quit execution
+            # raise error
             raise
 
         # get the number of unfiltered prescan points available

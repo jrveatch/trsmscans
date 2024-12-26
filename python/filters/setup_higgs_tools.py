@@ -1,11 +1,16 @@
-import Higgs.predictions as HP
-import Higgs.bounds as HB
-import Higgs.signals as HS
 
+# standard libraries
+import os
+from functools import lru_cache
+
+# local modules
+import Higgs.bounds as HB
+import Higgs.predictions as HP
+import Higgs.signals as HS
 from utils.model import Model
 
-import os
 
+@lru_cache(maxsize=None)
 def get_higgs_predictions(model_name: str):
 
     # create model object
@@ -44,6 +49,7 @@ def get_higgs_predictions(model_name: str):
 
     return pred
 
+@lru_cache(maxsize=None)
 def get_higgs_signals():
 
     # get data directory
@@ -54,6 +60,7 @@ def get_higgs_signals():
 
     return signals
 
+@lru_cache(maxsize=None)
 def get_higgs_bounds():
 
     # get data directory

@@ -40,19 +40,31 @@ Python since the default version is not sufficient. You can do this following
 [the instructions given here](https://abpcomputing.web.cern.ch/guides/python_inst/).
 It is recommended that you install the latest version of Python.
 
+## Submodules and SSH keys
+
+These tools rely on `ScannerS` and `HiggsTools`, both of which are set
+up as submodules that will be automatically cloned and compiled using the
+provided scripts. In order to access both, it is necessary to have SSH
+keys set up on [https://gitlab.com](https://gitlab.com).
+
+The submodule repositories can be found using these links:
+
+  * [ScannerS](https://gitlab.com/jonaswittbrodt/ScannerS)
+  * [HiggsTools](https://gitlab.com/higgsbounds/higgstools)
+
 ## Installation
 
 Most of the installation is done via scripts that are provided
 in the `scripts` directory. You can call `source first.sh` to
 automate the installation, assuming you have the dependencies
-installed. This will set up the `ScannerS` and `HiggTools` submodules,
+installed. This will set up the `ScannerS` and `HiggsTools` submodules,
 install both packages, create a python virtual environment and
 install the necessary python modules.
 
 ## Every login
 
 The code needs to be run from a python virtual environment that
-needs to be set up everytime you start a new shell. The virtual
+needs to be set up every time you start a new shell. The virtual
 environment can be set up with `source setup.sh`.
 
 ## Running
