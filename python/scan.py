@@ -15,7 +15,7 @@ from prescan import run_prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging
+from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
 from utils.params import Params
 from utils.point import Point
@@ -153,6 +153,10 @@ class Scan:
         # print header about prescan ranges to the screen
         self.logger.info("Found the following ranges from the prescan:\n")
 
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Bounds"]
+        rows = []
+
         # loop over parameters
         for parameter_name in self.params.parameter_names:
 
@@ -177,8 +181,13 @@ class Scan:
             if new_max + one_percent < self.params[parameter_name].upper_bound:
                 self.params[parameter_name].upper_bound = (new_max + one_percent)
 
-            # print min and max to screen after prescan
-            print(f"{parameter_name}: {self.params.parameter_value(parameter_name).format_bounds()}")
+            # add parameter name and range to rows
+            rows.append([parameter_name, self.params.parameter_value(parameter_name).format_bounds()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
 
         # get scan density
         density = num_prescan / self.params.volume()
@@ -363,7 +372,6 @@ class Scan:
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        print("\n")
         self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
 
         # Return list of all zoom optimizers

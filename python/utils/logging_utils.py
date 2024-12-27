@@ -85,7 +85,7 @@ def format_table(headers: list[str], rows: list[list[any]]) -> str:
     data_rows = [" | ".join(f"{str(item):<{width}}" for item, width in zip(row, column_widths)) for row in rows]
 
     # Combine everything into a table string
-    table = f"{header_row}\n{separator}\n" + "\n".join(data_rows)
+    table = f"{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n"
     return table
 
 def log_table(logger: logging.Logger, headers: list[str], rows: list[list[any]], level=logging.INFO) -> None:
