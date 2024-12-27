@@ -29,8 +29,7 @@ class Scan:
                  model_name: str,
                  decay: str,
                  use_multiprocessing: bool,
-                 config_file_name: str = "",
-                 overwrite: bool = False
+                 config_file_name: str = ""
                  ):
         
         # get logger
@@ -55,7 +54,7 @@ class Scan:
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = model_name + "_default.yml"
+            config_file_name = f"{model_name}_default.yml"
 
         # load config file
         self.config_loader = ConfigLoader(config_file_name=config_file_name)
@@ -85,18 +84,19 @@ class Scan:
                                 decay=decay,
                                 masses=masses)
 
-        # remove previous directory if set to overwrite
-        if os.path.exists(self.out_dir) and overwrite:
-            # remove directory
-            shutil.rmtree(self.out_dir)
-
         # check if directory exists, if not make it
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
-            os.makedirs(self.out_dir + "/files")
-            os.makedirs(self.out_dir + "/files/details")
-            os.makedirs(self.out_dir + "/files/ini")
-            os.makedirs(self.out_dir + "/files/tsv")
+
+        # remove files subdirectory if it exists
+        if os.path.exists(f"{self.out_dir}/files"):
+            shutil.rmtree(f"{self.out_dir}/files")
+
+        # make files subdirectory
+        os.makedirs(f"{self.out_dir}/files")
+        os.makedirs(f"{self.out_dir}/files/details")
+        os.makedirs(f"{self.out_dir}/files/ini")
+        os.makedirs(f"{self.out_dir}/files/tsv")
 
         # create summary file
         self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
@@ -392,24 +392,27 @@ if __name__ == "__main__":
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
     arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name (default: scan.log).")
     args = arg_parser.parse_args()
 
-    # set up logging
-    setup_logging(log_file=args.log,
-                  level=LOG_LEVELS[args.log_level.lower()])
-
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
+    
+    # directory where we want the output to go
+    out_dir = scan_dir(model_name=args.model,
+                       decay=args.decay,
+                       masses=masses)
+
+    # set up logging
+    setup_logging(log_file=os.path.join(out_dir, args.log),
+                  level=LOG_LEVELS[args.log_level.lower()])
 
     # create scan object
     myScan = Scan(masses = masses,
                   model_name = args.model,
                   decay = args.decay,
-                  use_multiprocessing = args.multiprocessing,
-                  overwrite = args.overwrite
+                  use_multiprocessing = args.multiprocessing
                  )
 
     # run scan using scan object
