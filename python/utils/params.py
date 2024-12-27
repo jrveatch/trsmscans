@@ -195,11 +195,6 @@ class Params:
         outfile.write(ini_data)
         outfile.close()
 
-    # print min and max for a parameter
-    def print_bounds(self,
-                     par_name: str) -> None:
-        self.parameter_value(par_name).print_bounds()
-
     ## Aliases
 
     # Alias for self.center_point()

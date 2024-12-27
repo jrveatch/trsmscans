@@ -175,11 +175,7 @@ class Parameter:
 
     # format bounds as string
     def format_bounds(self) -> str:
-        return f"{self.__name}: [{self.__lower_bound:1.{self.__precision}f},{self.__upper_bound:1.{self.__precision}f}]"
-
-    # print bounds
-    def print_bounds(self) -> None:
-        print(self.format_bounds())
+        return f"[{self.__lower_bound:1.{self.__precision}f},{self.__upper_bound:1.{self.__precision}f}]"
 
     # get range as string
     def format_range(self) -> str:

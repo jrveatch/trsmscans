@@ -178,7 +178,7 @@ class Scan:
                 self.params[parameter_name].upper_bound = (new_max + one_percent)
 
             # print min and max to screen after prescan
-            self.params.print_bounds(parameter_name)
+            print(f"{parameter_name}: {self.params.parameter_value(parameter_name).format_bounds()}")
 
         # get scan density
         density = num_prescan / self.params.volume()
@@ -195,7 +195,7 @@ class Scan:
         details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
         details.write("--------------------\n")
         for parameter_name in self.params.parameter_names:
-            details.write(parameter_name + ":\n")
+            details.write(f"{parameter_name}:\n")
             details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
             details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
         details.write("--------------------\n\n\n")
