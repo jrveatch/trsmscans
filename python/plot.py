@@ -33,7 +33,7 @@ class Plot:
         self.model = Model(model_name)
 
         # Create plot output directory
-        self.output_dir = file_utils.plots_dir(model_name=self.model.name(),
+        self.output_dir = file_utils.plots_dir(model_name=self.model.name,
                                                decay=self.decay,
                                                masses=self.masses)
         os.makedirs(self.output_dir, exist_ok=True)
@@ -51,13 +51,13 @@ class Plot:
         self.all_files_dict = defaultdict(list[str])
 
         # If prescan exists, make it the first file to plot
-        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
+        prescan = file_utils.prescan_tsv(model_name=self.model.name,
                                          masses=self.masses)
         if os.path.exists(prescan):
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = file_utils.scan_dir(model_name=self.model.name(),
+        directory = file_utils.scan_dir(model_name=self.model.name,
                                         decay=self.decay,
                                         masses=self.masses) + "files/tsv/"
 
@@ -76,7 +76,7 @@ class Plot:
     def load_data(self) -> None:
 
         # Retrieve the variable names for the model
-        self.var_names = self.model.parameter_names()
+        self.var_names = self.model.parameter_names
 
         # Check if xb exists in the variable name list, if not append
         if 'xb' not in self.var_names:
@@ -100,7 +100,7 @@ class Plot:
                 # Retrieve the variables from the file
                 parser = Parse(file_name=file_name,
                                masses=self.masses,
-                               model_name=self.model.name())
+                               model_name=self.model.name)
                 all_params = parser.parameter_arrays
                 xb = parser.get_xb(self.decay)
                 max_point = parser.get_max_xb_point(self.decay)
@@ -151,7 +151,7 @@ class Plot:
     def make_scan_plots(self) -> None:
 
         # Print info to screen
-        print("Making scan plots for",self.model.name(),self.decay,self.masses)
+        print("Making scan plots for",self.model.name,self.decay,self.masses)
 
         # Find the Maximum point from the maximum points
         maximum = max(self.max_point_list)
@@ -230,7 +230,7 @@ class Plot:
     def make_max_xb_plots(self) -> None:
 
         # Print info to screen
-        print("Making max XB plots for",self.model.name(),self.decay,self.masses)
+        print("Making max XB plots for",self.model.name,self.decay,self.masses)
 
         # Define number of bins to use in each dimension
         num_bins = 100

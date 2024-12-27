@@ -23,7 +23,7 @@ class Point:
         # otherwise create default dictionary from model
         else:
             # get list of parameters from model
-            par_list = self.model.parameter_names()
+            par_list = self.model.parameter_names
 
             # loop over list of parameters and make default dictionary
             for par in par_list:
@@ -94,7 +94,7 @@ class Point:
     
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
+        return Point(self.model.name, self.par_vals, self.xb*scale_factor)
     
     def __str__(self) -> str:
         return f"{self.xb}\n{self.par_vals}"
