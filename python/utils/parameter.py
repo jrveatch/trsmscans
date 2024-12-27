@@ -173,15 +173,10 @@ class Parameter:
         self.low = new_low
         self.high = new_high
 
-    # print min and max
-    def print_bounds(self) -> None:
-        print(self.__name + ": ["+f"{self.__lower_bound:1.{self.__precision}f}"+","+f"{self.__upper_bound:1.{self.__precision}f}"+"]")
+    # format bounds as string
+    def format_bounds(self) -> str:
+        return f"[{self.__lower_bound:1.{self.__precision}f},{self.__upper_bound:1.{self.__precision}f}]"
 
-    # get formatted string showing range
+    # get range as string
     def format_range(self) -> str:
-        string_range = "range = ["
-        string_range += f"{self.__low:1.{self.__precision}f}"
-        string_range += ","
-        string_range += f"{self.__high:1.{self.__precision}f}"
-        string_range += "]"
-        return string_range
+        return f"[{self.__low:1.{self.__precision}f},{self.__high:1.{self.__precision}f}]"

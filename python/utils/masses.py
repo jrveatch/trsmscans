@@ -92,4 +92,4 @@ class Masses:
         """
 
     def __str__(self):
-        return "X"+str(int(self.mX))+"_S"+str(int(self.mS))
+        return f"X{int(self.mX)}_S{int(self.mS)}"

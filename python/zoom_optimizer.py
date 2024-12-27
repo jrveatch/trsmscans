@@ -5,7 +5,6 @@ import datetime
 import logging
 import shutil
 import time
-from decimal import Decimal
 
 # third-party libraries
 import pandas as pd
@@ -212,34 +211,33 @@ class ZoomOptimizer:
         # TODO: Add details about R11, R21, R31
         # write scan details to details file
         details = open(self.details_name,"a")
-        details.write("Iteration = " + str(identifier) + "\n")
+        details.write(f"Iteration = {identifier}\n")
         details.write("--------------------\n")
-        details.write("Using " + str(self.point_sampler.total_points_run) + " scan points\n")
-        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write(str(self.point_sampler.nwidth) + "/" + str(self.point_sampler.total_points_run) + " pass width cut\n")
-        details.write(str(self.point_sampler.nbounds) + "/" + str(self.point_sampler.total_points_run) + " pass bounds check\n")
-        details.write(str(self.point_sampler.nsignals) + "/" + str(self.point_sampler.total_points_run) + " pass signals check\n")
-        details.write(str(self.point_sampler.npass) + "/" + str(self.point_sampler.total_points_run) + " pass all checks\n")
+        details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
+        details.write(f"Scan density = {density:.3E}\n")
+        details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
+        details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
+        details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
+        details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
         details.write("--------------------\n")
-        details.write("New max xsec*BR = " + new_max.format_xb() + "\n")
-        details.write("Local max xsec*BR = " + self.local_max.format_xb() + "\n")
-        details.write("Global max xsec*BR = " + global_max.format_xb() + "\n")
-        details.write("Found new global max point: " + str(is_new_global_max) + "\n")
+        details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
+        details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
+        details.write(f"Global max xsec*BR = {global_max.format_xb()}\n")
+        details.write(f"Found new global max point: {is_new_global_max}\n")
         details.write("--------------------\n")
         for par in self.params.parameter_names:
-            details.write(par+":\n")
-            details.write("  "+self.params.parameter_value(par).format_range()+"\n")
+            details.write(f"{par}:\n")
+            details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
             if is_new_global_max:
-                details.write("  new global max "+self.local_max.format_param(par)+"\n")
-                details.write("  "+self.local_max.format_diff(local_max_old,par)+"\n")
-                details.write("  "+self.local_max.format_diff_frac(local_max_old,par)+"\n")
+                details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
+                details.write(f"  diff. = {self.local_max.format_diff(local_max_old,par)}\n")
+                details.write(f"  rel. diff. = {self.local_max.format_diff_frac(local_max_old,par)}\n")
         details.write("--------------------\n")
-        details.write("Iteration took "+str(datetime.timedelta(seconds=int(iter_time)))+" (hh:mm:ss)\n")
-        details.write("\n\n")
+        details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n\n")
         details.close()
 
         # print iteration time to screen
-        self.logger.info(f"Iteration took {str(datetime.timedelta(seconds=int(iter_time)))} (hh:mm:ss)\n")
+        self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
             
         return new_max
 
@@ -248,9 +246,8 @@ class ZoomOptimizer:
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
         for name, par in self.params.parameters.items():
-            summary.write("\t" + f"{self.local_max.get_val(name):1.{par.precision}f}")
-        summary.write("\t" + identifier)
-        summary.write("\n")
+            summary.write(f"\t{self.local_max.get_val(name):1.{par.precision}f}")
+        summary.write(f"\t{identifier}\n")
         summary.close()
 
     # method to zoom in based on a percentile cut on xb

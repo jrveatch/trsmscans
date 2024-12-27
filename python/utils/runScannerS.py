@@ -256,7 +256,7 @@ if __name__ == "__main__":
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    arg_parser.add_argument("-n", "--num_points", default=200, type=int, help="Number of points")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = arg_parser.parse_args()
 
@@ -266,5 +266,5 @@ if __name__ == "__main__":
     # run ScannerS using baseline .ini
     runScannerS(ini_name = ini_name,
                 model_name = args.model,
-                num_points = args.npoints,
+                num_points = args.num_points,
                 use_multiprocessing = args.use_multiprocessing)
