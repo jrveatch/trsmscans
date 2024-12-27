@@ -62,19 +62,19 @@ class Point:
     # get formatted string of parameter
     def format_param(self,
                      par_name: str) -> str:
-        return "value = " + f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
                     par_name: str) -> str:
-        return "diff. = " + f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
                          other: 'Point',
                          par_name: str) -> str:
-        return "rel. diff. = " + f"{self.diff_frac(other,par_name):1.2f}"
+        return f"{self.diff_frac(other,par_name):1.2f}"
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):

@@ -227,11 +227,11 @@ class ZoomOptimizer:
         details.write("--------------------\n")
         for par in self.params.parameter_names:
             details.write(f"{par}:\n")
-            details.write(f"  {self.params.parameter_value(par).format_range()}\n")
+            details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
             if is_new_global_max:
-                details.write(f"  new global max {self.local_max.format_param(par)}\n")
-                details.write(f"  {self.local_max.format_diff(local_max_old,par)}\n")
-                details.write(f"  {self.local_max.format_diff_frac(local_max_old,par)}\n")
+                details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
+                details.write(f"  diff. = {self.local_max.format_diff(local_max_old,par)}\n")
+                details.write(f"  rel. diff. = {self.local_max.format_diff_frac(local_max_old,par)}\n")
         details.write("--------------------\n")
         details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n\n")
         details.close()

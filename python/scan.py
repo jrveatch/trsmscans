@@ -196,8 +196,8 @@ class Scan:
         details.write("--------------------\n")
         for parameter_name in self.params.parameter_names:
             details.write(parameter_name + ":\n")
-            details.write(f"  {self.global_max.format_param(parameter_name)}\n")
-            details.write(f"  {self.params.parameter_value(parameter_name).format_range()}\n")
+            details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
+            details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
         details.write("--------------------\n\n\n")
         details.close()
 
