@@ -219,7 +219,7 @@ class Plot:
                 plt.ylabel(f"{self.var_names[j]}")
 
                 # Save the figure as a .png
-                plt.savefig(self.output_dir + "scan_" + f"{self.var_names[v]}_vs_{self.var_names[j]}.png")
+                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
 
                 # Close the figure
                 plt.close()
