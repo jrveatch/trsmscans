@@ -151,7 +151,7 @@ class Scan:
         self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters")
 
         # print header about prescan ranges to the screen
-        self.logger.info("Found the following ranges from the prescan:\n")
+        self.logger.info("Found the following ranges from the prescan:")
 
         # make list of headers for parameter bounds table and empty list of rows
         headers = ["Parameter", "Bounds"]

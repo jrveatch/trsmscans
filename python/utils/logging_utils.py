@@ -29,6 +29,14 @@ LOG_LEVELS = {
     "critical": logging.CRITICAL,
 }
 
+# Define a custom formatter class
+class CustomFormatter(logging.Formatter):
+    def format(self, record):
+        # Use a simple format for specific messages
+        if hasattr(record, "skip_level") and record.skip_level:
+            return record.getMessage()
+        return super().format(record)
+
 # Setup logging configuration
 def setup_logging(log_file: str,
                   level = logging.INFO,
@@ -54,14 +62,20 @@ def setup_logging(log_file: str,
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
+    # Create handlers
+    file_handler = logging.FileHandler(log_file, mode='w') # File handler
+    console_handler = logging.StreamHandler() # Console handler
+
+    # Use the custom formatter
+    formatter = CustomFormatter(log_format)
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
     # Set up logging to file and console
     logging.basicConfig(
         level=level,
         format=log_format,
-        handlers=[
-            logging.FileHandler(log_file, mode='w'),  # File logging
-            logging.StreamHandler()                   # Console logging
-        ]
+        handlers=[file_handler, console_handler]
     )
 
 def format_table(headers: list[str], rows: list[list[any]]) -> str:
@@ -98,5 +112,6 @@ def log_table(logger: logging.Logger, headers: list[str], rows: list[list[any]],
     :param level: Logging level (default: INFO).
     """
     table_str = format_table(headers, rows)
+    extra = {"skip_level": True}
     if logger.isEnabledFor(level):
-        logger.log(level, f"\n{table_str}")
+        logger.log(level, f"\n{table_str}", extra=extra)
