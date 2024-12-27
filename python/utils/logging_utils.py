@@ -71,12 +71,9 @@ def setup_logging(log_file: str,
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
 
-    # Set up logging to file and console
-    logging.basicConfig(
-        level=level,
-        format=log_format,
-        handlers=[file_handler, console_handler]
-    )
+    # Add handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 def format_table(headers: list[str], rows: list[list[any]]) -> str:
     """
