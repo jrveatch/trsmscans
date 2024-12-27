@@ -40,7 +40,7 @@ def run_prescan(masses: 'Masses',
     tsv_name = out_dir + model_name + "_prescan.tsv"
 
     # print starting message
-    logger.info(f"Running a prescan with {num_points} points for {str(masses)}")
+    logger.info(f"Running a prescan with {num_points} points for {masses}")
 
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
@@ -66,9 +66,9 @@ def run_prescan(masses: 'Masses',
                 logger.warning("Please enter 'yes' or 'no'.")
 
     # remove previous directory if set to overwrite
-    if os.path.exists(out_dir) and overwrite:
-        # remove directory
-        shutil.rmtree(out_dir)
+    if os.path.isfile(tsv_name) and overwrite:
+        # remove .tsv file
+        os.remove(tsv_name)
         # reset num_existing to 0
         num_existing = 0
 
@@ -138,7 +138,7 @@ def run_prescan(masses: 'Masses',
     os.chdir(startDir)
 
     # print total time to the screen
-    logger.info(f"Prescan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)")
+    logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")
 
     # return parser after a successful run
     return parser
@@ -151,20 +151,26 @@ if __name__ == "__main__":
     arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-n", "--npoints", required=True, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
+    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name (default: scan.log).")
     args = arg_parser.parse_args()
-
-    # set up logging
-    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
+    
+    # directory where we want the output to go
+    out_dir = prescan_dir(model_name=args.model,
+                          masses=masses)
+
+    # set up logging
+    setup_logging(log_file=os.path.join(out_dir, args.log),
+                  level=LOG_LEVELS[args.log_level.lower()])
 
     run_prescan(masses = masses,
                 model_name = args.model,
-                num_points = args.npoints,
+                num_points = args.num_points,
                 overwrite = args.overwrite,
                 use_multiprocessing = args.multiprocessing)

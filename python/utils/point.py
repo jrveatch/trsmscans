@@ -1,7 +1,4 @@
 
-# standard libraries
-from decimal import Decimal
-
 # local modules
 from utils.model import Model
 
@@ -60,24 +57,24 @@ class Point:
     
     # get formatted string of xb
     def format_xb(self) -> str:
-        return f"{Decimal(self.xb):.2E}"
+        return f"{self.xb:.2E}"
     
     # get formatted string of parameter
     def format_param(self,
                      par_name: str) -> str:
-        return "value = " + f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
                     par_name: str) -> str:
-        return "diff. = " + f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
     
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
                          other: 'Point',
                          par_name: str) -> str:
-        return "rel. diff. = " + f"{self.diff_frac(other,par_name):1.2f}"
+        return f"{self.diff_frac(other,par_name):1.2f}"
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
@@ -100,7 +97,7 @@ class Point:
         return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
     
     def __str__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
+        return f"{self.xb}\n{self.par_vals}"
     
     def __repr__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
+        return f"{self.xb}\n{self.par_vals}"

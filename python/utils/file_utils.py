@@ -9,12 +9,12 @@ from utils.masses import Masses
 def scan_dir(model_name: str,
              decay: str,
              masses: 'Masses') -> str:
-    return os.environ['OUTPUTDIR']+model_name+"/scan/"+decay+"/"+str(masses)+"/"
+    return os.environ['OUTPUTDIR']+model_name+f"/scan/{decay}/{masses}/"
 
 # get prescan directory
 def prescan_dir(model_name: str,
                 masses: 'Masses') -> str:
-    return os.environ['OUTPUTDIR']+model_name+"/prescan/"+str(masses)+"/"
+    return os.environ['OUTPUTDIR']+model_name+f"/prescan/{masses}/"
 
 # get prescan .tsv file
 def prescan_tsv(model_name: str,
@@ -25,4 +25,4 @@ def prescan_tsv(model_name: str,
 def plots_dir(model_name: str,
               decay: str,
               masses: 'Masses') -> str:
-    return os.environ['OUTPUTDIR']+model_name+"/plots/"+decay+"/"+str(masses)+"/"
+    return os.environ['OUTPUTDIR']+model_name+f"/plots/{decay}/{masses}/"

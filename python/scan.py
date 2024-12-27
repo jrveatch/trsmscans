@@ -9,14 +9,13 @@ import logging
 import os
 import shutil
 import time
-from decimal import Decimal
 
 # local modules
 from prescan import run_prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging
+from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
 from utils.params import Params
 from utils.point import Point
@@ -30,8 +29,7 @@ class Scan:
                  model_name: str,
                  decay: str,
                  use_multiprocessing: bool,
-                 config_file_name: str = "",
-                 overwrite: bool = False
+                 config_file_name: str = ""
                  ):
         
         # get logger
@@ -56,7 +54,7 @@ class Scan:
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = model_name + "_default.yml"
+            config_file_name = f"{model_name}_default.yml"
 
         # load config file
         self.config_loader = ConfigLoader(config_file_name=config_file_name)
@@ -86,36 +84,36 @@ class Scan:
                                 decay=decay,
                                 masses=masses)
 
-        # remove previous directory if set to overwrite
-        if os.path.exists(self.out_dir) and overwrite:
-            # remove directory
-            shutil.rmtree(self.out_dir)
-
         # check if directory exists, if not make it
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
-            os.makedirs(self.out_dir + "/files")
-            os.makedirs(self.out_dir + "/files/details")
-            os.makedirs(self.out_dir + "/files/ini")
-            os.makedirs(self.out_dir + "/files/tsv")
+
+        # remove files subdirectory if it exists
+        if os.path.exists(f"{self.out_dir}/files"):
+            shutil.rmtree(f"{self.out_dir}/files")
+
+        # make files subdirectory
+        os.makedirs(f"{self.out_dir}/files")
+        os.makedirs(f"{self.out_dir}/files/details")
+        os.makedirs(f"{self.out_dir}/files/ini")
+        os.makedirs(f"{self.out_dir}/files/tsv")
 
         # create summary file
-        self.summary_name = self.out_dir + "scan_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters.values():
-            summary.write("\t" + parameter.fullname)
-        summary.write("\titer")
-        summary.write("\n")
+            summary.write(f"\t{parameter.fullname}")
+        summary.write("\titer\n")
         summary.close()
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + "scan_tsv_summary_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
         tsv_summary = open(self.tsv_summary_name, "w")
         tsv_summary.close()
 
         # create details file
-        self.details_name = self.out_dir + "files/details/prescan_details_" + self.model_name + "_" + self.decay + "_" + str(self.masses) + ".txt"
+        self.details_name = self.out_dir + f"files/details/prescan_details_{self.model_name}_{self.decay}_{self.masses}.txt"
         details = open(self.details_name, "w")
         details.write("Scan details\n\n")
         details.close()
@@ -143,30 +141,30 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            shutil.rmtree(self.out_dir)
+            self.clean_up_failure()
 
             # raise error
             raise
 
-        # get the number of unfiltered prescan points available
-        n_prescan_unfiltered = self.prescan_parser.num_unfiltered_points
-
-        # get the number of filtered prescan points available
-        n_prescan = self.prescan_parser.num_filtered_points
-
         # info message about prescan
-        self.logger.debug(f"Analyzing prescan with {n_prescan_unfiltered} points")
-        self.logger.debug(f"{n_prescan} passed filters")
-
-        # if the prescan ranges are more than 1% of the max range
-        # away from the boundaries, change the boundaries to restrict
-        # scan range and minimize scan points that are wasted
+        self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
+        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters")
 
         # print header about prescan ranges to the screen
         self.logger.info("Found the following ranges from the prescan:")
 
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Bounds"]
+        rows = []
+
         # loop over parameters
         for parameter_name in self.params.parameter_names:
+
+            """
+            if the prescan ranges are more than 1% of the max range
+            away from the boundaries, change the boundaries to restrict
+            scan range and minimize scan points that are wasted
+            """
 
             # getting 1% of min and max from the model
             one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
@@ -183,8 +181,13 @@ class Scan:
             if new_max + one_percent < self.params[parameter_name].upper_bound:
                 self.params[parameter_name].upper_bound = (new_max + one_percent)
 
-            # print min and max to screen after prescan
-            self.params.print_bounds(parameter_name)
+            # add parameter name and range to rows
+            rows.append([parameter_name, self.params.parameter_value(parameter_name).format_bounds()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
 
         # get scan density
         density = num_prescan / self.params.volume()
@@ -196,25 +199,23 @@ class Scan:
         details = open(self.details_name, "a")
         details.write("Prescan\n")
         details.write("--------------------\n")
-        details.write("Number of prescan points = " + str(num_prescan) + "\n")
-        details.write("Scan density = " + f"{Decimal(density):.3E}" + "\n")
-        details.write("Max xsec*BR = " + self.global_max.format_xb() + "\n")
+        details.write(f"Number of prescan points = {num_prescan}\n")
+        details.write(f"Scan density = {density:.3E}\n")
+        details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
         details.write("--------------------\n")
         for parameter_name in self.params.parameter_names:
-            details.write(parameter_name + ":\n")
-            details.write("  " + self.global_max.format_param(parameter_name) + "\n")
-            details.write("  " + self.params.parameter_value(parameter_name).format_range() + "\n")
-        details.write("--------------------\n")
-        details.write("\n\n")
+            details.write(f"{parameter_name}:\n")
+            details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
+            details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
+        details.write("--------------------\n\n\n")
         details.close()
 
         # write scan results to summary file
         summary = open(self.summary_name, "a")
         summary.write(self.global_max.format_xb())
         for name, parameter in self.params.parameters.items():
-            summary.write("\t" + f"{self.global_max.get_val(name):1.{parameter.precision}f}")
-        summary.write("\tPre")
-        summary.write("\n")
+            summary.write(f"\t{self.global_max.get_val(name):1.{parameter.precision}f}")
+        summary.write("\tPre\n")
         summary.close()
 
         # write scan max xb tsv line to tsv summary file
@@ -296,11 +297,11 @@ class Scan:
 
         # print out scan time
         self.logger.info("Done!")
-        self.logger.info(f"Scan took {str(datetime.timedelta(seconds=int(scan_time)))} (hh:mm:ss)\n")
+        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
 
         # write time info to details file
         details = open(self.details_name, "a")
-        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
+        details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
         details.close()
         return
 
@@ -371,11 +372,13 @@ class Scan:
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        print("\n")
         self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
+    
+    def clean_up_failure(self) -> None:
+        shutil.rmtree(self.out_dir)
 
 if __name__ == "__main__":
 
@@ -386,27 +389,32 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-n", "--npoints", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
+    arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name (default: scan.log).")
     args = arg_parser.parse_args()
-
-    # set up logging
-    setup_logging(level=LOG_LEVELS[args.log_level.lower()])
 
     # create masses object
     masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
+    
+    # directory where we want the output to go
+    out_dir = scan_dir(model_name=args.model,
+                       decay=args.decay,
+                       masses=masses)
+
+    # set up logging
+    setup_logging(log_file=os.path.join(out_dir, args.log),
+                  level=LOG_LEVELS[args.log_level.lower()])
 
     # create scan object
     myScan = Scan(masses = masses,
                   model_name = args.model,
                   decay = args.decay,
-                  use_multiprocessing = args.multiprocessing,
-                  overwrite = args.overwrite
+                  use_multiprocessing = args.multiprocessing
                  )
 
     # run scan using scan object
-    myScan.run_zoom_optimization(num_points = args.npoints,
+    myScan.run_zoom_optimization(num_points = args.num_points,
                                  niter = args.iterations)
