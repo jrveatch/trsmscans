@@ -9,7 +9,7 @@ from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
 from utils.params import Params
 from utils.parse import Parse
-from utils.runScannerS import runScannerS
+from utils.run_scannerS import run_scannerS
 from utils.tsv_utils import save_tsv_output
 
 
@@ -92,10 +92,10 @@ class PointSampler:
             self.logger.debug(f'Generating {num_points_requested} points')
 
             # Run ScannerS
-            points = runScannerS(ini_name = ini_name,
-                                 num_points = num_points_requested,
-                                 model_name = self.model_name,
-                                 use_multiprocessing = self.use_multiprocessing)
+            points = run_scannerS(ini_name = ini_name,
+                                  num_points = num_points_requested,
+                                  model_name = self.model_name,
+                                  use_multiprocessing = self.use_multiprocessing)
 
             # Update the total points run
             self.curr_points_run += points

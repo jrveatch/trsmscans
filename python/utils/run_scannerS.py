@@ -40,10 +40,10 @@ except Exception as e:
 logger = logging.getLogger(__name__)
 
 # method to run ScannerS
-def runScannerS(ini_name: str,
-                num_points: int,
-                model_name: str,
-                use_multiprocessing: bool) -> int:
+def run_scannerS(ini_name: str,
+                 num_points: int,
+                 model_name: str,
+                 use_multiprocessing: bool) -> int:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ini_name = ini_name,
-                model_name = args.model,
-                num_points = args.num_points,
-                use_multiprocessing = args.use_multiprocessing)
+    run_scannerS(ini_name = ini_name,
+                 model_name = args.model,
+                 num_points = args.num_points,
+                 use_multiprocessing = args.use_multiprocessing)
