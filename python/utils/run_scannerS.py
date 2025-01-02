@@ -26,7 +26,7 @@ try:
     # fraction of cpus to use when parallel processing
     frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
     # minimum number of points per job
-    min_points_per_job: float = config_loader.get('ScannerS', 'min_points_per_job')
+    min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
 except KeyError as e:
@@ -73,7 +73,7 @@ def run_scannerS(ini_name: str,
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
-    if num_points < 2 * min_points_per_job:
+    if num_points <= 2 * min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
