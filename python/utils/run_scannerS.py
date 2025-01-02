@@ -26,7 +26,7 @@ try:
     # fraction of cpus to use when parallel processing
     frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
     # minimum number of points per job
-    min_points_per_job: float = config_loader.get('ScannerS', 'min_points_per_job')
+    min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
 except KeyError as e:
@@ -40,10 +40,10 @@ except Exception as e:
 logger = logging.getLogger(__name__)
 
 # method to run ScannerS
-def runScannerS(ini_name: str,
-                num_points: int,
-                model_name: str,
-                use_multiprocessing: bool) -> int:
+def run_scannerS(ini_name: str,
+                 num_points: int,
+                 model_name: str,
+                 use_multiprocessing: bool) -> int:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
@@ -73,7 +73,7 @@ def runScannerS(ini_name: str,
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
-    if num_points < 2 * min_points_per_job:
+    if num_points <= 2 * min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
@@ -113,9 +113,13 @@ def runScannerS(ini_name: str,
         points_to_run = points_per_process * num_processes
 
         # print out some information
+        logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
         num_points = points_to_run + min_points_per_job
+    
+    else:
+        logger.info("Running as a single process")
         
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
@@ -264,7 +268,7 @@ if __name__ == "__main__":
     ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ini_name = ini_name,
-                model_name = args.model,
-                num_points = args.num_points,
-                use_multiprocessing = args.use_multiprocessing)
+    run_scannerS(ini_name = ini_name,
+                 model_name = args.model,
+                 num_points = args.num_points,
+                 use_multiprocessing = args.use_multiprocessing)

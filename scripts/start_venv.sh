@@ -17,15 +17,19 @@ if ! [ -f "python/requirements.txt" ]; then
     return
 fi
 
-# create temporary files for storing pip freeze output
+# create temporary files for storing package versions
 installed_packages_temp=$(mktemp)
+normalized_requirements_temp=$(mktemp)
 requirements_temp=$(mktemp)
 
+# normalize requirements file
+cat python/requirements.txt | tr '[:upper:]' '[:lower:]' | sort > "$normalized_requirements_temp"
+
 # capture the current installed packages using pip freeze
-pip freeze > "$installed_packages_temp"
+pip freeze | tr '[:upper:]' '[:lower:]' | sort > "$installed_packages_temp"
 
 # get list of packages from pip freeze that are not in requirements.txt
-comm -13 "$installed_packages_temp" "python/requirements.txt" > "$requirements_temp"
+comm -13 "$installed_packages_temp" "$normalized_requirements_temp" > "$requirements_temp"
 
 # check if there are any differences between installed packages and requirements
 if [ -s "$requirements_temp" ]; then
