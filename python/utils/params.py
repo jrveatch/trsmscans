@@ -36,7 +36,7 @@ class Params:
         self.__decay = decay
 
         # get list of parameter names
-        self.__parameter_names: list[str] = self.__model.parameter_names()
+        self.__parameter_names: list[str] = self.__model.parameter_names
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
@@ -176,7 +176,7 @@ class Params:
                   ini_name: str) -> None:
 
         # read in template .ini file
-        template = open(self.__model.template_ini(),"r")
+        template = open(self.__model.template_ini,"r")
         ini_data = template.read()
         template.close()
 
