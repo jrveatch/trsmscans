@@ -1,6 +1,7 @@
 
 # standard libraries
 import logging
+import os
 
 # Define the numeric value for VERBOSE
 VERBOSE_LEVEL = 5  # Below DEBUG (10)
@@ -61,6 +62,9 @@ def setup_logging(log_file: str,
     # Clear existing handlers
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
+
+    # Create the log file directory if it doesn't exist
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
     # Create handlers
     file_handler = logging.FileHandler(log_file, mode='w') # File handler
