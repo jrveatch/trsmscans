@@ -49,11 +49,13 @@ class Point:
         return self.get_val(par_name) - other.get_val(par_name)
 
     # get fractional difference between two values of varname
-    # TODO: Add divide-by-zero protection
     def diff_frac(self,
                   other: 'Point',
                   par_name: str) -> float:
-        return self.diff(other,par_name) / abs(self.get_val(par_name))
+        abs_val = abs(self.get_val(par_name))
+        if abs_val < 1e-13:
+            return 1.0
+        return self.diff(other,par_name) / abs_val
     
     # get formatted string of xb
     def format_xb(self) -> str:
