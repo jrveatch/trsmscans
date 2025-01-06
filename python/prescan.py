@@ -91,9 +91,8 @@ def run_prescan(masses: 'Masses',
         logger.info(f"Running with the additional {num_points} points")
         logger.info("If you want to overwrite the existing prescan, run with the -o option")
 
-    # check if directory exists, if not make it
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    # make output directory if it doesn't already exist
+    os.makedirs(out_dir, exist_ok=True)
 
     # store starting directory
     startDir = os.getcwd()
