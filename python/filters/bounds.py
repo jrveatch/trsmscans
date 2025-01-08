@@ -119,8 +119,12 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         logger.verbose(f"widths are {w_H} {w_S} {w_X}")
 
+        # precision used by higgstools for width
+        # below this setTotalWidth will not work nor will setBr
+        epsilon = 1e-10
+
         # set BRs for H
-        if w_H > 1e-13 :
+        if w_H > epsilon:
             logger.verbose("H")
             set_BRs(particle=H,
                     BRs_SM=br_H_SM,
@@ -128,7 +132,7 @@ def filter_bounds(dataframe: pd.DataFrame,
                     adjust_ZZ=True)
 
         # set BRs for S
-        if w_S > 1e-13:
+        if w_S > epsilon:
             logger.verbose("S")
             set_BRs(particle=S,
                     BRs_SM=br_S_SM,
@@ -136,7 +140,7 @@ def filter_bounds(dataframe: pd.DataFrame,
                     adjust_ZZ=True)
 
         # set BRs for X
-        if w_X > 1e-13:
+        if w_X > epsilon:
             logger.verbose("X")
             set_BRs(particle=X,
                     BRs_SM=br_X_SM,
