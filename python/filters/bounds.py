@@ -119,33 +119,23 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         logger.verbose(f"widths are {w_H} {w_S} {w_X}")
 
-        # precision used by higgstools for width
-        # below this setTotalWidth will not work nor will setBr
-        epsilon = 1e-10
-
         # set BRs for H
-        if w_H > epsilon:
-            logger.verbose("H")
-            set_BRs(particle=H,
-                    BRs_SM=br_H_SM,
-                    BRs_BSM=br_H_BSM,
-                    adjust_ZZ=True)
+        set_BRs(particle=H,
+                BRs_SM=br_H_SM,
+                BRs_BSM=br_H_BSM,
+                adjust_ZZ=True)
 
         # set BRs for S
-        if w_S > epsilon:
-            logger.verbose("S")
-            set_BRs(particle=S,
-                    BRs_SM=br_S_SM,
-                    BRs_BSM=br_S_BSM,
-                    adjust_ZZ=True)
+        set_BRs(particle=S,
+                BRs_SM=br_S_SM,
+                BRs_BSM=br_S_BSM,
+                adjust_ZZ=True)
 
         # set BRs for X
-        if w_X > epsilon:
-            logger.verbose("X")
-            set_BRs(particle=X,
-                    BRs_SM=br_X_SM,
-                    BRs_BSM=br_X_BSM,
-                    adjust_ZZ=False)
+        set_BRs(particle=X,
+                BRs_SM=br_X_SM,
+                BRs_BSM=br_X_BSM,
+                adjust_ZZ=False)
 
         # get bounds and signals results
         bounds_result = bounds(pred)
@@ -197,6 +187,10 @@ def set_BRs(particle,
             adjust_ZZ: bool = False
            ) -> None:
     
+    # check total width and return if it is too small
+    if particle.totalWidth() < 1e-11:
+        return
+
     # keep track of the sum of BRs
     sum_BR = 0.0
 
