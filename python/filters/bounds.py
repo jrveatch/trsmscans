@@ -184,7 +184,7 @@ def set_effective_couplings(particle,
 def set_BRs(particle,
             BRs_SM: dict[str,float],
             BRs_BSM: dict[tuple[str,str],float],
-            adjust_ZZ: bool = False
+            adjust_ZZ: bool
            ) -> None:
     
     # check total width and return if it is too small
