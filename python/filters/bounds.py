@@ -117,7 +117,10 @@ def filter_bounds(dataframe: pd.DataFrame,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        logger.verbose(f"widths are {w_H} {w_S} {w_X}")
+        logger.verbose(f"Scalar widths are: H: {w_H} S: {w_S} X: {w_X}")
+        logger.verbose(f"  H: {w_H}")
+        logger.verbose(f"  S: {w_S}")
+        logger.verbose(f"  X: {w_X}")
 
         # set BRs for H
         set_BRs(particle=H,
