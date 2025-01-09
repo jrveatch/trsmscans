@@ -16,7 +16,7 @@ import time
 from prescan import run_prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
-from utils.file_utils import scan_dir, plots_dir
+from utils.file_utils import scan_dir, plots_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
 from utils.params import Params
@@ -87,19 +87,12 @@ class Scan:
                                 decay=decay,
                                 masses=masses)
 
-        # check if directory exists, if not make it
-        if not os.path.exists(self.out_dir):
-            os.makedirs(self.out_dir)
+        # make output directory if it doesn't already exist
+        os.makedirs(self.out_dir, exist_ok=True)
 
-        # remove files subdirectory if it exists
-        if os.path.exists(f"{self.out_dir}/files"):
-            shutil.rmtree(f"{self.out_dir}/files")
-
-        # make files subdirectory
-        os.makedirs(f"{self.out_dir}/files")
-        os.makedirs(f"{self.out_dir}/files/details")
-        os.makedirs(f"{self.out_dir}/files/ini")
-        os.makedirs(f"{self.out_dir}/files/tsv")
+        # recreate files directory along with subdirectories
+        recreate_dir(path=f"{self.out_dir}/files",
+                     subdirs=["details", "ini", "tsv"])
 
         # create summary file
         self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"

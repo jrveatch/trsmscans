@@ -292,8 +292,8 @@ class Parse:
         self.__set_filters()
 
         # populate a dictionary of series for each model parameter
-        parameters = self.__model.parameters()
-        self.__par_arrays = {name: self.filtered_data[par['fullname']] for name, par in parameters.items()}
+        model_parameters = self.__model.parameters
+        self.__par_arrays = {name: self.filtered_data[par['fullname']] for name, par in model_parameters.items()}
 
     @property
     def num_filtered_points(self) -> int:

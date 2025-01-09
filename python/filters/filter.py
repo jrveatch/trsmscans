@@ -57,14 +57,17 @@ def apply_filters(file_name: str,
     filt_bounds = dataframe[header_bounds]
     filt_signals = dataframe[header_signals]
 
+    # create dictionary to store results
+    results: dict[str, int] = {}
+
     # find how many points pass all filters
-    nwidth: int = filt_width.sum()
-    nbounds: int = filt_bounds.sum()
-    nsignals: int = filt_signals.sum()
-    npass: int = (filt_width * filt_bounds * filt_signals).sum()
+    results["width"] = filt_width.sum()
+    results["bounds"] = filt_bounds.sum()
+    results["signals"] = filt_signals.sum()
+    results["pass"] = (filt_width * filt_bounds * filt_signals).sum()
 
     # return numbers of events passing each filter
-    return nwidth, nbounds, nsignals, npass
+    return results
 
 if __name__ == "__main__":
 

@@ -22,10 +22,10 @@ class Model:
         self.__model_dir = os.environ['DATADIR']+"models/"
 
         # model yaml file
-        self.__yaml_name = self.__model_dir + self.__name + "_params.yml"
+        self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")
 
         # template .ini file name
-        self.__template_ini = self.__model_dir + self.__name + "_template.ini"
+        self.__template_ini = os.path.join(self.__model_dir, f"{self.__name}_template.ini")
 
         self.__read_yaml()
 
@@ -71,16 +71,18 @@ class Model:
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
-    # get dictionary of model parameters
+    @property
     def parameters(self) -> dict:
+        """Dictionary of model parameters"""
         return self.__model_params
 
     # get a single model parameter
     def parameter(self,par_name) -> dict[str,any]:
         return self.__model_params[par_name]
 
-    # get list of model parameter names
+    @property
     def parameter_names(self) -> list[str]:
+        """List of model parameter names"""
         return list(self.__model_params.keys())
 
     # get model parameter starting min
@@ -91,10 +93,12 @@ class Model:
     def starting_max(self,par_name) -> float:
         return self.__model_params[par_name]['max']
 
-    # get model name
+    @property
     def name(self) -> str:
+        """Model name"""
         return self.__name
 
-    # get model template .ini file
+    @property
     def template_ini(self) -> str:
+        """Model template .ini file name"""
         return self.__template_ini
