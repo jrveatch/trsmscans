@@ -12,7 +12,6 @@ from utils.parse import Parse
 from utils.run_scannerS import run_scannerS
 from utils.tsv_utils import save_tsv_output
 
-
 class PointSampler:
         
     # Initializer: passes output directory, model name, and config loader
@@ -105,8 +104,8 @@ class PointSampler:
 
             # Apply width and bounds filters
             nwidth, nbounds, nsignals, npass = apply_filters(file_name = temp_tsv,
-                                                                            masses = params.masses,
-                                                                            config_loader = self.config_loader)
+                                                             masses = params.masses,
+                                                             config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
