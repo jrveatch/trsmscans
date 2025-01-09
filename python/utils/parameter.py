@@ -114,11 +114,11 @@ class Parameter:
     
     # set new value, range, low and high
     def scale_width(self,
-                    newVal: Optional[float] = None,
-                    rangeScale: float = 1.0) -> None:
+                    new_val: Optional[float] = None,
+                    range_scale: float = 1.0) -> None:
 
-        # if both newVal is None and rangeScale is 1.0, complain and return existing low
-        if newVal is None and rangeScale == 1.0:
+        # complain and exit if there is nothing to do
+        if new_val is None and range_scale == 1.0:
             self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
@@ -126,7 +126,7 @@ class Parameter:
         center = self.center
 
         # scale width by given value
-        width *= rangeScale
+        width *= range_scale
 
         # find new low and high using the half width
         self.__low = center - width / 2
