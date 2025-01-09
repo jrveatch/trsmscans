@@ -120,23 +120,21 @@ class PointSampler:
             if not good_points_only:
                 break
 
-            # Calculate the efficiency of the points passed based on points run
-            efficiency = self.npass/self.curr_points_run
+            # Calculate the running efficiency of the points passed based on points run so far
+            running_efficiency = self.npass/self.curr_points_run
 
             # Print points passed and efficiency
-            self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%')
+            self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
             self.logger.debug(f'A total of {self.npass} points have passed')
 
             # Determine whether to adjust or keep the current efficiency
-            if abs((self.efficiency/efficiency)-1) > 0.05:
+            if abs((self.efficiency/running_efficiency)-1) > 0.05:
 
                 # Print points passed and efficiency
-                self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*efficiency:.1f}%\n')
+                self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
 
-                # Add cushion to the efficiency
-                efficiency *= 0.98
-
-                self.efficiency = efficiency
+                # Update the efficiency to the running efficiency with a small cushion
+                self.efficiency = running_efficiency * 0.98
 
             else:
 
