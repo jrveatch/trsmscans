@@ -102,19 +102,19 @@ class PointSampler:
             # Print info about applying filters
             self.logger.debug("Applying filters...")
 
-            # Apply width and bounds filters
-            nwidth, nbounds, nsignals, npass = apply_filters(file_name = temp_tsv,
-                                                             masses = params.masses,
-                                                             config_loader = self.config_loader)
+            # Apply filters
+            results = apply_filters(file_name = temp_tsv,
+                                    masses = params.masses,
+                                    config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
 
             # Update the filtered variables
-            self.__nwidth += nwidth
-            self.__nbounds += nbounds
-            self.__nsignals += nsignals
-            self.__npass += npass
+            self.__nwidth += results["width"]
+            self.__nbounds += results["bounds"]
+            self.__nsignals += results["signals"]
+            self.__npass += results["pass"]
 
             # Break if all points are being counted
             if not good_points_only:
@@ -124,21 +124,21 @@ class PointSampler:
             running_efficiency = self.npass/self.curr_points_run
 
             # Print points passed and efficiency
-            self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
+            self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
             self.logger.debug(f'A total of {self.npass} points have passed')
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
 
                 # Print points passed and efficiency
-                self.logger.debug(f'{npass} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
+                self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
 
                 # Update the efficiency to the running efficiency with a small cushion
                 self.efficiency = running_efficiency * 0.98
 
             else:
 
-                self.logger.debug(f'{npass} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
+                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.npass} points that pass filters")
