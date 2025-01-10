@@ -24,20 +24,18 @@ def interpolate_HiggsBR(brdict) -> list[interp1d]:
     interp_higgs_brs: list[interp1d] = []
 
     # find out how many BRs+width we have:
-    values_view = list(brdict.values())
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
+    first_key = next(iter(brdict))
+    first_value = brdict[first_key]
     NBRs = len(first_value)
   
     # push back all the values of the masses, brs and width into arrays
-    mass_array = []
-    br_array =[[] for yy in range(NBRs)]
+    mass_array = list(brdict.keys())
+    br_array =[[] for _ in range(NBRs)]
 
     # get the mass and the corresponding BR arrays
-    for key in list(brdict.keys()):
-        mass_array.append(key)
+    for mass in mass_array:
         for ii in range(NBRs):
-            br_array[ii].append(brdict[key][ii])
+            br_array[ii].append(brdict[mass][ii])
 
     # now create the interpolators and put them in the array:
     for ii in range(NBRs):
@@ -246,11 +244,6 @@ def interpolate_HiggsXS(xs_dict):
 
     # define an array of interpolators
     interp_higgs_xss = []
-
-    # find out how many BRs+width we have:
-    values_view = list(xs_dict.values())
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
   
     # push back all the values of the masses, brs and width into arrays
     mass_array = []
