@@ -43,10 +43,9 @@ class Masses:
                 self.SName = "H1"
         
         # complain and exit if X is not the heaviest
-        # TODO: Throw an exception
         else:
             self.logger.error("Only mX > mS,mH is currently supported")
-            return
+            raise ValueError("Invalid mass configuration: mX must be the largest")
 
         """
         # if mS is the largest, it is H3
