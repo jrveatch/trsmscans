@@ -9,19 +9,10 @@ from collections import OrderedDict
 # third-party libraries
 from prettytable import PrettyTable
 from scipy.interpolate import interp1d
+from sigfig import round as round_sig
 
 # get logger
 logger = logging.getLogger(__name__)
-
-# round to sig significant figures
-def round_sig(x: float,
-              sig: int = 2) -> float:
-    if x == 0.:
-        return 0.
-    if math.isnan(x) is True:
-        logger.warning('NaN!')
-        return 0.
-    return round(x, sig-int(math.floor(math.log10(abs(x))))-1)
 
 # create interpolators for the various BRs and total width and return a dictionary
 def interpolate_HiggsBR(brdict) -> list[interp1d]:
@@ -111,7 +102,7 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
     heavyBRs_fixed: list[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
-    logger.verbose('sumBRs = {sumBRs}')
+    logger.debug('sumBRs = {sumBRs}')
     for j in range(len(heavyBRs)-1):
         heavyBRs_fixed.append(heavyBRs[j]/sumBRs)
     heavyBRs_fixed.append(heavyBRs[-1])
@@ -185,7 +176,7 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
-      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],5)])
+      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],sigfigs=5)])
     print(tbl)
     BRsum_heavy = 0.000
     for bb in HeavyHiggsBRs:
