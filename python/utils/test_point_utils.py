@@ -111,7 +111,7 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
     heavyBRs_fixed: list[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
-    logger.verbose('sumBRs = {sumBRs}')
+    logger.debug('sumBRs = {sumBRs}')
     for j in range(len(heavyBRs)-1):
         heavyBRs_fixed.append(heavyBRs[j]/sumBRs)
     heavyBRs_fixed.append(heavyBRs[-1])
