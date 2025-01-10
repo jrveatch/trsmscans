@@ -382,7 +382,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str,help="Optimization strategy (possible values: 'zoom')")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
@@ -408,12 +408,12 @@ if __name__ == "__main__":
                   decay = args.decay,
                   use_multiprocessing = args.multiprocessing
                  )
-    
+
     match args.strategy:
         case "zoom":
             print("Running zoom optimization..")
             myScan.run_zoom_optimization(num_points = args.num_points,
-                                niter = args.iterations)
+                                         niter = args.iterations)
         case _:
-            raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")    
+            raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
 
