@@ -153,8 +153,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
-    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
-    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name (default: scan.log).")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
+    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name")
     args = arg_parser.parse_args()
 
     # create masses object
