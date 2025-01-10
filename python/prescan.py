@@ -95,7 +95,7 @@ def run_prescan(masses: 'Masses',
     os.makedirs(out_dir, exist_ok=True)
 
     # store starting directory
-    startDir = os.getcwd()
+    start_dir = os.getcwd()
 
     # move into working directory for prescan
     os.chdir(out_dir)
@@ -134,7 +134,7 @@ def run_prescan(masses: 'Masses',
     scan_time = (scan_end - scan_start)
 
     # move back to the starting directory
-    os.chdir(startDir)
+    os.chdir(start_dir)
 
     # print total time to the screen
     logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")

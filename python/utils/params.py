@@ -98,11 +98,11 @@ class Params:
 
     # set new value, range, low and high
     def scale_ranges(self,
-                     newPoint: Optional[Point] = None,
-                     rangeScale: float = 1.0) -> None:
+                     new_point: Optional[Point] = None,
+                     range_scale: float = 1.0) -> None:
 
-        # if both newPoint is None and rangeScale is 1.0, complain and return existing low
-        if newPoint is None and rangeScale == 1.0:
+        # complain and exit if there is nothing to do
+        if new_point is None and range_scale == 1.0:
             self.logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
@@ -113,12 +113,12 @@ class Params:
             newVal = None
 
             # if new point is provided, get new value from it
-            if newPoint:
-                newVal = newPoint.get_val(par_name)
+            if new_point:
+                new_val = new_point.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.__parameters[par_name].scale_width(newVal=newVal,
-                                                   rangeScale=rangeScale)
+            self.__parameters[par_name].scale_width(new_val=new_val,
+                                                   range_scale=range_scale)
 
     # change bounds of each parameter based on new center point
     def reposition_center(self, point: tuple[float]):
