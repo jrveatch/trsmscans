@@ -414,7 +414,6 @@ if __name__ == "__main__":
             print("Running zoom optimization..")
             myScan.run_zoom_optimization(num_points = args.num_points,
                                 niter = args.iterations)
-            
         case _:
             raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")    
 
