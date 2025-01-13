@@ -176,12 +176,8 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     for idx in range(len(HeavyHiggsBRs)):
       tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],sigfigs=5)])
     print(tbl)
-    BRsum_heavy = 0.000
-    for bb in HeavyHiggsBRs:
-        if HeavyHiggsBRs.index(bb) != len(HeavyHiggsBRs)-1:
-            BRsum_heavy = BRsum_heavy + bb
-    print('consistency test: sum(BRs)=', BRsum_heavy)
-    print('\n')
+    BRsum_heavy = round(sum(HeavyHiggsBRs[:-1]), 12)
+    print(f"Consistency test: sum(BRs) = {BRsum_heavy}\n")
 
 def get_BR_text_array_heavy_withtripleHiggs() -> list[str]:
     BR_text_array: list[str] = []
