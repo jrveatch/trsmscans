@@ -78,13 +78,13 @@ class Params:
         return self.__parameters[par_name]
 
     def center_points(self) -> tuple[float]:
-        return tuple([param.center() for param in self.__parameters.values()])
+        return tuple([param.center for param in self.__parameters.values()])
 
     def ranges(self) -> tuple[tuple[float]]:
-        return tuple([param.range() for param in self.__parameters.values()])
+        return tuple([param.range for param in self.__parameters.values()])
 
     def widths(self) -> tuple[float]:
-        return tuple([param.width() for param in self.__parameters.values()])
+        return tuple([param.width for param in self.__parameters.values()])
 
     # get starting min value from model
     def starting_min(self,
@@ -123,7 +123,7 @@ class Params:
     # change bounds of each parameter based on new center point
     def reposition_center(self, point: tuple[float]):
         for (center, param) in zip(point, self.__parameters.values()):
-            extent = param.width() / 2
+            extent = param.width / 2
 
             param.set_low_high(center - extent, center + extent)
 

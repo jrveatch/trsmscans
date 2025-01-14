@@ -13,7 +13,7 @@ import shutil
 import time
 
 # local modules
-from prescan import run_prescan
+from prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, plots_dir, recreate_dir
@@ -246,8 +246,8 @@ class Scan:
 
             return tuple(
                 [
-                    random.uniform(params[name].get_low(), params[name].get_high())
-                    for name in params.names
+                    random.uniform(params[name].low, params[name].high)
+                    for name in params.parameter_names
                 ]
             )
         
@@ -263,7 +263,7 @@ class Scan:
                 initial_point = random_pos()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-                offsets = [param.width() * coeff for param in self.params]
+                offsets = [param.width * coeff for param in self.params]
 
                 results.append(initial_point)
 
@@ -492,7 +492,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','ms'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
@@ -530,7 +530,7 @@ if __name__ == "__main__":
             print("Running mean shift optimization..")
             myScan.run_ms_optimization(
                     prescan_points = args.num_points,
-                    points = args.npoints,
+                    points = args.num_points,
                     use_multiprocessing = args.multiprocessing
                 )
         case _:

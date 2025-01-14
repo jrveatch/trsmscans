@@ -73,11 +73,11 @@ class MeanShiftOptimizer:
 
         # Set initial param widths
         for param in self.__local_params:
-            center = param.center()
-            extent = (param.width() * scan_perc) / 2
+            center = param.center
+            extent = (param.width * scan_perc) / 2
 
-            param.set_low(center - extent)
-            param.set_high(center + extent)
+            param.low = (center - extent)
+            param.high = (center + extent)
 
         # Set center of new params
         self.__local_params.reposition_center(initial_pos)
@@ -142,7 +142,7 @@ class MeanShiftOptimizer:
             # Create scan_parser using the point_sampler class
             parser = self.point_sampler.sample_points(params = self.__local_params,
                                                                 identifier = identifier,
-                                                                npoints = self.__points)
+                                                                num_points_requested = self.__points)
 
             arrays = parser.parameter_arrays
             xb = parser.get_xb(self.__decay_name)
@@ -191,7 +191,7 @@ class MeanShiftOptimizer:
             # content += "Update optimal point: " + str(update) + "\n"
             # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
             content += "--------------------\n"
-            for name in self.__local_params.names:
+            for name in self.__local_params.parameter_names:
                 content += name + ":\n"
                 content += f"  {self.__local_params[name].format_range()}\n"
             content += "--------------------\n"
