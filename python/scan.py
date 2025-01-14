@@ -2,7 +2,7 @@
 
 # standard libraries
 import argparse
-import copy
+from copy import deepcopy
 import datetime
 import itertools
 import logging
@@ -328,7 +328,7 @@ class Scan:
 
         # Generate all parameter combinations
         for param_values in itertools.product(*param_dict.values()):  # Itertools.product serves as a way to get combinations of values
-            params_copy = copy.deepcopy(self.params)  # Manipulate data locally
+            params_copy = deepcopy(self.params)  # Manipulate data locally
             param_combination_data = {}  # Dictionary to hold all combinations of values
 
             # Zip the names and values together, assigning the data to each parameter
