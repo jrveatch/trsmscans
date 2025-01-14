@@ -492,12 +492,12 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
-    arg_parser.add_argument("-optim", "--optimizer", required=True, type = str, help="Which optimization strategy to use")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
-    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
-    arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name (default: scan.log).")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
+    arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name")
     args = arg_parser.parse_args()
 
     # create masses object
@@ -519,18 +519,19 @@ if __name__ == "__main__":
                   use_multiprocessing = args.multiprocessing
                  )
 
-    match args.optimizer:
+    match args.strategy:
         case "zoom":
-            # run scan using scan object
+            print("Running zoom optimization..")
             myScan.run_zoom_optimization(
                     num_points = args.num_points,
                     niter = args.iterations
                 )
         case "ms":
+            print("Running mean shift optimization..")
             myScan.run_ms_optimization(
                     prescan_points = args.num_points,
                     points = args.npoints,
                     use_multiprocessing = args.multiprocessing
                 )
         case _:
-            raise ValueError("Invalid optimizer selection")
+            raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")

@@ -95,7 +95,7 @@ def prescan(masses: 'Masses',
     os.makedirs(out_dir, exist_ok=True)
 
     # store starting directory
-    startDir = os.getcwd()
+    start_dir = os.getcwd()
 
     # move into working directory for prescan
     os.chdir(out_dir)
@@ -134,7 +134,7 @@ def prescan(masses: 'Masses',
     scan_time = (scan_end - scan_start)
 
     # move back to the starting directory
-    os.chdir(startDir)
+    os.chdir(start_dir)
 
     # print total time to the screen
     logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")
@@ -153,8 +153,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
-    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level (default: info)")
-    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name (default: scan.log).")
+    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
+    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name")
     args = arg_parser.parse_args()
 
     # create masses object

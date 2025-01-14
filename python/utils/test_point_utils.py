@@ -9,19 +9,10 @@ from collections import OrderedDict
 # third-party libraries
 from prettytable import PrettyTable
 from scipy.interpolate import interp1d
+from sigfig import round as round_sig
 
 # get logger
 logger = logging.getLogger(__name__)
-
-# round to sig significant figures
-def round_sig(x: float,
-              sig: int = 2) -> float:
-    if x == 0.:
-        return 0.
-    if math.isnan(x) is True:
-        logger.warning('NaN!')
-        return 0.
-    return round(x, sig-int(math.floor(math.log10(abs(x))))-1)
 
 # create interpolators for the various BRs and total width and return a dictionary
 def interpolate_HiggsBR(brdict) -> list[interp1d]:
@@ -33,20 +24,18 @@ def interpolate_HiggsBR(brdict) -> list[interp1d]:
     interp_higgs_brs: list[interp1d] = []
 
     # find out how many BRs+width we have:
-    values_view = list(brdict.values())
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
+    first_key = next(iter(brdict))
+    first_value = brdict[first_key]
     NBRs = len(first_value)
   
     # push back all the values of the masses, brs and width into arrays
-    mass_array = []
-    br_array =[[] for yy in range(NBRs)]
+    mass_array = list(brdict.keys())
+    br_array =[[] for _ in range(NBRs)]
 
     # get the mass and the corresponding BR arrays
-    for key in list(brdict.keys()):
-        mass_array.append(key)
+    for mass in mass_array:
         for ii in range(NBRs):
-            br_array[ii].append(brdict[key][ii])
+            br_array[ii].append(brdict[mass][ii])
 
     # now create the interpolators and put them in the array:
     for ii in range(NBRs):
@@ -111,7 +100,7 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
     heavyBRs_fixed: list[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
-    logger.verbose('sumBRs = {sumBRs}')
+    logger.debug('sumBRs = {sumBRs}')
     for j in range(len(heavyBRs)-1):
         heavyBRs_fixed.append(heavyBRs[j]/sumBRs)
     heavyBRs_fixed.append(heavyBRs[-1])
@@ -185,14 +174,10 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
-      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],5)])
+      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],sigfigs=5)])
     print(tbl)
-    BRsum_heavy = 0.000
-    for bb in HeavyHiggsBRs:
-        if HeavyHiggsBRs.index(bb) != len(HeavyHiggsBRs)-1:
-            BRsum_heavy = BRsum_heavy + bb
-    print('consistency test: sum(BRs)=', BRsum_heavy)
-    print('\n')
+    BRsum_heavy = round(sum(HeavyHiggsBRs[:-1]), 12)
+    print(f"Consistency test: sum(BRs) = {BRsum_heavy}\n")
 
 def get_BR_text_array_heavy_withtripleHiggs() -> list[str]:
     BR_text_array: list[str] = []
@@ -255,11 +240,6 @@ def interpolate_HiggsXS(xs_dict):
 
     # define an array of interpolators
     interp_higgs_xss = []
-
-    # find out how many BRs+width we have:
-    values_view = list(xs_dict.values())
-    value_iterator = iter(values_view)
-    first_value = next(value_iterator)
   
     # push back all the values of the masses, brs and width into arrays
     mass_array = []
