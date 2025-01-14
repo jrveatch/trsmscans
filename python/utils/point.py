@@ -10,7 +10,7 @@ class Point:
                  model_name: str,
                  par_vals: dict[str,float] = {},
                  xb: float = 0.0):
-        
+
         # get model
         self.model = Model(model_name)
 
@@ -31,6 +31,11 @@ class Point:
 
         # store xb value
         self.xb = xb
+
+    # name of the model
+    @property
+    def model_name(self) -> str:
+        return self.model.name
 
     # wrapper function to get attribute
     def get_val(self,
@@ -56,22 +61,22 @@ class Point:
         if abs_val < 1e-13:
             return 1.0
         return self.diff(other,par_name) / abs_val
-    
+
     # get formatted string of xb
     def format_xb(self) -> str:
         return f"{self.xb:.2E}"
-    
+
     # get formatted string of parameter
     def format_param(self,
                      par_name: str) -> str:
         return f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
-    
+
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
                     par_name: str) -> str:
         return f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
-    
+
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
                          other: 'Point',
@@ -81,7 +86,7 @@ class Point:
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
         return self.xb > other.xb
-    
+
     # define the greater than or equal to (>=) operator
     def __ge__(self,other: 'Point'):
         return self.xb >= other.xb
@@ -89,17 +94,17 @@ class Point:
     # define the less than (<) operator
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
-    
+
     # define the less than or equal to (<=) operator
     def __le__(self,other: 'Point'):
         return self.xb <= other.xb
-    
+
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
         return Point(self.model.name, self.par_vals, self.xb*scale_factor)
-    
+
     def __str__(self) -> str:
         return f"{self.xb}\n{self.par_vals}"
-    
+
     def __repr__(self) -> str:
         return f"{self.xb}\n{self.par_vals}"
