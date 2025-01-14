@@ -16,7 +16,7 @@ class Params:
                  model_name: str,
                  masses: 'Masses',
                  decay: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -76,10 +76,10 @@ class Params:
     def parameter_value(self,
                         par_name: str) -> Parameter:
         return self.__parameters[par_name]
-    
+
     def center_points(self) -> tuple[float]:
         return tuple([param.center() for param in self.__parameters.values()])
-    
+
     def ranges(self) -> tuple[tuple[float]]:
         return tuple([param.range() for param in self.__parameters.values()])
 
@@ -110,7 +110,7 @@ class Params:
         for par_name in self.__parameter_names:
 
             # initialize new value to be None
-            newVal = None
+            new_val = None
 
             # if new point is provided, get new value from it
             if new_point:
@@ -142,7 +142,7 @@ class Params:
                     self.__parameters[par_name].low = new_low
                 else:
                     self.logger.warning(f"{par_name} is not known")
-            
+
         # check to see if high_dict exists
         if high_dict is not None:
 
@@ -162,15 +162,15 @@ class Params:
 
         # loop over parameters
         for par in self.__parameters.values():
-        
+
             # make sure range is non-zero
             if par.width > 1e-13:
-        
+
                 # multiply volume by parameter range
                 volume *= par.width
-        
+
         return volume
-    
+
     # function to write .ini file with parameters
     def write_ini(self,
                   ini_name: str) -> None:
@@ -222,16 +222,16 @@ class Params:
     def __iter__(self):
         self.__iter_idx = -1
         return self
-    
+
     # get next value
     def __next__(self):
         self.__iter_idx += 1
 
         if self.__iter_idx >= len(self.__parameters):
             raise StopIteration
-        
+
         return list(self.__parameters.values())[self.__iter_idx]
-    
+
     # length of params
     def __len__(self):
         return len(self.__parameters)
