@@ -33,7 +33,8 @@ class ZoomOptimizer:
         self.params = params
         self.decay = params.decay
         self.num_points = num_points
-        self.local_max = starting_max
+        self.local_max = Point(starting_max.model_name)
+        self.global_max = starting_max
         self.label = label
         self.top_percentile = {}
         self.top_percentile_xb = None
@@ -96,6 +97,9 @@ class ZoomOptimizer:
         # get time of iteration start
         iter_start = time.time()
 
+        # save global_max as member variable
+        self.global_max = global_max
+
         # get iteration identifier
         iter_label = f"{iter:04d}"
         if self.label:
@@ -111,26 +115,19 @@ class ZoomOptimizer:
         self.scan_parser = self.point_sampler.sample_points(params = self.params,
                                                             num_points_requested = self.num_points,
                                                             identifier = identifier)
-
-        # calculate point density from ranges
-        volume = self.params.volume()
-        density = self.num_points / volume
         
         # get new point as the maximum from the current scan
         new_max = self.scan_parser.get_max_xb_point(self.decay)
 
-        # flag to indicate whether new_max is greater than global_max
-        is_new_global_max = new_max > global_max
-
         # store the previous point
-        local_max_old = self.local_max
+        self.local_max_old = self.local_max
 
         # if new point is better than the local max point, replace it
         if new_max > self.local_max:
             self.local_max = new_max
 
-        # if a new optimal point is found
-        if is_new_global_max:
+        # if a new optimal point is found, write information to the summary file
+        if self.is_new_global_max(new_max):
 
             # write max xb point summary to info file
             self.write_summary(identifier)
@@ -138,23 +135,12 @@ class ZoomOptimizer:
             # write max xb point raw .tsv line to info file
             self.scan_parser.write_max_xb_line(self.tsv_summary_name)
 
-        # check zoom strategy and call method accordingly
-        match self.strategy:
-
-            # zoom in using percentile
-            case "percentile":
-                self.percentile_zoom()
-
-            # zoom in using rate
-            case "rate":
-                self.rate_zoom()
-
-            # all other cases
-            case _:
-                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
+        # write scan details to details file
+        self.write_details(identifier=identifier,
+                           new_max=new_max)
 
         # add to a counter if new point is less than half of the global max
-        if new_max < global_max * 0.5:
+        if new_max < self.global_max * 0.5:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
@@ -203,38 +189,24 @@ class ZoomOptimizer:
         # store history of local max of xb
         self.local_history.append(new_max)
 
+        # call the appropriate zoom method based on the strategy
+        match self.strategy:
+
+            # zoom in using percentile
+            case "percentile":
+                self.percentile_zoom()
+
+            # zoom in using rate
+            case "rate":
+                self.rate_zoom()
+
+            # all other cases
+            case _:
+                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
+
         # get iteration end time
         iter_end = time.time()
         iter_time = iter_end - iter_start
-
-        # TODO: Factorize this to a function after sample_points change is merged
-        # TODO: Add details about R11, R21, R31
-        # write scan details to details file
-        details = open(self.details_name,"a")
-        details.write(f"Iteration = {identifier}\n")
-        details.write("--------------------\n")
-        details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
-        details.write(f"Scan density = {density:.3E}\n")
-        details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
-        details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
-        details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
-        details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
-        details.write("--------------------\n")
-        details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
-        details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
-        details.write(f"Global max xsec*BR = {global_max.format_xb()}\n")
-        details.write(f"Found new global max point: {is_new_global_max}\n")
-        details.write("--------------------\n")
-        for par in self.params.parameter_names:
-            details.write(f"{par}:\n")
-            details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
-            if is_new_global_max:
-                details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
-                details.write(f"  diff. = {self.local_max.format_diff(local_max_old,par)}\n")
-                details.write(f"  rel. diff. = {self.local_max.format_diff_frac(local_max_old,par)}\n")
-        details.write("--------------------\n")
-        details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n\n")
-        details.close()
 
         # print iteration time to screen
         self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
@@ -249,6 +221,45 @@ class ZoomOptimizer:
             summary.write(f"\t{self.local_max.get_val(name):1.{par.precision}f}")
         summary.write(f"\t{identifier}\n")
         summary.close()
+
+    # write to details file
+    def write_details(self,
+                      identifier: str,
+                      new_max: 'Point') -> None:
+
+        # get point density from ranges
+        density = self.num_points / self.params.volume()
+
+        # TODO: Add details about R11, R21, R31
+        details = open(self.details_name,"a")
+        details.write(f"Iteration = {identifier}\n")
+        details.write("--------------------\n")
+        details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
+        details.write(f"Scan density = {density:.3E}\n")
+        details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
+        details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
+        details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
+        details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
+        details.write("--------------------\n")
+        details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
+        details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
+        details.write(f"Global max xsec*BR = {self.global_max.format_xb()}\n")
+        details.write(f"Found new global max point: {self.is_new_global_max(new_max)}\n")
+        details.write("--------------------\n")
+        for par in self.params.parameter_names:
+            details.write(f"{par}:\n")
+            details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
+            if self.is_new_global_max(new_max):
+                details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
+                details.write(f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n")
+                details.write(f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n")
+        details.write("--------------------\n")
+        details.close()
+
+    # check if a new global max has been found
+    def is_new_global_max(self,
+                          new_max: 'Point') -> bool:
+        return new_max > self.global_max
 
     # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:
