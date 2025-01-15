@@ -67,10 +67,10 @@ def filter_bounds(dataframe: pd.DataFrame,
         mX = float(dataframe['m'+XName][i])
 
         # rescalings
-        if HName == "H2":
+        if HName == "H2": # mH > mS
             RS = float(dataframe['R11'][i])
             RH = float(dataframe['R21'][i])
-        else:
+        else: # mH < mS
             RH = float(dataframe['R11'][i])
             RS = float(dataframe['R21'][i])
         RX = float(dataframe['R31'][i])
@@ -106,7 +106,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        # TODO: get the correct rescalings for either hierarchy
+        # set effective couplings for each scalar
         set_effective_couplings(particle=H,mass=mH,rescaling=RH)
         set_effective_couplings(particle=S,mass=mS,rescaling=RS)
         set_effective_couplings(particle=X,mass=mX,rescaling=RX)
@@ -117,7 +117,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         S.setTotalWidth(w_S)
         X.setTotalWidth(w_X)
 
-        logger.verbose(f"Scalar widths are: H: {w_H} S: {w_S} X: {w_X}")
+        logger.verbose(f"Scalar widths are:")
         logger.verbose(f"  H: {w_H}")
         logger.verbose(f"  S: {w_S}")
         logger.verbose(f"  X: {w_X}")
