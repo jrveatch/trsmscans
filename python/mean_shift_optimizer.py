@@ -142,7 +142,9 @@ class MeanShiftOptimizer:
             # Create scan_parser using the point_sampler class
             parser = self.point_sampler.sample_points(params = self.__local_params,
                                                                 identifier = identifier,
-                                                                num_points_requested = self.__points)
+                                                                num_points_requested = self.__points,
+                                                                good_points_only = True
+                                                                )
 
             arrays = parser.parameter_arrays
             xb = parser.get_xb(self.__decay_name)
@@ -199,7 +201,7 @@ class MeanShiftOptimizer:
             content += f"\nscan_pts  = {self.__points}"
             content += f"\nlabel     = {self.__label}"
             content += f"\nscan_perc = {self.__scan_percentage}"
-            content += f"\ncols      = {' '.join(self.__local_params.names)}"
+            content += f"\ncols      = {' '.join(self.__local_params.parameter_names)}"
             content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
             content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
             content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
@@ -337,7 +339,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"vol_{p}": a for p, a in zip(
-                                    self.__local_params.names,
+                                    self.__local_param.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -346,7 +348,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 p: a for p, a in zip(
-                                    self.__local_params.names,
+                                    self.__local_params.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -355,7 +357,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"prev_{p}": a for p, a in zip(
-                                    self.__local_params.names,
+                                    self.__local_params.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -364,7 +366,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"test_{p}": a for p, a in zip(
-                                    self.__local_params.names,
+                                    self.__local_params.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -397,10 +399,10 @@ class MeanShiftOptimizer:
         df = pd.read_csv(walk_tsv, sep="\t")
 
         # Create param plots
-        for i in range(len(self.__local_params.names)):
-            for j in range(i, len(self.__local_params.names)):
-                x_label = self.__local_params.names[i]
-                y_label = self.__local_params.names[j]
+        for i in range(len(self.__local_params.parameter_names)):
+            for j in range(i, len(self.__local_params.parameter_names)):
+                x_label = self.__local_params.parameter_names[i]
+                y_label = self.__local_params.parameter_names[j]
 
                 plt.plot(df[x_label], df[y_label])
                 plt.plot(df[x_label].iloc[-1], df[y_label].iloc[-1], marker="*")
@@ -413,7 +415,7 @@ class MeanShiftOptimizer:
                 plt.clf()
 
         # Create time series
-        for parname in self.__local_params.names:
+        for parname in self.__local_params.parameter_names:
             plt.plot(df["iter"], df[parname], c="tab:blue", label=parname)
             plt.xlabel("iter")
             plt.ylabel(parname)
