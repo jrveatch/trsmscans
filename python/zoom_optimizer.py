@@ -81,11 +81,11 @@ class ZoomOptimizer:
                                           use_file_dir = True)
 
         # get output information file names
-        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.masses}.txt"
-        self.summary_name = out_dir + "scan_summary_" + output_file_postfix
-        self.tsv_summary_name = out_dir + "scan_tsv_summary_" + output_file_postfix
-        self.prescan_details_name = out_dir + "files/details/prescan_details_" + output_file_postfix
-        self.details_name = out_dir + "files/details/scan_details_" + self.label + "_" + output_file_postfix
+        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.masses}"
+        self.summary_name = f"{out_dir}scan_summary_{output_file_postfix}.tsv"
+        self.tsv_summary_name = f"{out_dir}scan_tsv_summary_{output_file_postfix}.tsv"
+        self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
+        self.details_name = f"{out_dir}files/details/scan_details_{self.label}_{output_file_postfix}.txt"
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
@@ -215,6 +215,7 @@ class ZoomOptimizer:
 
     # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
+        print(self.summary_name)
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
         for name, par in self.params.parameters.items():
