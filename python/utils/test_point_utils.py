@@ -72,22 +72,22 @@ def read_higgsBR(br_file: str):
     higgs_brs = {}
 
     # open file of BRs
-    br_stream = open(br_file, 'r')
+    with open(br_file, 'r') as br_stream:
 
-    # loop over the file
-    for line in br_stream:
+        # loop over the file
+        for line in br_stream:
 
-        # split line by whitespace
-        values_raw = line.strip().split()
+            # split line by whitespace
+            values_raw = line.strip().split()
 
-        # convert values to floats
-        values = [float(value) for value in values_raw]
+            # convert values to floats
+            values = [float(value) for value in values_raw]
 
-        # create br_array from all values except first
-        br_array = values[1:]
+            # create br_array from all values except first
+            br_array = values[1:]
 
-        # create BRs dictionary from br_array
-        higgs_brs[values[0]] = br_array
+            # create BRs dictionary from br_array
+            higgs_brs[values[0]] = br_array
 
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgs_brs.items()), key=operator.itemgetter(0))
@@ -210,22 +210,22 @@ def read_higgsXS_N3LO(xs_file: str):
     higgs_xss = {}
 
     # open xsec file
-    xs_stream = open(xs_file, 'r')
+    with open(xs_file, 'r') as xs_stream:
 
-    # loop over the file
-    for line in xs_stream:
+        # loop over the file
+        for line in xs_stream:
 
-        # split line by whitespace
-        values_raw = line.strip().split()
+            # split line by whitespace
+            values_raw = line.strip().split()
 
-        # convert values to floats
-        values = [float(value) for value in values_raw]
+            # convert values to floats
+            values = [float(value) for value in values_raw]
 
-        # create br_array from all values except first
-        xs_array = values[1:]
+            # create br_array from all values except first
+            xs_array = values[1:]
 
-        # create BRs dictionary from br_array
-        higgs_xss[values[0]] = xs_array
+            # create BRs dictionary from br_array
+            higgs_xss[values[0]] = xs_array
 
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgs_xss.items()), key=operator.itemgetter(0))
