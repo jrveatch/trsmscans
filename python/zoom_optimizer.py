@@ -215,7 +215,6 @@ class ZoomOptimizer:
 
     # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
-        print(self.summary_name)
         summary = open(self.summary_name,"a")
         summary.write(self.local_max.format_xb())
         for name, par in self.params.parameters.items():
