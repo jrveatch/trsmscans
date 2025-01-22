@@ -110,7 +110,6 @@ def combine_results(model: str,
     except Exception as e:
         print(f"Error writing to output file {combination_file}: {e}")
 
-
 if __name__ == "__main__":
 
     # Parse command line arguments
