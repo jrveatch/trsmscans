@@ -41,15 +41,9 @@ class Masses:
 
                 self.mH1 = self.mS
                 self.SName = "H1"
-        
-        # complain and exit if X is not the heaviest
-        else:
-            self.logger.error("Only mX > mS,mH is currently supported")
-            raise ValueError("Invalid mass configuration: mX must be the largest")
 
-        """
         # if mS is the largest, it is H3
-        if self.mS > self.mX and self.mS > self.mH:
+        elif self.mS > self.mX and self.mS > self.mH:
             self.mH3 = self.mS
             self.SName = "H3"
 
@@ -69,8 +63,8 @@ class Masses:
                 self.mH1 = self.mX
                 self.XName = "H1"
 
-        # if mH is the largest, it is H3
-        if self.mH > self.mX and self.mH > self.mS:
+        # otherwise mH is the largest, so it is H3
+        else:
             self.mH3 = self.mH
             self.HName = "H3"
 
@@ -89,7 +83,6 @@ class Masses:
 
                 self.mH1 = self.mX
                 self.XName = "H1"
-        """
 
     def __str__(self):
         return f"X{int(self.mX)}_S{int(self.mS)}"
