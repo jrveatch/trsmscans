@@ -19,7 +19,7 @@ from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
 from utils.params import Params
 from utils.point import Point
-from zoom_optimizer import ZoomOptimizer
+from optimizers.zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
 class Scan:
