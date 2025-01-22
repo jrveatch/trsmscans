@@ -40,8 +40,11 @@ def combine_results(model: str,
     try:
         with open(combination_file_name, 'w') as combination_file, open(tsv_combination_file_name, 'w') as tsv_combination_file:
             for XMass, SMass, resolvable in permutations:
-                # TODO: Add logic to deal with non-resolvable cases
+                # Get the directory for the mass point
                 directory = os.environ['OUTPUTDIR'] + f"{model}/scan/{decay}/X{XMass}_S{SMass}/"
+                # If mass point isn't resolvable, use the non-resolvable decay
+                if not resolvable:
+                    directory = os.environ['OUTPUTDIR'] + f"{model}/scan/{get_non_resolvable_decay(decay)}/X{XMass}_S{SMass}/"
                 if not os.path.isdir(directory):
                     print(f"Directory {directory} does not exist. Skipping.")
                     continue
@@ -104,6 +107,27 @@ def combine_results(model: str,
 
     except Exception as e:
         print(f"Error writing to output file {combination_file}: {e}")
+
+def get_non_resolvable_decay(decay: str) -> str:
+    if "bbbb" in decay:
+        return "Xbbbb"
+    if "bb" in decay and "tautau" in decay:
+        return "Xbbtautau"
+    if "bb" in decay and "WW" in decay:
+        return "XbbWW"
+    if "bb" in decay and "ZZ" in decay:
+        return "XbbZZ"
+    if "bb" in decay and "VV" in decay:
+        return "XbbVV"
+    if "bb" in decay and "gamgam" in decay:
+        return "Xbbgamgam"
+    if "WW" in decay and "tautau" in decay:
+        return "XWWtautau"
+    if "ZZ" in decay and "tautau" in decay:
+        return "XZZtautau"
+    if "VV" in decay and "tautau" in decay:
+        return "XVVtautau"
+    return "None"
 
 if __name__ == "__main__":
 
