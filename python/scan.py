@@ -92,7 +92,7 @@ class Scan:
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
-        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
+        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
         summary = open(self.summary_name, "w")
         summary.write("xbmax")
         for parameter in self.params.parameters.values():
@@ -101,7 +101,7 @@ class Scan:
         summary.close()
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
+        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
         tsv_summary = open(self.tsv_summary_name, "w")
         tsv_summary.close()
 
