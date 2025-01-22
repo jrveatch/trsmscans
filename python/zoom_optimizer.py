@@ -59,7 +59,7 @@ class ZoomOptimizer:
             raise
 
         # supported strategies
-        allowed_strategies = {"zoom","percentile"}
+        allowed_strategies = {"rate","percentile"}
 
         # check the strategy and throw an error if it is not supported
         if self.strategy not in allowed_strategies:
