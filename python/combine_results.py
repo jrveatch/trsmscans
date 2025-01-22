@@ -3,6 +3,8 @@
 import argparse
 import os
 
+from utils.decay_utils import get_non_resolvable_decay
+
 def combine_results(model: str,
                     decay: str,
                     identifier: str) -> None:
@@ -107,27 +109,6 @@ def combine_results(model: str,
 
     except Exception as e:
         print(f"Error writing to output file {combination_file}: {e}")
-
-def get_non_resolvable_decay(decay: str) -> str:
-    if "bbbb" in decay:
-        return "Xbbbb"
-    if "bb" in decay and "tautau" in decay:
-        return "Xbbtautau"
-    if "bb" in decay and "WW" in decay:
-        return "XbbWW"
-    if "bb" in decay and "ZZ" in decay:
-        return "XbbZZ"
-    if "bb" in decay and "VV" in decay:
-        return "XbbVV"
-    if "bb" in decay and "gamgam" in decay:
-        return "Xbbgamgam"
-    if "WW" in decay and "tautau" in decay:
-        return "XWWtautau"
-    if "ZZ" in decay and "tautau" in decay:
-        return "XZZtautau"
-    if "VV" in decay and "tautau" in decay:
-        return "XVVtautau"
-    return "None"
 
 if __name__ == "__main__":
 
