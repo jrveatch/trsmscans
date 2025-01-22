@@ -117,3 +117,5 @@ if __name__ == "__main__":
     combine_results(model=args.model,
                     decay=args.decay,
                     identifier=args.identifier)
+    
+    # TODO: Add function to plot combined results
