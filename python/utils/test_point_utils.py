@@ -9,7 +9,9 @@ from collections import OrderedDict
 # third-party libraries
 from prettytable import PrettyTable
 from scipy.interpolate import interp1d
-from sigfig import round as round_sig
+
+# local modules
+from utils.math_utils import round_sig
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -174,7 +176,7 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
-      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],sigfigs=5)])
+      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx], sig_figs=5)])
     print(tbl)
     BRsum_heavy = round(sum(HeavyHiggsBRs[:-1]), 12)
     print(f"Consistency test: sum(BRs) = {BRsum_heavy}\n")

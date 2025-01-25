@@ -12,6 +12,7 @@ import pandas as pd
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
+from utils.math_utils import round_sig
 from utils.params import Params
 from utils.point import Point
 from utils.point_sampler import PointSampler
@@ -214,8 +215,8 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
             summary.write(self.local_max.format_xb())
-            for name, par in self.params.parameters.items():
-                summary.write(f"\t{self.local_max.get_val(name):1.{par.precision}f}")
+            for name, par in self.params.parameter_names:
+                summary.write(f"\t{round_sig(self.local_max.get_val(name))}")
             summary.write(f"\t{identifier}\n")
 
     # write to details file
