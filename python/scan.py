@@ -102,7 +102,7 @@ class Scan:
 
         # create raw output file
         self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
-        with open(self.tsv_summary_name, "w") as tsv_summary:
+        with open(self.tsv_summary_name, "w"):
             pass
 
         # create details file
