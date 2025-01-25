@@ -35,8 +35,11 @@ class Model:
         # create empty particles dictionary
         self.particles = {}
 
-        # create empty __model_params dictionary
-        self.__model_params: dict[str,any] = {}
+        # create empty dictionary of input parameters
+        self.__input_params: dict[str,any] = {}
+
+        # create empty list of of output parameters
+        self.__output_params: dict[str,any] = {}
 
         # read in model yaml file
         with open(self.__yaml_name,'r') as file:
@@ -44,8 +47,10 @@ class Model:
             yaml_data = yaml.safe_load(file)[self.__name]
             # read particles
             self.particles = yaml_data['particles']
-            # read parameters
-            self.__model_params = yaml_data['parameters']
+            # read input parameters
+            self.__input_params = yaml_data['input_parameters']
+            # read output parameters
+            self.__output_params = yaml_data['output_parameters']
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
@@ -72,26 +77,42 @@ class Model:
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
     @property
-    def parameters(self) -> dict:
-        """Dictionary of model parameters"""
-        return self.__model_params
+    def input_parameters(self) -> dict:
+        """Dictionary of input parameters"""
+        return self.__input_params
 
-    # get a single model parameter
-    def parameter(self,par_name) -> dict[str,any]:
-        return self.__model_params[par_name]
+    @property
+    def output_parameters(self) -> dict:
+        """Dictionary of output parameters"""
+        return self.__output_params
+
+    # get a single input parameter
+    def input_parameter(self,
+                        par_name: str) -> dict[str,any]:
+        return self.__input_params[par_name]
+
+    @property
+    def input_parameter_names(self) -> list[str]:
+        """List of input parameter names"""
+        return list(self.__input_params.keys())
+
+    @property
+    def output_parameter_names(self) -> list[str]:
+        """List of output parameter names"""
+        return list(self.__output_params.keys())
 
     @property
     def parameter_names(self) -> list[str]:
-        """List of model parameter names"""
-        return list(self.__model_params.keys())
+        """List of all parameter names"""
+        return list(self.__input_params.keys()) + list(self.__output_params.keys())
 
     # get model parameter starting min
     def starting_min(self,par_name) -> float:
-        return self.__model_params[par_name]['min']
+        return self.__input_params[par_name]['min']
 
     # get model parameter starting max
     def starting_max(self,par_name) -> float:
-        return self.__model_params[par_name]['max']
+        return self.__input_params[par_name]['max']
 
     @property
     def name(self) -> str:

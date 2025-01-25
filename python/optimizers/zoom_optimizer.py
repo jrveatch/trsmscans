@@ -291,7 +291,7 @@ class ZoomOptimizer:
         high_dict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in self.scan_parser.parameter_arrays.items():
+        for param, values in self.scan_parser.input_parameter_arrays.items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
                 values = pd.concat([values, self.top_percentile[param]])

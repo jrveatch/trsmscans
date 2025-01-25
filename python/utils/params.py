@@ -36,12 +36,12 @@ class Params:
         self.__decay = decay
 
         # get list of parameter names
-        self.__parameter_names: list[str] = self.__model.parameter_names
+        self.__parameter_names: list[str] = self.__model.input_parameter_names
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
         for name in self.__parameter_names:
-            self.__parameters[name] = Parameter(name,self.__model.parameter(name))
+            self.__parameters[name] = Parameter(name,self.__model.input_parameter(name))
 
     ## Class properties
 

@@ -18,7 +18,7 @@ TRSMBroken:
 
     doublyChargedScalars:
 
-  parameters:
+  input_parameters:
 
     tHS:
       fullname: thetahS
@@ -49,3 +49,14 @@ TRSMBroken:
       min: 0.0
       max: 1000.0
       precision: 1
+
+  output_parameters:
+
+    R11:
+      fullname: R11
+
+    R21:
+      fullname: R21
+
+    R31:
+      fullname: R31

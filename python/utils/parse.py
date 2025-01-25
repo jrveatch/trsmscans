@@ -35,7 +35,10 @@ class Parse:
         self.__HName = masses.HName
         self.__SName = masses.SName
 
-        # initialize dictionary of parameter arrays
+        # initialize dictionaries of parameter arrays
+        self.__in_par_arrays: dict[str,pd.Series] = {}
+        self.__out_par_arrays: dict[str,pd.Series] = {}
+        self.__width_arrays: dict[str,pd.Series] = {}
         self.__par_arrays: dict[str,pd.Series] = {}
 
         # get arrays from file name if it is provided
@@ -87,9 +90,9 @@ class Parse:
         return self.__par_arrays[par_name].max()
     
     @property
-    def parameter_arrays(self) -> dict[str,pd.Series]:
+    def input_parameter_arrays(self) -> dict[str,pd.Series]:
         """Dictionary of the parameter arrays"""
-        return self.__par_arrays
+        return self.__in_par_arrays
 
     # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
@@ -120,7 +123,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.__par_arrays[param_name][xb > threshold_value] 
+        param_selected = self.__in_par_arrays[param_name][xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
         dip, pval = diptest.diptest(param_selected)
@@ -379,9 +382,16 @@ class Parse:
         # get array of filters to use as a mask
         self.__set_filters()
 
-        # populate a dictionary of series for each model parameter
-        model_parameters = self.__model.parameters
-        self.__par_arrays = {name: self.filtered_data[par['fullname']] for name, par in model_parameters.items()}
+        # populate a dictionary of series for each input parameter
+        self.__in_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.input_parameters.items()}
+
+        # populate a dictionary of series for each output parameter
+        self.__out_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.output_parameters.items()}
+
+        # TODO: Add width par arrays here and add it to __par_arrays
+
+        # combine all parameter arrays
+        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_arrays
 
     @property
     def num_filtered_points(self) -> int:

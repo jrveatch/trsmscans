@@ -69,13 +69,13 @@ class Point:
     # get formatted string of parameter
     def format_param(self,
                      par_name: str) -> str:
-        return f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.get_val(par_name):1.{self.model.input_parameter(par_name)['precision']}f}"
 
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
                     par_name: str) -> str:
-        return f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
+        return f"{self.diff(other,par_name):1.{self.model.input_parameter(par_name)['precision']}f}"
 
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
