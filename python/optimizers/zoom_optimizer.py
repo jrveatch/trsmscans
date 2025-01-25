@@ -215,8 +215,8 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
             summary.write(self.local_max.format_xb())
-            for name, par in self.params.parameter_names:
-                summary.write(f"\t{round_sig(self.local_max.get_val(name))}")
+            for val in self.local_max.par_vals.values():
+                summary.write(f"\t{round_sig(val)}")
             summary.write(f"\t{identifier}\n")
 
     # write to details file
@@ -292,7 +292,7 @@ class ZoomOptimizer:
         high_dict = {}
 
         # save params arrays where xb_array is the top percentile
-        for param, values in self.scan_parser.parameter_arrays.items():
+        for param, values in self.scan_parser.input_parameter_arrays.items():
             # if param is already in top_percentile, add top_percentile to values
             if param in self.top_percentile:
                 values = pd.concat([values, self.top_percentile[param]])
