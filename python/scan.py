@@ -17,6 +17,7 @@ from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
+from utils.math_utils import round_sig
 from utils.params import Params
 from utils.point import Point
 from optimizers.zoom_optimizer import ZoomOptimizer
@@ -203,8 +204,8 @@ class Scan:
         # write scan results to summary file
         with open(self.summary_name, "a") as summary:
             summary.write(self.global_max.format_xb())
-            for name, parameter in self.params.parameters.items():
-                summary.write(f"\t{self.global_max.get_val(name):1.{parameter.precision}f}")
+            for name in self.params.parameter_names:
+                summary.write(f"\t{round_sig(self.global_max.get_val(name))}")
             summary.write("\tPre\n")
 
         # write scan max xb tsv line to tsv summary file
