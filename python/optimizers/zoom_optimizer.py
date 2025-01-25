@@ -215,8 +215,8 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
             summary.write(self.local_max.format_xb())
-            for name, par in self.params.parameter_names:
-                summary.write(f"\t{round_sig(self.local_max.get_val(name))}")
+            for val in self.local_max.par_vals.values():
+                summary.write(f"\t{round_sig(val)}")
             summary.write(f"\t{identifier}\n")
 
     # write to details file
