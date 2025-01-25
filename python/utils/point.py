@@ -28,10 +28,15 @@ class Point:
         # store xb value
         self.xb = xb
 
-    # name of the model
     @property
     def model_name(self) -> str:
+        """Name of the model"""
         return self.__model_name
+    
+    @property
+    def par_vals(self) -> dict[str,float]:
+        """Dictionary of parameter values"""
+        return self.__par_vals
 
     # wrapper function to get attribute
     def get_val(self,
