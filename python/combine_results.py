@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import csv
 import os
 
 from utils.decay_utils import get_non_resolvable_decay
@@ -19,15 +20,17 @@ def combine_results(model: str,
 
     permutations_file = os.environ['DATADIR']+f"mass_points/{decay}_{identifier}.txt"
 
+    permutations = []
+
     # Read permutations
     try:
         with open(permutations_file, 'r') as perm_file:
-            # Skip the first line (headers) and filter out commented lines
-            permutations = [
-                line.strip().split()
-                for i, line in enumerate(perm_file)
-                if i > 0 and not line.strip().startswith("#")
-            ]
+            reader = csv.reader(perm_file, delimiter=" ")
+            for i, line in enumerate(reader):
+                # Skip the first line (headers) and filter out commented lines
+                if i == 0 or line[0].startswith("#"):
+                    continue
+                permutations.append((line[0], line[1], line[2].lower() == "true"))
     except Exception as e:
         print(f"Error reading permutations file {permutations_file}: {e}")
         return
