@@ -20,6 +20,7 @@ from utils import file_utils
 from utils.params import Params
 from utils.config_loader import ConfigLoader
 from utils.point_sampler import PointSampler
+from utils.mean_shift_utils import lin_norm
 
 class MeanShiftOptimizer:
 
@@ -146,7 +147,7 @@ class MeanShiftOptimizer:
                                                                 good_points_only = True
                                                                 )
 
-            arrays = parser.parameter_arrays
+            arrays = parser.input_parameter_arrays
             xb = parser.get_xb(self.__decay_name)
 
             if len(xb) == 0:
@@ -263,7 +264,7 @@ class MeanShiftOptimizer:
 
         XX = np.array([params[key] for key in params])
 
-        nZ = self.lin_norm(Z)
+        nZ = lin_norm(Z)
 
         if self.__debug == True:
             print("\nPre-shift:\n========")
@@ -284,21 +285,6 @@ class MeanShiftOptimizer:
             means.append(np.dot(X_i, nZ) / normalization_factor)
 
         self.__local_params.reposition_center(tuple(means))
-
-    @staticmethod
-    def lin_norm(X: np.ndarray):
-        """Linear normalization of X
-
-        Args:
-            X (np.ndarray[<float>]): np.ndarray of values to normalize.
-
-        Returns:
-            (np.ndarray[<float>]): A normalized np.ndarray of the values contained in the input np.ndarray.
-        """
-        MAX = max(X)
-        MIN = min(X)
-        
-        return ((X - MIN) / (MAX - MIN))
 
     def __stop_check(self):
         """
