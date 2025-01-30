@@ -9,7 +9,9 @@ from collections import OrderedDict
 # third-party libraries
 from prettytable import PrettyTable
 from scipy.interpolate import interp1d
-from sigfig import round as round_sig
+
+# local modules
+from utils.math_utils import round_sig
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -72,22 +74,22 @@ def read_higgsBR(br_file: str):
     higgs_brs = {}
 
     # open file of BRs
-    br_stream = open(br_file, 'r')
+    with open(br_file, 'r') as br_stream:
 
-    # loop over the file
-    for line in br_stream:
+        # loop over the file
+        for line in br_stream:
 
-        # split line by whitespace
-        values_raw = line.strip().split()
+            # split line by whitespace
+            values_raw = line.strip().split()
 
-        # convert values to floats
-        values = [float(value) for value in values_raw]
+            # convert values to floats
+            values = [float(value) for value in values_raw]
 
-        # create br_array from all values except first
-        br_array = values[1:]
+            # create br_array from all values except first
+            br_array = values[1:]
 
-        # create BRs dictionary from br_array
-        higgs_brs[values[0]] = br_array
+            # create BRs dictionary from br_array
+            higgs_brs[values[0]] = br_array
 
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgs_brs.items()), key=operator.itemgetter(0))
@@ -174,7 +176,7 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     tbl = PrettyTable(["process", "BR"])
     BR_text_array_heavy_triple = get_BR_text_array_heavy_withtripleHiggs()
     for idx in range(len(HeavyHiggsBRs)):
-      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx],sigfigs=5)])
+      tbl.add_row([BR_text_array_heavy_triple[idx].replace('$', ''), round_sig(HeavyHiggsBRs[idx], sig_figs=5)])
     print(tbl)
     BRsum_heavy = round(sum(HeavyHiggsBRs[:-1]), 12)
     print(f"Consistency test: sum(BRs) = {BRsum_heavy}\n")
@@ -210,22 +212,22 @@ def read_higgsXS_N3LO(xs_file: str):
     higgs_xss = {}
 
     # open xsec file
-    xs_stream = open(xs_file, 'r')
+    with open(xs_file, 'r') as xs_stream:
 
-    # loop over the file
-    for line in xs_stream:
+        # loop over the file
+        for line in xs_stream:
 
-        # split line by whitespace
-        values_raw = line.strip().split()
+            # split line by whitespace
+            values_raw = line.strip().split()
 
-        # convert values to floats
-        values = [float(value) for value in values_raw]
+            # convert values to floats
+            values = [float(value) for value in values_raw]
 
-        # create br_array from all values except first
-        xs_array = values[1:]
+            # create br_array from all values except first
+            xs_array = values[1:]
 
-        # create BRs dictionary from br_array
-        higgs_xss[values[0]] = xs_array
+            # create BRs dictionary from br_array
+            higgs_xss[values[0]] = xs_array
 
     # sort by increasing value of HYmass
     sorted_x = sorted(list(higgs_xss.items()), key=operator.itemgetter(0))

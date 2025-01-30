@@ -3,6 +3,9 @@
 import logging
 from typing import Any, Optional
 
+# local modules
+from utils.math_utils import round_sig
+
 # class to hold and update a single model parameter
 class Parameter:
 
@@ -18,7 +21,6 @@ class Parameter:
 
         # initialize values from dictionary
         self.__fullname = dict['fullname']
-        self.__precision = dict['precision']
         self.__lower_bound = dict['min']
         self.__upper_bound = dict['max']
 
@@ -91,11 +93,6 @@ class Parameter:
     def fullname(self) -> str:
         """Full name of the parameter"""
         return self.__fullname
-
-    @property
-    def precision(self) -> int:
-        """Precision of the parameter"""
-        return self.__precision
 
     @property
     def center(self) -> float:
@@ -175,8 +172,8 @@ class Parameter:
 
     # format bounds as string
     def format_bounds(self) -> str:
-        return f"[{self.__lower_bound:1.{self.__precision}f},{self.__upper_bound:1.{self.__precision}f}]"
+        return f"[{round_sig(self.__lower_bound)},{round_sig(self.__upper_bound)}]"
 
     # get range as string
     def format_range(self) -> str:
-        return f"[{self.__low:1.{self.__precision}f},{self.__high:1.{self.__precision}f}]"
+        return f"[{round_sig(self.__low)},{round_sig(self.__high)}]"

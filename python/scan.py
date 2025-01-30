@@ -19,10 +19,11 @@ from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, plots_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.masses import Masses
+from utils.math_utils import round_sig
 from utils.params import Params
 from utils.point import Point
 from mean_shift_optimizer import MeanShiftOptimizer
-from zoom_optimizer import ZoomOptimizer
+from optimizers.zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
 class Scan:
@@ -95,24 +96,22 @@ class Scan:
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
-        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
-        summary = open(self.summary_name, "w")
-        summary.write("xbmax")
-        for parameter in self.params.parameters.values():
-            summary.write(f"\t{parameter.fullname}")
-        summary.write("\titer\n")
-        summary.close()
+        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
+        with open(self.summary_name, "w") as summary:
+            summary.write("xbmax")
+            for parameter in self.global_max.par_vals.keys():
+                summary.write(f"\t{parameter}")
+            summary.write("\titer\n")
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.txt"
-        tsv_summary = open(self.tsv_summary_name, "w")
-        tsv_summary.close()
+        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
+        with open(self.tsv_summary_name, "w"):
+            pass
 
         # create details file
         self.details_name = self.out_dir + f"files/details/prescan_details_{self.model_name}_{self.decay}_{self.masses}.txt"
-        details = open(self.details_name, "w")
-        details.write("Scan details\n\n")
-        details.close()
+        with open(self.details_name, "w") as details:
+            details.write("Scan details\n\n")
 
     # run a prescan to constrain scan parameter ranges
     def run_prescan(self,
@@ -192,32 +191,29 @@ class Scan:
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
 
         # write scan details to details file
-        details = open(self.details_name, "a")
-        details.write("Prescan\n")
-        details.write("--------------------\n")
-        details.write(f"Number of prescan points = {num_prescan}\n")
-        details.write(f"Scan density = {density:.3E}\n")
-        details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
-        details.write("--------------------\n")
-        for parameter_name in self.params.parameter_names:
-            details.write(f"{parameter_name}:\n")
-            details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
-            details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
-        details.write("--------------------\n\n\n")
-        details.close()
+        with open(self.details_name, "a") as details:
+            details.write("Prescan\n")
+            details.write("--------------------\n")
+            details.write(f"Number of prescan points = {num_prescan}\n")
+            details.write(f"Scan density = {density:.3E}\n")
+            details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
+            details.write("--------------------\n")
+            for parameter_name in self.params.parameter_names:
+                details.write(f"{parameter_name}:\n")
+                details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
+                details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
+            details.write("--------------------\n\n\n")
 
         # write scan results to summary file
-        summary = open(self.summary_name, "a")
-        summary.write(self.global_max.format_xb())
-        for name, parameter in self.params.parameters.items():
-            summary.write(f"\t{self.global_max.get_val(name):1.{parameter.precision}f}")
-        summary.write("\tPre\n")
-        summary.close()
+        with open(self.summary_name, "a") as summary:
+            summary.write(self.global_max.format_xb())
+            for val in self.global_max.par_vals.values():
+                summary.write(f"\t{round_sig(val)}")
+            summary.write("\tPre\n")
 
         # write scan max xb tsv line to tsv summary file
-        tsv_summary = open(self.tsv_summary_name, "a")
-        tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
-        tsv_summary.close()
+        with open(self.tsv_summary_name, "a") as tsv_summary:
+            tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
@@ -403,9 +399,8 @@ class Scan:
         self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
 
         # write time info to details file
-        details = open(self.details_name, "a")
-        details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
-        details.close()
+        with open(self.details_name, "a") as details:
+            details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
         return
 
     # Function that creates needed zoom optimizers

@@ -36,12 +36,12 @@ class Params:
         self.__decay = decay
 
         # get list of parameter names
-        self.__parameter_names: list[str] = self.__model.parameter_names
+        self.__parameter_names: list[str] = self.__model.input_parameter_names
 
         # create dictionary of parameters
         self.__parameters: dict[str,'Parameter'] = {}
         for name in self.__parameter_names:
-            self.__parameters[name] = Parameter(name,self.__model.parameter(name))
+            self.__parameters[name] = Parameter(name,self.__model.input_parameter(name))
 
     ## Class properties
 
@@ -176,9 +176,8 @@ class Params:
                   ini_name: str) -> None:
 
         # read in template .ini file
-        template = open(self.__model.template_ini,"r")
-        ini_data = template.read()
-        template.close()
+        with open(self.__model.template_ini,"r") as template:
+            ini_data = template.read()
 
         # create ini_data with parameters
         ini_data = ini_data.replace("MH1",str(self.__mH1))
@@ -191,9 +190,8 @@ class Params:
             ini_data = ini_data.replace(par.name+"_HIGH",str(par.high))
 
         # write to .ini file
-        outfile = open(ini_name,"w")
-        outfile.write(ini_data)
-        outfile.close()
+        with open(ini_name,"w") as outfile:
+            outfile.write(ini_data)
 
     ## Aliases
 
