@@ -286,19 +286,19 @@ class MeanShiftOptimizer:
         self.__local_params.reposition_center(tuple(means))
 
     @staticmethod
-    def lin_norm(X: list):
+    def lin_norm(X: np.ndarray):
         """Linear normalization of X
 
         Args:
-            X (list[<float>]): List of values to normalize.
+            X (np.ndarray[<float>]): np.ndarray of values to normalize.
 
         Returns:
-            (list[<float>]): A normalized list of the values contained in the input list.
+            (np.ndarray[<float>]): A normalized np.ndarray of the values contained in the input np.ndarray.
         """
         MAX = max(X)
         MIN = min(X)
-
-        return np.array([(X[i] - MIN) / (MAX - MIN) for i in range(len(X))])
+        
+        return ((X - MIN) / (MAX - MIN))
 
     def __stop_check(self):
         """
@@ -339,7 +339,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"vol_{p}": a for p, a in zip(
-                                    self.__local_param.parameter_names,
+                                    self.__local_params.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
