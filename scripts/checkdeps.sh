@@ -1,5 +1,4 @@
-
-#!/bin/bash
+#!/usr/bin/env sh
 
 # Minimum Python and CMake versions
 python3_minimum="3.10"
