@@ -4,7 +4,6 @@ import logging
 from typing import Optional
 
 # local modules
-from utils.masses import Masses
 from utils.model import Model
 from utils.parameter import Parameter
 from utils.point import Point
@@ -13,26 +12,21 @@ from utils.point import Point
 class Params:
 
     def __init__(self,
-                 model_name: str,
-                 masses: 'Masses',
+                 model: 'Model',
                  decay: str = ""):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        # store masses
-        self.__masses = masses
+        # get model using model_name
+        self.__model = model
 
         # set H1/2/3 mass values
-        self.__mH1 = masses.mH1
-        self.__mH2 = masses.mH2
-        self.__mH3 = masses.mH3
+        self.__mH1 = model.get_mass("H1")
+        self.__mH2 = model.get_mass("H2")
+        self.__mH3 = model.get_mass("H3")
 
-        # get model using model_name
-        self.__model = Model(model_name)
-
-        # Store model and decay names
-        self.__model_name = model_name
+        # Store decay name
         self.__decay = decay
 
         # get list of parameter names
@@ -56,14 +50,19 @@ class Params:
         return self.__parameter_names
 
     @property
-    def masses(self) -> Masses:
-        """Masses used in run"""
-        return self.__masses
+    def mass_string(self) -> str:
+        """Mass string"""
+        return self.__model.mass_string
 
     @property
     def model_name(self) -> str:
         """Name of model being used"""
-        return self.__model_name
+        return self.__model.name
+
+    @property
+    def model(self) -> 'Model':
+        """Model object"""
+        return self.__model
 
     @property
     def decay(self) -> str:

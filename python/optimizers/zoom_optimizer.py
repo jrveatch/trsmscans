@@ -34,7 +34,7 @@ class ZoomOptimizer:
         self.params = params
         self.decay = params.decay
         self.num_points = num_points
-        self.local_max = Point(starting_max.model_name)
+        self.local_max = Point(starting_max.model)
         self.global_max = starting_max
         self.label = label
         self.top_percentile = {}
@@ -70,19 +70,17 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model_name = params.model_name,
-                           decay = params.decay,
-                           masses = params.masses)
+        out_dir = scan_dir(model = params.model,
+                           decay = params.decay)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          model_name = params.model_name,
                                           use_multiprocessing = use_multiprocessing,
                                           config_loader = config_loader,
                                           use_file_dir = True)
 
         # get output information file names
-        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.masses}"
+        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.mass_string}"
         self.summary_name = f"{out_dir}scan_summary_{output_file_postfix}.tsv"
         self.tsv_summary_name = f"{out_dir}scan_tsv_summary_{output_file_postfix}.tsv"
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
