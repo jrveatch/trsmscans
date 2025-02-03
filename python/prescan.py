@@ -21,11 +21,11 @@ from utils.tsv_utils import count_tsv_points
 logger = logging.getLogger(__name__)
 
 def prescan(model: 'Model',
-                num_points: int,
-                config_loader: ConfigLoader | None = None,
-                config_file_name: str = "",
-                overwrite: bool = False,
-                use_multiprocessing: bool = False) -> 'Parse':
+            num_points: int,
+            config_loader: ConfigLoader | None = None,
+            config_file_name: str = "",
+            overwrite: bool = False,
+            use_multiprocessing: bool = False) -> 'Parse':
 
     # get scan start time
     scan_start = time.time()
@@ -163,6 +163,6 @@ if __name__ == "__main__":
                   level=LOG_LEVELS[args.log_level.lower()])
 
     prescan(model = model,
-                num_points = args.num_points,
-                overwrite = args.overwrite,
-                use_multiprocessing = args.multiprocessing)
+            num_points = args.num_points,
+            overwrite = args.overwrite,
+            use_multiprocessing = args.multiprocessing)

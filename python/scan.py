@@ -123,9 +123,9 @@ class Scan:
         try:
             # call prescan
             self.prescan_parser = prescan(num_points = num_prescan,
-                                              model = self.model,
-                                              config_loader = self.config_loader,
-                                              use_multiprocessing = self.use_multiprocessing)
+                                          model = self.model,
+                                          config_loader = self.config_loader,
+                                          use_multiprocessing = self.use_multiprocessing)
 
         # if prescan fails, remove directory and raise an error
         except TimeoutError:
