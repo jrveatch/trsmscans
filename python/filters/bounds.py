@@ -9,7 +9,7 @@ import pandas as pd
 
 # local modules
 from filters.setup_higgs_tools import *
-from utils.masses import Masses
+from utils.model import Model
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -20,8 +20,7 @@ SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu",
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
-                  model_name: str,
-                  masses: Masses
+                  model: 'Model'
                  ) -> None:
 
     # get bounds and signals data
@@ -29,7 +28,7 @@ def filter_bounds(dataframe: pd.DataFrame,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(model_name=model_name)
+    pred = get_higgs_predictions(model)
 
     # get HiggsSignals Chi^2 for SM
     signals_result_SM = signals(pred)
@@ -40,9 +39,9 @@ def filter_bounds(dataframe: pd.DataFrame,
     X = pred.particle('X')
 
     # get strings for 3 bosons
-    HName = masses.HName
-    SName = masses.SName
-    XName = masses.XName
+    HName = model.get_ordered_scalar_name('H')
+    SName = model.get_ordered_scalar_name('S')
+    XName = model.get_ordered_scalar_name('X')
 
     # dictionaries of branching ratios
     br_H_SM = defaultdict(float)

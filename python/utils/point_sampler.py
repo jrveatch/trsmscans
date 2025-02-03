@@ -17,7 +17,6 @@ class PointSampler:
     # Initializer: passes output directory, model name, and config loader
     def __init__(self,
                  out_dir: str,
-                 model_name: str,
                  use_multiprocessing: bool,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
@@ -32,7 +31,6 @@ class PointSampler:
         if use_file_dir:
             self.ini_dir += "files/ini/"
             self.tsv_dir += "files/tsv/"
-        self.model_name = model_name
         self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
         self.efficiency = 1.0
@@ -45,13 +43,13 @@ class PointSampler:
                       good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
-        out_name = self.model_name
+        out_name = params.model_name
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
         ini_name = self.ini_dir + out_name + ".ini"
         tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + self.model_name + ".tsv"
+        temp_tsv = self.out_dir + params.model_name + ".tsv"
 
         #Global variable for number of points
         self.total_points_requested = num_points_requested
@@ -60,7 +58,7 @@ class PointSampler:
         params.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.masses, self.model_name)
+        self.parser = Parse(params.model)
 
         # Initialize global variables given by filters
         self.__nwidth = 0
@@ -93,7 +91,7 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = self.model_name,
+                                  model_name = params.model_name,
                                   use_multiprocessing = self.use_multiprocessing)
 
             # Update the total points run
@@ -104,7 +102,7 @@ class PointSampler:
 
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
-                                    masses = params.masses,
+                                    model = params.model,
                                     config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file

@@ -10,7 +10,8 @@ import yaml
 class Model:
 
     def __init__(self,
-                 name: str):
+                 name: str,
+                 masses: dict[str,float] = {}) -> None:
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -29,8 +30,11 @@ class Model:
 
         self.__read_yaml()
 
+        self.__masses = masses
+        self.__build_mass_maps()
+
     # read .yml file
-    def __read_yaml(self):
+    def __read_yaml(self) -> None:
       
         # create empty particles dictionary
         self.particles = {}
@@ -76,6 +80,68 @@ class Model:
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
+    # build mass maps
+    def __build_mass_maps(self):
+
+        # check that all scalar masses are provided
+        if not all(k in self.__masses for k in self.AllScalars):
+            raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.__masses.keys())}")
+        
+        # Sort particles by mass and assign "H_i" names
+        sorted_particles = sorted(self.__masses.items(), key=lambda x: x[1])
+        self.name_map = {}  # Maps scalar particle names to 'H_i' names
+        self.h_map = {}  # Maps 'H_i' names to (original name, mass)
+
+        for i, (particle, mass) in enumerate(sorted_particles, start=1):
+            hi_name = f"H{i}"
+            self.name_map[particle] = hi_name
+            self.h_map[hi_name] = (particle, mass)
+
+
+    def get_mass(self,
+                 name: str) -> float:
+        """
+        Retrieve the mass of a particle using either its original name (e.g., 'H', 'S', 'X')
+        or its mass-ordered 'H_i' name ('H1', 'H2', 'H3').
+
+        :param name: Particle name (e.g., 'H', 'S', 'X') or 'H_i' name ('H1', 'H2', 'H3').
+        :return: Corresponding mass value.
+        """
+        if name in self.__masses:
+            return self.__masses[name]
+        elif name in self.h_map:
+            return self.h_map[name][1]
+        else:
+            raise KeyError(
+                f"Invalid particle name: {name}. Available names: {self.AllScalars + list(self.h_map.keys())}"
+            )
+
+    def get_ordered_scalar_name(self,
+                                particle_name: str) -> str:
+        """
+        Retrieve the 'H_i' name given an original particle name (e.g., 'H', 'S', 'X').
+
+        :param original_name: 'H', 'S', or 'X'.
+        :return: Corresponding 'H_i' name (e.g., 'H1', 'H2', 'H3').
+        """
+        if particle_name in self.name_map:
+            return self.name_map[particle_name]
+        else:
+            raise KeyError(
+                f"Invalid original name: {particle_name}. Available names: {self.AllScalars}"
+            )
+
+    @property
+    def mass_string(self) -> str:
+        """
+        Returns a formatted string in the form "X<XMass>_S<SMass>".
+
+        :return: A string representation of the masses of X and S.
+        """
+        x_mass = self.__masses["X"]
+        s_mass = self.__masses["S"]
+        return f"X{int(x_mass)}_S{int(s_mass)}"
+
     @property
     def input_parameters(self) -> dict:
         """Dictionary of input parameters"""
@@ -102,7 +168,7 @@ class Model:
         return list(self.__output_params.keys())
 
     @property
-    def parameter_names(self) -> list[str]:
+    def all_parameter_names(self) -> list[str]:
         """List of all parameter names"""
         return list(self.__input_params.keys()) + list(self.__output_params.keys())
 

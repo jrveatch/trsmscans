@@ -9,7 +9,6 @@ import pandas as pd
 # local modules
 from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
-from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
 
@@ -18,22 +17,18 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 masses: Masses,
-                 model_name: str,
+                 model: 'Model',
                  file_name: str = ""):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
-        
-        # initialize model name
-        self.__model_name = model_name
 
         # initialize model
-        self.__model = Model(model_name)
+        self.__model = model
 
         # initialize HName and SName
-        self.__HName = masses.HName
-        self.__SName = masses.SName
+        self.__HName = model.get_ordered_scalar_name('H')
+        self.__SName = model.get_ordered_scalar_name('S')
 
         # initialize dictionaries of parameter arrays
         self.__in_par_arrays: dict[str,pd.Series] = {}
@@ -71,7 +66,7 @@ class Parse:
 
         # return a point object holding xb and other parameters
         return Point(xb = xb[self.max_idx],
-                     model_name = self.__model_name,
+                     model = self.__model,
                      par_vals = max_xb_par_vals)
 
     @property
