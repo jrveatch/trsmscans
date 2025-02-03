@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # start python virtual environment
 source scripts/start_venv.sh
