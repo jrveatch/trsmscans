@@ -5,37 +5,32 @@ import shutil
 from typing import Optional
 
 # local modules
-from utils.masses import Masses
-
-def scan_dir(model_name: str,
-             decay: str,
-             masses: 'Masses') -> str:
+from utils.model import Model
+def scan_dir(model: 'Model',
+             decay: str) -> str:
     """
     Get the directory path for the scan for a given model, decay, and masses.
     """
-    return os.environ['OUTPUTDIR']+model_name+f"/scan/{decay}/{masses}/"
+    return os.environ['OUTPUTDIR']+model.name+f"/scan/{decay}/{model.mass_string}/"
 
-def prescan_dir(model_name: str,
-                masses: 'Masses') -> str:
+def prescan_dir(model: 'Model') -> str:
     """
     Get the directory path for the prescan for a given model and masses.
     """
-    return os.environ['OUTPUTDIR']+model_name+f"/prescan/{masses}/"
+    return os.environ['OUTPUTDIR']+model.name+f"/prescan/{model.mass_string}/"
 
-def prescan_tsv(model_name: str,
-                masses: 'Masses') -> str:
+def prescan_tsv(model: 'Model') -> str:
     """
     Get the path to the prescan .tsv file for a given model and masses.
     """
-    return prescan_dir(model_name=model_name,masses=masses)+model_name+"_prescan.tsv"
+    return prescan_dir(model)+model.name+"_prescan.tsv"
 
-def plots_dir(model_name: str,
-              decay: str,
-              masses: 'Masses') -> str:
+def plots_dir(model: 'Model',
+              decay: str) -> str:
     """
     Get the directory path for the plots for a given model, decay, and masses.
     """
-    return os.environ['OUTPUTDIR']+model_name+f"/plots/{decay}/{masses}/"
+    return os.environ['OUTPUTDIR']+model.name+f"/plots/{decay}/{model.mass_string}/"
 
 def recreate_dir(path: str,
                  subdirs: Optional[list[str]] = None) -> None:

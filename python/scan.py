@@ -18,8 +18,8 @@ from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, plots_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
-from utils.masses import Masses
 from utils.math_utils import round_sig
+from utils.model import Model
 from utils.params import Params
 from utils.point import Point
 from mean_shift_optimizer import MeanShiftOptimizer
@@ -29,8 +29,7 @@ from optimizers.zoom_optimizer import ZoomOptimizer
 class Scan:
 
     def __init__(self,
-                 masses: 'Masses',
-                 model_name: str,
+                 model: 'Model',
                  decay: str,
                  use_multiprocessing: bool,
                  config_file_name: str = ""
@@ -40,10 +39,9 @@ class Scan:
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # store model name
-        self.model_name = model_name
+        self.model = model
 
-        # store masses and decay information
-        self.masses = masses
+        # store decay information
         self.decay = decay
 
         # store multiprocessing option
@@ -58,7 +56,7 @@ class Scan:
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = f"{model_name}_default.yml"
+            config_file_name = f"{self.model.name}_default.yml"
 
         # load config file
         self.config_loader = ConfigLoader(config_file_name=config_file_name)
@@ -76,17 +74,15 @@ class Scan:
 
         # make instance of params
         # this automatically initializes the parameters
-        self.params = Params(model_name=model_name,
-                             masses=masses,
+        self.params = Params(model=self.model,
                              decay=decay)
 
         # make dummy optimal point
-        self.global_max = Point(model_name=model_name)
+        self.global_max = Point(model=self.model)
 
         # directory where we want the output to go
-        self.out_dir = scan_dir(model_name=model_name,
-                                decay=decay,
-                                masses=masses)
+        self.out_dir = scan_dir(model=self.model,
+                                decay=decay)
 
         # make output directory if it doesn't already exist
         os.makedirs(self.out_dir, exist_ok=True)
@@ -96,7 +92,7 @@ class Scan:
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
-        self.summary_name = self.out_dir + f"scan_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
+        self.summary_name = self.out_dir + f"scan_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
         with open(self.summary_name, "w") as summary:
             summary.write("xbmax")
             for parameter in self.global_max.par_vals.keys():
@@ -104,12 +100,12 @@ class Scan:
             summary.write("\titer\n")
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model_name}_{self.decay}_{self.masses}.tsv"
+        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
         with open(self.tsv_summary_name, "w"):
             pass
 
         # create details file
-        self.details_name = self.out_dir + f"files/details/prescan_details_{self.model_name}_{self.decay}_{self.masses}.txt"
+        self.details_name = self.out_dir + f"files/details/prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt"
         with open(self.details_name, "w") as details:
             details.write("Scan details\n\n")
 
@@ -126,9 +122,8 @@ class Scan:
 
         try:
             # call prescan
-            self.prescan_parser = prescan(masses = self.masses,
-                                              num_points = num_prescan,
-                                              model_name = self.model_name,
+            self.prescan_parser = prescan(num_points = num_prescan,
+                                              model = self.model,
                                               config_loader = self.config_loader,
                                               use_multiprocessing = self.use_multiprocessing)
 
@@ -495,21 +490,20 @@ if __name__ == "__main__":
     arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name")
     args = arg_parser.parse_args()
 
-    # create masses object
-    masses = Masses(mX=args.XMass, mS=args.SMass, mH=args.HMass)
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
     
     # directory where we want the output to go
-    out_dir = scan_dir(model_name=args.model,
-                       decay=args.decay,
-                       masses=masses)
+    out_dir = scan_dir(model=model,
+                       decay=args.decay)
 
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
 
     # create scan object
-    myScan = Scan(masses = masses,
-                  model_name = args.model,
+    myScan = Scan(model = model,
                   decay = args.decay,
                   use_multiprocessing = args.multiprocessing
                  )

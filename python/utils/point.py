@@ -8,12 +8,12 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model_name: str,
+                 model: 'Model',
                  par_vals: dict[str,float] = {},
                  xb: float = 0.0):
 
         # store model name
-        self.__model_name = model_name
+        self.__model = model
 
         # initialize empty dictionary of parameter values
         self.__par_vals: dict[str,float] = {}
@@ -23,7 +23,7 @@ class Point:
             self.__par_vals = par_vals
         # otherwise create default dictionary from model
         else:
-            self.__par_vals = {par: 0.0 for par in Model(self.__model_name).parameter_names}
+            self.__par_vals = {par: 0.0 for par in self.__model.all_parameter_names}
 
         # store xb value
         self.xb = xb
@@ -31,7 +31,12 @@ class Point:
     @property
     def model_name(self) -> str:
         """Name of the model"""
-        return self.__model_name
+        return self.__model.name
+
+    @property
+    def model(self) -> 'Model':
+        """The model object"""
+        return self.__model
     
     @property
     def par_vals(self) -> dict[str,float]:
@@ -102,7 +107,7 @@ class Point:
 
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(self.__model_name, self.__par_vals, self.xb*scale_factor)
+        return Point(model=self.__model, par_vals=self.__par_vals, xb=self.xb*scale_factor)
 
     def __str__(self) -> str:
         return f"{self.xb}\n{self.__par_vals}"

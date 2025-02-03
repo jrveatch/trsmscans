@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from utils.math_utils import round_sig
+from utils.model import Model
 from filters.setup_higgs_tools import *
 from utils.test_point_utils import *
 
@@ -18,7 +19,7 @@ def check_singlet_point(mX: float,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(model_name="TRSMBroken")
+    pred = get_higgs_predictions(Model(name="TRSMBroken",masses={"H":125.09,"S":500,"X":1000}))
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)

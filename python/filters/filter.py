@@ -8,7 +8,7 @@ import logging
 from filters import bounds, width
 from utils.config_loader import ConfigLoader
 from utils.df_utils import get_df, write_to_tsv
-from utils.masses import Masses
+from utils.model import Model
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -18,35 +18,24 @@ header_bounds = "filt_bounds"
 header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
-                  masses: Masses,
+                  model: 'Model',
                   config_loader: 'ConfigLoader'
                  ) -> tuple[int,int,int]:
 
     # load in dataframe from .tsv file
     dataframe = get_df(file_name)
 
-    # get model name from config file
-    try:
-        model_name: float = config_loader.get('model', 'model_name')
-    except KeyError as e:
-        logger.error(e)
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise
-
     # apply width filter
     width.filter_widths(dataframe=dataframe,
                         header_width=header_width,
-                        masses=masses,
+                        model=model,
                         config_loader=config_loader)
 
     # apply bounds and signals filters
     bounds.filter_bounds(dataframe=dataframe,
                          header_bounds=header_bounds,
                          header_signals=header_signals,
-                         model_name=model_name,
-                         masses=masses)
+                         model=model)
 
     # write updated dataframe to .tsv
     write_to_tsv(dataframe=dataframe,
@@ -79,7 +68,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     args = arg_parser.parse_args()
 
-    # create masses
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,masses=masses)
+    apply_filters(file_name=args.file_name,model=model)

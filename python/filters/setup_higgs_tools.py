@@ -9,12 +9,8 @@ import Higgs.predictions as HP
 import Higgs.signals as HS
 from utils.model import Model
 
-
 @lru_cache(maxsize=None)
-def get_higgs_predictions(model_name: str):
-
-    # create model object
-    model = Model(model_name)
+def get_higgs_predictions(model: 'Model'):
 
     # create the model predictions
     pred = HP.Predictions()

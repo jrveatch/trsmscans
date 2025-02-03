@@ -9,21 +9,21 @@ import pandas as pd
 
 # local modules
 from utils.config_loader import ConfigLoader
-from utils.masses import Masses
+from utils.model import Model
 
 # get logger
 logger = logging.getLogger(__name__)
 
 def filter_widths(dataframe: pd.DataFrame,
                   header_width: str,
-                  masses: Masses,
+                  model: 'Model',
                   config_loader: 'ConfigLoader'
                  ) -> None:
 
     # get strings for 3 bosons
-    HName = masses.HName
-    SName = masses.SName
-    XName = masses.XName
+    HName = model.get_ordered_scalar_name('H')
+    SName = model.get_ordered_scalar_name('S')
+    XName = model.get_ordered_scalar_name('X')
 
     # get max_width from config file
     try:

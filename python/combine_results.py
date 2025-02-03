@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
-import csv
 import os
 
 from utils.decay_utils import get_non_resolvable_decay
+from utils.mass_permutations import get_mass_permutations
 
 def combine_results(model: str,
                     decay: str,
@@ -18,22 +18,7 @@ def combine_results(model: str,
         identifier (str): Identifier to specify which set of mass points to use.
     """
 
-    permutations_file = os.environ['DATADIR']+f"mass_points/{decay}_{identifier}.txt"
-
-    permutations = []
-
-    # Read permutations
-    try:
-        with open(permutations_file, 'r') as perm_file:
-            reader = csv.reader(perm_file, delimiter=" ")
-            for i, line in enumerate(reader):
-                # Skip the first line (headers) and filter out commented lines
-                if i == 0 or line[0].startswith("#"):
-                    continue
-                permutations.append((line[0], line[1], line[2].lower() == "true"))
-    except Exception as e:
-        print(f"Error reading permutations file {permutations_file}: {e}")
-        return
+    permutations = get_mass_permutations(decay=decay, identifier=identifier)
 
     # Initialize a variable for headers
     combination_headers_written = False

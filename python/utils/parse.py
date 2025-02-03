@@ -9,7 +9,6 @@ import pandas as pd
 # local modules
 from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
-from utils.masses import Masses
 from utils.model import Model
 from utils.point import Point
 
@@ -18,27 +17,23 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 masses: Masses,
-                 model_name: str,
+                 model: 'Model',
                  file_name: str = ""):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
-        
-        # initialize model name
-        self.__model_name = model_name
 
         # initialize model
-        self.__model = Model(model_name)
+        self.__model = model
 
         # initialize HName and SName
-        self.__HName = masses.HName
-        self.__SName = masses.SName
+        self.__HName = model.get_ordered_scalar_name('H')
+        self.__SName = model.get_ordered_scalar_name('S')
 
         # initialize dictionaries of parameter arrays
         self.__in_par_arrays: dict[str,pd.Series] = {}
         self.__out_par_arrays: dict[str,pd.Series] = {}
-        self.__width_arrays: dict[str,pd.Series] = {}
+        self.__width_par_arrays: dict[str,pd.Series] = {}
         self.__par_arrays: dict[str,pd.Series] = {}
 
         # get arrays from file name if it is provided
@@ -71,7 +66,7 @@ class Parse:
 
         # return a point object holding xb and other parameters
         return Point(xb = xb[self.max_idx],
-                     model_name = self.__model_name,
+                     model = self.__model,
                      par_vals = max_xb_par_vals)
 
     @property
@@ -126,7 +121,7 @@ class Parse:
         param_selected = self.__in_par_arrays[param_name][xb > threshold_value] 
 
         # use Hartigan's dip test for unimodality
-        dip, pval = diptest.diptest(param_selected)
+        _, pval = diptest.diptest(param_selected)
 
         # p-value threshold for multimodality
         pval_threshold = 0.05
@@ -388,10 +383,11 @@ class Parse:
         # populate a dictionary of series for each output parameter
         self.__out_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.output_parameters.items()}
 
-        # TODO: Add width par arrays here and add it to __par_arrays
+        # populate a dictionary of series for each width parameter
+        self.__width_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.width_parameters.items()}
 
         # combine all parameter arrays
-        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_arrays
+        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_par_arrays
 
     @property
     def num_filtered_points(self) -> int:

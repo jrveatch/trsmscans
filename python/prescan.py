@@ -11,7 +11,7 @@ import time
 from utils.config_loader import ConfigLoader
 from utils.file_utils import prescan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
-from utils.masses import Masses
+from utils.model import Model
 from utils.params import Params
 from utils.parse import Parse
 from utils.point_sampler import PointSampler
@@ -20,8 +20,7 @@ from utils.tsv_utils import count_tsv_points
 # get logger
 logger = logging.getLogger(__name__)
 
-def prescan(masses: 'Masses',
-                model_name: str,
+def prescan(model: 'Model',
                 num_points: int,
                 config_loader: ConfigLoader | None = None,
                 config_file_name: str = "",
@@ -32,14 +31,13 @@ def prescan(masses: 'Masses',
     scan_start = time.time()
 
     # directory where we want the output to go
-    out_dir = prescan_dir(model_name = model_name,
-                          masses = masses)
+    out_dir = prescan_dir(model)
 
     # names of .ini and .tsv files
-    tsv_name = out_dir + model_name + "_prescan.tsv"
+    tsv_name = out_dir + model.name + "_prescan.tsv"
 
     # print starting message
-    logger.info(f"Running a prescan with {num_points} points for {masses}")
+    logger.info(f"Running a prescan with {num_points} points for {model.mass_string}")
 
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
@@ -57,8 +55,7 @@ def prescan(masses: 'Masses',
             # if no, print message and return
             elif response in ["no", "n"]:
                 logger.info("Exiting prescan")
-                return Parse(masses = masses,
-                             model_name = model_name,
+                return Parse(model = model,
                              file_name = tsv_name)
             # complain if response is neither yes nor no
             else:
@@ -79,8 +76,7 @@ def prescan(masses: 'Masses',
             logger.info(f"Found a prescan that already has {num_existing} points")
             logger.info(f"{num_points} points requested, skipping since no more are needed")
             logger.info("If you want to overwrite the existing prescan, run with the -o option")
-            return Parse(masses = masses,
-                         model_name = model_name,
+            return Parse(model = model,
                          file_name = tsv_name)
 
         # otherwise reduce the number of points to run with
@@ -107,18 +103,17 @@ def prescan(masses: 'Masses',
 
         # use default config file name if none is provided
         if not config_file_name:
-            config_file_name = model_name + "_default.yml"
+            config_file_name = model.name + "_default.yml"
 
         # load config file
         config_loader = ConfigLoader(config_file_name = config_file_name)
 
     # make instance of params
     # this automatically initializes the parameters
-    params = Params(model_name,masses)
+    params = Params(model)
 
     # create PointSampler object
     point_sampler = PointSampler(out_dir = out_dir,
-                                 model_name = model_name,
                                  use_multiprocessing = use_multiprocessing,
                                  config_loader = config_loader)
 
@@ -156,19 +151,18 @@ if __name__ == "__main__":
     arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name")
     args = arg_parser.parse_args()
 
-    # create masses object
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
     
     # directory where we want the output to go
-    out_dir = prescan_dir(model_name=args.model,
-                          masses=masses)
+    out_dir = prescan_dir(model)
 
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
 
-    prescan(masses = masses,
-                model_name = args.model,
+    prescan(model = model,
                 num_points = args.num_points,
                 overwrite = args.overwrite,
                 use_multiprocessing = args.multiprocessing)
