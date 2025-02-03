@@ -20,7 +20,6 @@ class Parameter:
         self.__name = name
 
         # initialize values from dictionary
-        self.__fullname = dict['fullname']
         self.__lower_bound = dict['min']
         self.__upper_bound = dict['max']
 
@@ -88,11 +87,6 @@ class Parameter:
         """If current high is greater than lower bound, adjust it"""
         if self.__high > self.__upper_bound:
             self.__high = self.__upper_bound
-
-    @property
-    def fullname(self) -> str:
-        """Full name of the parameter"""
-        return self.__fullname
 
     @property
     def center(self) -> float:
