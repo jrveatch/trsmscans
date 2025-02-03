@@ -1,11 +1,4 @@
-#!/bin/bash
-
-# deactivate any previously activated virtual environment
-if [[ "$VIRTUAL_ENV" != "" ]]
-then
-    printf "Deactivating previous venv\n"
-    ( deactivate )
-fi
+#!/usr/bin/env sh
 
 # start the python virtual environment
 printf "Activating venv\n"
