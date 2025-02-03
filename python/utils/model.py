@@ -132,6 +132,7 @@ class Model:
             )
 
     @property
+    # TODO: Make this more generalized
     def mass_string(self) -> str:
         """
         Returns a formatted string in the form "X<XMass>_S<SMass>".
