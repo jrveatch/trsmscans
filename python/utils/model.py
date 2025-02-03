@@ -85,8 +85,10 @@ class Model:
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
+
     def __build_mass_maps(self) -> None:
         """Build dictionaries to map between original particle names and mass-ordered 'H_i' names."""
+
         # check that all scalar masses are provided
         if not all(k in self.__masses for k in self.AllScalars):
             raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.__masses.keys())}")
