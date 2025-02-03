@@ -185,9 +185,14 @@ class Model:
         return list(self.__output_params.keys())
 
     @property
+    def width_parameter_names(self) -> list[str]:
+        """List of output parameter names"""
+        return list(self.__width_params.keys())
+
+    @property
     def all_parameter_names(self) -> list[str]:
         """List of all parameter names"""
-        return list(self.__input_params.keys()) + list(self.__output_params.keys()) + list(self.__width_params.keys())
+        return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     # get model parameter starting min
     def starting_min(self,par_name) -> float:
