@@ -28,13 +28,18 @@ class Model:
         # template .ini file name
         self.__template_ini = os.path.join(self.__model_dir, f"{self.__name}_template.ini")
 
+        # read model yaml file
         self.__read_yaml()
 
+        # make mass maps
         self.__masses = masses
         self.__build_mass_maps()
 
-    # read .yml file
+        # make dictionary of width parameters
+        self.__make_width_params()
+
     def __read_yaml(self) -> None:
+        """Read the model .yml file and store the information."""
       
         # create empty particles dictionary
         self.particles = {}
@@ -80,9 +85,8 @@ class Model:
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
-    # build mass maps
-    def __build_mass_maps(self):
-
+    def __build_mass_maps(self) -> None:
+        """Build dictionaries to map between original particle names and mass-ordered 'H_i' names."""
         # check that all scalar masses are provided
         if not all(k in self.__masses for k in self.AllScalars):
             raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.__masses.keys())}")
@@ -97,6 +101,11 @@ class Model:
             self.name_map[particle] = hi_name
             self.h_map[hi_name] = (particle, mass)
 
+    def __make_width_params(self) -> None:
+        """Make dictionary of width parameters, mapping particle name to mass-ordered 'H_i' name."""
+        self.__width_params: dict[str,any] = {}
+        for particle in self.AllScalars:
+            self.__width_params["w"+particle] = {'fullname': f"w_{self.get_ordered_scalar_name(particle)}"}
 
     def get_mass(self,
                  name: str) -> float:
@@ -153,6 +162,11 @@ class Model:
         """Dictionary of output parameters"""
         return self.__output_params
 
+    @property
+    def width_parameters(self) -> dict:
+        """Dictionary of width parameters"""
+        return self.__width_params
+
     # get a single input parameter
     def input_parameter(self,
                         par_name: str) -> dict[str,any]:
@@ -171,7 +185,7 @@ class Model:
     @property
     def all_parameter_names(self) -> list[str]:
         """List of all parameter names"""
-        return list(self.__input_params.keys()) + list(self.__output_params.keys())
+        return list(self.__input_params.keys()) + list(self.__output_params.keys()) + list(self.__width_params.keys())
 
     # get model parameter starting min
     def starting_min(self,par_name) -> float:

@@ -33,7 +33,7 @@ class Parse:
         # initialize dictionaries of parameter arrays
         self.__in_par_arrays: dict[str,pd.Series] = {}
         self.__out_par_arrays: dict[str,pd.Series] = {}
-        self.__width_arrays: dict[str,pd.Series] = {}
+        self.__width_par_arrays: dict[str,pd.Series] = {}
         self.__par_arrays: dict[str,pd.Series] = {}
 
         # get arrays from file name if it is provided
@@ -383,10 +383,11 @@ class Parse:
         # populate a dictionary of series for each output parameter
         self.__out_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.output_parameters.items()}
 
-        # TODO: Add width par arrays here and add it to __par_arrays
+        # populate a dictionary of series for each width parameter
+        self.__width_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.width_parameters.items()}
 
         # combine all parameter arrays
-        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_arrays
+        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_par_arrays
 
     @property
     def num_filtered_points(self) -> int:
