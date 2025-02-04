@@ -21,7 +21,7 @@ from utils.math_utils import round_sig
 from utils.model import Model
 from utils.params import Params
 from utils.point import Point
-from mean_shift_optimizer import MeanShiftOptimizer
+from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
