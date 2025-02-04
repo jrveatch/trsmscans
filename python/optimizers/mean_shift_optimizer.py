@@ -108,8 +108,8 @@ class MeanShiftOptimizer:
         content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
         content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
         content += f"\nstop_sens = {self.__stop_sens}"
-        content += f"\nstop_epchs= {self.__stop_epochs}"
-        content += f"\ncurr_epch = {self.__epoch_count}"
+        content += f"\nstop_epochs= {self.__stop_epochs}"
+        content += f"\ncurr_epoch = {self.__epoch_count}"
         log_file.write(content)
         log_file.close()
 
@@ -128,7 +128,7 @@ class MeanShiftOptimizer:
             outpath = f"{self.__scan_path}files/"
             log_file_name = f"{self.__scan_path}files/log/{self.__model.name}_{identifier}_log.txt"
             ininame = outpath + f"/ini/{self.__model.name}_{identifier}.ini"
-            detailsname = f"{self.__scan_path}scandetails_{self.__model.name}_{self.__decay_name}_{str(self.__local_params.mass_string)}.txt"
+            details_name = f"{self.__scan_path}scandetails_{self.__model.name}_{self.__decay_name}_{str(self.__local_params.mass_string)}.txt"
 
             # write new .ini file from template and parameters
             self.__local_params.write_ini(ininame)
@@ -173,15 +173,15 @@ class MeanShiftOptimizer:
             content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
             content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
             content += f"\nstop_sens = {self.__stop_sens}"
-            content += f"\nstop_epchs= {self.__stop_epochs}"
-            content += f"\ncurr_epch = {self.__epoch_count}"
+            content += f"\nstop_epochs= {self.__stop_epochs}"
+            content += f"\ncurr_epoch = {self.__epoch_count}"
             content += f"\navg_xb    = {np.average(xb)}"
             content += f"\nmax_xb    = {np.max(xb)}"
             log_file.write(content)
             log_file.close()
 
             # write scan details to details file
-            details_file = open(detailsname, 'a')
+            details_file = open(details_name, 'a')
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
             content += f"Using {self.__points} scan points\n"
@@ -248,7 +248,7 @@ class MeanShiftOptimizer:
         return self.__local_params.center_points()
 
     def mean_shift(self, params: dict[np.ndarray], Z: np.ndarray):
-        """Updates cente value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
+        """Updates center value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
 
         Args:
             XX (dict[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
