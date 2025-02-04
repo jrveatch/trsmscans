@@ -44,21 +44,18 @@ class MeanShiftOptimizer:
         self.__stop_epochs = stop_epochs
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
-        self.__model_name = global_params.model_name
+        self.__model = global_params.model
         self.__decay_name = global_params.decay
-        self.__masses = global_params.masses
 
         # Initialize paths
         self.__scan_path = file_utils.scan_dir(
-                self.__model_name,
-                self.__decay_name, 
-                self.__masses
+                self.__model,
+                self.__decay_name
             )
         
         self.__plot_path = file_utils.plots_dir(
-                self.__model_name,
-                self.__decay_name,
-                self.__masses
+                self.__model,
+                self.__decay_name
             )
 
         # Initialize config loader
@@ -89,12 +86,11 @@ class MeanShiftOptimizer:
 
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.__scan_path,
-                                        model_name = self.__model_name,
                                         use_multiprocessing = use_multiprocessing,
                                         config_loader = self.__config_loader,
                                         use_file_dir = True)
 
-    def run(self, use_multiprocessing: bool):
+    def run(self):
         # make log file directory
         os.makedirs(f"{self.__scan_path}files/log/", exist_ok=True)
 
@@ -102,7 +98,7 @@ class MeanShiftOptimizer:
         iterstart = time.time()
 
         # log initial state
-        log_file = open(f"{self.__scan_path}files/log/{self.__model_name}_{self.__label}-init_log.txt", 'w')
+        log_file = open(f"{self.__scan_path}files/log/{self.__model.name}_{self.__label}-init_log.txt", 'w')
         content = f"\niteration  = -1"
         content += f"\nscan_pts  = {self.__points}"
         content += f"\nlabel     = {self.__label}"
@@ -130,9 +126,9 @@ class MeanShiftOptimizer:
 
             # set names of input .ini and output .tsv files
             outpath = f"{self.__scan_path}files/"
-            log_file_name = f"{self.__scan_path}files/log/{self.__model_name}_{identifier}_log.txt"
-            ininame = outpath + f"/ini/{self.__model_name}_{identifier}.ini"
-            detailsname = f"{self.__scan_path}scandetails_{self.__model_name}_{self.__decay_name}_{str(self.__local_params.masses)}.txt"
+            log_file_name = f"{self.__scan_path}files/log/{self.__model.name}_{identifier}_log.txt"
+            ininame = outpath + f"/ini/{self.__model.name}_{identifier}.ini"
+            detailsname = f"{self.__scan_path}scandetails_{self.__model.name}_{self.__decay_name}_{str(self.__local_params.mass_string)}.txt"
 
             # write new .ini file from template and parameters
             self.__local_params.write_ini(ininame)
@@ -164,7 +160,7 @@ class MeanShiftOptimizer:
             itertime = iterend - iterstart
 
             # print iteration time to screen
-            print(f"Iteration took {iterend - iterstart} seconds")
+            print(f"Iteration took {itertime} seconds")
 
             # write shift log
             log_file = open(log_file_name, 'w')

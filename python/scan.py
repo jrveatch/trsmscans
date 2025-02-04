@@ -4,7 +4,6 @@
 import argparse
 from copy import deepcopy
 import datetime
-from decimal import Decimal
 import itertools
 import logging
 import os
@@ -279,7 +278,7 @@ class Scan:
         debug: bool = config_loader.get('meanshift', 'debug')
 
         # Clear plots dir
-        plot_dir = plots_dir(model_name=self.model_name, decay=self.decay,masses=self.masses)
+        plot_dir = plots_dir(model=self.model,decay=self.decay)
         shutil.rmtree(plot_dir, ignore_errors=True)
 
         initial_pos_set = initial_positions(points_num, points_gen)
@@ -303,7 +302,7 @@ class Scan:
                 config_loader=config_loader,
                 use_multiprocessing=use_multiprocessing,
                 debug=debug
-            ).run(use_multiprocessing)
+            ).run()
 
             with open(self.summary_name, 'a') as scan_summary:
                 scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
