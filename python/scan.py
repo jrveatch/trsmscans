@@ -29,7 +29,6 @@ class Scan:
     def __init__(self,
                  model: 'Model',
                  decay: str,
-                 use_multiprocessing: bool,
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
@@ -42,9 +41,6 @@ class Scan:
 
         # store decay information
         self.decay = decay
-
-        # store multiprocessing option
-        self.use_multiprocessing = use_multiprocessing
 
         # check whether decay is valid
         if not is_valid_decay(self.decay):
@@ -134,8 +130,7 @@ class Scan:
             # call prescan
             self.prescan_parser = prescan(num_points = num_prescan,
                                           model = self.model,
-                                          config_loader = self.config_loader,
-                                          use_multiprocessing = self.use_multiprocessing)
+                                          config_loader = self.config_loader)
 
         # if prescan fails, remove directory and raise an error
         except TimeoutError:
@@ -369,7 +364,6 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 params = params_copy,
-                use_multiprocessing = self.use_multiprocessing,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'
@@ -421,7 +415,6 @@ if __name__ == "__main__":
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
-    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name")
     args = arg_parser.parse_args()
@@ -441,7 +434,6 @@ if __name__ == "__main__":
     # create scan object
     myScan = Scan(model = model,
                   decay = args.decay,
-                  use_multiprocessing = args.multiprocessing,
                   overwrite=args.overwrite
                  )
 

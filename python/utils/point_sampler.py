@@ -17,7 +17,6 @@ class PointSampler:
     # Initializer: passes output directory, model name, and config loader
     def __init__(self,
                  out_dir: str,
-                 use_multiprocessing: bool,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
         
@@ -31,7 +30,6 @@ class PointSampler:
         if use_file_dir:
             self.ini_dir += "files/ini/"
             self.tsv_dir += "files/tsv/"
-        self.use_multiprocessing = use_multiprocessing
         self.config_loader = config_loader
         self.efficiency = 1.0
 
@@ -91,8 +89,7 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = params.model_name,
-                                  use_multiprocessing = self.use_multiprocessing)
+                                  model_name = params.model_name)
 
             # Update the total points run
             self.curr_points_run += points

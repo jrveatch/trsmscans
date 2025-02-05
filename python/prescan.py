@@ -24,8 +24,7 @@ def prescan(model: 'Model',
             num_points: int,
             config_loader: ConfigLoader | None = None,
             config_file_name: str = "",
-            overwrite: bool = False,
-            use_multiprocessing: bool = False) -> 'Parse':
+            overwrite: bool = False) -> 'Parse':
 
     # get scan start time
     scan_start = time.time()
@@ -114,7 +113,6 @@ def prescan(model: 'Model',
 
     # create PointSampler object
     point_sampler = PointSampler(out_dir = out_dir,
-                                 use_multiprocessing = use_multiprocessing,
                                  config_loader = config_loader)
 
     # sample points
@@ -146,7 +144,6 @@ if __name__ == "__main__":
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
-    arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Use if multiprocessing should be used")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name")
     args = arg_parser.parse_args()
@@ -164,5 +161,4 @@ if __name__ == "__main__":
 
     prescan(model = model,
             num_points = args.num_points,
-            overwrite = args.overwrite,
-            use_multiprocessing = args.multiprocessing)
+            overwrite = args.overwrite)
