@@ -22,7 +22,6 @@ class ZoomOptimizer:
     def __init__(self,
                  params: 'Params',
                  num_points: int,
-                 use_multiprocessing: bool,
                  starting_max: 'Point',
                  config_loader: ConfigLoader,
                  label: str = ""):
@@ -75,7 +74,6 @@ class ZoomOptimizer:
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          use_multiprocessing = use_multiprocessing,
                                           config_loader = config_loader,
                                           use_file_dir = True)
 
