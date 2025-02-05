@@ -1,7 +1,8 @@
+
+from datetime import datetime
 import json
 import logging
 import os
-import time
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ def save_run_metadata(out_dir: str,
     metadata = {
         "optimization": optimization,
         "num_points": num_points,
-        "timestamp": time.time()
+        "time_stamp": datetime.now().isoformat()
     }
     metadata_path = os.path.join(out_dir, metadata_file_name)
     with open(metadata_path, "w") as f:
