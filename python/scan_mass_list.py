@@ -27,13 +27,12 @@ def scan_mass_list(model: str,
             decay_mode = get_non_resolvable_decay(decay)
 
         arg_list = [
-            "-M", model,
+            "-m", model,
             "-d", decay_mode,
             "-X", XMass,
             "-S", SMass,
             "-s", "zoom",
-            "-n", "10000",
-            "-m"
+            "-n", "10000"
         ]
         
         result = subprocess.run(["python", "../python/scan.py"] + arg_list, text=True)
