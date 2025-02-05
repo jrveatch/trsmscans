@@ -54,12 +54,9 @@ The submodule repositories can be found using these links:
 
 ## Installation
 
-Most of the installation is done via scripts that are provided
-in the `scripts` directory. You can call `source first.sh` to
-automate the installation, assuming you have the dependencies
-installed. This will set up the `ScannerS` and `HiggsTools` submodules,
-install both packages, create a python virtual environment and
-install the necessary python modules.
+Most of the installation is done via scripts that are provided.
+You can call `source first.sh` from the top directory to automate the installation, assuming you have the dependencies installed.
+This will set up the `ScannerS` and `HiggsTools` submodules, install both packages, create a python virtual environment and install the necessary python modules.
 
 ## Every login
 
