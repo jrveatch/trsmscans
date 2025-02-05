@@ -21,6 +21,7 @@ from utils.math_utils import round_sig
 from utils.model import Model
 from utils.params import Params
 from utils.point import Point
+from utils.run_metadata import run_exists, save_run_metadata
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 
@@ -31,6 +32,7 @@ class Scan:
                  model: 'Model',
                  decay: str,
                  use_multiprocessing: bool,
+                 overwrite: bool = False,
                  config_file_name: str = ""
                  ):
         
@@ -83,6 +85,17 @@ class Scan:
         self.out_dir = scan_dir(model=self.model,
                                 decay=decay)
 
+        # remove output directory if overwrite flag is set
+        if overwrite:
+            self.delete_run_directory()
+
+        # create output directory structure and initialize files
+        # TODO: Is this necessary to do here?
+        self.initialize_dirs()
+
+    # create output directory structure and files for scan
+    def initialize_dirs(self) -> None:
+
         # make output directory if it doesn't already exist
         os.makedirs(self.out_dir, exist_ok=True)
 
@@ -130,7 +143,7 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            self.clean_up_failure()
+            self.delete_run_directory()
 
             # raise error
             raise
@@ -336,6 +349,17 @@ class Scan:
         if num_points < 0:
             num_points = self.num_starting_points
 
+        # check if run already exists
+        if run_exists(out_dir=self.out_dir,
+                        num_points=num_points):
+                self.logger.info(f"Skipping scan requested with {num_points} points.")
+                self.logger.info(f"Use the -o option to overwrite the existing run.")
+                return
+
+        # delete directory and reinitialize
+        self.delete_run_directory()
+        self.initialize_dirs()
+
         # run prescan
         self.run_prescan(num_points = num_points)
 
@@ -388,13 +412,11 @@ class Scan:
         scan_end = time.time()
         scan_time = (scan_end - scan_start)
 
-        # print out scan time
-        self.logger.info("Done!")
-        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
+        # finalize the run
+        self.finalize(optimization="zoom",
+                      scan_time=scan_time,
+                      num_points=num_points)
 
-        # write time info to details file
-        with open(self.details_name, "a") as details:
-            details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
         return
 
     # Function that creates needed zoom optimizers
@@ -468,9 +490,32 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
+
+    def finalize(self,
+                 optimization: str,
+                 scan_time: float,
+                 num_points: int = -1) -> None:
+        
+        # print message indicating scan is done
+        self.logger.info("Done!")
+
+        # print out scan time
+        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
+
+        # write time info to details file
+        with open(self.details_name, "a") as details:
+            details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
     
-    def clean_up_failure(self) -> None:
-        shutil.rmtree(self.out_dir)
+        # save metadata
+        save_run_metadata(out_dir=self.out_dir,
+                          optimization=optimization,
+                          num_points=num_points)
+
+    # delete run directory if it exists
+    def delete_run_directory(self) -> None:
+        if os.path.exists(self.out_dir):
+            self.logger.debug(f"Removing existing directory {self.out_dir}")
+            shutil.rmtree(self.out_dir)
 
 if __name__ == "__main__":
 
@@ -482,6 +527,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','ms'], help="Optimization strategy")
+    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
@@ -504,7 +550,8 @@ if __name__ == "__main__":
     # create scan object
     myScan = Scan(model = model,
                   decay = args.decay,
-                  use_multiprocessing = args.multiprocessing
+                  use_multiprocessing = args.multiprocessing,
+                  overwrite=args.overwrite
                  )
 
     match args.strategy:
