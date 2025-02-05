@@ -35,7 +35,6 @@ class MeanShiftOptimizer:
             points: int,
             global_params: Params,
             config_loader: ConfigLoader,
-            use_multiprocessing: bool = True,
             debug: bool = False):
 
         self.__points = points
@@ -86,7 +85,6 @@ class MeanShiftOptimizer:
 
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.__scan_path,
-                                        use_multiprocessing = use_multiprocessing,
                                         config_loader = self.__config_loader,
                                         use_file_dir = True)
 

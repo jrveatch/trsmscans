@@ -225,7 +225,7 @@ class Scan:
 
         return
 
-    def run_ms_optimization(self, prescan_points: int, points: int, use_multiprocessing: bool = False) -> None:
+    def run_ms_optimization(self, prescan_points: int, points: int) -> None:
 
         # get scan start time
         scan_start = time.time()
@@ -308,7 +308,6 @@ class Scan:
                 points=points,
                 global_params=self.params,
                 config_loader=config_loader,
-                use_multiprocessing=use_multiprocessing,
                 debug=debug
             ).run()
 
@@ -557,8 +556,7 @@ if __name__ == "__main__":
             print("Running mean shift optimization..")
             myScan.run_ms_optimization(
                     prescan_points = args.num_points,
-                    points = args.num_points,
-                    use_multiprocessing = args.multiprocessing
+                    points = args.num_points
                 )
         case _:
             raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")

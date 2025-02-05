@@ -1,1 +1,1 @@
-../python/scan.py -X 1001 -S 302 -M "TRSMBroken" -d "SbbHtautau" -n 100 -s "ms"  -m
+../python/scan.py -X 1001 -S 302 -m "TRSMBroken" -d "SbbHtautau" -n 100 -s "ms"
