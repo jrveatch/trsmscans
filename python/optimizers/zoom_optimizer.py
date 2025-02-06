@@ -184,19 +184,15 @@ class ZoomOptimizer:
         self.local_history.append(new_max)
 
         # call the appropriate zoom method based on the strategy
-        match self.strategy:
-
-            # zoom in using percentile
-            case "percentile":
-                self.percentile_zoom()
-
-            # zoom in using rate
-            case "rate":
-                self.rate_zoom()
-
-            # all other cases
-            case _:
-                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
+        # zoom in using percentile
+        if self.strategy == "percentile":
+            self.percentile_zoom()
+        # zoom in using rate
+        elif self.strategy == "rate":
+            self.rate_zoom()
+        # all other cases
+        else:
+            raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
 
         # get iteration end time
         iter_end = time.time()

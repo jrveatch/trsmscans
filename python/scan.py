@@ -437,11 +437,10 @@ if __name__ == "__main__":
                   overwrite=args.overwrite
                  )
 
-    match args.strategy:
-        case "zoom":
-            print("Running zoom optimization..")
-            myScan.run_zoom_optimization(num_points = args.num_points,
-                                         niter = args.iterations)
-        case _:
-            raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
+    if args.strategy == "zoom":
+        print("Running zoom optimization..")
+        myScan.run_zoom_optimization(num_points = args.num_points,
+                                     niter = args.iterations)
+    else:
+        raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
 
