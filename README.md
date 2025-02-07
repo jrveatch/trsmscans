@@ -19,7 +19,7 @@ following installed:
     installation script. Apple Clang, unfortunately does not compile
     Fortran, so you will need to install `gcc` (or another compiler)
     manually.
-  - `python` >= 3.10
+  - `python` >= 3.8
   - `cmake` >= 3.17, download it through your package manager, through
     `pip`, or grab the latest binary.
   - GSL, can be installed through the package manager on most unix systems.
