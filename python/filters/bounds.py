@@ -3,6 +3,7 @@
 # standard libraries
 import logging
 from collections import defaultdict
+from typing import Dict, Tuple
 
 # third-party libraries
 import pandas as pd
@@ -184,8 +185,8 @@ def set_effective_couplings(particle,
     return
 
 def set_BRs(particle,
-            BRs_SM: dict[str,float],
-            BRs_BSM: dict[tuple[str,str],float],
+            BRs_SM: Dict[str,float],
+            BRs_BSM: Dict[Tuple[str,str],float],
             adjust_ZZ: bool
            ) -> None:
     

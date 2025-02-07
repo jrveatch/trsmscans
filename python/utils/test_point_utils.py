@@ -1,10 +1,11 @@
 
 # standard libraries
+from collections import OrderedDict
 import logging
 import math
 import operator
 import os
-from collections import OrderedDict
+from typing import List
 
 # third-party libraries
 from prettytable import PrettyTable
@@ -17,13 +18,13 @@ from utils.math_utils import round_sig
 logger = logging.getLogger(__name__)
 
 # create interpolators for the various BRs and total width and return a dictionary
-def interpolate_HiggsBR(brdict) -> list[interp1d]:
+def interpolate_HiggsBR(brdict) -> List[interp1d]:
 
     # the kind of interpolation
     interp_kind = 'cubic'
 
     # define an array of interpolators
-    interp_higgs_brs: list[interp1d] = []
+    interp_higgs_brs: List[interp1d] = []
 
     # find out how many BRs+width we have:
     first_key = next(iter(brdict))
@@ -97,9 +98,9 @@ def read_higgsBR(br_file: str):
     return sorted_higgs_brs
 
 # minor correction to rescale all BRs to make sure that sum(BRs) = 1
-def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
+def fix_heavy_BRs(heavyBRs: List[float]) -> List[float]:
     sumBRs = 0
-    heavyBRs_fixed: list[float] = []
+    heavyBRs_fixed: List[float] = []
     for i in range(0,12):
         sumBRs = sumBRs + heavyBRs[i]
     logger.debug('sumBRs = {sumBRs}')
@@ -109,11 +110,11 @@ def fix_heavy_BRs(heavyBRs: list[float]) -> list[float]:
     return heavyBRs_fixed
 
 # function that calculates the heavy Higgs branching ratios
-def calculate_heavy_BRs_only(interpolators_SM: list[interp1d],
+def calculate_heavy_BRs_only(interpolators_SM: List[interp1d],
                              mh2: float,
                              l112: float,
-                             sin_theta: float) -> list[float]:
-    heavyBRs: list[float] = []
+                             sin_theta: float) -> List[float]:
+    heavyBRs: List[float] = []
     # fix the SM Higgs mass
     mh1 = 125.09
     if mh2 < 1000.: # 
@@ -154,7 +155,7 @@ def width_h2(sth, m1, m2, l112, Gam_SM):
     total_width = Gam_SM * sth**2 + Gam_h2_to_h1h1(m1, m2, l112)
     return total_width
 
-def get_BR_interpolators_SM() -> list[interp1d]:
+def get_BR_interpolators_SM() -> List[interp1d]:
 
     # get data directory
     data_dir = os.environ['DATADIR']
@@ -181,8 +182,8 @@ def print_heavy_Higgs_info(HeavyHiggsBRs, text_info) -> None:
     BRsum_heavy = round(sum(HeavyHiggsBRs[:-1]), 12)
     print(f"Consistency test: sum(BRs) = {BRsum_heavy}\n")
 
-def get_BR_text_array_heavy_withtripleHiggs() -> list[str]:
-    BR_text_array: list[str] = []
+def get_BR_text_array_heavy_withtripleHiggs() -> List[str]:
+    BR_text_array: List[str] = []
     BR_text_array.append('$b\\bar{b}$')
     BR_text_array.append('$\\tau \\tau$')
     BR_text_array.append('$\\mu \\mu$')

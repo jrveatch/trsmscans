@@ -1,4 +1,7 @@
 
+# standard libraries
+from typing import Dict
+
 # local modules
 from utils.math_utils import round_sig
 from utils.model import Model
@@ -9,14 +12,14 @@ class Point:
     # initialize point parameters
     def __init__(self,
                  model: 'Model',
-                 par_vals: dict[str,float] = {},
+                 par_vals: Dict[str,float] = {},
                  xb: float = 0.0):
 
         # store model name
         self.__model = model
 
         # initialize empty dictionary of parameter values
-        self.__par_vals: dict[str,float] = {}
+        self.__par_vals: Dict[str,float] = {}
 
         # if par_vals exists, store it
         if par_vals:
@@ -39,7 +42,7 @@ class Point:
         return self.__model
     
     @property
-    def par_vals(self) -> dict[str,float]:
+    def par_vals(self) -> Dict[str,float]:
         """Dictionary of parameter values"""
         return self.__par_vals
 

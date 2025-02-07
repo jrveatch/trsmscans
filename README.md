@@ -12,13 +12,14 @@ have several dependencies that need to be installed manually
 through your favorite package manager. Make sure you have the
 following installed:
 
-  - Working compilers for C++, C and Fortran. The C++ compiler must
-    support `c++17` (e.g., `gcc-9` or newer). On Mac, Apple Clang
-    should support `c++17`, but an argument needs to be passed to
-    `cmake` to specify this requirement, which is already in the
-    installation script. Apple Clang, unfortunately does not compile
-    Fortran, so you will need to install `gcc` (or another compiler)
-    manually.
+  - Working compilers for C++ and C. The C++ compiler must support
+    `c++17` (e.g., `gcc-9` or newer).
+    - On Mac, Apple Clang should support `c++17`, but an argument needs
+      to be passed to `cmake` to specify this requirement, which is already
+      in the installation script.
+  - A working compiler for Fortran such as `gfortran`.
+    - Apple Clang, unfortunately does not compile Fortran, so you will need
+      to install `gcc` (or another compiler) manually.
   - `python` >= 3.8
   - `cmake` >= 3.17, download it through your package manager, through
     `pip`, or grab the latest binary.

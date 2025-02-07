@@ -6,6 +6,7 @@ import datetime
 import logging
 import os
 import time
+from typing import Union
 
 # local modules
 from utils.config_loader import ConfigLoader
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def prescan(model: 'Model',
             num_points: int,
-            config_loader: ConfigLoader | None = None,
+            config_loader: Union[ConfigLoader, None] = None,
             config_file_name: str = "",
             overwrite: bool = False) -> 'Parse':
 
