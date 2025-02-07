@@ -2,7 +2,7 @@
 # standard libraries
 import logging
 import os
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 # third-party libraries
 import yaml
@@ -25,7 +25,7 @@ class ConfigLoader:
         self.config = self.load_config(config_path + config_file_name)
 
     def load_config(self,
-                    path: str) -> dict[str, Any]:
+                    path: str) -> Dict[str, Any]:
         # loads the YAML configuration file and returns the configuration as a dictionary.
         try:
             with open(path, 'r') as config_file:

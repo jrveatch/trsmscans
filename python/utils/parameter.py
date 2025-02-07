@@ -1,7 +1,7 @@
 
 # standard libraries
 import logging
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 # local modules
 from utils.math_utils import round_sig
@@ -11,7 +11,7 @@ class Parameter:
 
     def __init__(self,
                  name: str,
-                 dict: dict[str, Any]):
+                 bounds_dict: Dict[str, Any]):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -20,8 +20,8 @@ class Parameter:
         self.__name = name
 
         # initialize values from dictionary
-        self.__lower_bound = dict['min']
-        self.__upper_bound = dict['max']
+        self.__lower_bound = bounds_dict['min']
+        self.__upper_bound = bounds_dict['max']
 
         # initialize low and high from lower and upper bounds
         self.__low = self.__lower_bound

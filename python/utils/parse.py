@@ -1,6 +1,7 @@
 
 # standard libraries
 import logging
+from typing import Dict
 
 # third-party libraries
 import diptest
@@ -31,10 +32,10 @@ class Parse:
         self.__SName = model.get_ordered_scalar_name('S')
 
         # initialize dictionaries of parameter arrays
-        self.__in_par_arrays: dict[str,pd.Series] = {}
-        self.__out_par_arrays: dict[str,pd.Series] = {}
-        self.__width_par_arrays: dict[str,pd.Series] = {}
-        self.__par_arrays: dict[str,pd.Series] = {}
+        self.__in_par_arrays: Dict[str,pd.Series] = {}
+        self.__out_par_arrays: Dict[str,pd.Series] = {}
+        self.__width_par_arrays: Dict[str,pd.Series] = {}
+        self.__par_arrays: Dict[str,pd.Series] = {}
 
         # get arrays from file name if it is provided
         if file_name:
@@ -85,7 +86,7 @@ class Parse:
         return self.__par_arrays[par_name].max()
     
     @property
-    def input_parameter_arrays(self) -> dict[str,pd.Series]:
+    def input_parameter_arrays(self) -> Dict[str,pd.Series]:
         """Dictionary of the parameter arrays"""
         return self.__in_par_arrays
 
@@ -385,7 +386,7 @@ class Parse:
         self.__width_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.width_parameters.items()}
 
         # combine all parameter arrays
-        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_par_arrays
+        self.__par_arrays = {**self.__in_par_arrays, **self.__out_par_arrays, **self.__width_par_arrays}
 
     @property
     def num_filtered_points(self) -> int:

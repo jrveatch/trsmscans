@@ -2,7 +2,7 @@
 # standard libraries
 import os
 import shutil
-from typing import Optional
+from typing import List, Optional
 
 # local modules
 from utils.model import Model
@@ -33,7 +33,7 @@ def plots_dir(model: 'Model',
     return os.environ['OUTPUTDIR']+model.name+f"/plots/{decay}/{model.mass_string}/"
 
 def recreate_dir(path: str,
-                 subdirs: Optional[list[str]] = None) -> None:
+                 subdirs: Optional[List[str]] = None) -> None:
     """
     Recreate the specified directory, optionally creating subdirectories.
 
