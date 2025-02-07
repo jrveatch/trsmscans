@@ -1,6 +1,6 @@
 
 # minimum allowed version of python
-python3_minimum="3.10"
+python3_minimum="3.8"
 
 # minimum version major and minor
 python3_minimum_major=$(echo "$python3_minimum" | cut -d. -f1)

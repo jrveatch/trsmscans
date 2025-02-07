@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Minimum Python and CMake versions
-python3_minimum="3.10"
+python3_minimum="3.8"
 cmake_minimum="3.17"
 
 # Minimum majors and minors
