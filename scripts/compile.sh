@@ -44,5 +44,5 @@ printf "\n"
 printf "Trying to compile higgstools python"
 printf "\n"
 cd higgstools
-pip install .
+MAKEFLAGS="-j$(( $(nproc) - 1 ))" pip install .
 cd ..
