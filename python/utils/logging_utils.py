@@ -2,6 +2,7 @@
 # standard libraries
 import logging
 import os
+from typing import List
 
 # Define the numeric value for VERBOSE
 VERBOSE_LEVEL = 5  # Below DEBUG (10)
@@ -79,7 +80,7 @@ def setup_logging(log_file: str,
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
-def format_table(headers: list[str], rows: list[list[any]]) -> str:
+def format_table(headers: List[str], rows: List[List[any]]) -> str:
     """
     Format a table as a string.
 
@@ -103,7 +104,7 @@ def format_table(headers: list[str], rows: list[list[any]]) -> str:
     table = f"{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n"
     return table
 
-def log_table(logger: logging.Logger, headers: list[str], rows: list[list[any]], level=logging.INFO) -> None:
+def log_table(logger: logging.Logger, headers: List[str], rows: List[List[any]], level=logging.INFO) -> None:
     """
     Log a nicely formatted table.
 
