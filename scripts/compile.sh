@@ -1,3 +1,17 @@
+#!/bin/bash
+
+# get total umber of CPU cores
+TOTAL_CORES=$(nproc)
+
+# use all but two cores in compilation
+CORES_TO_USE=$((TOTAL_CORES - 1))
+
+# ensure at least one core is used
+if [ "$CORES_TO_USE" -lt 1 ]; then
+    CORES_TO_USE=1
+fi
+
+echo "Compiling with $CORES_TO_USE threads..."
 
 # compile ScannerS
 printf "\n"
@@ -9,7 +23,7 @@ if [ ! -d build ]; then
 fi
 cd build
 cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
-make
+make -j"$CORES_TO_USE"
 cd ../..
 
 # compile higgstools with C++
@@ -22,7 +36,7 @@ if [ ! -d build ]; then
 fi
 cd build
 cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
-make
+make -j"$CORES_TO_USE"
 cd ../..
 
 # compile higgstools python module
