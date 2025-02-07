@@ -4,6 +4,7 @@
 import argparse
 import os
 from collections import defaultdict
+from typing import Dict, List
 
 # third-party libraries
 import matplotlib.pyplot as plt
@@ -43,7 +44,7 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files_dict = defaultdict(list[str])
+        self.all_files_dict: Dict[str, List[str]] = defaultdict(list)
 
         # If prescan exists, make it the first file to plot
         prescan = file_utils.prescan_tsv(model=self.model)
@@ -79,10 +80,10 @@ class Plot:
         self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
-        self.max_point_list: list[Point] = []
+        self.max_point_list: List[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists = defaultdict(list[NDArray])
+        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
 
         # Loop through each iteration
         for file_list in self.all_files_dict.values():

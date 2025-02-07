@@ -2,6 +2,7 @@
 # standard libraries
 import logging
 import os
+from typing import Dict, List
 
 # third-party libraries
 import yaml
@@ -11,7 +12,7 @@ class Model:
 
     def __init__(self,
                  name: str,
-                 masses: dict[str,float] = {}) -> None:
+                 masses: Dict[str,float] = {}) -> None:
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -171,26 +172,26 @@ class Model:
 
     # get a single input parameter
     def input_parameter(self,
-                        par_name: str) -> dict[str,any]:
+                        par_name: str) -> Dict[str,any]:
         return self.__input_params[par_name]
 
     @property
-    def input_parameter_names(self) -> list[str]:
+    def input_parameter_names(self) -> List[str]:
         """List of input parameter names"""
         return list(self.__input_params.keys())
 
     @property
-    def output_parameter_names(self) -> list[str]:
+    def output_parameter_names(self) -> List[str]:
         """List of output parameter names"""
         return list(self.__output_params.keys())
 
     @property
-    def width_parameter_names(self) -> list[str]:
+    def width_parameter_names(self) -> List[str]:
         """List of output parameter names"""
         return list(self.__width_params.keys())
 
     @property
-    def all_parameter_names(self) -> list[str]:
+    def all_parameter_names(self) -> List[str]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 

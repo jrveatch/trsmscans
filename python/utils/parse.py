@@ -1,6 +1,7 @@
 
 # standard libraries
 import logging
+from typing import Dict
 
 # third-party libraries
 import diptest
@@ -31,10 +32,10 @@ class Parse:
         self.__SName = model.get_ordered_scalar_name('S')
 
         # initialize dictionaries of parameter arrays
-        self.__in_par_arrays: dict[str,pd.Series] = {}
-        self.__out_par_arrays: dict[str,pd.Series] = {}
-        self.__width_par_arrays: dict[str,pd.Series] = {}
-        self.__par_arrays: dict[str,pd.Series] = {}
+        self.__in_par_arrays: Dict[str,pd.Series] = {}
+        self.__out_par_arrays: Dict[str,pd.Series] = {}
+        self.__width_par_arrays: Dict[str,pd.Series] = {}
+        self.__par_arrays: Dict[str,pd.Series] = {}
 
         # get arrays from file name if it is provided
         if file_name:
@@ -85,7 +86,7 @@ class Parse:
         return self.__par_arrays[par_name].max()
     
     @property
-    def input_parameter_arrays(self) -> dict[str,pd.Series]:
+    def input_parameter_arrays(self) -> Dict[str,pd.Series]:
         """Dictionary of the parameter arrays"""
         return self.__in_par_arrays
 
@@ -182,187 +183,185 @@ class Parse:
         br_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
 
         # get appropriate BR for decay mode
-        match decay:
+        # 4b cases
+        if decay == "SHbbbb":
+            br_decay = br_X_SH * br_S_bb * br_H_bb
+        elif decay == "SSbbbb":
+            br_decay = br_X_SS * br_S_bb * br_S_bb
+        elif decay == "HHbbbb":
+            br_decay = br_X_HH * br_H_bb * br_H_bb
+        elif decay == "Xbbbb":
+            br1 = br_X_SH * br_S_bb * br_H_bb
+            br2 = br_X_SS * br_S_bb * br_S_bb
+            br3 = br_X_HH * br_H_bb * br_H_bb
+            br_decay = br1 + br2 + br3
 
-            # 4b case
-            case "SHbbbb":
-                br_decay = br_X_SH * br_S_bb * br_H_bb
-            case "SSbbbb":
-                br_decay = br_X_SS * br_S_bb * br_S_bb
-            case "HHbbbb":
-                br_decay = br_X_HH * br_H_bb * br_H_bb
-            case "Xbbbb":
-                br1 = br_X_SH * br_S_bb * br_H_bb
-                br2 = br_X_SS * br_S_bb * br_S_bb
-                br3 = br_X_HH * br_H_bb * br_H_bb
-                br_decay = br1 + br2 + br3
+        # bbtautau cases
+        elif decay == "SbbHtautau":
+            br_decay = br_X_SH * br_S_bb * br_H_tautau
+        elif decay == "StautauHbb":
+            br_decay = br_X_SH * br_S_tautau * br_H_bb
+        elif decay == "SHbbtautau":
+            br1 = br_X_SH * br_S_bb * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_bb
+            br_decay = br1 + br2
+        elif decay == "SSbbtautau":
+            br_decay = br_X_SS * br_S_bb * br_S_tautau
+        elif decay == "HHbbtautau":
+            br_decay = br_X_HH * br_H_bb * br_H_tautau
+        elif decay == "Xbbtautau":
+            br1 = br_X_SH * br_S_bb * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_bb
+            br3 = br_X_SS * br_S_bb * br_S_tautau
+            br4 = br_X_HH * br_H_bb * br_H_tautau
+            br_decay = br1 + br2 + br3 + br4
 
-            # bbtautau cases
-            case "SbbHtautau":
-                br_decay = br_X_SH * br_S_bb * br_H_tautau
-            case "StautauHbb":
-                br_decay = br_X_SH * br_S_tautau * br_H_bb
-            case "SHbbtautau":
-                br1 = br_X_SH * br_S_bb * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_bb
-                br_decay = br1 + br2
-            case "SSbbtautau":
-                br_decay = br_X_SS * br_S_bb * br_S_tautau
-            case "HHbbtautau":
-                br_decay = br_X_HH * br_H_bb * br_H_tautau
-            case "Xbbtautau":
-                br1 = br_X_SH * br_S_bb * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_bb
-                br3 = br_X_SS * br_S_bb * br_S_tautau
-                br4 = br_X_HH * br_H_bb * br_H_tautau
-                br_decay = br1 + br2 + br3 + br4
+        # bbWW cases
+        elif decay == "SbbHWW":
+            br_decay = br_X_SH * br_S_bb * br_H_WW
+        elif decay == "SWWHbb":
+            br_decay = br_X_SH * br_S_WW * br_H_bb
+        elif decay == "SHbbWW":
+            br1 = br_X_SH * br_S_bb * br_H_WW
+            br2 = br_X_SH * br_S_WW * br_H_bb
+            br_decay = br1 + br2
+        elif decay == "SSbbWW":
+            br_decay = br_X_SS * br_S_bb * br_S_WW
+        elif decay == "HHbbWW":
+            br_decay = br_X_HH * br_H_bb * br_H_WW
+        elif decay == "XbbWW":
+            br1 = br_X_SH * br_S_bb * br_H_WW
+            br2 = br_X_SH * br_S_WW * br_H_bb
+            br3 = br_X_SS * br_S_bb * br_S_WW
+            br4 = br_X_HH * br_H_bb * br_H_WW
+            br_decay = br1 + br2 + br3 + br4
 
-            # bbWW cases
-            case "SbbHWW":
-                br_decay = br_X_SH * br_S_bb * br_H_WW
-            case "SWWHbb":
-                br_decay = br_X_SH * br_S_WW * br_H_bb
-            case "SHbbWW":
-                br1 = br_X_SH * br_S_bb * br_H_WW
-                br2 = br_X_SH * br_S_WW * br_H_bb
-                br_decay = br1 + br2
-            case "SSbbWW":
-                br_decay = br_X_SS * br_S_bb * br_S_WW
-            case "HHbbWW":
-                br_decay = br_X_HH * br_H_bb * br_H_WW
-            case "XbbWW":
-                br1 = br_X_SH * br_S_bb * br_H_WW
-                br2 = br_X_SH * br_S_WW * br_H_bb
-                br3 = br_X_SS * br_S_bb * br_S_WW
-                br4 = br_X_HH * br_H_bb * br_H_WW
-                br_decay = br1 + br2 + br3 + br4
+        # bbZZ cases
+        elif decay == "SbbHZZ":
+            br_decay = br_X_SH * br_S_bb * br_H_ZZ
+        elif decay == "SZZHbb":
+            br_decay = br_X_SH * br_S_ZZ * br_H_bb
+        elif decay == "SHbbZZ":
+            br1 = br_X_SH * br_S_bb * br_H_ZZ
+            br2 = br_X_SH * br_S_ZZ * br_H_bb
+            br_decay = br1 + br2
+        elif decay == "SSbbZZ":
+            br_decay = br_X_SS * br_S_bb * br_S_ZZ
+        elif decay == "HHbbZZ":
+            br_decay = br_X_HH * br_H_bb * br_H_ZZ
+        elif decay == "XbbZZ":
+            br1 = br_X_SH * br_S_bb * br_H_ZZ
+            br2 = br_X_SH * br_S_ZZ * br_H_bb
+            br3 = br_X_SS * br_S_bb * br_S_ZZ
+            br4 = br_X_HH * br_H_bb * br_H_ZZ
+            br_decay = br1 + br2 + br3 + br4
 
-            # bbZZ cases
-            case "SbbHZZ":
-                br_decay = br_X_SH * br_S_bb * br_H_ZZ
-            case "SZZHbb":
-                br_decay = br_X_SH * br_S_ZZ * br_H_bb
-            case "SHbbZZ":
-                br1 = br_X_SH * br_S_bb * br_H_ZZ
-                br2 = br_X_SH * br_S_ZZ * br_H_bb
-                br_decay = br1 + br2
-            case "SSbbZZ":
-                br_decay = br_X_SS * br_S_bb * br_S_ZZ
-            case "HHbbZZ":
-                br_decay = br_X_HH * br_H_bb * br_H_ZZ
-            case "XbbZZ":
-                br1 = br_X_SH * br_S_bb * br_H_ZZ
-                br2 = br_X_SH * br_S_ZZ * br_H_bb
-                br3 = br_X_SS * br_S_bb * br_S_ZZ
-                br4 = br_X_HH * br_H_bb * br_H_ZZ
-                br_decay = br1 + br2 + br3 + br4
+        # bbVV cases
+        elif decay == "SbbHVV":
+            br_decay = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
+        elif decay == "SVVHbb":
+            br_decay = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
+        elif decay == "SHbbVV":
+            br1 = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
+            br2 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
+            br_decay = br1 + br2
+        elif decay == "SSbbVV":
+            br_decay = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_bb
+        elif decay == "HHbbVV":
+            br_decay = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_bb
+        elif decay == "XbbVV":
+            br1 = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
+            br2 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
+            br3 = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_bb
+            br4 = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_bb
+            br_decay = br1 + br2 + br3 + br4
 
-            # bbVV cases
-            case "SbbHVV":
-                br_decay = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
-            case "SVVHbb":
-                br_decay = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
-            case "SHbbVV":
-                br1 = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
-                br2 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
-                br_decay = br1 + br2
-            case "SSbbVV":
-                br_decay = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_bb
-            case "HHbbVV":
-                br_decay = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_bb
-            case "XbbVV":
-                br1 = br_X_SH * br_S_bb * (br_H_WW + br_H_ZZ)
-                br2 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_bb
-                br3 = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_bb
-                br4 = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_bb
-                br_decay = br1 + br2 + br3 + br4
+        # WWtautau cases
+        elif decay == "SWWHtautau":
+            br_decay = br_X_SH * br_S_WW * br_H_tautau
+        elif decay == "StautauHWW":
+            br_decay = br_X_SH * br_S_tautau * br_H_WW
+        elif decay == "SHWWtautau":
+            br1 = br_X_SH * br_S_WW * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_WW
+            br_decay = br1 + br2
+        elif decay == "SSWWtautau":
+            br_decay = br_X_SS * br_S_WW * br_S_tautau
+        elif decay == "HHWWtautau":
+            br_decay = br_X_HH * br_H_WW * br_H_tautau
+        elif decay == "XWWtautau":
+            br1 = br_X_SH * br_S_WW * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_WW
+            br3 = br_X_SS * br_S_WW * br_S_tautau
+            br4 = br_X_HH * br_H_WW * br_H_tautau
+            br_decay = br1 + br2 + br3 + br4
 
-            # WWtautau cases
-            case "SWWHtautau":
-                br_decay = br_X_SH * br_S_WW * br_H_tautau
-            case "StautauHWW":
-                br_decay = br_X_SH * br_S_tautau * br_H_WW
-            case "SHWWtautau":
-                br1 = br_X_SH * br_S_WW * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_WW
-                br_decay = br1 + br2
-            case "SSWWtautau":
-                br_decay = br_X_SS * br_S_WW * br_S_tautau
-            case "HHWWtautau":
-                br_decay = br_X_HH * br_H_WW * br_H_tautau
-            case "XWWtautau":
-                br1 = br_X_SH * br_S_WW * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_WW
-                br3 = br_X_SS * br_S_WW * br_S_tautau
-                br4 = br_X_HH * br_H_WW * br_H_tautau
-                br_decay = br1 + br2 + br3 + br4
+        # ZZtautau cases
+        elif decay == "SZZHtautau":
+            br_decay = br_X_SH * br_S_ZZ * br_H_tautau
+        elif decay == "StautauHZZ":
+            br_decay = br_X_SH * br_S_tautau * br_H_ZZ
+        elif decay == "SHZZtautau":
+            br1 = br_X_SH * br_S_ZZ * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_ZZ
+            br_decay = br1 + br2
+        elif decay == "SSZZtautau":
+            br_decay = br_X_SS * br_S_ZZ * br_S_tautau
+        elif decay == "HHZZtautau":
+            br_decay = br_X_HH * br_H_ZZ * br_H_tautau
+        elif decay == "XZZtautau":
+            br1 = br_X_SH * br_S_ZZ * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * br_H_ZZ
+            br3 = br_X_SS * br_S_ZZ * br_S_tautau
+            br4 = br_X_HH * br_H_ZZ * br_H_tautau
+            br_decay = br1 + br2 + br3 + br4
 
-            # ZZtautau cases
-            case "SZZHtautau":
-                br_decay = br_X_SH * br_S_ZZ * br_H_tautau
-            case "StautauHZZ":
-                br_decay = br_X_SH * br_S_tautau * br_H_ZZ
-            case "SHZZtautau":
-                br1 = br_X_SH * br_S_ZZ * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_ZZ
-                br_decay = br1 + br2
-            case "SSZZtautau":
-                br_decay = br_X_SS * br_S_ZZ * br_S_tautau
-            case "HHZZtautau":
-                br_decay = br_X_HH * br_H_ZZ * br_H_tautau
-            case "XZZtautau":
-                br1 = br_X_SH * br_S_ZZ * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * br_H_ZZ
-                br3 = br_X_SS * br_S_ZZ * br_S_tautau
-                br4 = br_X_HH * br_H_ZZ * br_H_tautau
-                br_decay = br1 + br2 + br3 + br4
+        # VVtautau cases
+        elif decay == "SVVHtautau":
+            br_decay = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
+        elif decay == "StautauHVV":
+            br_decay = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
+        elif decay == "SHVVtautau":
+            br1 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
+            br_decay = br1 + br2
+        elif decay == "SSVVtautau":
+            br_decay = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_tautau
+        elif decay == "HHVVtautau":
+            br_decay = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_tautau
+        elif decay == "XVVtautau":
+            br1 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
+            br2 = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
+            br3 = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_tautau
+            br4 = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_tautau
+            br_decay = br1 + br2 + br3 + br4
 
-            # VVtautau cases
-            case "SVVHtautau":
-                br_decay = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
-            case "StautauHVV":
-                br_decay = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
-            case "SHVVtautau":
-                br1 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
-                br_decay = br1 + br2
-            case "SSVVtautau":
-                br_decay = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_tautau
-            case "HHVVtautau":
-                br_decay = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_tautau
-            case "XVVtautau":
-                br1 = br_X_SH * (br_S_WW + br_S_ZZ) * br_H_tautau
-                br2 = br_X_SH * br_S_tautau * (br_H_WW + br_H_ZZ)
-                br3 = br_X_SS * (br_S_WW + br_S_ZZ) * br_S_tautau
-                br4 = br_X_HH * (br_H_WW + br_H_ZZ) * br_H_tautau
-                br_decay = br1 + br2 + br3 + br4
+        # bbgamgam cases
+        elif decay == "SbbHgamgam":
+            br_decay = br_X_SH * br_S_bb * br_H_gamgam
+        elif decay == "SgamgamHbb":
+            br_decay = br_X_SH * br_S_gamgam * br_H_bb
+        elif decay == "SHbbgamgam":
+            br1 = br_X_SH * br_S_bb * br_H_gamgam
+            br2 = br_X_SH * br_S_gamgam * br_H_bb
+            br_decay = br1 + br2
+        elif decay == "SSbbgamgam":
+            br_decay = br_X_SS * br_S_bb * br_S_gamgam
+        elif decay == "HHbbgamgam":
+            br_decay = br_X_HH * br_H_bb * br_H_gamgam
+        elif decay == "Xbbgamgam":
+            br1 = br_X_SH * br_S_bb * br_H_gamgam
+            br2 = br_X_SH * br_S_gamgam * br_H_bb
+            br3 = br_X_SS * br_S_bb * br_S_gamgam
+            br4 = br_X_HH * br_H_bb * br_H_gamgam
+            br_decay = br1 + br2 + br3 + br4
 
-            # bbgamgam cases
-            case "SbbHgamgam":
-                br_decay = br_X_SH * br_S_bb * br_H_gamgam
-            case "SgamgamHbb":
-                br_decay = br_X_SH * br_S_gamgam * br_H_bb
-            case "SHbbgamgam":
-                br1 = br_X_SH * br_S_bb * br_H_gamgam
-                br2 = br_X_SH * br_S_gamgam * br_H_bb
-                br_decay = br1 + br2
-            case "SSbbgamgam":
-                br_decay = br_X_SS * br_S_bb * br_S_gamgam
-            case "HHbbgamgam":
-                br_decay = br_X_HH * br_H_bb * br_H_gamgam
-            case "Xbbgamgam":
-                br1 = br_X_SH * br_S_bb * br_H_gamgam
-                br2 = br_X_SH * br_S_gamgam * br_H_bb
-                br3 = br_X_SS * br_S_bb * br_S_gamgam
-                br4 = br_X_HH * br_H_bb * br_H_gamgam
-                br_decay = br1 + br2 + br3 + br4
-
-            # raise an exception in all other cases
-            case _:
-                raise ValueError(
-                    f"Unrecognized decay {decay}\n"
-                    f"Allowed decays are: {', '.join(valid_decays())}."
-                )
+        # raise an exception in all other cases
+        else:
+            raise ValueError(
+                f"Unrecognized decay {decay}\n"
+                f"Allowed decays are: {', '.join(valid_decays())}."
+            )
 
         # return the decay BR
         return br_decay
@@ -387,7 +386,7 @@ class Parse:
         self.__width_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.width_parameters.items()}
 
         # combine all parameter arrays
-        self.__par_arrays = self.__in_par_arrays | self.__out_par_arrays | self.__width_par_arrays
+        self.__par_arrays = {**self.__in_par_arrays, **self.__out_par_arrays, **self.__width_par_arrays}
 
     @property
     def num_filtered_points(self) -> int:

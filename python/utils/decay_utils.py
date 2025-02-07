@@ -2,6 +2,7 @@
 
 import os
 from functools import lru_cache
+from typing import List, Set
 import yaml
 
 class DecayConfigManager:
@@ -16,7 +17,7 @@ class DecayConfigManager:
         # Create a reverse mapping from values to groups and their non-resolvable version
         self.decay_to_group = {}
         self.non_resolvable_map = {}
-        self.valid_decay_modes: list[str] = []
+        self.valid_decay_modes: List[str] = []
 
         for group, details in self.allowed_decay_modes.items():
             self.valid_decay_modes.extend(details["all_modes"])
@@ -42,7 +43,7 @@ class DecayConfigManager:
         return self.non_resolvable_map.get(group)
 
 @lru_cache(maxsize=None)
-def valid_decays() -> set[str]:
+def valid_decays() -> Set[str]:
 
     decay_config_manager = DecayConfigManager()
 

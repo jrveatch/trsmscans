@@ -12,13 +12,14 @@ have several dependencies that need to be installed manually
 through your favorite package manager. Make sure you have the
 following installed:
 
-  - Working compilers for C++, C and Fortran. The C++ compiler must
-    support `c++17` (e.g., `gcc-9` or newer). On Mac, Apple Clang
-    should support `c++17`, but an argument needs to be passed to
-    `cmake` to specify this requirement, which is already in the
-    installation script. Apple Clang, unfortunately does not compile
-    Fortran, so you will need to install `gcc` (or another compiler)
-    manually.
+  - Working compilers for C++ and C. The C++ compiler must support
+    `c++17` (e.g., `gcc-9` or newer).
+    - On Mac, Apple Clang should support `c++17`, but an argument needs
+      to be passed to `cmake` to specify this requirement, which is already
+      in the installation script.
+  - A working compiler for Fortran such as `gfortran`.
+    - Apple Clang, unfortunately does not compile Fortran, so you will need
+      to install `gcc` (or another compiler) manually.
   - `python` >= 3.10
   - `cmake` >= 3.17, download it through your package manager, through
     `pip`, or grab the latest binary.
@@ -54,12 +55,9 @@ The submodule repositories can be found using these links:
 
 ## Installation
 
-Most of the installation is done via scripts that are provided
-in the `scripts` directory. You can call `source first.sh` to
-automate the installation, assuming you have the dependencies
-installed. This will set up the `ScannerS` and `HiggsTools` submodules,
-install both packages, create a python virtual environment and
-install the necessary python modules.
+Most of the installation is done via scripts that are provided.
+You can call `source first.sh` from the top directory to automate the installation, assuming you have the dependencies installed.
+This will set up the `ScannerS` and `HiggsTools` submodules, install both packages, create a python virtual environment and install the necessary python modules.
 
 ## Every login
 

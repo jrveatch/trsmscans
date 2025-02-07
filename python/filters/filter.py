@@ -3,6 +3,7 @@
 # standard libraries
 import argparse
 import logging
+from typing import Tuple
 
 # local modules
 from filters import bounds, width
@@ -20,7 +21,7 @@ header_signals = "filt_signals"
 def apply_filters(file_name: str,
                   model: 'Model',
                   config_loader: 'ConfigLoader'
-                 ) -> tuple[int,int,int]:
+                 ) -> Tuple[int,int,int]:
 
     # load in dataframe from .tsv file
     dataframe = get_df(file_name)

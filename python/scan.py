@@ -10,6 +10,7 @@ import os
 import random
 import shutil
 import time
+from typing import Dict, List, Tuple
 
 # local modules
 from prescan import prescan
@@ -414,10 +415,10 @@ class Scan:
         return
 
     # Function that creates needed zoom optimizers
-    def create_zoom_optimizers(self, num_points: int) -> list['ZoomOptimizer']:
+    def create_zoom_optimizers(self, num_points: int) -> List['ZoomOptimizer']:
 
         # Dictionary that will hold the values of the parameters
-        param_dict: dict[str, list[ dict[str, float] ]] = {}
+        param_dict: Dict[str, List[ Dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
         for parameter_name in self.params.parameter_names:
@@ -439,7 +440,7 @@ class Scan:
                 param_dict[parameter_name] = [{'min': min_val, 'max': max_val}]
 
         # List that holds parameter value combinations
-        all_param_combinations: list[tuple['Params', dict[str, float]]] = []
+        all_param_combinations: List[Tuple['Params', Dict[str, float]]] = []
 
         # Generate all parameter combinations
         for param_values in itertools.product(*param_dict.values()):  # Itertools.product serves as a way to get combinations of values
@@ -455,7 +456,7 @@ class Scan:
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: list['ZoomOptimizer'] = []
+        all_zoom_optimizers: List['ZoomOptimizer'] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(num_points // len(all_param_combinations), 1)
@@ -545,18 +546,15 @@ if __name__ == "__main__":
                   overwrite=args.overwrite
                  )
 
-    match args.strategy:
-        case "zoom":
-            print("Running zoom optimization..")
-            myScan.run_zoom_optimization(
-                    num_points = args.num_points,
-                    niter = args.iterations
-                )
-        case "ms":
-            print("Running mean shift optimization..")
-            myScan.run_ms_optimization(
-                    prescan_points = args.num_points,
-                    points = args.num_points
-                )
-        case _:
-            raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
+    if args.strategy == "zoom":
+        print("Running zoom optimization..")
+        myScan.run_zoom_optimization(num_points = args.num_points,
+                                     niter = args.iterations)
+    elif args.strategy == "ms":
+        print("Running mean shift optimization..")
+        myScan.run_ms_optimization(
+            prescan_points = args.num_points,
+            points = args.num_points
+        )
+    else:
+        raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")

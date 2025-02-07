@@ -1,7 +1,7 @@
 
 # standard libraries
 import logging
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 # local modules
 from utils.model import Model
@@ -30,22 +30,22 @@ class Params:
         self.__decay = decay
 
         # get list of parameter names
-        self.__parameter_names: list[str] = self.__model.input_parameter_names
+        self.__parameter_names: List[str] = self.__model.input_parameter_names
 
         # create dictionary of parameters
-        self.__parameters: dict[str,'Parameter'] = {}
+        self.__parameters: Dict[str,'Parameter'] = {}
         for name in self.__parameter_names:
             self.__parameters[name] = Parameter(name,self.__model.input_parameter(name))
 
     ## Class properties
 
     @property
-    def parameters(self) -> dict[str, Parameter]:
+    def parameters(self) -> Dict[str, Parameter]:
         """Dictionary of parameters"""
         return self.__parameters
 
     @property
-    def parameter_names(self) -> list[str]:
+    def parameter_names(self) -> List[str]:
         """List of parameter name"""
         return self.__parameter_names
 
@@ -76,13 +76,13 @@ class Params:
                         par_name: str) -> Parameter:
         return self.__parameters[par_name]
 
-    def center_points(self) -> tuple[float]:
+    def center_points(self) -> Tuple[float]:
         return tuple([param.center for param in self.__parameters.values()])
 
-    def ranges(self) -> tuple[tuple[float]]:
+    def ranges(self) -> Tuple[Tuple[float]]:
         return tuple([param.range for param in self.__parameters.values()])
 
-    def widths(self) -> tuple[float]:
+    def widths(self) -> Tuple[float]:
         return tuple([param.width for param in self.__parameters.values()])
 
     # get starting min value from model
@@ -120,7 +120,7 @@ class Params:
                                                    range_scale=range_scale)
 
     # change bounds of each parameter based on new center point
-    def reposition_center(self, point: tuple[float]):
+    def reposition_center(self, point: Tuple[float]):
         for (center, param) in zip(point, self.__parameters.values()):
             extent = param.width / 2
 
@@ -196,17 +196,17 @@ class Params:
 
     # Alias for self.center_point()
     @property
-    def vol_position(self) -> tuple[float]:
+    def vol_position(self) -> Tuple[float]:
         return self.center_points()
 
     # Alias for self.widths()
     @property
-    def vol_width(self) -> tuple[float]:
+    def vol_width(self) -> Tuple[float]:
         return self.widths()
 
     # Alias for self.ranges()
     @property
-    def vol_range(self) -> tuple[tuple[float, float]]:
+    def vol_range(self) -> Tuple[Tuple[float, float]]:
         return self.ranges()
 
     # parameter name indexing
