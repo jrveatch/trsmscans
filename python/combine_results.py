@@ -65,7 +65,7 @@ def combine_results(model: str,
                                 combination_headers_written = True
 
                             # Write data row to the output file
-                            combination_file.write(f"{XMass}\t{SMass}\t125\t" + "\t".join(last_line) + "\n")
+                            combination_file.write(f"{float(XMass)}\t{float(SMass)}\t125.09\t" + "\t".join(last_line) + "\n")
                     except Exception as e:
                         print(f"Error reading or processing {summary_path}: {e}")
                 
