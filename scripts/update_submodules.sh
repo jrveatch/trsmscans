@@ -1,5 +1,4 @@
-
-#!/bin/bash
+#!/usr/bin/env sh
 
 # Print some information for user
 printf "Checking for submodule updates\n"

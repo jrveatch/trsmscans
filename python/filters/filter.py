@@ -1,71 +1,63 @@
 #!/usr/bin/env python3
 
+# standard libraries
 import argparse
-import numpy as np
+import logging
+from typing import Tuple
 
-from filters import width
-from filters import bounds
-from utils.tsv_utils import initialize_column
-from utils.arrays import Arrays
-from utils.masses import Masses
+# local modules
+from filters import bounds, width
 from utils.config_loader import ConfigLoader
+from utils.df_utils import get_df, write_to_tsv
+from utils.model import Model
+
+# get logger
+logger = logging.getLogger(__name__)
 
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
-                  masses: Masses,
-                  config_loader: 'ConfigLoader') -> tuple[int,int,int]:
+                  model: 'Model',
+                  config_loader: 'ConfigLoader'
+                 ) -> Tuple[int,int,int]:
 
-    # initialize filter columns
-    initialize_filters(file_name)
-
-    # get model name from config file
-    try:
-        model_name: float = config_loader.get('model', 'model_name')
-    except KeyError as e:
-        print(f"Error: {e}")
-        raise
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        raise
+    # load in dataframe from .tsv file
+    dataframe = get_df(file_name)
 
     # apply width filter
-    nwidth = width.filter_widths(file_name=file_name,
-                                 masses=masses,
-                                 config_loader=config_loader)
+    width.filter_widths(dataframe=dataframe,
+                        header_width=header_width,
+                        model=model,
+                        config_loader=config_loader)
 
-    # apply bounds filter
-    nbounds, nsignals = bounds.filter_bounds(file_name=file_name,
-                                             model_name=model_name,
-                                             masses=masses)
+    # apply bounds and signals filters
+    bounds.filter_bounds(dataframe=dataframe,
+                         header_bounds=header_bounds,
+                         header_signals=header_signals,
+                         model=model)
 
-    # get arrays from output file
-    arrays = Arrays(file_name)
+    # write updated dataframe to .tsv
+    write_to_tsv(dataframe=dataframe,
+                 file_name=file_name)
 
-    # find how many points pass both filters
-    filt_width = arrays.data(header_width)
-    filt_bounds = arrays.data(header_bounds)
-    filt_signals = arrays.data(header_signals)
-    filt_total = np.multiply(filt_width,filt_bounds,filt_signals)
-    npass: int = filt_total.sum()
+    # get results of each filter for counting
+    filt_width = dataframe[header_width]
+    filt_bounds = dataframe[header_bounds]
+    filt_signals = dataframe[header_signals]
+
+    # create dictionary to store results
+    results: dict[str, int] = {}
+
+    # find how many points pass all filters
+    results["width"] = filt_width.sum()
+    results["bounds"] = filt_bounds.sum()
+    results["signals"] = filt_signals.sum()
+    results["pass"] = (filt_width * filt_bounds * filt_signals).sum()
 
     # return numbers of events passing each filter
-    return nwidth, nbounds, nsignals, npass
-
-def initialize_filters(file_name: str) -> None:
-
-    # initialize all columns
-    initialize_column(file_name=file_name,
-                      column_header=header_width,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_bounds,
-                      value=1)
-    initialize_column(file_name=file_name,
-                      column_header=header_signals,
-                      value=1)
+    return results
 
 if __name__ == "__main__":
 
@@ -77,7 +69,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     args = arg_parser.parse_args()
 
-    # create masses
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,masses=masses)
+    apply_filters(file_name=args.file_name,model=model)

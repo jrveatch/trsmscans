@@ -1,24 +1,50 @@
 #!/usr/bin/env python3
 
-import subprocess
+# standard libraries
+import argparse
+import logging
+import math
 import multiprocessing as mp
 import os
 import shutil
+import subprocess
 import time
-import math
+from typing import List
+
+# third-party libraries
 from blessings import Terminal
+
+# local modules
+from utils.config_loader import ConfigLoader
 from utils.tsv_utils import save_tsv_output
-import argparse
-import logging
+
+# get logger
+logger = logging.getLogger(__name__)
+
+config_loader = ConfigLoader(config_file_name="ScannerS.yml")
+# get configurations from config file
+try:
+    # fraction of cpus to use when parallel processing
+    frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
+    # minimum number of points per job
+    min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
+    # time in seconds at which process will be killed if nothing is printed out
+    timeout: float = config_loader.get('ScannerS', 'timeout')
+except KeyError as e:
+    logger.error(e)
+    raise
+except Exception as e:
+    logger.error(e)
+    raise
 
 # get logger
 logger = logging.getLogger(__name__)
 
 # method to run ScannerS
-def runScannerS(ini_name: str,
-                num_points: int,
-                model_name: str,
-                use_multiprocessing: bool) -> int:
+def run_scannerS(ini_name: str,
+                 num_points: int,
+                 model_name: str,
+                 use_multiprocessing: bool = True) -> int:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
@@ -30,28 +56,25 @@ def runScannerS(ini_name: str,
     # get number of available CPUs
     num_cpu = mp.cpu_count()
 
-    # minimum number of points per job
-    min_points = 10
-
     # make sure the minimum number of points are used
-    if num_points < min_points:
-        logger.debug(f"A minimum of {min_points} is required to run, adjusting...")
-        num_points = min_points
+    if num_points < min_points_per_job:
+        logger.debug(f"A minimum of {min_points_per_job} is required to run, adjusting...")
+        num_points = min_points_per_job
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
 
     # if multiprocessing flag isn't set, run as a single process
     if not use_multiprocessing:
-        logger.warning(f"Multiprocessing set to False, running as a single process with {num_points} points.")
+        logger.debug(f"Multiprocessing set to False, running as a single process with {num_points} points.")
 
     # if there is only 1 CPU available, run as a single process
     if num_cpu == 1:
-        logger.warning(f"Only 1 CPU available, running as a single process with {num_points} points.")
+        logger.debug(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
     # if fewer than 2 processes are needed, run as a single process
-    if num_points < 2 * min_points:
+    if num_points <= 2 * min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
@@ -59,10 +82,10 @@ def runScannerS(ini_name: str,
     if use_multiprocessing:
 
         # print out some information
-        logger.debug(f"Running a test job with {min_points} points")
+        logger.debug(f"Running a test job with {min_points_per_job} points")
 
         # define test process with 10 points
-        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points)]
+        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
 
         # run test process
         try:
@@ -74,25 +97,31 @@ def runScannerS(ini_name: str,
         logger.debug("Test job was successful")
 
         # number of points left to run after test job
-        points_to_run = num_points - min_points
+        points_to_run = num_points - min_points_per_job
 
         # set number of processes to 80% of the available cores rounded down
-        num_processes = int(num_cpu * 0.8)
+        num_processes = int(num_cpu * frac_cpu)
 
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
 
-        # if points_per_process is less than min_points, reduce the number of jobs
-        if points_per_process < min_points:
-            num_processes = math.ceil(points_to_run/min_points)
-            points_per_process = min_points
+        # if points_per_process is less than min_points_per_job, reduce the number of jobs
+        if points_per_process < min_points_per_job:
+            num_processes = math.ceil(points_to_run/min_points_per_job)
+            points_per_process = min_points_per_job
 
         # reset points_to_run to reflect how many are actually used
         points_to_run = points_per_process * num_processes
 
         # print out some information
+        logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
+        num_points = points_to_run + min_points_per_job
+    
+    else:
+        logger.info("Running as a single process")
+        
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
@@ -117,7 +146,7 @@ def runScannerS(ini_name: str,
         pool.join()
 
     # success message
-    print("All processes finished. Merging outputs...")
+    logger.info("All processes finished. Merging outputs...")
 
     # combine the outputs into a single file
     concatenate_files(directories=directories,
@@ -127,7 +156,7 @@ def runScannerS(ini_name: str,
     return num_points
 
 # run a process for multiprocessing
-def run_process(process_args: list[str],
+def run_process(process_args: List[str],
                 directory: str,
                 counter,
                 num_processes: int) -> None:
@@ -152,7 +181,7 @@ def run_process(process_args: list[str],
     print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
-def run_test_process(process_args: list[str],
+def run_test_process(process_args: List[str],
                      model_name: str) -> None:
 
     # output file name
@@ -160,9 +189,6 @@ def run_test_process(process_args: list[str],
 
     # log file
     log = open("ScannerS.log", "w")
-
-    # time in seconds at which process will be killed if nothing is printed out
-    timeout = 20
 
     # launch process
     process = subprocess.Popen(process_args, stdout=log, stderr=log)
@@ -201,7 +227,7 @@ def run_test_process(process_args: list[str],
     return
 
 # concatenate outputs from parallel processes into a single .tsv file
-def concatenate_files(directories: list[str],
+def concatenate_files(directories: List[str],
                       file_name: str) -> None:
 
     # loop over temporary directories
@@ -235,7 +261,7 @@ if __name__ == "__main__":
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-M", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-n", "--npoints", default=200, type=int, help="Number of points")
+    arg_parser.add_argument("-n", "--num_points", default=200, type=int, help="Number of points")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     args = arg_parser.parse_args()
 
@@ -243,7 +269,7 @@ if __name__ == "__main__":
     ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
-    runScannerS(ini_name = ini_name,
-                model_name = args.model,
-                num_points = args.npoints,
-                use_multiprocessing = args.use_multiprocessing)
+    run_scannerS(ini_name = ini_name,
+                 model_name = args.model,
+                 num_points = args.num_points,
+                 use_multiprocessing = args.use_multiprocessing)

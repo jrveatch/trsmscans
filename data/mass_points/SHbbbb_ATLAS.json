@@ -1,0 +1,364 @@
+{
+    "collaboration": "ATLAS",
+    "arxiv": "0000.00000",
+    "doi": "10.0000/unpublished.doi",
+    "year": 2025,
+    "sqrt_s": 13.0,
+    "decay_channel": "X->S(bb)H(bb)",
+    "mass_points": [
+        {
+            "mX": 200,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 300,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 300,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 300,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 300,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 400,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 300,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 400,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 750,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 300,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 400,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 750,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 1000,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 300,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 400,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 750,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 1000,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2000,
+            "mS": 1500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 70,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 100,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 170,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 200,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 250,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 300,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 400,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 750,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 1000,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 1500,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 2500,
+            "mS": 2000,
+            "exclusion_limit": -1.0,
+            "resolvable": true
+        }
+    ]
+}

@@ -1,7 +1,11 @@
 
+# standard libraries
+import logging
 import os
-import shutil
 import subprocess
+
+# get logger
+logger = logging.getLogger(__name__)
 
 # function to get number of points in a file
 # returns 0 if file does not exist
@@ -19,10 +23,10 @@ def count_tsv_points(file_name: str) -> int:
     output = result.stdout.strip()
 
     # get the number of previously scanned points
-    npoints = int(output.split()[0]) - 1
+    num_points = int(output.split()[0]) - 1
 
     # return number of points
-    return npoints
+    return num_points
 
 # function to save output tsv file
 def save_tsv_output(input_file: str,
@@ -34,14 +38,14 @@ def save_tsv_output(input_file: str,
     
     # check if input_file and output_file point to the same file
     if input_file==output_file:
-        print(f"Error: Input file path '{input_file}' and output file path '{output_file}' are the same.")
+        logger.warning(f"Input file path '{input_file}' and output file path '{output_file}' are the same.")
         return
 
     # get number of points already in output file
-    nexisting = count_tsv_points(output_file)
+    num_existing = count_tsv_points(output_file)
 
     # if output file doesn't exist or is empty, simply rename input file
-    if nexisting <= 0:
+    if num_existing <= 0:
         os.rename(input_file,output_file)
         return
 
@@ -59,7 +63,7 @@ def save_tsv_output(input_file: str,
 
                 # replace the index with a unique value
                 parts = line.strip().split('\t')
-                parts[0] = str(count + nexisting)
+                parts[0] = str(count + num_existing)
 
                 # append each line to final .tsv file
                 destination_file.write('\t'.join(parts) + '\n')
@@ -69,52 +73,3 @@ def save_tsv_output(input_file: str,
 
     # return after a successful run
     return
-
-# function to check whether a column already exists in file
-def column_exists(file_name: str,
-                  column_header: str) -> bool:
-
-    with open(file_name, 'r') as f_in:
-        # read the header
-        header = f_in.readline().strip().split('\t')
-        # check if the column header exists in the header
-        return column_header in header
-
-# function to add and initialize columns
-# TODO: Rework this to accept a list of columns and values
-def initialize_column(file_name: str,
-                      column_header: str,
-                      value: float) -> None:
-
-    # temp output file name
-    temp_file = "temp.tsv"
-
-    # return if column already exists
-    if column_exists(file_name=file_name,column_header=column_header):
-        return
-
-    with open(file_name, 'r') as f_in, open(temp_file, 'w') as f_out:
-        
-        # read the header
-        header = f_in.readline().strip().split('\t')
-        
-        # add new column header
-        header.append(column_header)
-        
-        # write the updated header to the output file
-        f_out.write('\t'.join(header) + '\n')
-        
-        # iterate through each line in the input file
-        for line in f_in:
-            
-            # split the line into columns
-            columns = line.strip().split('\t')
-            
-            # append the new column data
-            columns.append(str(value))
-
-            # write the updated line to the output file
-            f_out.write('\t'.join(columns) + '\n')
-
-    # replace the input file with the temp file
-    shutil.move(temp_file, file_name)

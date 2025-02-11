@@ -1,35 +1,37 @@
 #!/usr/bin/env python3
 
+# standard libraries
+import argparse
+import os
+from collections import defaultdict
+from typing import Dict, List
+
+# third-party libraries
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
-import os
-import parse
-import argparse
+from numpy.typing import NDArray
+
+# local modules
 from utils import file_utils
-from utils.masses import Masses
 from utils.model import Model
+from utils.parse import Parse
 from utils.point import Point
-from collections import defaultdict
 
 # Plot class
 class Plot:
 
     def __init__(self,
                  decay: str,
-                 masses: 'Masses',
-                 model_name: str):
+                 model: 'Model'):
 
         # Save arguments as class members
         self.decay = decay
-        self.masses = masses
-        self.model = Model(model_name)
+        self.model = model
 
         # Create plot output directory
-        self.output_dir = file_utils.plots_dir(model_name=self.model.name(),
-                                               decay=self.decay,
-                                               masses=self.masses)
+        self.output_dir = file_utils.plots_dir(model=self.model,
+                                               decay=self.decay)
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
@@ -42,18 +44,16 @@ class Plot:
     def get_file_names(self) -> None:
 
         # Empty array that will hold the files found
-        self.all_files_dict = defaultdict(list[str])
+        self.all_files_dict: Dict[str, List[str]] = defaultdict(list)
 
         # If prescan exists, make it the first file to plot
-        prescan = file_utils.prescan_tsv(model_name=self.model.name(),
-                                         masses=self.masses)
+        prescan = file_utils.prescan_tsv(model=self.model)
         if os.path.exists(prescan):
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = file_utils.scan_dir(model_name=self.model.name(),
-                                        decay=self.decay,
-                                        masses=self.masses) + "files/tsv/"
+        directory = file_utils.scan_dir(model=self.model,
+                                        decay=self.decay) + "files/tsv/"
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -70,7 +70,7 @@ class Plot:
     def load_data(self) -> None:
 
         # Retrieve the variable names for the model
-        self.var_names = self.model.parameter_names()
+        self.var_names = self.model.input_parameter_names
 
         # Check if xb exists in the variable name list, if not append
         if 'xb' not in self.var_names:
@@ -80,10 +80,10 @@ class Plot:
         self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
-        self.max_point_list: list[Point] = []
+        self.max_point_list: List[Point] = []
 
         # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists = defaultdict(list[NDArray])
+        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
 
         # Loop through each iteration
         for file_list in self.all_files_dict.values():
@@ -92,10 +92,9 @@ class Plot:
             for file_name in file_list:
 
                 # Retrieve the variables from the file
-                parser = parse.Parse(file_name=file_name,
-                                     masses=self.masses,
-                                     model_name=self.model.name())
-                all_params = parser.get_parameter_arrays()
+                parser = Parse(file_name=file_name,
+                               model=self.model)
+                all_params = parser.input_parameter_arrays
                 xb = parser.get_xb(self.decay)
                 max_point = parser.get_max_xb_point(self.decay)
 
@@ -145,7 +144,7 @@ class Plot:
     def make_scan_plots(self) -> None:
 
         # Print info to screen
-        print("Making scan plots for",self.model.name(),self.decay,self.masses)
+        print("Making scan plots for",self.model.name,self.decay,self.model.mass_string)
 
         # Find the Maximum point from the maximum points
         maximum = max(self.max_point_list)
@@ -213,7 +212,7 @@ class Plot:
                 plt.ylabel(f"{self.var_names[j]}")
 
                 # Save the figure as a .png
-                plt.savefig(self.output_dir + "scan_" + f"{self.var_names[v]}_vs_{self.var_names[j]}.png")
+                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
 
                 # Close the figure
                 plt.close()
@@ -224,7 +223,7 @@ class Plot:
     def make_max_xb_plots(self) -> None:
 
         # Print info to screen
-        print("Making max XB plots for",self.model.name(),self.decay,self.masses)
+        print("Making max XB plots for",self.model.name,self.decay,self.model.mass_string)
 
         # Define number of bins to use in each dimension
         num_bins = 100
@@ -305,8 +304,10 @@ if __name__ == '__main__':
     arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
     args = arg_parser.parse_args()
 
-    masses = Masses(mX=args.XMass,mS=args.SMass,mH=args.HMass)
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    plotter = Plot(decay=args.decay, masses=masses, model_name=args.model)
+    plotter = Plot(decay=args.decay, model=model)
     plotter.make_scan_plots()
     plotter.make_max_xb_plots()

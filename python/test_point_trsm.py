@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
+from utils.math_utils import round_sig
+from utils.model import Model
 from filters.setup_higgs_tools import *
-
 from utils.test_point_utils import *
 
 # SETUP STARTS HERE
@@ -18,7 +19,7 @@ def check_singlet_point(mX: float,
     signals = get_higgs_signals()
 
     # get Higgs predictions
-    pred = get_higgs_predictions(model_name="TRSMBroken")
+    pred = get_higgs_predictions(Model(name="TRSMBroken",masses={"H":125.09,"S":500,"X":1000}))
 
     # get HiggsSignals Chi^2 for SM
     ress_SM = signals(pred)
@@ -97,7 +98,7 @@ def check_singlet_point(mX: float,
         print('gg -> X cross section @ pp @ 13 TeV =', X.cxn('LHC13', "ggH"))
         # compare to independent calculations:
         XS_interpolator_SM_13TeV_NNLONNLL = get_XS_interpolator_SM_13TeV_NNLONNLL()
-        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(mX),5)
+        xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(mX), sig_figs=5)
         print('independent calculation of the cross section:')
         print('gg -> X cross section @ pp @ 13 TeV (N^2LO+NNLL) =',  xs13_nnlonnll)
         

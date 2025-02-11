@@ -1,0 +1,42 @@
+
+allowed_decay_modes:
+
+  bbbb:
+    all_modes: [SHbbbb, SSbbbb, HHbbbb, Xbbbb]
+    non_resolvable: Xbbbb
+
+  bbtautau:
+    all_modes: [SbbHtautau, StautauHbb, SHbbtautau, SSbbtautau, HHbbtautau, Xbbtautau]
+    non_resolvable: Xbbtautau
+
+  bbWW:
+    all_modes: [SbbHWW, SWWHbb, SHbbWW, SSbbWW, HHbbWW, XbbWW]
+    non_resolvable: XbbWW
+
+  bbZZ:
+    all_modes: [SbbHZZ, SZZHbb, SHbbZZ, SSbbZZ, HHbbZZ, XbbZZ]
+    non_resolvable: XbbZZ
+
+  bbVV: # V is W or Z
+    all_modes: [SbbHVV, SVVHbb, SHbbVV, SSbbVV, HHbbVV, XbbVV]
+    non_resolvable: XbbVV
+
+  WWtautau:
+    all_modes: [SWWHtautau, StautauHWW, SHWWtautau, SSWWtautau, HHWWtautau, XWWtautau]
+    non_resolvable: XWWtautau
+
+  ZZtautau:
+    all_modes: [SZZHtautau, StautauHZZ, SHZZtautau, SSZZtautau, HHZZtautau, XZZtautau]
+    non_resolvable: XZZtautau
+
+  VVtautau: # V is W or Z
+    all_modes: [SVVHtautau, StautauHVV, SHVVtautau, SSVVtautau, HHVVtautau, XVVtautau]
+    non_resolvable: XVVtautau
+
+  bbgamgam:
+    all_modes: [SbbHgamgam, SgamgamHbb, SHbbgamgam, SSbbgamgam, HHbbgamgam, Xbbgamgam]
+    non_resolvable: Xbbgamgam
+
+  nodecay:
+    all_modes: [NoDecay]
+    non_resolvable: NoDecay

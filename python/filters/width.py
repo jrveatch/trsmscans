@@ -1,35 +1,29 @@
 #!/usr/bin/env python3
 
+# standard libraries
+import logging
+
+# third-party libraries
 import numpy as np
+import pandas as pd
 
-from utils.arrays import Arrays
-from utils.tsv_utils import initialize_column
-
-from utils.masses import Masses
-
+# local modules
 from utils.config_loader import ConfigLoader
+from utils.model import Model
 
-def filter_widths(file_name: str,
-                  masses: Masses,
-                  config_loader: 'ConfigLoader') -> int:
+# get logger
+logger = logging.getLogger(__name__)
 
-    # initialize column in case it doesn't exist
-    initialize_column(file_name=file_name,
-                      column_header="filt_width",
-                      value=1)
-
-    # load in arrays from .tsv file
-    arrs = Arrays(file_name)
+def filter_widths(dataframe: pd.DataFrame,
+                  header_width: str,
+                  model: 'Model',
+                  config_loader: 'ConfigLoader'
+                 ) -> None:
 
     # get strings for 3 bosons
-    HName = masses.HName
-    SName = masses.SName
-    XName = masses.XName
-
-    # get arrays of widths
-    width_H = np.divide(arrs.get_array('w_'+HName),arrs.get_array('m'+HName))
-    width_S = np.divide(arrs.get_array('w_'+SName),arrs.get_array('m'+SName))
-    width_X = np.divide(arrs.get_array('w_'+XName),arrs.get_array('m'+XName))
+    HName = model.get_ordered_scalar_name('H')
+    SName = model.get_ordered_scalar_name('S')
+    XName = model.get_ordered_scalar_name('X')
 
     # get max_width from config file
     try:
@@ -37,29 +31,21 @@ def filter_widths(file_name: str,
         max_width_S: float = config_loader.get('width', 'max_width_S')
         max_width_X: float = config_loader.get('width', 'max_width_X')
     except KeyError as e:
-        print(f"Error: {e}")
+        logger.error(e)
         raise
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
         raise
 
-    # check whether each width is below the max width
-    maskH = width_H < max_width_H
-    maskS = width_S < max_width_S
-    maskX = width_X < max_width_X
+    # get arrays of widths, masses and thresholds
+    arr_widths = dataframe[['w_' + HName, 'w_' + SName, 'w_' + XName]].to_numpy()
+    arr_masses = dataframe[['m' + HName, 'm' + SName, 'm' + XName]].to_numpy()
+    arr_thresholds = np.array([max_width_H, max_width_S, max_width_X])
 
-    # create the product of the 3 masks
-    mask = maskH & maskS & maskX
+    # create filter as a mask that checks each width is below the max width
+    filt_width = np.all(arr_widths < arr_masses * arr_thresholds, axis=1)
 
-    # create array of 0 and 1 based on mask
-    filt_width = mask.astype(int)
+    # add filter to dataframe
+    dataframe[header_width] = filt_width.astype(int)
 
-    # overwrite filt_width array with new array
-    arrs.set_array('filt_width',filt_width)
-
-    # write new data to file
-    arrs.write_file(file_name)
-
-    # number of entries that pass
-    npass = filt_width.sum()
-    return npass
+    return

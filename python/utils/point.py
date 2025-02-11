@@ -1,39 +1,50 @@
 
-# import model class to initialize Point class
-from utils.model import Model
+# standard libraries
+from typing import Dict
 
-# import decimal class for nicely formatted strings
-from decimal import Decimal
+# local modules
+from utils.math_utils import round_sig
+from utils.model import Model
 
 # class that holds parameter and xb values for a single point
 class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model_name: str,
-                 par_vals: dict[str,float] = {},
+                 model: 'Model',
+                 par_vals: Dict[str,float] = {},
                  xb: float = 0.0):
-        
-        # get model
-        self.model = Model(model_name)
 
-        # initialize empty dictionary
-        self.par_vals: dict[str,float] = {}
+        # store model name
+        self.__model = model
+
+        # initialize empty dictionary of parameter values
+        self.__par_vals: Dict[str,float] = {}
 
         # if par_vals exists, store it
         if par_vals:
-            self.par_vals = par_vals
+            self.__par_vals = par_vals
         # otherwise create default dictionary from model
         else:
-            # get list of parameters from model
-            par_list = self.model.parameter_names()
-
-            # loop over list of parameters and make default dictionary
-            for par in par_list:
-                self.par_vals[par] = 0.0
+            self.__par_vals = {par: 0.0 for par in self.__model.all_parameter_names}
 
         # store xb value
         self.xb = xb
+
+    @property
+    def model_name(self) -> str:
+        """Name of the model"""
+        return self.__model.name
+
+    @property
+    def model(self) -> 'Model':
+        """The model object"""
+        return self.__model
+    
+    @property
+    def par_vals(self) -> Dict[str,float]:
+        """Dictionary of parameter values"""
+        return self.__par_vals
 
     # wrapper function to get attribute
     def get_val(self,
@@ -43,7 +54,7 @@ class Point:
             return self.xb
         # otherwise return value from par_vals
         else:
-            return self.par_vals[varname]
+            return self.__par_vals[varname]
 
     # get difference between two values of varname
     def diff(self,
@@ -52,37 +63,39 @@ class Point:
         return self.get_val(par_name) - other.get_val(par_name)
 
     # get fractional difference between two values of varname
-    # TODO: Add divide-by-zero protection
     def diff_frac(self,
                   other: 'Point',
                   par_name: str) -> float:
-        return self.diff(other,par_name) / abs(self.get_val(par_name))
-    
+        abs_val = abs(self.get_val(par_name))
+        if abs_val < 1e-13:
+            return 1.0
+        return self.diff(other,par_name) / abs_val
+
     # get formatted string of xb
     def format_xb(self) -> str:
-        return f"{Decimal(self.xb):.2E}"
-    
+        return f"{self.xb:.2E}"
+
     # get formatted string of parameter
     def format_param(self,
                      par_name: str) -> str:
-        return "value = " + f"{self.get_val(par_name):1.{self.model.parameter(par_name)['precision']}f}"
-    
+        return f"{round_sig(self.get_val(par_name))}"
+
     # get formatted string of parameter diff w.r.t. another point
     def format_diff(self,
                     other: 'Point',
                     par_name: str) -> str:
-        return "diff. = " + f"{self.diff(other,par_name):1.{self.model.parameter(par_name)['precision']}f}"
-    
+        return f"{round_sig(self.diff(other,par_name))}"
+
     # get formatted string of parameter fractional diff w.r.t. another point
     def format_diff_frac(self,
                          other: 'Point',
                          par_name: str) -> str:
-        return "rel. diff. = " + f"{self.diff_frac(other,par_name):1.2f}"
+        return f"{self.diff_frac(other,par_name):1.2f}"
 
     # define the greater than (>) operator
     def __gt__(self,other: 'Point'):
         return self.xb > other.xb
-    
+
     # define the greater than or equal to (>=) operator
     def __ge__(self,other: 'Point'):
         return self.xb >= other.xb
@@ -90,17 +103,17 @@ class Point:
     # define the less than (<) operator
     def __lt__(self,other: 'Point'):
         return self.xb < other.xb
-    
+
     # define the less than or equal to (<=) operator
     def __le__(self,other: 'Point'):
         return self.xb <= other.xb
-    
+
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(self.model.name(), self.par_vals, self.xb*scale_factor)
-    
+        return Point(model=self.__model, par_vals=self.__par_vals, xb=self.xb*scale_factor)
+
     def __str__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
-    
+        return f"{self.xb}\n{self.__par_vals}"
+
     def __repr__(self) -> str:
-        return str(self.xb) + '\n' + str(self.par_vals)
+        return f"{self.xb}\n{self.__par_vals}"
