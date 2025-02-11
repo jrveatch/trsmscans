@@ -23,6 +23,7 @@ import copy
 import itertools
 
 from zoom_optimizer import ZoomOptimizer
+from bayesian_optimizer import BayesianOptimizer
 
 from utils.config_loader import ConfigLoader
 
@@ -379,6 +380,27 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
+    def run_bayesian_optimizer(self, numpoints: int) -> None:
+        # get scan start time
+        scan_start = time.time()
+
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
+
+        # TODO: is it needed? init_points might work as a prescan
+        # run prescan
+        # self.run_prescan(num_points = num_points)
+
+        # move into the working directory for scans
+        os.chdir(self.out_dir)
+
+        # create optimizer
+        bayesian_optimizer = BayesianOptimizer(self.masses, numpoints, numpoints)
+
+        # run scan
+        bayesian_optimizer.run()
+
 if __name__ == "__main__":
 
     # Parse command line arguments
@@ -392,6 +414,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("-m", "--multiprocessing", action="store_true", help="Whether multiprocessing should be used")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Whether overwrite should be used")
+    arg_parser.add_argument("-s", "-scantype", default='z', type=str, help="Specify which scanner to use by first letter")
     args = arg_parser.parse_args()
 
     # set up logging
@@ -409,6 +432,9 @@ if __name__ == "__main__":
                   overwrite = args.overwrite
                  )
 
-    # run scan using scan object
-    myScan.run_zoom_optimization(num_points = args.npoints,
+    if args.scantype == 'b':
+        myScan.run_bayesian_optimizer(arg.npoints)
+    else:
+        # run scan using scan object
+        myScan.run_zoom_optimization(num_points = args.npoints,
                                  niter = args.iterations)
