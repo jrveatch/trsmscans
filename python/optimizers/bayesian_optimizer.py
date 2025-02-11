@@ -1,18 +1,21 @@
 from bayes_opt import BayesianOptimization
 from utils.params import Params
-from utils.masses import Masses
-from point_sampler import PointSampler
+from utils.model import Model
+from utils.point_sampler import PointSampler
+from utils.file_utils import scan_dir
 
 class BayesianOptimizer:
     def __init__(self, 
-                 masses: 'Masses',
+                 model: 'Model',
                  random_point: int,
-                 n_points = int):
+                 n_points: int,
+                 config_loader):
         # TODO: automate finding ranges
-        self.masses = masses
-        self.ranges = {'tHS': {-1.570796, 1.570796}, 'tHX': {-1.570796, 1.570796}, 'tSX': {-1.570796, 1.570796}, 'vs': {0, 1000}, 'vx': {0, 1000}} 
+        self.model = model
+        self.ranges = {'tHS': [-1.570796, 1.570796], 'tHX': [-1.570796, 1.570796], 'tSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
         self.random_point = random_point
         self.n_points = n_points
+        self.config_loader = config_loader
 
     def set_ranges(self, model_name): # or get prescan ranges
         # TODO: automate ranges depending on config files
@@ -25,11 +28,12 @@ class BayesianOptimizer:
         # call sample_points, returns parse object
         # get xb_max from parse object
         # return xb_max from parse object
-        params = Params('TRSMBroken', self.mases)
+        params = Params(self.model)
+        out_dir = scan_dir(model = params.model, decay = params.decay)
         low_dict = {'tHS': tHS, 'tHX': tHX, 'tSX': tSX, 'vs': vs, 'vx': vx}
         params.update_low_high(low_dict, low_dict)
-        point_sampler = PointSampler('', 'TRSMBroken', True, ConfigLoader)
-        parser = point_sampler.sample_points(params, '', 1, False)
+        point_sampler = PointSampler(out_dir, self.config_loader)
+        parser = point_sampler.sample_points(params, '', "1", False)
         max_xb_point = parser.get_max_xb_point()
         return max_xb_point.xb
 

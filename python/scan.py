@@ -10,8 +10,6 @@ import os
 import shutil
 import time
 
-from bayesian_optimizer import BayesianOptimizer
-
 from typing import Dict, List, Tuple
 
 # local modules
@@ -26,6 +24,7 @@ from utils.params import Params
 from utils.point import Point
 from utils.run_metadata import run_exists, save_run_metadata
 from optimizers.zoom_optimizer import ZoomOptimizer
+from optimizers.bayesian_optimizer import BayesianOptimizer
 
 # class to organize and run a complete scan
 class Scan:
@@ -380,7 +379,7 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
-    def run_bayesian_optimizer(self, numpoints: int) -> None:
+    def run_bayesian_optimizer(self, num_points: int) -> None:
         # get scan start time
         scan_start = time.time()
 
@@ -396,7 +395,7 @@ class Scan:
         os.chdir(self.out_dir)
 
         # create optimizer
-        bayesian_optimizer = BayesianOptimizer(self.masses, numpoints, numpoints)
+        bayesian_optimizer = BayesianOptimizer(self.model, num_points, num_points, self.config_loader)
 
         # run scan
         bayesian_optimizer.run()
@@ -467,6 +466,6 @@ if __name__ == "__main__":
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     elif args.strategy == "bayes":
-        myScan.run_bayesian_optimizer(arg.npoints)
+        myScan.run_bayesian_optimizer(args.num_points)
     else:
         raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
