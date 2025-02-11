@@ -6,13 +6,6 @@ python3_minimum="3.8"
 python3_minimum_major=$(echo "$python3_minimum" | cut -d. -f1)
 python3_minimum_minor=$(echo "$python3_minimum" | cut -d. -f2)
 
-# deactivate any previously activated virtual environment
-if [[ "$VIRTUAL_ENV" != "" ]]
-then
-    printf "Deactivating previous venv\n"
-    ( deactivate )
-fi
-
 # get default python executable and version
 python3_default_exe=$(which python3)
 python3_default_version=$(python3 --version 2>&1 | cut -d' ' -f2)
@@ -49,6 +42,6 @@ if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_
     return 1
 fi
 
-$python3_exe -m venv trsm_venv
+$python3_exe -m venv trsm_venv --upgrade-deps
 source trsm_venv/bin/activate
 pip install -r python/requirements.txt
