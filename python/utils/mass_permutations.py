@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 
-import csv
+import json
 import os
+from typing import List, Tuple, Optional
 
 def get_mass_permutations(decay: str,
-                          identifier: str) -> None:
+                          identifier: str) -> Optional[List[Tuple[int, int, bool]]]:
     """
     Returns a list of mass permutations for a given decay mode and identifier.
 
@@ -13,19 +13,16 @@ def get_mass_permutations(decay: str,
         identifier (str): Identifier to specify which set of mass points to use.
     """
 
-    permutations_file = os.environ['DATADIR']+f"mass_points/{decay}_{identifier}.txt"
+    permutations_file = os.environ['DATADIR']+f"mass_points/{decay}_{identifier}.json"
 
-    permutations = []
+    permutations: List[Tuple[int, int, bool]] = []
 
     # Read permutations
     try:
         with open(permutations_file, 'r') as perm_file:
-            reader = csv.reader(perm_file, delimiter=" ")
-            for i, line in enumerate(reader):
-                # Skip the first line (headers) and filter out commented lines
-                if i == 0 or line[0].startswith("#"):
-                    continue
-                permutations.append((line[0], line[1], line[2].lower() == "true"))
+            data = json.load(perm_file)
+            for mass_point in data["mass_points"]:
+                permutations.append((mass_point["mX"], mass_point["mS"], mass_point["resolvable"]))
     except Exception as e:
         print(f"Error reading permutations file {permutations_file}: {e}")
         return
