@@ -49,6 +49,6 @@ if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_
     return 1
 fi
 
-$python3_exe -m venv trsm_venv
+$python3_exe -m venv trsm_venv --upgrade-deps
 source trsm_venv/bin/activate
 pip install -r python/requirements.txt
