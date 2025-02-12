@@ -7,11 +7,13 @@ from utils.file_utils import scan_dir
 class BayesianOptimizer:
     def __init__(self, 
                  model: 'Model',
+                 decay: str,
                  random_point: int,
                  n_points: int,
                  config_loader):
         # TODO: automate finding ranges
         self.model = model
+        self.decay = decay
         self.ranges = {'tHS': [-1.570796, 1.570796], 'tHX': [-1.570796, 1.570796], 'tSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
         self.random_point = random_point
         self.n_points = n_points
@@ -28,12 +30,12 @@ class BayesianOptimizer:
         # call sample_points, returns parse object
         # get xb_max from parse object
         # return xb_max from parse object
-        params = Params(self.model)
+        params = Params(self.model,decay=self.decay)
         out_dir = scan_dir(model = params.model, decay = params.decay)
-        low_dict = {'tHS': tHS, 'tHX': tHX, 'tSX': tSX, 'vs': vs, 'vx': vx}
+        low_dict = {'thetaHS': tHS, 'thetaHX': tHX, 'thetaSX': tSX, 'vs': vs, 'vx': vx}
         params.update_low_high(low_dict, low_dict)
         point_sampler = PointSampler(out_dir, self.config_loader)
-        parser = point_sampler.sample_points(params, '', "1", False)
+        parser = point_sampler.sample_points(params=params, identifier='', num_points_requested=1, good_points_only=False)
         max_xb_point = parser.get_max_xb_point()
         return max_xb_point.xb
 

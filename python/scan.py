@@ -395,7 +395,7 @@ class Scan:
         os.chdir(self.out_dir)
 
         # create optimizer
-        bayesian_optimizer = BayesianOptimizer(self.model, num_points, num_points, self.config_loader)
+        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader)
 
         # run scan
         bayesian_optimizer.run()
