@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 
 # check dependencies
 source scripts/checkdeps.sh
