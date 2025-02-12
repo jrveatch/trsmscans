@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # get total umber of CPU cores
 TOTAL_CORES=$(nproc)

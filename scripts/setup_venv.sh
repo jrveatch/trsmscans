@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 
 # minimum allowed version of python
 python3_minimum="3.8"
