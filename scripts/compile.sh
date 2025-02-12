@@ -50,5 +50,5 @@ printf "\n"
 printf "Trying to compile higgstools python"
 printf "\n"
 cd higgstools
-MAKEFLAGS="-j$(( $(nproc) - 1 ))" pip install .
+MAKEFLAGS="-j$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))" pip install .
 cd ..
