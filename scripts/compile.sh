@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # get total umber of CPU cores
-TOTAL_CORES=$(nproc)
+if [[ "$(uname)" == "Darwin" ]]; then
+  # macOS
+  TOTAL_CORES=$(sysctl -n hw.ncpu)
+else
+  # Linux
+  TOTAL_CORES=$(nproc)
+fi
 
 # use all but two cores in compilation
 CORES_TO_USE=$((TOTAL_CORES - 1))
