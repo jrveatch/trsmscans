@@ -7,6 +7,20 @@ prompt_for_path() {
     local default_value=${3:-}
     local user_input=""
 
+    # Ensure env.sh exists
+    if [ ! -f env.sh ]; then
+        touch env.sh  # Create env.sh if it doesn't exist
+    fi
+
+    # Use sed to remove any existing export line for the variable
+    if [ "$(uname)" = "Darwin" ]; then
+        # On macOS, we use sed -i '' for in-place editing
+        sed -i '' "/^export $var_name=/d" env.sh
+    else
+        # On Linux, we use sed -i
+        sed -i "/^export $var_name=/d" env.sh
+    fi
+
     while true; do
         printf "Enter the path for %s (leave blank to use the submodule)" "$package_name"
         [ -n "$default_value" ] && printf " [default: %s]" "$default_value"
@@ -15,6 +29,11 @@ prompt_for_path() {
         read user_input || true
         if [ -z "$user_input" ] && [ -n "$default_value" ]; then
             user_input="$default_value"
+        fi
+
+        # If no path is provided, remove the variable from env.sh
+        if [ -z "$user_input" ]; then
+            break  # No path entered, will not add it to env.sh
         fi
 
         # Convert relative path to absolute path
@@ -31,18 +50,11 @@ prompt_for_path() {
         fi
     done
 
-    # Use sed_command to remove any existing export line for the variable
-    if [ "$(uname)" = "Darwin" ]; then
-        # On macOS, we use sed -i '' for in-place editing
-        sed -i '' "/^export $var_name=/d" env.sh
-    else
-        # On Linux, we use sed -i
-        sed -i "/^export $var_name=/d" env.sh
+    # Only export and write to env.sh if a valid path was provided
+    if [ -n "$user_input" ]; then
+        export "$var_name"="$user_input"
+        echo "export $var_name=\"$user_input\"" >> env.sh
     fi
-
-    # Export path and overwrite the previous entry in env.sh
-    export "$var_name"="$user_input"
-    echo "export $var_name=\"$user_input\"" >> env.sh
 }
 
 # Prompt user for ScannerS and higgstools paths
