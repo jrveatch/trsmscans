@@ -1,15 +1,16 @@
 #!/usr/bin/env sh
 
 # get total umber of CPU cores
-TOTAL_CORES=$(nproc)
-
-# use all but two cores in compilation
-CORES_TO_USE=$((TOTAL_CORES - 1))
-
-# ensure at least one core is used
-if [ "$CORES_TO_USE" -lt 1 ]; then
-    CORES_TO_USE=1
+if [[ "$(uname)" == "Darwin" ]]; then
+  # macOS
+  TOTAL_CORES=$(sysctl -n hw.ncpu)
+else
+  # Linux
+  TOTAL_CORES=$(nproc)
 fi
+
+# use all but one core in compilation, unless only one is available
+CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 
 echo "Compiling with $CORES_TO_USE threads..."
 
@@ -44,5 +45,5 @@ printf "\n"
 printf "Trying to compile higgstools python"
 printf "\n"
 cd higgstools
-MAKEFLAGS="-j$(( $(nproc) - 1 ))" pip install .
+MAKEFLAGS="-j$CORES_TO_USE" pip install .
 cd ..
