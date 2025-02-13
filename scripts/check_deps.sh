@@ -48,7 +48,7 @@ if version_less_than "$python3_version" "$python3_minimum"; then
   printf "  - Your package manager (apt, dnf, brew, etc.)\n" >&2
 fi
 
-printf "Python version $python3_version is installed\n" 
+printf "Python version $python3_version is installed (>= $python3_minimum)\n" 
 
 ###########################################
 # CMake
@@ -70,7 +70,7 @@ if version_less_than "$cmake_version" "$cmake_minimum"; then
   exit 1
 fi
 
-printf "CMake version $cmake_version is installed\n"
+printf "CMake version $cmake_version is installed (>= $cmake_minimum)\n"
 
 # Check compilers
 bash scripts/check_compilers.sh
