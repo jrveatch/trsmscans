@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+set -e
+set -u
+set -o pipefail
+
 # minimum allowed version of python
 python3_minimum="3.8"
 
@@ -13,12 +17,8 @@ python3_default_version=$(python3 --version 2>&1 | cut -d' ' -f2)
 
 # prompt user for input
 printf "Your default python3 executable is $python3_default_exe (version $python3_default_version).\n"
-if [ -n "$ZSH_VERSION" ]; then
-    printf "Enter the python3 executable you want to use (leave blank for default): "
-    read python3_exe
-else
-    read -p "Enter the python3 executable you want to use (leave blank for default): " python3_exe
-fi
+printf "Enter the python3 executable you want to use (leave blank for default): "
+read python3_exe
 
 # check if the user entered something
 if [ -z "$python3_exe" ]; then
@@ -43,6 +43,6 @@ if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_
     return 1
 fi
 
+# create the virtual environment
 $python3_exe -m venv trsm_venv --upgrade-deps
-source trsm_venv/bin/activate
-pip install -r python/requirements.txt
+printf "Virtual environment trsm_venv successfully created\n"
