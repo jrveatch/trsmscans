@@ -5,8 +5,8 @@
 	path = data/hsdataset
 	url = git@gitlab.com:higgsbounds/hsdataset.git
 [submodule "ScannerS"]
-	path = ScannerS
+	path = externals/ScannerS
 	url = git@gitlab.com:jonaswittbrodt/ScannerS.git
 [submodule "higgstools"]
-	path = higgstools
+	path = externals/higgstools
 	url = git@gitlab.com:higgsbounds/higgstools.git
