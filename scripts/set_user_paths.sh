@@ -66,5 +66,5 @@ printf "If no path is provided, the submodules will be checked out\n\n"
 # Prompt user for ScannerS and higgstools paths
 prompt_for_path SCANNERS_PATH "ScannerS"
 prompt_for_path HIGGSTOOLS_PATH "higgstools"
-prompt_for_path HSDATASET_PATH "hsdataset"
-prompt_for_path HBDATASET_PATH "hbdataset"
+prompt_for_path HSDATASET_PATH "data/hsdataset"
+prompt_for_path HBDATASET_PATH "data/hbdataset"
