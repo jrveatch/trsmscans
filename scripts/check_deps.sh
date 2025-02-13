@@ -14,6 +14,10 @@ python3_minimum_minor=$(echo "$python3_minimum" | cut -d. -f2)
 cmake_minimum_major=$(echo "$cmake_minimum" | cut -d. -f1)
 cmake_minimum_minor=$(echo "$cmake_minimum" | cut -d. -f2)
 
+###########################################
+# Python
+###########################################
+
 # Check to make sure a version of Python3 is installed
 if ! command -v python3 &> /dev/null
 then
@@ -33,6 +37,10 @@ if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_
     printf "Warning: Your default Python3 version $python3_version is below the minimum $python3_minimum\n"
     printf "Warning: You may need to specify a separate installation when setting up the venv\n"
 fi
+
+###########################################
+# CMake
+###########################################
 
 # Make sure cmake is installed
 if ! command -v cmake &> /dev/null; then
