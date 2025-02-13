@@ -24,3 +24,7 @@ if [ -z "${HIGGSTOOLS_PATH:-}" ]; then
 else
     echo "Skipping higgstools submodule as HIGGSTOOLS_PATH is set to $HIGGSTOOLS_PATH"
 fi
+
+# Update hbdataset and hsdataset submodules
+echo "Initializing and updating data/hbdataset and data/hsdataset submodules..."
+git submodule update --init --recursive data/hbdataset data/hsdataset
