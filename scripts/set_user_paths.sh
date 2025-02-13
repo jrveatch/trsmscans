@@ -52,6 +52,7 @@ prompt_for_path() {
 
     # Export the variable
     export "$var_name"="$user_input"
+
     # Only write to env.sh if a valid path was provided
     if [ -n "$user_input" ]; then
         echo "export $var_name=\"$user_input\"" >> env.sh
