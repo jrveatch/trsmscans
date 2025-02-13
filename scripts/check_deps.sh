@@ -34,6 +34,12 @@ if [[ $python3_major -lt $python3_minimum_major || ($python3_major -eq $python3_
     printf "Warning: You may need to specify a separate installation when setting up the venv\n"
 fi
 
+# Make sure cmake is installed
+if ! command -v cmake &> /dev/null; then
+  printf "Error: CMake is not installed. Please install CMake $cmake_minimum or newer and try again\n"
+  exit 1
+fi
+
 # Get the CMake version
 cmake_version=$(cmake --version 2>&1 | head -n 1 | cut -d' ' -f3)
 
