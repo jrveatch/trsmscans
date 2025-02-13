@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+set -e
+set -u
+set -o pipefail
+
 # Minimum Python and CMake versions
 python3_minimum="3.8"
 cmake_minimum="3.17"
