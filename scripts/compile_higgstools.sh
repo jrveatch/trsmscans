@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+set -e
+set -u
+set -o pipefail
+
 # get total umber of CPU cores
 if [[ "$(uname)" == "Darwin" ]]; then
   # macOS
@@ -12,25 +16,8 @@ fi
 # use all but one core in compilation, unless only one is available
 CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 
-echo "Compiling with $CORES_TO_USE threads..."
-
-# compile ScannerS
-printf "\n"
-printf "Trying to compile ScannerS"
-printf "\n"
-cd ScannerS
-if [ ! -d build ]; then
-    mkdir build
-fi
-cd build
-cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
-make -j"$CORES_TO_USE"
-cd ../..
-
-# compile higgstools with C++
-printf "\n"
-printf "Trying to compile higgstools"
-printf "\n"
+# compile HiggsTools with C++
+printf "Trying to compile HiggsTools with $CORES_TO_USE threads...\n"
 cd higgstools
 if [ ! -d build ]; then
     mkdir build
@@ -40,10 +27,8 @@ cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
 make -j"$CORES_TO_USE"
 cd ../..
 
-# compile higgstools python module
-printf "\n"
-printf "Trying to compile higgstools python"
-printf "\n"
+# compile HiggsTools python module
+printf "Trying to pip install HiggsTools\n"
 cd higgstools
 MAKEFLAGS="-j$CORES_TO_USE" pip install .
 cd ..
