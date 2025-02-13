@@ -26,5 +26,7 @@ else
 fi
 
 # Update hbdataset and hsdataset submodules
-echo "Initializing and updating data/hbdataset and data/hsdataset submodules..."
-git submodule update --init --recursive data/hbdataset data/hsdataset
+echo "Initializing and updating data/hbdataset submodule..."
+git submodule update --init --recursive data/hbdataset
+echo "Initializing and updating data/hsdataset submodule..."
+git submodule update --init --recursive data/hsdataset
