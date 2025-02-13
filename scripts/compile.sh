@@ -18,32 +18,32 @@ echo "Compiling with $CORES_TO_USE threads..."
 printf "\n"
 printf "Trying to compile ScannerS"
 printf "\n"
-cd ScannerS
+cd externals/ScannerS
 if [ ! -d build ]; then
     mkdir build
 fi
 cd build
 cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
 make -j"$CORES_TO_USE"
-cd ../..
+cd ../../..
 
 # compile higgstools with C++
 printf "\n"
 printf "Trying to compile higgstools"
 printf "\n"
-cd higgstools
+cd externals/higgstools
 if [ ! -d build ]; then
     mkdir build
 fi
 cd build
 cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
 make -j"$CORES_TO_USE"
-cd ../..
+cd ../../..
 
 # compile higgstools python module
 printf "\n"
 printf "Trying to compile higgstools python"
 printf "\n"
-cd higgstools
+cd externals/higgstools
 MAKEFLAGS="-j$CORES_TO_USE" pip install .
-cd ..
+cd ../..
