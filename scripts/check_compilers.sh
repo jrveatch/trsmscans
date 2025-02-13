@@ -4,6 +4,10 @@ set -e
 set -u
 set -o pipefail
 
+###########################################
+# C++
+###########################################
+
 # Check if a C++17-compatible compiler is available
 check_cxx17_support() {
   # Create a temporary C++ file to test compilation with -std=c++17
@@ -33,6 +37,10 @@ EOF
   return 1
 }
 
+###########################################
+# Fortran
+###########################################
+
 # Check if a Fortran compiler is available and can compile
 check_fortran_support() {
   # Create a temporary Fortran file to test compilation
@@ -45,13 +53,12 @@ EOF
   # Try compiling the Fortran file with gfortran, ifort, or flang
   for compiler in gfortran ifort flang; do
     if command -v "$compiler" >/dev/null 2>&1; then
-      echo "Checking with $compiler..."
 
       # Try compiling the file
       if $compiler /tmp/test_fortran.f90 -o /tmp/test_fortran 2>/dev/null; then
         echo Installed version of "$compiler can compile Fortran!"
         rm -f /tmp/test_fortran.f90 /tmp/test_fortran
-        exit 0
+        return 0
       else
         echo "$compiler failed to compile Fortran code."
       fi
@@ -61,9 +68,59 @@ EOF
   # If no Fortran compiler worked, exit with error
   echo "No Fortran compiler found or failed to compile."
   rm -f /tmp/test_fortran.f90
-  exit 1
+  return 1
+}
+
+###########################################
+# Clang
+###########################################
+
+# Check the installed clang version
+check_clang_version() {
+  # Check if clang is installed
+  if ! command -v clang &>/dev/null; then
+    echo "Error: clang is not installed."
+    return 1
+  fi
+
+  # Get the first line of clang version output
+  CLANG_VERSION_OUTPUT=$(clang --version | head -n1)
+
+  # Check if this is Apple Clang
+  if echo "$CLANG_VERSION_OUTPUT" | grep -q "Apple clang"; then
+    # Extract Apple Clang major version
+    APPLE_CLANG_VERSION=$(echo "$CLANG_VERSION_OUTPUT" | grep -oE '[0-9]+\.[0-9]+' | head -1 | cut -d. -f1)
+
+    # Apple Clang 7+ corresponds to LLVM Clang 5+
+    if [[ "$APPLE_CLANG_VERSION" -ge 7 ]]; then
+      echo "Apple clang version $APPLE_CLANG_VERSION detected, which is sufficient."
+      return 0
+    else
+      echo "Error: Apple clang version $APPLE_CLANG_VERSION is too old. Version 7 or higher is required."
+      return 1
+    fi
+  else
+    # Extract upstream Clang major version
+    CLANG_VERSION=$(echo "$CLANG_VERSION_OUTPUT" | grep -oE '[0-9]+' | head -1)
+
+    # Check if version is >= 5
+    if [[ "$CLANG_VERSION" -ge 5 ]]; then
+      echo "clang version $CLANG_VERSION is installed and meets the requirement."
+      return 0
+    else
+      echo "Error: clang version $CLANG_VERSION is too old. Version 5 or higher is required."
+      return 1
+    fi
+  fi
 }
 
 # Call the functions
-check_cxx17_support
-check_fortran_support
+if ! check_cxx17_support; then
+  exit 1
+fi
+if ! check_fortran_support; then
+  exit 1
+fi
+if ! check_clang_version; then
+  exit 1
+fi
