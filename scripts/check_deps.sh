@@ -18,7 +18,7 @@ cmake_minimum_minor=$(echo "$cmake_minimum" | cut -d. -f2)
 if ! command -v python3 &> /dev/null
 then
   printf "Python3 is not installed. Please install $python3_minimum or newer and try again\n"
-  return 1
+  exit 1
 fi
 
 # Get the Python3 version
@@ -45,7 +45,7 @@ cmake_minor=$(echo "$cmake_version" | cut -d. -f2)
 if [[ $cmake_major -lt $cmake_minimum_major || ($cmake_major -eq $cmake_minimum_major && $cmake_minor -lt $cmake_minimum_minor) ]]; then
     printf "Error: CMake version $cmake_version is below $cmake_minimum\n"
     printf "Please install $cmake_minimum and try again\n"
-    return 1
+    exit 1
 fi
 
 printf "CMake version $cmake_version is installed\n" 
