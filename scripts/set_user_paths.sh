@@ -22,7 +22,7 @@ prompt_for_path() {
     fi
 
     while true; do
-        printf "Enter the path for %s (leave blank to use the submodule)" "$package_name"
+        printf "Enter the path for %s (leave blank to check out the submodule)" "$package_name"
         [ -n "$default_value" ] && printf " [default: %s]" "$default_value"
         printf ": "
 
