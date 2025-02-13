@@ -46,7 +46,7 @@ prompt_for_path() {
         if [ -d "$user_input" ]; then
             break  # Valid path, exit loop
         else
-            echo "Error: The path '$user_input' does not exist. Please enter a valid path."
+            printf "Error: The path '$user_input' does not exist. Please enter a valid path.\n"
         fi
     done
 
