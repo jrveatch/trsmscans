@@ -1,9 +1,12 @@
 #!/usr/bin/env sh
 
+set -e
+set -u
+set -o pipefail
+
 # check dependencies
-source scripts/checkdeps.sh
-ret=$?
-if [ $ret -ne 0 ]; then
+if ! bash scripts/check_deps.sh; then
+    echo "Error: check_deps.sh failed!" >&2
     return 1
 fi
 
