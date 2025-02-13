@@ -9,7 +9,7 @@ fi
 
 # set user paths
 printf "Setting up user paths\n"
-source scripts/setup_paths.sh
+source scripts/set_user_paths.sh
 
 # set up submodules
 printf "Setting up submodules\n"
