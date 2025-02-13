@@ -61,7 +61,7 @@ if ! command -v cmake &> /dev/null; then
 fi
 
 # Get the CMake version
-cmake_version=$(command -v cmake | xargs cmake --version 2>&1 | awk 'NR==1 {print $3}')
+cmake_version=$(cmake --version 2>&1 | awk 'NR==1 {print $3}')
 
 # Check if CMake version is less than minimum
 if version_less_than "$cmake_version" "$cmake_minimum"; then
@@ -70,6 +70,9 @@ if version_less_than "$cmake_version" "$cmake_minimum"; then
   exit 1
 fi
 
-printf "CMake version $cmake_version is installed\n" 
+printf "CMake version $cmake_version is installed\n"
+
+# Check compilers
+bash scripts/check_compilers.sh
 
 printf "All dependencies are installed and meet the minimum version requirements\n"
