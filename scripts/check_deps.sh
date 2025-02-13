@@ -27,9 +27,8 @@ version_less_than() {
 ###########################################
 
 # Check to make sure a version of Python3 is installed
-if ! command -v python3 &> /dev/null
-then
-  printf "Python3 is not installed. Please install $python3_minimum or newer and try again\n"
+if ! command -v python3 &> /dev/null; then
+  printf "Error: Python3 is not installed. Please install version %s or newer.\n" "$python3_minimum"
   exit 1
 fi
 
@@ -38,8 +37,11 @@ python3_version=$(python3 --version 2>&1 | awk '{print $2}')
 
 # Check if Python version is less than minimum
 if version_less_than "$python3_version" "$python3_minimum"; then
-    printf "Warning: Your default Python3 version $python3_version is below the minimum $python3_minimum\n"
-    printf "Warning: You may need to specify a separate installation when setting up the venv\n"
+  printf "Warning: Your default Python3 version (%s) is below the minimum (%s)\n" "$python3_version" "$python3_minimum"
+  printf "You may need to specify an alternative installation when setting up the virtual environment.\n"
+  printf "You can upgrade Python3 using:\n"
+  printf "  - pyenv (https://github.com/pyenv/pyenv)\n"
+  printf "  - Your package manager (apt, dnf, brew, etc.)\n"
 fi
 
 printf "Python version $python3_version is installed\n" 
@@ -59,9 +61,9 @@ cmake_version=$(cmake --version 2>&1 | awk 'NR==1 {print $3}')
 
 # Check if CMake version is less than minimum
 if version_less_than "$cmake_version" "$cmake_minimum"; then
-    printf "Error: CMake version $cmake_version is below $cmake_minimum\n"
-    printf "Please install $cmake_minimum and try again\n"
-    exit 1
+  printf "Error: CMake version (%s) is below the required minimum (%s)\n" "$cmake_version" "$cmake_minimum"
+  printf "Please install CMake %s or newer from https://cmake.org/download/\n" "$cmake_minimum"
+  exit 1
 fi
 
 printf "CMake version $cmake_version is installed\n" 
