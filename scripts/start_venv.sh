@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-set -u
-set -o pipefail
-
 # start the python virtual environment
 printf "Activating venv\n"
 source trsm_venv/bin/activate

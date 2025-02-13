@@ -1,9 +1,5 @@
 #!/usr/bin/env sh
 
-set -e
-set -u
-set -o pipefail
-
 # check dependencies
 if ! bash scripts/check_deps.sh; then
     echo "Error: check_deps.sh failed!" >&2

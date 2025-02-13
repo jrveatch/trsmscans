@@ -1,9 +1,5 @@
 #!/usr/bin/env sh
 
-set -e
-set -u
-set -o pipefail
-
 # minimum allowed version of python
 python3_minimum="3.8"
 
