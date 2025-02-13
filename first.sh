@@ -16,17 +16,30 @@ source scripts/set_user_paths.sh
 
 # set up submodules
 printf "Setting up submodules\n"
-./scripts/setup_submodules.sh
+if ! bash scripts/setup_submodules.sh; then
+    echo "Error: setup_submodules.sh failed!" >&2
+    return 1
+fi
 
 # set up python virtual environment if it doesn't exist
 if [ ! -d trsm_venv ]; then
     printf "Setting up python virtual environment\n"
-    ./scripts/setup_venv.sh
+    if ! bash scripts/setup_venv.sh; then
+        echo "Error: setup_venv.sh failed!" >&2
+        return 1
+    fi
 fi
 
 # source setup.sh to make sure all vars are set
 source setup.sh
 
 # install ScannerS and HiggsTools
-printf "Compiling ScannerS and higgstools\n"
-source scripts/compile.sh
+if ! bash scripts/compile_scanners.sh; then
+    echo "Error: compile_scanners.sh failed!" >&2
+    return 1
+fi
+
+if ! bash scripts/compile_higgstools.sh; then
+    echo "Error: compile_higgstools.sh failed!" >&2
+    return 1
+fi
