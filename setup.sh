@@ -4,7 +4,10 @@
 source scripts/start_venv.sh
 
 # update submodules
-source scripts/update_submodules.sh
+if ! bash scripts/update_submodules.sh; then
+    echo "Error: update_submodules.sh failed!" >&2
+    return 1
+fi
 
 # add path to ScannerS executable to PATH
 export PATH="${PWD}/ScannerS/build:$PATH"
