@@ -4,7 +4,18 @@ set -e
 set -u
 set -o pipefail
 
-# get total umber of CPU cores
+# source env.sh in a subshell if it exists
+if [ -f "env.sh" ]; then
+  ( source env.sh )
+fi
+
+# skip compilation if HIGGSTOOLS_PATH is set
+if [ -n "${HIGGSTOOLS_PATH-}" ]; then
+  echo "A pre-compiled version of HiggsTools is being used. Skipping HiggsTools compilation."
+  exit 0
+fi
+
+# get total number of CPU cores
 if [[ "$(uname)" == "Darwin" ]]; then
   # macOS
   TOTAL_CORES=$(sysctl -n hw.ncpu)
