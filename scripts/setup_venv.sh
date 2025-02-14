@@ -12,7 +12,7 @@ python3_default_exe=$(which python3)
 python3_default_version=$(python3 --version 2>&1 | awk '{print $2}')
 
 # prompt user for input
-printf "Your default python3 executable is $python3_default_exe (version $python3_default_version).\n"
+printf "\nYour default python3 executable is $python3_default_exe (version $python3_default_version).\n\n"
 printf "Enter the python3 executable you want to use (leave blank for default): "
 read python3_exe
 
