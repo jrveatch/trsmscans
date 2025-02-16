@@ -40,6 +40,11 @@ cd ../..
 
 # compile HiggsTools python module
 printf "Trying to pip install HiggsTools\n"
-cd higgstools
-MAKEFLAGS="-j$CORES_TO_USE" pip install .
-cd ..
+# Check if HIGGSTOOLS_PATH is set
+if [ -z "$HIGGSTOOLS_PATH" ]; then
+    # Normal pip install for submodule
+    MAKEFLAGS="-j$CORES_TO_USE" pip install ./higgstools
+else
+    # Install from the provided path
+    MAKEFLAGS="-j$CORES_TO_USE" pip install $HIGGSTOOLS_PATH
+fi
