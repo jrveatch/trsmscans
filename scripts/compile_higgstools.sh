@@ -9,12 +9,6 @@ if [ -f "env.sh" ]; then
   ( source env.sh )
 fi
 
-# skip compilation if HIGGSTOOLS_PATH is set
-if [ -n "${HIGGSTOOLS_PATH-}" ]; then
-  echo "A pre-compiled version of HiggsTools is being used. Skipping HiggsTools compilation."
-  exit 0
-fi
-
 # get total number of CPU cores
 if [[ "$(uname)" == "Darwin" ]]; then
   # macOS
@@ -26,17 +20,6 @@ fi
 
 # use all but one core in compilation, unless only one is available
 CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
-
-# compile HiggsTools with C++
-printf "Trying to compile HiggsTools with $CORES_TO_USE threads...\n"
-cd higgstools
-if [ ! -d build ]; then
-    mkdir build
-fi
-cd build
-cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
-make -j"$CORES_TO_USE"
-cd ../..
 
 # compile HiggsTools python module
 printf "Trying to pip install HiggsTools\n"
