@@ -36,6 +36,18 @@ get_absolute_path() {
     echo "$abs_path"
 }
 
+# Function to remove variable from env.sh
+remove_var_from_env() {
+    local var_name=$1
+    if [ "$(uname)" = "Darwin" ]; then
+       # On macOS, we use sed -i '' for in-place editing
+        sed -i '' "/^export $var_name=/d" env.sh
+    else
+        # On Linux, we use sed -i
+        sed -i "/^export $var_name=/d" env.sh
+    fi
+}
+
 # Function to prompt user for a path to pre-installed submodules
 submodule_path() {
     local var_name=$1
@@ -43,12 +55,13 @@ submodule_path() {
     local default_value=${3:-}
     local user_input=""
 
-    # Use indirect expansion only if the variable is set
-    if declare -p "$var_name" &>/dev/null; then
-        local current_value="${!var_name}"
-    else
-        local current_value=""
+    # If variable isn't set, initialize as empty
+    if [ -z "${!var_name:-}" ]; then
+        eval "$var_name=''"
     fi
+
+    # Use indirect expansion only if the variable is set
+    local current_value="${!var_name}"
 
     while true; do
         if [ -n "$current_value" ]; then
@@ -65,14 +78,8 @@ submodule_path() {
         fi
     done
 
-    # Use sed to remove any existing export line for the variable
-    if [ "$(uname)" = "Darwin" ]; then
-        # On macOS, we use sed -i '' for in-place editing
-        sed -i '' "/^export $var_name=/d" env.sh
-    else
-        # On Linux, we use sed -i
-        sed -i "/^export $var_name=/d" env.sh
-    fi
+    # Remove line(s) from env.sh
+    remove_var_from_env "$var_name"
 
     while true; do
         printf "Enter the path for %s (leave blank to check out the submodule)" "$package_name"
@@ -103,6 +110,7 @@ submodule_path() {
     # Only write to env.sh if a valid path was provided
     if [ -n "$user_input" ]; then
         echo "export $var_name=\"$abs_path\"" >> env.sh
+        export "$var_name"="$abs_path"  # Export the variable to the current subshell
     fi
 }
 
@@ -159,3 +167,26 @@ submodule_path HSDATASET_PATH "data/hsdataset"
 
 # Call function to handle symlink creation for run/output
 create_output_symlink
+
+# Remove various directories and PATH from env.sh
+remove_var_from_env "DATADIR"
+remove_var_from_env "CONFIGDIR"
+remove_var_from_env "RUNDIR"
+remove_var_from_env "OUTPUTDIR"
+remove_var_from_env "PATH"
+
+# Add various directories to env.sh
+echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
+echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
+echo "export RUNDIR=\"${PWD}/run/\"" >> env.sh
+echo "export OUTPUTDIR=\"${RUNDIR}output/\"" >> env.sh
+
+# Ensure SCANNERS_PATH is set correctly
+if [ -n "$SCANNERS_PATH" ]; then
+    scanners_bin_path="$SCANNERS_PATH/build"
+else
+    scanners_bin_path="$PWD/ScannerS/build"
+fi
+
+# Append the new PATH setting to env.sh
+echo "export PATH=$scanners_bin_path:\$PATH" >> env.sh
