@@ -8,7 +8,10 @@ fi
 
 # set user paths
 printf "Setting up user paths\n"
-source scripts/set_user_paths.sh
+if ! bash scripts/set_user_paths.sh; then
+    echo "Error: set_user_paths.sh failed!" >&2
+    return 1
+fi
 
 # set up submodules
 printf "Setting up submodules\n"

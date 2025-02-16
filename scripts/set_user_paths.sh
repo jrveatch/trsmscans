@@ -1,4 +1,15 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+set -e
+set -u
+set -o pipefail
+
+# Source env.sh to load existing environment variables
+if [ -f env.sh ]; then
+    source env.sh
+else
+    touch env.sh  # Create env.sh if it doesn't exist
+fi
 
 # Function to convert relative path to absolute path
 get_absolute_path() {
@@ -28,14 +39,31 @@ get_absolute_path() {
 # Function to prompt user for a path to pre-installed submodules
 submodule_path() {
     local var_name=$1
-    local package_name=$2  # Used for generating the prompt message
+    local package_name=$2
     local default_value=${3:-}
     local user_input=""
 
-    # Ensure env.sh exists
-    if [ ! -f env.sh ]; then
-        touch env.sh  # Create env.sh if it doesn't exist
+    # Use indirect expansion only if the variable is set
+    if declare -p "$var_name" &>/dev/null; then
+        local current_value="${!var_name}"
+    else
+        local current_value=""
     fi
+
+    while true; do
+        if [ -n "$current_value" ]; then
+            printf "%s is currently set to: %s\n" "$var_name" "$current_value"
+            printf "Do you want to keep this path? (y/n):"
+            read choice || true
+            case "$choice" in
+                y|Y) return ;;
+                n|N) break ;;
+                *) printf "Invalid input. Please enter 'y' or 'n'.\n" ;;
+            esac
+        else
+            break  # Exit loop if no current value
+        fi
+    done
 
     # Use sed to remove any existing export line for the variable
     if [ "$(uname)" = "Darwin" ]; then
@@ -71,9 +99,6 @@ submodule_path() {
             printf "Error: The path '$user_input' ($abs_path) does not exist. Please enter a valid path.\n"
         fi
     done
-
-    # Export the variable
-    export "$var_name"="$abs_path"
 
     # Only write to env.sh if a valid path was provided
     if [ -n "$user_input" ]; then
