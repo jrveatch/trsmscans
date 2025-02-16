@@ -29,5 +29,5 @@ if [ -z "$HIGGSTOOLS_PATH" ]; then
     MAKEFLAGS="-j$CORES_TO_USE" pip install ./higgstools
 else
     # Install from the provided path
-    MAKEFLAGS="-j$CORES_TO_USE" pip install $HIGGSTOOLS_PATH
+    MAKEFLAGS="-j$CORES_TO_USE" pip install --no-deps $HIGGSTOOLS_PATH
 fi
