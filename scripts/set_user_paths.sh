@@ -159,11 +159,11 @@ create_output_symlink() {
 printf "Setting up paths to pre-installed versions of the submodules, if they exist.\n"
 printf "If no path is provided, the submodules will be checked out.\n\n"
 
-# Prompt user for ScannerS and higgstools paths
+# Prompt user for ScannerS and HiggsTools paths
 submodule_path SCANNERS_PATH "ScannerS"
-submodule_path HIGGSTOOLS_PATH "higgstools"
-submodule_path HBDATASET_PATH "data/hbdataset"
-submodule_path HSDATASET_PATH "data/hsdataset"
+submodule_path HIGGSTOOLS_PATH "HiggsTools"
+submodule_path HBDATASET_PATH "HBDataSet"
+submodule_path HSDATASET_PATH "HSDataSet"
 
 # Call function to handle symlink creation for run/output
 create_output_symlink
@@ -183,7 +183,7 @@ echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
 if [ -n "$SCANNERS_PATH" ]; then
     scanners_bin_path="$SCANNERS_PATH/build"
 else
-    scanners_bin_path="$PWD/ScannerS/build"
+    scanners_bin_path="$PWD/externals/ScannerS/build"
 fi
 
 # Append the new PATH setting to env.sh
