@@ -8,5 +8,5 @@
 	path = externals/ScannerS
 	url = git@gitlab.com:jonaswittbrodt/ScannerS.git
 [submodule "HiggsTools"]
-	path = externals/higgstools
+	path = externals/HiggsTools
 	url = git@gitlab.com:higgsbounds/higgstools.git

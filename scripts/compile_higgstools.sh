@@ -29,5 +29,5 @@ if [ -n "${HIGGSTOOLS_PATH:-}" ]; then
   MAKEFLAGS="-j$CORES_TO_USE" pip install --no-deps "$HIGGSTOOLS_PATH"
 else
   # Normal pip install for submodule
-  MAKEFLAGS="-j$CORES_TO_USE" pip install ./externals/higgstools
+  MAKEFLAGS="-j$CORES_TO_USE" pip install ./externals/HiggsTools
 fi

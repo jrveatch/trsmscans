@@ -20,7 +20,7 @@ fi
 # Check if HIGGSTOOLS_PATH is set, if so, skip HiggsTools submodule
 if [ -z "${HIGGSTOOLS_PATH:-}" ]; then
     echo "Initializing and updating HiggsTools submodule..."
-    git submodule update --init --recursive externals/higgstools
+    git submodule update --init --recursive externals/HiggsTools
 else
     echo "Skipping HiggsTools submodule as HIGGSTOOLS_PATH is set to $HIGGSTOOLS_PATH"
 fi
