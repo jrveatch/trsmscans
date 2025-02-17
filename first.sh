@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 # check dependencies
+printf "Checking dependencies\n"
 if ! bash scripts/check_deps.sh; then
     echo "Error: check_deps.sh failed!" >&2
     return 1

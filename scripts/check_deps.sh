@@ -73,6 +73,9 @@ fi
 printf "CMake version $cmake_version is installed (>= $cmake_minimum)\n"
 
 # Check compilers
-bash scripts/check_compilers.sh
+if ! bash scripts/check_compilers.sh; then
+    echo "Error: check_compilers.sh failed!" >&2
+    exit 1
+fi
 
 printf "All dependencies are installed and meet the minimum version requirements\n"
