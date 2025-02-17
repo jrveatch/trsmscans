@@ -1,7 +1,9 @@
 
 import json
-import os
 from typing import List, Tuple, Optional
+
+# local modules
+from utils.file_utils import data_dir
 
 def get_mass_permutations(decay: str,
                           identifier: str) -> Optional[List[Tuple[int, int, bool]]]:
@@ -13,7 +15,7 @@ def get_mass_permutations(decay: str,
         identifier (str): Identifier to specify which set of mass points to use.
     """
 
-    permutations_file = os.environ['DATADIR']+f"mass_points/{decay}_{identifier}.json"
+    permutations_file = data_dir()+f"mass_points/{decay}_{identifier}.json"
 
     permutations: List[Tuple[int, int, bool]] = []
 

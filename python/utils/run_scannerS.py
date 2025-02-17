@@ -16,6 +16,7 @@ from blessings import Terminal
 
 # local modules
 from utils.config_loader import ConfigLoader
+from utils.file_utils import data_dir
 from utils.tsv_utils import save_tsv_output
 
 # get logger
@@ -266,7 +267,7 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ini_name = os.environ['DATADIR'] + "models/" + args.model + "_baseline.ini"
+    ini_name = data_dir() + "models/" + args.model + "_baseline.ini"
 
     # run ScannerS using baseline .ini
     run_scannerS(ini_name = ini_name,

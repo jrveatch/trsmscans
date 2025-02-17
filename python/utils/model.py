@@ -21,7 +21,7 @@ class Model:
         self.__name = name
 
         # directory where model information is stored
-        self.__model_dir = os.environ['DATADIR']+"models/"
+        self.__model_dir = os.path.join(os.environ['DATADIR'],"models")
 
         # model yaml file
         self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")
