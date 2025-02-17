@@ -144,7 +144,7 @@ create_output_symlink() {
             else
                 # Create a new directory if no path is provided
                 mkdir -p "run/output"
-                printf "New directory 'run/output' created.\n"
+                printf "New directory 'run/output' created.\n\n"
                 return
             fi
         done
