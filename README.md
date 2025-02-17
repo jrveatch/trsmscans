@@ -43,15 +43,24 @@ It is recommended that you install the latest version of Python.
 
 ## Submodules and SSH keys
 
-These tools rely on `ScannerS` and `HiggsTools`, both of which are set
-up as submodules that will be automatically cloned and compiled using the
-provided scripts. In order to access both, it is necessary to have SSH
-keys set up on [https://gitlab.com](https://gitlab.com).
+These tools rely on `ScannerS`, `HiggsTools`, `HBDataSet` and `HSDataSet`,
+all of which are set up as submodules that will be automatically cloned and
+compiled using the provided scripts. In order to access them, it is necessary
+to have SSH keys set up on [https://gitlab.com](https://gitlab.com).
 
 The submodule repositories can be found using these links:
 
   * [ScannerS](https://gitlab.com/jonaswittbrodt/ScannerS)
   * [HiggsTools](https://gitlab.com/higgsbounds/higgstools)
+  * [HBDataSet](https://gitlab.com/higgsbounds/hbdataset)
+  * [HSDataSet](https://gitlab.com/higgsbounds/hsdataset)
+
+### Pre-installed submodules
+
+If you already have any of the submodules installed, you can provide
+paths to them when prompted after calling `source first.sh`. If you
+provide paths, compilation will be skipped and the code will be
+configured to use the version you have provided.
 
 ## Installation
 
