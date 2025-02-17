@@ -1,12 +1,12 @@
-[submodule "hbdataset"]
+[submodule "HBDataSet"]
 	path = data/hbdataset
 	url = git@gitlab.com:higgsbounds/hbdataset.git
-[submodule "hsdataset"]
+[submodule "HSDataSet"]
 	path = data/hsdataset
 	url = git@gitlab.com:higgsbounds/hsdataset.git
 [submodule "ScannerS"]
 	path = externals/ScannerS
 	url = git@gitlab.com:jonaswittbrodt/ScannerS.git
-[submodule "higgstools"]
+[submodule "HiggsTools"]
 	path = externals/higgstools
 	url = git@gitlab.com:higgsbounds/higgstools.git
