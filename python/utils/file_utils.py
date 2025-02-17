@@ -76,7 +76,7 @@ def hbdataset_dir() -> str:
     if "HBDATASET_PATH" in os.environ:
         return os.environ['HBDATASET_PATH']
     else:
-        return data_dir()+"hdbdataset/"
+        return data_dir()+"hbdataset/"
 
 def hsdataset_dir() -> str:
     """
@@ -85,4 +85,4 @@ def hsdataset_dir() -> str:
     if "HSDATASET_PATH" in os.environ:
         return os.environ['HSDATASET_PATH']
     else:
-        return data_dir()+"hsbdataset/"
+        return data_dir()+"hsdataset/"
