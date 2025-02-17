@@ -22,7 +22,7 @@ if [ -z "${HIGGSTOOLS_PATH:-}" ]; then
     echo "Initializing and updating HiggsTools submodule..."
     git submodule update --init --recursive externals/higgstools
 else
-    echo "Skipping higgstools submodule as HIGGSTOOLS_PATH is set to $HIGGSTOOLS_PATH"
+    echo "Skipping HiggsTools submodule as HIGGSTOOLS_PATH is set to $HIGGSTOOLS_PATH"
 fi
 
 # Check if HBDATASET_PATH is set, if so, skip HBDataSet submodule
@@ -30,7 +30,7 @@ if [ -z "${HBDATASET_PATH:-}" ]; then
     echo "Initializing and updating HBDataSet submodule..."
     git submodule update --init --recursive data/hbdataset
 else
-    echo "Skipping data/hbdataset submodule as HBDATASET_PATH is set to $HBDATASET_PATH"
+    echo "Skipping HBDataSet submodule as HBDATASET_PATH is set to $HBDATASET_PATH"
 fi
 
 # Check if HSDATASET_PATH is set, if so, skip HSDataSet submodule
@@ -38,5 +38,5 @@ if [ -z "${HSDATASET_PATH:-}" ]; then
     echo "Initializing and updating HSDataSet submodule..."
     git submodule update --init --recursive data/hsdataset
 else
-    echo "Skipping data/hsdataset submodule as HSDATASET_PATH is set to $HSDATASET_PATH"
+    echo "Skipping HSDataSet submodule as HSDATASET_PATH is set to $HSDATASET_PATH"
 fi
