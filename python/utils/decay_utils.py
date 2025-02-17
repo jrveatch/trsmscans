@@ -5,9 +5,12 @@ from functools import lru_cache
 from typing import List, Set
 import yaml
 
+# local modules
+from utils.file_utils import data_dir
+
 class DecayConfigManager:
     def __init__(self):
-        file_name = os.path.join(os.environ['DATADIR'], "decay_modes.yml")
+        file_name = os.path.join(data_dir(), "decay_modes.yml")
 
         # Load the configuration file once during initialization
         with open(file_name, 'r') as config_file:
