@@ -40,10 +40,10 @@ update_submodule() {
 }
 
 # Update ScannerS if SCANNERS_PATH is not set
-update_submodule "ScannerS" "SCANNERS_PATH" "scripts/compile_scanners.sh"
+update_submodule "externals/ScannerS" "SCANNERS_PATH" "scripts/compile_scanners.sh"
 
 # Update HiggsTools if HIGGSTOOLS_PATH is not set
-update_submodule "higgstools" "HIGGSTOOLS_PATH" "scripts/compile_higgstools.sh"
+update_submodule "externals/higgstools" "HIGGSTOOLS_PATH" "scripts/compile_higgstools.sh"
 
 # Function to update submodules without compilation
 update_data_submodule() {
