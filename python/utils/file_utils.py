@@ -49,3 +49,27 @@ def recreate_dir(path: str,
     if subdirs:
         for subdir in subdirs:
             os.makedirs(os.path.join(path, subdir))
+
+def data_dir() -> str:
+    """
+    Get path to data directory.
+    """
+    return os.environ['DATADIR']
+
+def hbdataset_dir() -> str:
+    """
+    Get path to HBDataset directory.
+    """
+    if "HBDATASET_PATH" in os.environ:
+        return os.environ['HBDATASET_PATH']
+    else:
+        return data_dir()+"hdbdataset/"
+
+def hsdataset_dir() -> str:
+    """
+    Get path to HSDataset directory.
+    """
+    if "HSDATASET_PATH" in os.environ:
+        return os.environ['HSDATASET_PATH']
+    else:
+        return data_dir()+"hsbdataset/"
