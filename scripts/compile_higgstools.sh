@@ -4,9 +4,9 @@ set -e
 set -u
 set -o pipefail
 
-# source env.sh in a subshell if it exists
+# source env.sh if it exists
 if [ -f "env.sh" ]; then
-  ( source env.sh )
+  source env.sh
 fi
 
 # get total number of CPU cores
@@ -24,10 +24,10 @@ CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 # compile HiggsTools python module
 printf "Trying to pip install HiggsTools\n"
 # Check if HIGGSTOOLS_PATH is set
-if [ -z "$HIGGSTOOLS_PATH" ]; then
-    # Normal pip install for submodule
-    MAKEFLAGS="-j$CORES_TO_USE" pip install ./higgstools
+if [ -n "${HIGGSTOOLS_PATH:-}" ]; then
+  # Install from the provided path
+  MAKEFLAGS="-j$CORES_TO_USE" pip install --no-deps "$HIGGSTOOLS_PATH"
 else
-    # Install from the provided path
-    MAKEFLAGS="-j$CORES_TO_USE" pip install --no-deps $HIGGSTOOLS_PATH
+  # Normal pip install for submodule
+  MAKEFLAGS="-j$CORES_TO_USE" pip install ./higgstools
 fi

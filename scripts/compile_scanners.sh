@@ -4,13 +4,13 @@ set -e
 set -u
 set -o pipefail
 
-# source env.sh in a subshell if it exists
+# source env.sh if it exists
 if [ -f "env.sh" ]; then
-  ( source env.sh )
+  source env.sh
 fi
 
 # skip compilation if SCANNERS_PATH is set
-if [ -n "${SCANNERS_PATH-}" ]; then
+if [ -n "${SCANNERS_PATH:-}" ]; then
   echo "A pre-compiled version of ScannerS is being used. Skipping ScannerS compilation."
   exit 0
 fi
