@@ -85,6 +85,13 @@ you will find all of the `.tsv` files under `files` as well as
 each scan iteration and show a summary of scans that find new
 maxima, respectively.
 
+### External `output` directory
+
+When running `source first.sh`, you will be prompted to provide an
+external directory for the output. If you provide a path, a symbolic
+link will be created such that `run/output` points to it. Otherwise,
+`run/output` will be created and the outputs will be stored there.
+
 ## Scan filters
 
 The outputs from `ScannerS` are checked against a width requirement
