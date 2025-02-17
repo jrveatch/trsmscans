@@ -7,7 +7,7 @@ source scripts/start_venv.sh
 source scripts/update_submodules.sh
 
 # add path to ScannerS executable to PATH
-export PATH="${PWD}/ScannerS/build:$PATH"
+export PATH="${PWD}/externals/ScannerS/build:$PATH"
 
 # set data directory as environment variable
 export DATADIR="${PWD}/data/"
