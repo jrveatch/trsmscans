@@ -9,3 +9,4 @@ Key.dat
 TRSMBroken.tsv
 trsm_venv
 *.swp
+env.sh
