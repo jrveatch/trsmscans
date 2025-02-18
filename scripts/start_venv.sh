@@ -1,39 +1,16 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # start the python virtual environment
-printf "Activating venv\n"
+printf "\nActivating venv\n"
 source trsm_venv/bin/activate
 
 # check whether requirements file exists
 if ! [ -f "python/requirements.txt" ]; then
     printf "python/requirements.txt not found\n"
-    return
+    return 1
 fi
 
-# create temporary files for storing package versions
-installed_packages_temp=$(mktemp)
-normalized_requirements_temp=$(mktemp)
-requirements_temp=$(mktemp)
-
-# normalize requirements file
-cat python/requirements.txt | tr '[:upper:]' '[:lower:]' | sort > "$normalized_requirements_temp"
-
-# capture the current installed packages using pip freeze
-pip freeze | tr '[:upper:]' '[:lower:]' | sort > "$installed_packages_temp"
-
-# get list of packages from pip freeze that are not in requirements.txt
-comm -13 "$installed_packages_temp" "$normalized_requirements_temp" > "$requirements_temp"
-
-# check if there are any differences between installed packages and requirements
-if [ -s "$requirements_temp" ]; then
-    printf "Requirements file has changed\n"
-    cat "$requirements_temp"
-    printf "Updating packages...\n"
-    pip install -r "$requirements_temp"
-    printf "Packages updated\n"
-else
-    printf "Python packages are all up-to-date\n"
-fi
-
-# clean up temporary files
-rm -rf "$installed_packages_temp" "$requirements_temp"
+# try to update all packages and only print the lines that are not already satisfied
+printf "\nUpdating python packages...\n"
+pip install -r "python/requirements.txt" | grep -v 'Requirement already satisfied' || true
+printf "Packages are all up to date\n\n"

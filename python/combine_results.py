@@ -4,6 +4,7 @@ import argparse
 import os
 
 from utils.decay_utils import get_non_resolvable_decay
+from utils.file_utils import output_dir
 from utils.mass_permutations import get_mass_permutations
 
 def combine_results(model: str,
@@ -24,17 +25,17 @@ def combine_results(model: str,
     combination_headers_written = False
     tsv_combination_headers_written = False
 
-    combination_file_name = os.environ['OUTPUTDIR'] + f"{model}/scan/{decay}/{decay}_{identifier}_combination.tsv"
-    tsv_combination_file_name = os.environ['OUTPUTDIR'] + f"{model}/scan/{decay}/{decay}_{identifier}_tsv_combination.tsv"
+    combination_file_name = output_dir() + f"{model}/scan/{decay}/{decay}_{identifier}_combination.tsv"
+    tsv_combination_file_name = output_dir() + f"{model}/scan/{decay}/{decay}_{identifier}_tsv_combination.tsv"
 
     try:
         with open(combination_file_name, 'w') as combination_file, open(tsv_combination_file_name, 'w') as tsv_combination_file:
             for XMass, SMass, resolvable in permutations:
                 # Get the directory for the mass point
-                directory = os.environ['OUTPUTDIR'] + f"{model}/scan/{decay}/X{XMass}_S{SMass}/"
+                directory = output_dir() + f"{model}/scan/{decay}/X{XMass}_S{SMass}/"
                 # If mass point isn't resolvable, use the non-resolvable decay
                 if not resolvable:
-                    directory = os.environ['OUTPUTDIR'] + f"{model}/scan/{get_non_resolvable_decay(decay)}/X{XMass}_S{SMass}/"
+                    directory = output_dir() + f"{model}/scan/{get_non_resolvable_decay(decay)}/X{XMass}_S{SMass}/"
                 if not os.path.isdir(directory):
                     print(f"Directory {directory} does not exist. Skipping.")
                     continue
@@ -65,7 +66,7 @@ def combine_results(model: str,
                                 combination_headers_written = True
 
                             # Write data row to the output file
-                            combination_file.write(f"{XMass}\t{SMass}\t125\t" + "\t".join(last_line) + "\n")
+                            combination_file.write(f"{float(XMass)}\t{float(SMass)}\t125.09\t" + "\t".join(last_line) + "\n")
                     except Exception as e:
                         print(f"Error reading or processing {summary_path}: {e}")
                 
