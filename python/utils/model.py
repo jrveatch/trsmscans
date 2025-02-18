@@ -7,6 +7,9 @@ from typing import Dict, List
 # third-party libraries
 import yaml
 
+# local modules
+from utils.env_utils import data_dir
+
 # class that holds information about the model being used
 class Model:
 
@@ -21,7 +24,7 @@ class Model:
         self.__name = name
 
         # directory where model information is stored
-        self.__model_dir = os.path.join(os.environ['DATADIR'],"models")
+        self.__model_dir = os.path.join(data_dir(),"models")
 
         # model yaml file
         self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")

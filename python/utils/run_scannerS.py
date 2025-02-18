@@ -16,7 +16,7 @@ from blessings import Terminal
 
 # local modules
 from utils.config_loader import ConfigLoader
-from utils.file_utils import data_dir
+from utils.env_utils import data_dir
 from utils.tsv_utils import save_tsv_output
 
 # get logger

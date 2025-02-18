@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 import yaml
 
 # local modules
-from utils.file_utils import config_dir
+from utils.env_utils import config_dir
 
 class ConfigLoader:
 
