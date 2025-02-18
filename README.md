@@ -66,7 +66,7 @@ The virtual environment can be activated with `source setup.sh`.
 ## Running
 
 The tools are designed for you to run from the `run` directory.
-An example of how to run a scan is given in the `run/scan_example.sh` script.
+An example of how to run a scan using zoom optimization is given in the `run/scan_example_zoom.sh` script.
 A scan will create output in the `output` directory based on the scan parameters.
 Within the corresponding directory in `output`, you will find all of the `.tsv` files under `files` as well as
 `scandetails.txt` and `scansummary.txt` that show the details of
