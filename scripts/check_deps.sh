@@ -78,4 +78,7 @@ if ! bash scripts/check_compilers.sh; then
     exit 1
 fi
 
+# Create file to indicate that all dependencies have been successfully checked
+touch .deps_ok
+
 printf "All dependencies are installed and meet the minimum version requirements\n"

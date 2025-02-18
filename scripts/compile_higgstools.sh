@@ -22,7 +22,7 @@ fi
 CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 
 # compile HiggsTools python module
-printf "Trying to pip install HiggsTools\n"
+printf "\nTrying to pip install HiggsTools\n"
 # Check if HIGGSTOOLS_PATH is set
 if [ -n "${HIGGSTOOLS_PATH:-}" ]; then
   # Install from the provided path
