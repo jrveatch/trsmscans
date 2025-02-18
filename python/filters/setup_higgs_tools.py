@@ -7,7 +7,7 @@ from functools import lru_cache
 import Higgs.bounds as HB
 import Higgs.predictions as HP
 import Higgs.signals as HS
-from utils.file_utils import hbdataset_dir, hsdataset_dir
+from utils.env_utils import hbdataset_dir, hsdataset_dir
 from utils.model import Model
 
 @lru_cache(maxsize=None)
