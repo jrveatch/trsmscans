@@ -7,6 +7,7 @@ from functools import lru_cache
 import Higgs.bounds as HB
 import Higgs.predictions as HP
 import Higgs.signals as HS
+from utils.env_utils import hbdataset_dir, hsdataset_dir
 from utils.model import Model
 
 @lru_cache(maxsize=None)
@@ -48,21 +49,15 @@ def get_higgs_predictions(model: 'Model'):
 @lru_cache(maxsize=None)
 def get_higgs_signals():
 
-    # get data directory
-    data_directory = os.environ['DATADIR']
-
     # get HS dataset
-    signals = HS.Signals(data_directory+'hsdataset')
+    signals = HS.Signals(hsdataset_dir())
 
     return signals
 
 @lru_cache(maxsize=None)
 def get_higgs_bounds():
 
-    # get data directory
-    data_directory = os.environ['DATADIR']
-
     # get HB dataset
-    bounds = HB.Bounds(data_directory+'hbdataset')
+    bounds = HB.Bounds(hbdataset_dir())
 
     return bounds

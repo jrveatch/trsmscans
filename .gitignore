@@ -9,3 +9,6 @@ Key.dat
 TRSMBroken.tsv
 trsm_venv
 *.swp
+env.sh
+.deps_ok
+.submodules_ok

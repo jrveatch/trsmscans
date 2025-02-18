@@ -7,6 +7,9 @@ from typing import Any, Dict, Optional
 # third-party libraries
 import yaml
 
+# local modules
+from utils.env_utils import config_dir
+
 class ConfigLoader:
 
     def __init__(self,
@@ -18,7 +21,7 @@ class ConfigLoader:
 
         # if not config path is given, use default path defined as environment variable
         if not config_path:
-            config_path = os.environ['CONFIGDIR']
+            config_path = config_dir()
 
         self.logger.info(f"Loading configuration from {config_path + config_file_name}\n")
 

@@ -5,19 +5,21 @@ import shutil
 from typing import List, Optional
 
 # local modules
+from utils.env_utils import output_dir
 from utils.model import Model
+
 def scan_dir(model: 'Model',
              decay: str) -> str:
     """
     Get the directory path for the scan for a given model, decay, and masses.
     """
-    return os.environ['OUTPUTDIR']+model.name+f"/scan/{decay}/{model.mass_string}/"
+    return output_dir()+model.name+f"/scan/{decay}/{model.mass_string}/"
 
 def prescan_dir(model: 'Model') -> str:
     """
     Get the directory path for the prescan for a given model and masses.
     """
-    return os.environ['OUTPUTDIR']+model.name+f"/prescan/{model.mass_string}/"
+    return output_dir()+model.name+f"/prescan/{model.mass_string}/"
 
 def prescan_tsv(model: 'Model') -> str:
     """
@@ -30,7 +32,7 @@ def plots_dir(model: 'Model',
     """
     Get the directory path for the plots for a given model, decay, and masses.
     """
-    return os.environ['OUTPUTDIR']+model.name+f"/plots/{decay}/{model.mass_string}/"
+    return output_dir()+model.name+f"/plots/{decay}/{model.mass_string}/"
 
 def recreate_dir(path: str,
                  subdirs: Optional[List[str]] = None) -> None:

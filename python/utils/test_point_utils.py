@@ -4,7 +4,6 @@ from collections import OrderedDict
 import logging
 import math
 import operator
-import os
 from typing import List
 
 # third-party libraries
@@ -12,6 +11,7 @@ from prettytable import PrettyTable
 from scipy.interpolate import interp1d
 
 # local modules
+from utils.env_utils import data_dir
 from utils.math_utils import round_sig
 
 # get logger
@@ -157,11 +157,8 @@ def width_h2(sth, m1, m2, l112, Gam_SM):
 
 def get_BR_interpolators_SM() -> List[interp1d]:
 
-    # get data directory
-    data_dir = os.environ['DATADIR']
-
     # the file containing the branching ratios for the SM Higgs boson:
-    BR_file = data_dir + "higgsBR_YR4.txt"
+    BR_file = data_dir() + "higgsBR_YR4.txt"
 
     # read the file:
     higgs_brs = read_higgsBR(BR_file)
@@ -260,11 +257,8 @@ def interpolate_HiggsXS(xs_dict):
 
 def get_XS_interpolator_SM_13TeV_NNLONNLL():
 
-    # get data directory
-    data_dir = os.environ['DATADIR']
-
     # the 13 TeV ggF cross sections at NNLO+NNLL
-    XS13_file = data_dir + "higgsXS_YR4_13TeV_NNLONNLL.txt"
+    XS13_file = data_dir() + "higgsXS_YR4_13TeV_NNLONNLL.txt"
     HiggsXS_13_NNLONNLL = read_higgsXS_N3LO(XS13_file)
 
     # get the interpolated XS
