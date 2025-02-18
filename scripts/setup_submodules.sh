@@ -40,3 +40,6 @@ if [ -z "${HSDATASET_PATH:-}" ]; then
 else
     echo "Skipping HSDataSet submodule as HSDATASET_PATH is set to $HSDATASET_PATH"
 fi
+
+# Create a file to indicate that submodules are set up
+touch .submodules_ok
