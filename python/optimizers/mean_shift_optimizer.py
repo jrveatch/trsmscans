@@ -101,20 +101,19 @@ class MeanShiftOptimizer:
         iter_start = time.time()
 
         # log initial state
-        log_file = open(f"{self.__scan_path}files/log/{self.__model.name}_{self.__label}-init_log.txt", 'w')
-        content = f"\niteration  = -1"
-        content += f"\nscan_pts  = {self.__points}"
-        content += f"\nlabel     = {self.__label}"
-        content += f"\nscan_perc = {self.__scan_percentage}"
-        content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-        content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-        content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-        content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
-        content += f"\nstop_sens = {self.__stop_sens}"
-        content += f"\nstop_epochs= {self.__stop_epochs}"
-        content += f"\ncurr_epoch = {self.__epoch_count}"
-        log_file.write(content)
-        log_file.close()
+        with open(f"{self.__scan_path}files/log/{self.__model.name}_{self.__label}-init_log.txt", 'w') as log_file:
+            content = f"\niteration  = -1"
+            content += f"\nscan_pts  = {self.__points}"
+            content += f"\nlabel     = {self.__label}"
+            content += f"\nscan_perc = {self.__scan_percentage}"
+            content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
+            content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
+            content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
+            content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
+            content += f"\nstop_sens = {self.__stop_sens}"
+            content += f"\nstop_epochs= {self.__stop_epochs}"
+            content += f"\ncurr_epoch = {self.__epoch_count}"
+            log_file.write(content)
 
         # Initialize iteration counter
         iter = -1
@@ -166,56 +165,54 @@ class MeanShiftOptimizer:
             self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # write shift log
-            log_file = open(log_file_name, 'w')
-            content = f"\niteration  = {iter}"
-            content += f"\nscan_pts  = {self.__points}"
-            content += f"\nlabel     = {self.__label}"
-            content += f"\nscan_perc = {self.__scan_percentage}"
-            content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-            content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-            content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-            content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
-            content += f"\nstop_sens = {self.__stop_sens}"
-            content += f"\nstop_epochs= {self.__stop_epochs}"
-            content += f"\ncurr_epoch = {self.__epoch_count}"
-            content += f"\navg_xb    = {np.average(xb)}"
-            content += f"\nmax_xb    = {np.max(xb)}"
-            log_file.write(content)
-            log_file.close()
+            with open(log_file_name, 'w') as log_file:
+                content = f"\niteration  = {iter}"
+                content += f"\nscan_pts  = {self.__points}"
+                content += f"\nlabel     = {self.__label}"
+                content += f"\nscan_perc = {self.__scan_percentage}"
+                content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
+                content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
+                content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
+                content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
+                content += f"\nstop_sens = {self.__stop_sens}"
+                content += f"\nstop_epochs= {self.__stop_epochs}"
+                content += f"\ncurr_epoch = {self.__epoch_count}"
+                content += f"\navg_xb    = {np.average(xb)}"
+                content += f"\nmax_xb    = {np.max(xb)}"
+                log_file.write(content)
 
             # write scan details to details file
-            details_file = open(details_name, 'a')
-            content = f"Iteration = {identifier}\n"
-            content += "--------------------\n"
-            content += f"Using {self.__points} scan points\n"
-            # content += "--------------------\n"
-            # content += "Found new max xsec*BR = " + newPoint.format_xb() + "\n"
-            # content += "Update optimal point: " + str(update) + "\n"
-            # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
-            content += "--------------------\n"
-            for name in self.__local_params.parameter_names:
-                content += name + ":\n"
-                content += f"  {self.__local_params[name].format_range()}\n"
-            content += "--------------------\n"
-            content += f"iteration   = {iter}"
-            content += f"\nscan_pts  = {self.__points}"
-            content += f"\nlabel     = {self.__label}"
-            content += f"\nscan_perc = {self.__scan_percentage}"
-            content += f"\ncols      = {' '.join(self.__local_params.parameter_names)}"
-            content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-            content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-            content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-            content += f"\nwidths    = {' '.join([str(width) for width in self.__local_params.vol_width])}"
-            content += f"\nstop_sens = {self.__stop_sens}"
-            content += f"\nstop_epchs= {self.__stop_epochs}"
-            content += f"\ncurr_epch = {self.__epoch_count}"
-            content += f"\navg_xb    = {np.average(xb)}"
-            content += f"\nmax_xb    = {np.max(xb)}\n"
-            content += "--------------------\n"
-            content += f"Iteration took {iter_end - iter_start}\n"
-            content += "\n\n"
-            details_file.write(content)
-            details_file.close()
+            with open(details_name, 'a') as details_file:
+                content = f"Iteration = {identifier}\n"
+                content += "--------------------\n"
+                content += f"Using {self.__points} scan points\n"
+                # content += "--------------------\n"
+                # content += "Found new max xsec*BR = " + newPoint.format_xb() + "\n"
+                # content += "Update optimal point: " + str(update) + "\n"
+                # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
+                content += "--------------------\n"
+                for name in self.__local_params.parameter_names:
+                    content += name + ":\n"
+                    content += f"  {self.__local_params[name].format_range()}\n"
+                content += "--------------------\n"
+                content += f"iteration   = {iter}"
+                content += f"\nscan_pts  = {self.__points}"
+                content += f"\nlabel     = {self.__label}"
+                content += f"\nscan_perc = {self.__scan_percentage}"
+                content += f"\ncols      = {' '.join(self.__local_params.parameter_names)}"
+                content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
+                content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
+                content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
+                content += f"\nwidths    = {' '.join([str(width) for width in self.__local_params.vol_width])}"
+                content += f"\nstop_sens = {self.__stop_sens}"
+                content += f"\nstop_epchs= {self.__stop_epochs}"
+                content += f"\ncurr_epch = {self.__epoch_count}"
+                content += f"\navg_xb    = {np.average(xb)}"
+                content += f"\nmax_xb    = {np.max(xb)}\n"
+                content += "--------------------\n"
+                content += f"Iteration took {iter_end - iter_start}\n"
+                content += "\n\n"
+                details_file.write(content)
 
             # NOTE: For debugging
             if self.__debug == True:
