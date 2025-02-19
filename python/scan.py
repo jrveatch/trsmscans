@@ -554,7 +554,7 @@ if __name__ == "__main__":
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     elif args.strategy == "ms":
-        print("Running mean shift optimization..")
+        logger.info("Running mean shift optimization...\n")
         myScan.run_ms_optimization(
             prescan_points = args.num_points,
             points = args.num_points
