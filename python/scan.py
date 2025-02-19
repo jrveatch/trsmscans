@@ -322,14 +322,9 @@ class Scan:
         scan_end = time.time()
         scan_time = (scan_end - scan_start)
 
-        # print out scan time
-        print("\nDone!")
-        print("Scan took", str(datetime.timedelta(seconds=int(scan_time))), "(hh:mm:ss)\n")
-
-        # write time info to details file
-        details = open(self.details_name, "a")
-        details.write("Scan took " + str(datetime.timedelta(seconds=int(scan_time))) + " (hh:mm:ss)")
-        details.close()
+        # finalize the run
+        self.finalize(optimization="mean shift",
+                      scan_time=scan_time)
         return
 
     # run the full scan
