@@ -28,7 +28,7 @@ EOF
     if command -v "$compiler" >/dev/null 2>&1; then
       # Try compiling the file with the C++17 flag
       if $compiler -std=c++17 "$TMP_CXX" -o "$TMP_EXE" 2>/dev/null; then
-        echo Installed version of "$compiler supports C++17!"
+        printf "Installed version of $compiler supports C++17!\n"
         rm -f "$TMP_CXX" "$TMP_EXE"
         return 0
       fi
@@ -36,7 +36,7 @@ EOF
   done
 
   # If no compiler worked, return error
-  echo "No C++17-compatible compiler found."
+  printf "No C++17-compatible compiler found.\n"
   rm -f "$TMP_CXX"
   return 1
 }
@@ -63,17 +63,17 @@ EOF
     if command -v "$compiler" >/dev/null 2>&1; then
       # Try compiling the file
       if $compiler "$TMP_F90" -o "$TMP_EXE" 2>/dev/null; then
-        echo Installed version of "$compiler can compile Fortran!"
+        printf "Installed version of $compiler can compile Fortran!\n"
         rm -f "$TMP_F90" "$TMP_EXE"
         return 0
       else
-        echo "$compiler failed to compile Fortran code."
+        printf "$compiler failed to compile Fortran code.\n"
       fi
     fi
   done
 
   # If no Fortran compiler worked, exit with error
-  echo "No Fortran compiler found or failed to compile."
+  printf "No Fortran compiler found or failed to compile.\n"
   rm -f "$TMP_F90"
   return 1
 }
@@ -86,7 +86,7 @@ EOF
 check_clang_version() {
   # Check if clang is installed
   if ! command -v clang &>/dev/null; then
-    echo "Error: clang is not installed."
+    printf "Error: clang is not installed.\n"
     return 1
   fi
 
@@ -100,10 +100,10 @@ check_clang_version() {
 
     # Apple Clang 7+ corresponds to LLVM Clang 5+
     if [[ "$APPLE_CLANG_VERSION" -ge 7 ]]; then
-      echo "Apple clang version $APPLE_CLANG_VERSION detected, which is sufficient."
+      printf "Apple clang version $APPLE_CLANG_VERSION detected, which is sufficient.\n"
       return 0
     else
-      echo "Error: Apple clang version $APPLE_CLANG_VERSION is too old. Version 7 or higher is required."
+      printf "Error: Apple clang version $APPLE_CLANG_VERSION is too old. Version 7 or higher is required.\n"
       return 1
     fi
   else
@@ -112,10 +112,10 @@ check_clang_version() {
 
     # Check if version is >= 5
     if [[ "$CLANG_VERSION" -ge 5 ]]; then
-      echo "clang version $CLANG_VERSION is installed and meets the requirement."
+      printf "clang version $CLANG_VERSION is installed and meets the requirement.\n"
       return 0
     else
-      echo "Error: clang version $CLANG_VERSION is too old. Version 5 or higher is required."
+      printf "Error: clang version $CLANG_VERSION is too old. Version 5 or higher is required.\n"
       return 1
     fi
   fi
