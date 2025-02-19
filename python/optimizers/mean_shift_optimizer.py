@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import copy
+import datetime
 import glob
+import logging
 import operator
 import os
 import sys
@@ -36,6 +38,9 @@ class MeanShiftOptimizer:
             global_params: Params,
             config_loader: ConfigLoader,
             debug: bool = False):
+        
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.__points = points
         self.__label = label
@@ -93,7 +98,7 @@ class MeanShiftOptimizer:
         os.makedirs(f"{self.__scan_path}files/log/", exist_ok=True)
 
         # get time of iteration start
-        iterstart = time.time()
+        iter_start = time.time()
 
         # log initial state
         log_file = open(f"{self.__scan_path}files/log/{self.__model.name}_{self.__label}-init_log.txt", 'w')
@@ -120,7 +125,7 @@ class MeanShiftOptimizer:
 
             # get iteration identifier
             identifier = self.__label + f"-i{iter:04d}"
-            print("\nIteration:", identifier)
+            self.logger.info(f"Iteration: {identifier}")
 
             # set names of input .ini and output .tsv files
             outpath = f"{self.__scan_path}files/"
@@ -154,11 +159,11 @@ class MeanShiftOptimizer:
             self.__stop_check()
 
             # get iteration end time
-            iterend = time.time()
-            itertime = iterend - iterstart
+            iter_end = time.time()
+            iter_time = iter_end - iter_start
 
             # print iteration time to screen
-            print(f"Iteration took {itertime} seconds")
+            self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # write shift log
             log_file = open(log_file_name, 'w')
@@ -207,7 +212,7 @@ class MeanShiftOptimizer:
             content += f"\navg_xb    = {np.average(xb)}"
             content += f"\nmax_xb    = {np.max(xb)}\n"
             content += "--------------------\n"
-            content += f"Iteration took {iterend - iterstart}\n"
+            content += f"Iteration took {iter_end - iter_start}\n"
             content += "\n\n"
             details_file.write(content)
             details_file.close()
