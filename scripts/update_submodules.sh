@@ -16,26 +16,25 @@ update_submodule() {
     local compile_script="$3"
 
     if [ -z "${!path_var:-}" ]; then
-        echo "Checking for updates to $submodule..."
+        printf "Checking for updates to $submodule...\n"
         
         # Fetch the latest changes
         git submodule update --remote --merge "$submodule"
         
         # Check if there are new commits
-        if git diff --quiet HEAD "$submodule"; then
-            echo "$submodule is already up to date."
-        else
-            echo "$submodule was updated. Checking out changes..."
+        if ! git diff --quiet HEAD "$submodule"; then
+            printf "$submodule was updated. Checking out changes...\n"
             git -C "$submodule" checkout origin/main  # Adjust branch if needed
+            printf "Success!\n"
             
             # If a compile script is provided, execute it
             if [ -n "$compile_script" ]; then
-                echo "Compiling $submodule..."
+                printf "Compiling $submodule...\n"
                 "$compile_script"
             fi
         fi
     else
-        echo "Skipping $submodule update (using external path: ${!path_var})"
+        printf "Skipping $submodule update (using external path: ${!path_var})\n"
     fi
 }
 
@@ -51,10 +50,10 @@ update_data_submodule() {
     local path_var="$2"
     
     if [ -z "${!path_var:-}" ]; then
-        echo "Checking for updates to $submodule..."
+        printf "Checking for updates to $submodule...\n"
         git submodule update --remote --merge "$submodule"
     else
-        echo "Skipping $submodule update (using external path: ${!path_var})"
+        printf "Skipping $submodule update (using external path: ${!path_var})\n"
     fi
 }
 
@@ -62,5 +61,4 @@ update_data_submodule() {
 update_data_submodule "data/hbdataset" "HBDATASET_PATH"
 update_data_submodule "data/hsdataset" "HSDATASET_PATH"
 
-
-printf "All submodules are updated to the latest versions\n"
+printf "All submodules are updated to the latest versions\n\n"
