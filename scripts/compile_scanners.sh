@@ -11,7 +11,7 @@ fi
 
 # skip compilation if SCANNERS_PATH is set
 if [ -n "${SCANNERS_PATH:-}" ]; then
-  echo "A pre-compiled version of ScannerS is being used. Skipping ScannerS compilation."
+  printf "A pre-compiled version of ScannerS is being used. Skipping ScannerS compilation.\n"
   exit 0
 fi
 
