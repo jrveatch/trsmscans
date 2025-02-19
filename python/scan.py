@@ -431,6 +431,9 @@ if __name__ == "__main__":
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
+    
+    # get logger
+    logger = logging.getLogger()
 
     # create scan object
     myScan = Scan(model = model,
@@ -439,7 +442,7 @@ if __name__ == "__main__":
                  )
 
     if args.strategy == "zoom":
-        print("Running zoom optimization..")
+        logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     else:
