@@ -46,7 +46,6 @@ class MeanShiftOptimizer:
 
         self.__points = points
         self.__label = label
-        self.__scan_percentage = scan_perc
         self.__stop_epochs = stop_epochs
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
