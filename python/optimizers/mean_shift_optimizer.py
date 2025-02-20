@@ -192,28 +192,15 @@ class MeanShiftOptimizer:
                 test_diff = tuple([self.__stop_sens * w for w in self.__local_params.vol_width])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.__local_params.vol_position))])
 
-                print()
-                print(f"iter        = {iter}")
-                print(f"scan points = {self.__points}")
-                print(f"scan %      = {self.__scan_percentage}")
-                print(f"stop mode   = {'test pt' if self.__stop_mode == 0 else 'prev pt'}")
-                print(f"stop sens % = {self.__stop_sens}")
-                print(f"stop epochs = {self.__stop_epochs}")
                 print(f"epoch count = {self.__epoch_count}")
-                print(f"avg xb      = {np.average(xb)}")
-                print(f"max xb      = {np.max(xb)}")
-                print()
+                print(f"avg xb      = {round_sig(np.average(xb))}")
+                print(f"max xb      = {round_sig(np.max(xb))}")
                 print(f"volume size = {self.__local_params.vol_width}")
-                print()
                 print(f"curr pos    = {self.__local_params.vol_position}")
-                print()
                 print(f"prev pos    = {self.__prev_position}")
-                print()
                 print(f"test pos    = {self.__test_position}")
-                print()
                 print(f"reset diff  = {test_diff}")
-                print()
-                print(f"posit diff  = {position_diff}")
+                print(f"posit diff  = {position_diff}\n")
 
         self.__create_walk_file()
         #self.__generate_visualizations()
@@ -235,13 +222,11 @@ class MeanShiftOptimizer:
 
         nZ = lin_norm(Z)
 
-        if self.__debug == True:
-            print("\nPre-shift:\n========")
-            for i, X in enumerate(XX):
-                print(f"X_{i}:")
-                print(X)
-            print("nZ")
-            print(nZ)
+        # verbose printing all available points
+        self.logger.verbose("\nPre-shift:\n========")
+        for i, X in enumerate(XX):
+            self.logger.verbose(f"X_{i}:{X}")
+        self.logger.verbose(f"nZ: {nZ}")
 
         normalization_factor = np.sum(nZ)
 
