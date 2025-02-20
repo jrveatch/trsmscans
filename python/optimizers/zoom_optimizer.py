@@ -206,10 +206,11 @@ class ZoomOptimizer:
     # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
-            summary.write(self.local_max.format_xb())
+            content = self.local_max.format_xb()
             for val in self.local_max.par_vals.values():
-                summary.write(f"\t{round_sig(val)}")
-            summary.write(f"\t{identifier}\n")
+                content += f"\t{round_sig(val)}"
+            content += f"\t{identifier}\n"
+            summary.write(content)
 
     # write to details file
     def write_details(self,
@@ -221,28 +222,29 @@ class ZoomOptimizer:
 
         # TODO: Add details about R11, R21, R31
         with open(self.details_name,"a") as details:
-            details.write(f"Iteration = {identifier}\n")
-            details.write("--------------------\n")
-            details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
-            details.write(f"Scan density = {density:.3E}\n")
-            details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
-            details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
-            details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
-            details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
-            details.write("--------------------\n")
-            details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
-            details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
-            details.write(f"Global max xsec*BR = {self.global_max.format_xb()}\n")
-            details.write(f"Found new global max point: {self.is_new_global_max(new_max)}\n")
-            details.write("--------------------\n")
+            content = f"Iteration = {identifier}\n"
+            content += "--------------------\n"
+            content += f"Using {self.point_sampler.total_points_run} scan points\n"
+            content += f"Scan density = {density:.3E}\n"
+            content += f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n"
+            content += f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n"
+            content += f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n"
+            content += f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n"
+            content += "--------------------\n"
+            content += f"New max xsec*BR = {new_max.format_xb()}\n"
+            content += f"Local max xsec*BR = {self.local_max.format_xb()}\n"
+            content += f"Global max xsec*BR = {self.global_max.format_xb()}\n"
+            content += f"Found new global max point: {self.is_new_global_max(new_max)}\n"
+            content += "--------------------\n"
             for par in self.params.parameter_names:
-                details.write(f"{par}:\n")
-                details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
+                content += f"{par}:\n"
+                content += f"  range = {self.params.parameter_value(par).format_range()}\n"
                 if self.is_new_global_max(new_max):
-                    details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
-                    details.write(f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n")
-                    details.write(f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n")
-            details.write("--------------------\n")
+                    content += f"  new global max value = {self.local_max.format_param(par)}\n"
+                    content += f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n"
+                    content += f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n"
+            content += "--------------------\n\n"
+            details.write(content)
 
     # check if a new global max has been found
     def is_new_global_max(self,

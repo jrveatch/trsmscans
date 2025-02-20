@@ -103,10 +103,11 @@ class Scan:
         # create summary file
         self.summary_name = self.out_dir + f"scan_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
         with open(self.summary_name, "w") as summary:
-            summary.write("xbmax")
+            content = "xbmax"
             for parameter in self.global_max.par_vals.keys():
-                summary.write(f"\t{parameter}")
-            summary.write("\titer\n")
+                content += f"\t{parameter}"
+            content += "\titer\n"
+            summary.write(content)
 
         # create raw output file
         self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
@@ -195,24 +196,26 @@ class Scan:
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
-            details.write("Prescan\n")
-            details.write("--------------------\n")
-            details.write(f"Number of prescan points = {num_prescan}\n")
-            details.write(f"Scan density = {density:.3E}\n")
-            details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
-            details.write("--------------------\n")
+            content = "Prescan\n"
+            content += "--------------------\n"
+            content += f"Number of prescan points = {num_prescan}\n"
+            content += f"Scan density = {density:.3E}\n"
+            content += f"Max xsec*BR = {self.global_max.format_xb()}\n"
+            content += "--------------------\n"
             for parameter_name in self.params.parameter_names:
-                details.write(f"{parameter_name}:\n")
-                details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
-                details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
-            details.write("--------------------\n\n\n")
+                content += f"{parameter_name}:\n"
+                content += f"  value = {self.global_max.format_param(parameter_name)}\n"
+                content += f"  range = {self.params.parameter_value(parameter_name).format_range()}\n"
+            content += "--------------------\n\n"
+            details.write(content)
 
         # write scan results to summary file
         with open(self.summary_name, "a") as summary:
-            summary.write(self.global_max.format_xb())
+            content = self.global_max.format_xb()
             for val in self.global_max.par_vals.values():
-                summary.write(f"\t{round_sig(val)}")
-            summary.write("\tPre\n")
+                content += f"\t{round_sig(val)}"
+            content += "\tPre\n"
+            summary.write(content)
 
         # write scan max xb tsv line to tsv summary file
         with open(self.tsv_summary_name, "a") as tsv_summary:
