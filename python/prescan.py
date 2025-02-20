@@ -75,7 +75,7 @@ def prescan(model: 'Model',
         if num_existing >= num_points:
             logger.info(f"Found a prescan that already has {num_existing} points")
             logger.info(f"{num_points} points requested, skipping since no more are needed")
-            logger.info("If you want to overwrite the existing prescan, run with the -o option")
+            logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
             return Parse(model = model,
                          file_name = tsv_name)
 
@@ -84,7 +84,7 @@ def prescan(model: 'Model',
         num_points -= num_existing
         logger.info(f"{num_points_old} prescan points requested and found existing prescan with {num_existing} points")
         logger.info(f"Running with the additional {num_points} points")
-        logger.info("If you want to overwrite the existing prescan, run with the -o option")
+        logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
 
     # make output directory if it doesn't already exist
     os.makedirs(out_dir, exist_ok=True)
