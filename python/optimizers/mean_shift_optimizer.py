@@ -6,6 +6,7 @@ import glob
 import logging
 import operator
 import os
+import shutil
 import sys
 import time
 
@@ -17,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from utils import file_utils
+from utils.file_utils import scan_dir, plots_dir
 
 from utils.params import Params
 from utils.config_loader import ConfigLoader
@@ -49,17 +50,22 @@ class MeanShiftOptimizer:
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
         self.__model = global_params.model
-        self.__decay_name = global_params.decay
+        self.decay = global_params.decay
 
         # Initialize paths
-        self.__scan_path = file_utils.scan_dir(
-                self.__model,
-                self.__decay_name
+        self.__scan_path = scan_dir(
+                model = self.__model,
+                decay = self.decay
             )
         
-        self.__plot_path = file_utils.plots_dir(
-                self.__model,
-                self.__decay_name
+        out_dir = scan_dir(
+                model = self.__model,
+                decay = self.decay
+            )
+        
+        self.__plot_path = plots_dir(
+                model = self.__model,
+                decay = self.decay
             )
 
         # Initialize config loader
@@ -89,19 +95,25 @@ class MeanShiftOptimizer:
         self.__prev_position = self.__local_params.vol_position
 
         # Init point sampler
-        self.point_sampler = PointSampler(out_dir = self.__scan_path,
+        self.point_sampler = PointSampler(out_dir = out_dir,
                                         config_loader = self.__config_loader,
                                         use_file_dir = True)
+        
+        output_file_postfix = f"{self.__model.name}_{self.decay}_{global_params.mass_string}"
+
+        self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
+        self.details_name = f"{out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
+
+        # copy prescan details file to zoom optimizer details file
+        shutil.copy(self.prescan_details_name,self.details_name)
 
     def run(self):
-        # make log file directory
-        os.makedirs(f"{self.__scan_path}files/log/", exist_ok=True)
 
         # get time of iteration start
         iter_start = time.time()
 
         # log initial state
-        with open(f"{self.__scan_path}files/log/{self.__model.name}_{self.__label}-init_log.txt", 'w') as log_file:
+        with open(self.details_name, 'a') as details:
             content = f"\niteration  = -1"
             content += f"\nscan_pts  = {self.__points}"
             content += f"\nlabel     = {self.__label}"
@@ -113,7 +125,7 @@ class MeanShiftOptimizer:
             content += f"\nstop_sens = {self.__stop_sens}"
             content += f"\nstop_epochs= {self.__stop_epochs}"
             content += f"\ncurr_epoch = {self.__epoch_count}"
-            log_file.write(content)
+            details.write(content)
 
         # Initialize iteration counter
         iter = -1
@@ -123,14 +135,12 @@ class MeanShiftOptimizer:
             iter += 1
 
             # get iteration identifier
-            identifier = self.__label + f"-i{iter:04d}"
+            identifier = self.__label + f"-{iter:04d}"
             self.logger.info(f"Iteration: {identifier}")
 
             # set names of input .ini and output .tsv files
             outpath = f"{self.__scan_path}files/"
-            log_file_name = f"{self.__scan_path}files/log/{self.__model.name}_{identifier}_log.txt"
             ininame = outpath + f"/ini/{self.__model.name}_{identifier}.ini"
-            details_name = f"{self.__scan_path}scandetails_{self.__model.name}_{self.__decay_name}_{str(self.__local_params.mass_string)}.txt"
 
             # write new .ini file from template and parameters
             self.__local_params.write_ini(ininame)
@@ -146,7 +156,7 @@ class MeanShiftOptimizer:
                                                                 )
 
             arrays = parser.input_parameter_arrays
-            xb = parser.get_xb(self.__decay_name)
+            xb = parser.get_xb(self.decay)
 
             if len(xb) == 0:
                 raise ValueError("Length of xb array was 0")
@@ -164,25 +174,8 @@ class MeanShiftOptimizer:
             # print iteration time to screen
             self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
-            # write shift log
-            with open(log_file_name, 'w') as log_file:
-                content = f"\niteration  = {iter}"
-                content += f"\nscan_pts  = {self.__points}"
-                content += f"\nlabel     = {self.__label}"
-                content += f"\nscan_perc = {self.__scan_percentage}"
-                content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-                content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-                content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-                content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
-                content += f"\nstop_sens = {self.__stop_sens}"
-                content += f"\nstop_epochs= {self.__stop_epochs}"
-                content += f"\ncurr_epoch = {self.__epoch_count}"
-                content += f"\navg_xb    = {np.average(xb)}"
-                content += f"\nmax_xb    = {np.max(xb)}"
-                log_file.write(content)
-
             # write scan details to details file
-            with open(details_name, 'a') as details_file:
+            with open(self.details_name, 'a') as details_file:
                 content = f"Iteration = {identifier}\n"
                 content += "--------------------\n"
                 content += f"Using {self.__points} scan points\n"
@@ -210,7 +203,7 @@ class MeanShiftOptimizer:
                 content += f"\navg_xb    = {np.average(xb)}"
                 content += f"\nmax_xb    = {np.max(xb)}\n"
                 content += "--------------------\n"
-                content += f"Iteration took {iter_end - iter_start}\n"
+                content += f"Iteration took {iter_time}\n"
                 content += "\n\n"
                 details_file.write(content)
 
@@ -243,7 +236,7 @@ class MeanShiftOptimizer:
                 print(f"posit diff  = {position_diff}")
 
         self.__create_walk_file()
-        self.__generate_visualizations()
+        #self.__generate_visualizations()
 
         return self.__local_params.center_points()
 
