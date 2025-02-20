@@ -7,7 +7,6 @@ import logging
 import operator
 import os
 import shutil
-import sys
 import time
 
 from pprint import pprint
@@ -24,7 +23,7 @@ from utils.params import Params
 from utils.config_loader import ConfigLoader
 from utils.point_sampler import PointSampler
 from utils.math_utils import round_sig
-from utils.mean_shift_utils import lin_norm
+from utils.mean_shift_utils import mean_shift
 
 class MeanShiftOptimizer:
 
@@ -148,7 +147,9 @@ class MeanShiftOptimizer:
                 
             self.__prev_position = self.__local_params.vol_position
 
-            self.mean_shift(arrays, xb)
+            mean_shift(arrays = arrays,
+                       Z = xb,
+                       params = self.__local_params)
 
             self.__stop_check()
 
@@ -204,39 +205,6 @@ class MeanShiftOptimizer:
         #self.__generate_visualizations()
 
         return self.__local_params.center_points()
-
-    def mean_shift(self, params: dict[np.ndarray], Z: np.ndarray):
-        """Updates center value based on X_1, X_2, ... X_i and Z pairs of a sample volume.
-
-        Args:
-            XX (dict[numpy.ndarray(<float>)]): 2D list, each row represents a collection of columns of each dimension.
-            Z (numpy.ndarray[<float>]): List of function values for the sample space.
-
-        Returns:
-            tuple(x_1, x_2, ... , x_i): The new position tuple of x_1, x_2, ... , x_i coordinates of the distribution.
-        """
-
-        XX = np.array([params[key] for key in params])
-
-        nZ = lin_norm(Z)
-
-        # verbose printing all available points
-        self.logger.verbose("\nPre-shift:\n========")
-        for i, X in enumerate(XX):
-            self.logger.verbose(f"X_{i}:{X}")
-        self.logger.verbose(f"nZ: {nZ}")
-
-        normalization_factor = np.sum(nZ)
-
-        if normalization_factor == 0.0:
-            normalization_factor = sys.float_info.min
-
-        means = []
-
-        for X_i in XX:
-            means.append(np.dot(X_i, nZ) / normalization_factor)
-
-        self.__local_params.reposition_center(tuple(means))
 
     def __stop_check(self):
         """
