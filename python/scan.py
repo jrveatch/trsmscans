@@ -145,7 +145,7 @@ class Scan:
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
-        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters")
+        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
         # print header about prescan ranges to the screen
         self.logger.info("Found the following ranges from the prescan:")
