@@ -183,8 +183,7 @@ class MeanShiftOptimizer:
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
                 content += f"max_xb    = {round_sig(np.max(xb))}\n"
                 content += "--------------------\n"
-                content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n"
-                content += "\n\n"
+                content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n"
                 details_file.write(content)
 
             # NOTE: For debugging
