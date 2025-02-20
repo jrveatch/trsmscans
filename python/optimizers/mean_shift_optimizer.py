@@ -23,6 +23,7 @@ from utils.file_utils import scan_dir, plots_dir
 from utils.params import Params
 from utils.config_loader import ConfigLoader
 from utils.point_sampler import PointSampler
+from utils.math_utils import round_sig
 from utils.mean_shift_utils import lin_norm
 
 class MeanShiftOptimizer:
@@ -112,21 +113,6 @@ class MeanShiftOptimizer:
         # get time of iteration start
         iter_start = time.time()
 
-        # log initial state
-        with open(self.details_name, 'a') as details:
-            content = f"\niteration  = -1"
-            content += f"\nscan_pts  = {self.__points}"
-            content += f"\nlabel     = {self.__label}"
-            content += f"\nscan_perc = {self.__scan_percentage}"
-            content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-            content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-            content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-            content += f"\nwidths    = {' '.join([str(p) for p in self.__local_params.vol_width])}"
-            content += f"\nstop_sens = {self.__stop_sens}"
-            content += f"\nstop_epochs= {self.__stop_epochs}"
-            content += f"\ncurr_epoch = {self.__epoch_count}"
-            details.write(content)
-
         # Initialize iteration counter
         iter = -1
 
@@ -186,24 +172,19 @@ class MeanShiftOptimizer:
                 content += "--------------------\n"
                 for name in self.__local_params.parameter_names:
                     content += name + ":\n"
-                    content += f"  {self.__local_params[name].format_range()}\n"
+                    content += f"  range = {self.__local_params[name].format_range()}\n"
+                    content += f"  width = {round_sig(self.__local_params[name].width)}\n"
                 content += "--------------------\n"
-                content += f"iteration   = {iter}"
-                content += f"\nscan_pts  = {self.__points}"
-                content += f"\nlabel     = {self.__label}"
-                content += f"\nscan_perc = {self.__scan_percentage}"
-                content += f"\ncols      = {' '.join(self.__local_params.parameter_names)}"
-                content += f"\ncurr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}"
-                content += f"\nprev_pos  = {' '.join([str(p) for p in self.__prev_position])}"
-                content += f"\ntest_pos  = {' '.join([str(p) for p in self.__test_position])}"
-                content += f"\nwidths    = {' '.join([str(width) for width in self.__local_params.vol_width])}"
-                content += f"\nstop_sens = {self.__stop_sens}"
-                content += f"\nstop_epchs= {self.__stop_epochs}"
-                content += f"\ncurr_epch = {self.__epoch_count}"
-                content += f"\navg_xb    = {np.average(xb)}"
-                content += f"\nmax_xb    = {np.max(xb)}\n"
+                content += f"scan_pts  = {self.__points}\n"
+                content += f"scan_perc = {self.__scan_percentage}\n"
+                content += f"cols      = {' '.join(self.__local_params.parameter_names)}\n"
+                content += f"curr_pos  = {' '.join([str(p) for p in self.__local_params.vol_position])}\n"
+                content += f"prev_pos  = {' '.join([str(p) for p in self.__prev_position])}\n"
+                content += f"test_pos  = {' '.join([str(p) for p in self.__test_position])}\n"
+                content += f"avg_xb    = {np.average(xb)}\n"
+                content += f"max_xb    = {np.max(xb)}\n"
                 content += "--------------------\n"
-                content += f"Iteration took {iter_time}\n"
+                content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n"
                 content += "\n\n"
                 details_file.write(content)
 
