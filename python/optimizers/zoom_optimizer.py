@@ -148,8 +148,8 @@ class ZoomOptimizer:
             self.logger.info("Local max is consistently less than half of global max")
             self.logger.info("Terminating zoom optimizer")
             with open(self.details_name,"a") as details:
-                details.write("Local max is consistently less than half of global max")
-                details.write("Terminating zoom optimizer")
+                details.write("Local max is consistently less than half of global max\n")
+                details.write("Terminating zoom optimizer\n")
         
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
@@ -165,8 +165,8 @@ class ZoomOptimizer:
                         self.logger.info("Local max is increasing by less than 5%")
                         self.logger.info("Terminating zoom optimizer")
                         with open(self.details_name,"a") as details:
-                            details.write("Local max is increasing by less than 5%")
-                            details.write("Terminating zoom optimizer")
+                            details.write("Local max is increasing by less than 5%\n")
+                            details.write("Terminating zoom optimizer\n")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
@@ -177,8 +177,8 @@ class ZoomOptimizer:
                     self.logger.info("Local max is not increasing")
                     self.logger.info("Terminating zoom optimizer")
                     with open(self.details_name,"a") as details:
-                        details.write("Local max is not increasing")
-                        details.write("Terminating zoom optimizer")
+                        details.write("Local max is not increasing\n")
+                        details.write("Terminating zoom optimizer\n")
 
         # store history of local max of xb
         self.local_history.append(new_max)
@@ -198,8 +198,10 @@ class ZoomOptimizer:
         iter_end = time.time()
         iter_time = iter_end - iter_start
 
-        # print iteration time to screen
+        # record iteration time to screen
         self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
+        with open(self.details_name,"a") as details:
+            details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n")
             
         return new_max
 
@@ -243,7 +245,7 @@ class ZoomOptimizer:
                     content += f"  new global max value = {self.local_max.format_param(par)}\n"
                     content += f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n"
                     content += f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n"
-            content += "--------------------\n\n"
+            content += "--------------------\n"
             details.write(content)
 
     # check if a new global max has been found
