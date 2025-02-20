@@ -79,8 +79,8 @@ class ZoomOptimizer:
 
         # get output information file names
         output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.mass_string}"
-        self.summary_name = f"{out_dir}scan_summary_{output_file_postfix}.tsv"
-        self.tsv_summary_name = f"{out_dir}scan_tsv_summary_{output_file_postfix}.tsv"
+        self.summary_name = f"{out_dir}summary_zoom_{output_file_postfix}.tsv"
+        self.tsv_summary_name = f"{out_dir}summary_zoom_tsv_{output_file_postfix}.tsv"
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
         self.details_name = f"{out_dir}files/details/scan_details_{self.label}_{output_file_postfix}.txt"
 
