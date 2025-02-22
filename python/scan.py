@@ -234,6 +234,9 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
+        # create directory for walk files
+        os.makedirs(os.path.join(self.out_dir,"files/walk"), exist_ok=True)
+
         # run prescan
         self.run_prescan(prescan_points)
 
@@ -302,7 +305,7 @@ class Scan:
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"
 
-            opt = MeanShiftOptimizer(
+            MeanShiftOptimizer(
                 scan_perc=scan_perc,
                 stop_mode=stop_mode,
                 stop_epochs=stop_epochs,
@@ -315,9 +318,9 @@ class Scan:
                 debug=debug
             ).run()
 
-            with open(self.summary_name, 'a') as scan_summary:
-                scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
-                scan_summary.write(f"Opt_{i} {' '.join([str(e) for e in opt])}\n")
+            #with open(self.summary_name, 'a') as scan_summary:
+            #    scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
+            #    scan_summary.write(f"Opt_{i} {' '.join([str(e) for e in opt])}\n")
 
         # SCAN LOGIC END HERE
 
