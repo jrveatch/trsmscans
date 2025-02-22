@@ -102,6 +102,14 @@ class MeanShiftOptimizer:
 
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
         self.details_name = f"{out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
+        self.walk_file_name = f"{out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
+
+        # initialize walk file
+        with open(self.walk_file_name, "w") as walk_file:
+            content = "xb"
+            content += "\n"
+            walk_file.write(content)
+            pass
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
@@ -201,10 +209,19 @@ class MeanShiftOptimizer:
                 print(f"reset diff  = {test_diff}")
                 print(f"posit diff  = {position_diff}\n")
 
+
+            # write step details to walk file
+            with open(self.walk_file_name, 'a') as walk_file:
+                content = f"{round_sig(np.max(xb))}"
+                # TODO: Write center and width for each parameter
+                content += "\n"
+                walk_file.write(content)
+
         self.__create_walk_file()
         #self.__generate_visualizations()
 
-        return self.__local_params.center_points()
+        return
+        #return self.__local_params.center_points()
 
     def __stop_check(self):
         """
