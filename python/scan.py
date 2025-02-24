@@ -101,16 +101,17 @@ class Scan:
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
-        self.summary_name = self.out_dir + f"scan_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
-        with open(self.summary_name, "w") as summary:
-            summary.write("xbmax")
+        self.zoom_summary_name = self.out_dir + f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
+        with open(self.zoom_summary_name, "w") as summary:
+            content = "xbmax"
             for parameter in self.global_max.par_vals.keys():
-                summary.write(f"\t{parameter}")
-            summary.write("\titer\n")
+                content += f"\t{parameter}"
+            content += "\titer\n"
+            summary.write(content)
 
         # create raw output file
-        self.tsv_summary_name = self.out_dir + f"scan_tsv_summary_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
-        with open(self.tsv_summary_name, "w"):
+        self.zoom_tsv_summary_name = self.out_dir + f"summary_zoom_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
+        with open(self.zoom_tsv_summary_name, "w"):
             pass
 
         # create details file
@@ -146,7 +147,7 @@ class Scan:
 
         # info message about prescan
         self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
-        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters")
+        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
         # print header about prescan ranges to the screen
         self.logger.info("Found the following ranges from the prescan:")
@@ -195,30 +196,32 @@ class Scan:
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
-            details.write("Prescan\n")
-            details.write("--------------------\n")
-            details.write(f"Number of prescan points = {num_prescan}\n")
-            details.write(f"Scan density = {density:.3E}\n")
-            details.write(f"Max xsec*BR = {self.global_max.format_xb()}\n")
-            details.write("--------------------\n")
+            content = "Prescan\n"
+            content += "--------------------\n"
+            content += f"Number of prescan points = {num_prescan}\n"
+            content += f"Scan density = {density:.3E}\n"
+            content += f"Max xsec*BR = {self.global_max.format_xb()}\n"
+            content += "--------------------\n"
             for parameter_name in self.params.parameter_names:
-                details.write(f"{parameter_name}:\n")
-                details.write(f"  value = {self.global_max.format_param(parameter_name)}\n")
-                details.write(f"  range = {self.params.parameter_value(parameter_name).format_range()}\n")
-            details.write("--------------------\n\n\n")
+                content += f"{parameter_name}:\n"
+                content += f"  value = {self.global_max.format_param(parameter_name)}\n"
+                content += f"  range = {self.params.parameter_value(parameter_name).format_range()}\n"
+            content += "--------------------\n\n"
+            details.write(content)
 
         # write scan results to summary file
-        with open(self.summary_name, "a") as summary:
-            summary.write(self.global_max.format_xb())
+        with open(self.zoom_summary_name, "a") as summary:
+            content = self.global_max.format_xb()
             for val in self.global_max.par_vals.values():
-                summary.write(f"\t{round_sig(val)}")
-            summary.write("\tPre\n")
+                content += f"\t{round_sig(val)}"
+            content += "\tPre\n"
+            summary.write(content)
 
         # write scan max xb tsv line to tsv summary file
-        with open(self.tsv_summary_name, "a") as tsv_summary:
+        with open(self.zoom_tsv_summary_name, "a") as tsv_summary:
             tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
 
-        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
+        self.prescan_parser.write_max_xb_line(self.zoom_tsv_summary_name)
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -454,6 +457,9 @@ if __name__ == "__main__":
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
+    
+    # get logger
+    logger = logging.getLogger()
 
     # create scan object
     myScan = Scan(model = model,
@@ -462,7 +468,7 @@ if __name__ == "__main__":
                  )
 
     if args.strategy == "zoom":
-        print("Running zoom optimization..")
+        logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     elif args.strategy == "bayes":
