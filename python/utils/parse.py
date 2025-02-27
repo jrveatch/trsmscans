@@ -41,6 +41,30 @@ class Parse:
         if file_name:
             self.read_file(file_name)
 
+    @property
+    def filtered_data(self) -> pd.DataFrame:
+        return self.data[self.__filters]
+
+    @property
+    def tsv_header(self) -> str:
+        """Header from .tsv file"""
+        return get_header_string(self.data)
+
+    @property
+    def input_parameter_arrays(self) -> Dict[str,pd.Series]:
+        """Dictionary of the parameter arrays"""
+        return self.__in_par_arrays
+
+    @property
+    def num_filtered_points(self) -> int:
+        """Number of filtered points"""
+        return len(self.filtered_data)
+
+    @property
+    def num_unfiltered_points(self) -> int:
+        """Number of unfiltered points"""
+        return len(self.data)
+    
     # load new arrays
     def read_file(self,
                   file_name: str) -> None:
@@ -70,11 +94,6 @@ class Parse:
                      model = self.__model,
                      par_vals = max_xb_par_vals)
 
-    @property
-    def tsv_header(self) -> str:
-        """Header from .tsv file"""
-        return get_header_string(self.data)
-
     # get minimum value of a parameter
     def get_min(self,
                 par_name: str) -> float:
@@ -84,11 +103,6 @@ class Parse:
     def get_max(self,
                 par_name: str) -> float:
         return self.__par_arrays[par_name].max()
-    
-    @property
-    def input_parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of the parameter arrays"""
-        return self.__in_par_arrays
 
     # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
@@ -388,16 +402,6 @@ class Parse:
         # combine all parameter arrays
         self.__par_arrays = {**self.__in_par_arrays, **self.__out_par_arrays, **self.__width_par_arrays}
 
-    @property
-    def num_filtered_points(self) -> int:
-        """Number of filtered points"""
-        return len(self.filtered_data)
-
-    @property
-    def num_unfiltered_points(self) -> int:
-        """Number of unfiltered points"""
-        return len(self.data)
-    
     # write max xb line to a .tsv file
     def write_max_xb_line(self,
                           file_name: str
@@ -414,7 +418,3 @@ class Parse:
                    header=False)
 
         return
-
-    @property
-    def filtered_data(self) -> pd.DataFrame:
-        return self.data[self.__filters]
