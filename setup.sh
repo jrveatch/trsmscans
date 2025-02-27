@@ -21,7 +21,7 @@ if [ "$CLEAN_RUN" = true ]; then
 fi
 
 # Check dependencies
-if [ "$FORCE_RUN" = true ] || [ ! -f ".deps_ok" ]; then
+if [ ! -f ".deps_ok" ] || [ "$FORCE_RUN" = true ]; then
     printf "Checking dependencies:\n"
     if ! bash scripts/check_deps.sh; then
         echo "Error: check_deps.sh failed!" >&2
@@ -32,7 +32,7 @@ else
 fi
 
 # Set user paths
-if [ "$FORCE_RUN" = true ] || [ ! -f env.sh ]; then
+if [ ! -f env.sh ] || [ "$FORCE_RUN" = true ]; then
     printf "\nSetting up user paths:\n"
     if ! bash scripts/set_user_paths.sh; then
         echo "Error: set_user_paths.sh failed!" >&2
@@ -48,7 +48,7 @@ if [ -f env.sh ]; then
 fi
 
 # Set up submodules
-if [ "$FORCE_RUN" = true ] || [ ! -f ".submodules_ok" ]; then
+if [ ! -f ".submodules_ok" ] || [ "$FORCE_RUN" = true ]; then
     printf "\nSetting up submodules:\n"
     if ! bash scripts/setup_submodules.sh; then
         echo "Error: setup_submodules.sh failed!" >&2
@@ -59,7 +59,7 @@ else
 fi
 
 # Set up python virtual environment if it doesn't exist
-if [ "$FORCE_RUN" = true ] || [ ! -d trsm_venv ]; then
+if [ ! -d trsm_venv ] || [ "$FORCE_RUN" = true ]; then
     printf "\nSetting up python virtual environment:\n"
     if ! bash scripts/setup_venv.sh; then
         echo "Error: setup_venv.sh failed!" >&2
@@ -79,7 +79,7 @@ if ! bash scripts/update_submodules.sh; then
 fi
 
 # Install ScannerS
-if [ "$FORCE_RUN" = true ] || { [ ! -d "externals/ScannerS/build" ] && [ -z "$SCANNERS_PATH" ]; }; then
+if { [ ! -d "externals/ScannerS/build" ] && [ -z "$SCANNERS_PATH" ]; } || [ "$FORCE_RUN" = true ]; then
     if ! bash scripts/compile_scanners.sh; then
         echo "Error: compile_scanners.sh failed!" >&2
         return 1
@@ -89,7 +89,7 @@ else
 fi
 
 # Install HiggsTools
-if [ "$FORCE_RUN" = true ] || { [ ! -d "externals/higgstools/_skbuild" ] && [ -z "$HIGGSTOOLS_PATH" ]; }; then
+if ! python -c "import Higgs" 2>/dev/null || [ "$FORCE_RUN" = true ]; then
     if ! bash scripts/compile_higgstools.sh; then
         echo "Error: compile_higgstools.sh failed!" >&2
         return 1
