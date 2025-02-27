@@ -89,7 +89,7 @@ else
 fi
 
 # Install HiggsTools
-if [ "$FORCE_RUN" = true ] || { [ ! -d "externals/higgstools/_skbuild" ] && [ -z "$HIGGSTOOLS_PATH" ]; }; then
+if [ "$FORCE_RUN" = true ] || ! python -c "import Higgs" 2>/dev/null; then
     if ! bash scripts/compile_higgstools.sh; then
         echo "Error: compile_higgstools.sh failed!" >&2
         return 1
