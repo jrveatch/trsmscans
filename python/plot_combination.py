@@ -45,7 +45,6 @@ def plot_combination(model:str,
     output_filename  = f'{output_directory}/{decay}_{identifier}_combination.png'
     os.makedirs(output_directory, exist_ok=True)
     fig.savefig(output_filename)
-    #plt.show()
 
 if __name__ =="__main__":
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
