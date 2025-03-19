@@ -42,15 +42,15 @@ class PlotTester:
         # Create plot output directory
         self.output_dir = file_utils.plots_dir(model=self.model, 
                                                decay=self.decay)
-        self.output_dir += "prescan_subsets" # Add a new directory to hold the prescan plots apart from the scan plots
+        self.output_dir += "prescan_subsets/" # Add a new directory to hold the prescan plots apart from the scan plots
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Parse ini files and store ranges
         self.ini_ranges = self.parse_ini_files(self.ini_dir)
 
-        self.load_data()
+        self.load_prescan_data()
         self.filter_data()
-        #self.plot_data()
+        self.plot_data()
 
     def parse_ini_files(self, directory):
         ranges_dict = {}  # Dictionary to store ranges for each file
@@ -59,10 +59,10 @@ class PlotTester:
           # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
         # Sort the files (this can be sorted based on filename, date, etc.)
-        sorted_ini_files = sorted(ini_files)
+        self.sorted_ini_files = sorted(ini_files)
 
         # Loop through all .ini files in the directory
-        for file_name in sorted_ini_files:
+        for file_name in self.sorted_ini_files:
                 file_path = os.path.join(directory, file_name)
                 config = configparser.ConfigParser()
                 config.read(file_path)
@@ -90,7 +90,7 @@ class PlotTester:
 
         return ranges_dict
     
-    def load_data(self):
+    def load_prescan_data(self):
         #Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
         
@@ -117,7 +117,7 @@ class PlotTester:
             "vx": "vx"
         }
 
-        print(f'original:\n {self.panda_df}')
+        #print(f'original:\n {self.panda_df}')
 
         self.filtered_files = {}
 
@@ -131,63 +131,27 @@ class PlotTester:
             # Store the filtered DataFrame under the filename key
             self.filtered_files[file] = filtered_df
 
-        print(self.filtered_files)
+      #  print(self.filtered_files)
+
+        self.load_data(self.filtered_files)
             
-        '''for file, ranges in self.ini_ranges.items():
-            #print(f'{file}:, {ranges}')
-            for param, (min_val, max_val) in ranges.items():
+    def load_data(self, dictionary):
 
-                par_name = param_mapping.get(param)
-                filtered_df = filtered_df[(filtered_df[par_name]>min_val) & (filtered_df[par_name]<max_val)]'''
-
-                #print(f'-------------\n{param}: {min_val}_{max_val}')
-
-
-        '''for file, ranges in self.ini_ranges.items():
-            for ini_param, (min_val, max_val) in ranges.items():
-                df_column = param_mapping.get(ini_param)  # Get the corresponding DataFrame column
-
-               # print(df_column)
-
-                filtered_values = [df_column for df_column in df['values'] if min_val <= x <= max_val]
-
-                if df_column and df_column in filtered_df.columns:
-                    # Apply filtering if the column exists in self.panda_df
-
-                   # print(f' {file} {filtered_df[df_column]}')
-
-                    
-                    filtered_df = filtered_df[
-                        (filtered_df[df_column] >= min_val) & (filtered_df[df_column] <= max_val)
-                    ]
-                else:
-                    self.logger.warning(f"Skipping filtering for {ini_param}, no matching column in DataFrame.")
-
-        self.filtered_df = filtered_df
-        self.logger.info(f"Filtered data contains {self.filtered_df.shape[0]} points.")
-        '''
-
-    def sort_by_param(self):
+        self.pars = ['thetahS','thetahX','thetaSX','vs','vx']
 
         # Dictionary to store parameters together
-        all_params = defaultdict(list)
+        self.all_params = defaultdict(list)
 
         # Loop through ini_ranges and collect all parameter values together
-        for file, ranges in self.ini_ranges.items():
-            for param, range_vals in ranges.items():
-                all_params[param].append(range_vals)
+        for file, df in dictionary.items():
+
+            for param in self.pars:
+                self.all_params[param].append(df[param].values.tolist())
 
         # Convert defaultdict back to a regular dict
-        all_params = dict(all_params)
+        self.all_params = dict(self.all_params)
 
-        # Print the collected parameters
-        for param, values in all_params.items():
-            print(f"{param}: {values}")
-
-        return all_params
-
-
-    def plot_data(self):
+    '''def plot_data(self):
         """Generate scatter plots for all unique parameter pairs."""
         if self.filtered_df.empty:
             self.logger.warning("No data to plot.")
@@ -210,10 +174,133 @@ class PlotTester:
             plt.savefig(plot_path)
             plt.close()
 
-            self.logger.info(f"Saved plot: {plot_path}")
+            self.logger.info(f"Saved plot: {plot_path}")'''
 
+    def plot_data(self) -> None:
 
-'''    
+        # Print info to screen
+        print("Making scan plots for",self.model.name,self.decay,self.model.mass_string)
+
+        num_files = len(self.sorted_ini_files)
+
+        # Set the start and end colors by random RGB values
+        start_rgb, end_rgb = self.select_colors()
+
+        for i in range(len(self.pars)-1):
+
+            var1_name = self.pars[i]
+            var1 = self.all_params[var1_name]
+
+            print(var1_name)
+          #  print(var1)
+            print(len(var1[i]))
+
+            for j in range(i+1, len(self.pars)):
+
+                var2_name = self.pars[j]
+                var2 = self.all_params[var2_name]
+
+                op = (0.8/num_files)
+                opacity = op + 0.19
+
+                plt.figure()
+
+                for r, (v1, v2) in enumerate(zip(var1, var2)):
+
+                    t = r/num_files
+                    color = [start_rgb[c] + t * (end_rgb[c]-start_rgb[c]) for c in range(3)]
+
+                    # Plot the variables by file
+                    plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
+
+                    # Adjust the opacity
+                    opacity += op 
+
+                # Reset opacity for star points
+                opacity = op
+                opacity += 0.19
+        # Initialize scatter plot labels
+                plt.title(f"{var1_name} vs {var2_name}")
+                plt.xlabel(f"{var1_name}")
+                plt.ylabel(f"{var2_name}")
+
+                # Save the figure as a .png
+                plt.savefig(self.output_dir + f"scan_{var1_name}_vs_{var2_name}.png")
+
+                # Close the figure
+                plt.close()
+
+        return
+
+                
+
+        '''# Iterate through the list of all variables to plot each variable combination from each file
+        for v in range(self.num_vars-1):
+
+            # Get the first variable 2D-list from the all variable list
+            var1 = self.var_lists[self.var_names[v]]
+            
+            for j in range(v+1, self.num_vars):
+
+                # Get the second variable 2D-List from the all variable list
+                var2 = self.var_lists[self.var_names[j]]
+
+                # Set the opacity to be between values 0.19 and 1 depending on the number of files
+                op = (0.8 / self.num_files)
+                opacity = op + 0.19
+
+                # Create a new scatter figure
+                plt.figure()
+
+                # Iterate through both variable 2D-Lists to plot the info from each file
+                for i in range(len(self.var_lists['xb'])):
+
+                    # Decipher the color used for the scatter plot
+                    t = i / self.num_files
+                    color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
+
+                    # Plot the variables by file
+                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
+
+                    # Adjust the opacity
+                    opacity += op 
+
+                # Reset opacity for star points
+                opacity = op
+                opacity += 0.19
+
+                for q in range(len(self.var_lists['xb'])):
+
+                    # Initialize both variables to be retrieved from the Point
+                    variable1 = self.var_names[v]
+                    variable2 = self.var_names[j]
+
+                    # Get and store the max points for each variable
+                    point1 = self.max_point_list[q].get_val(variable1)
+                    point2 = self.max_point_list[q].get_val(variable2)
+
+                    # Plot the max point from the scatter plot [star]
+                    if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
+                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
+                    else: #If point is maximum point plot as a bigger star
+                        plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
+
+                    # Adjust the opacity
+                    opacity += op
+
+                # Initialize scatter plot labels
+                plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
+                plt.xlabel(f"{self.var_names[v]}")
+                plt.ylabel(f"{self.var_names[j]}")
+
+                # Save the figure as a .png
+                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
+
+                # Close the figure
+                plt.close()
+
+        return
+  
 # Plot the maximum xb in 2D bins for every parameter pair
     def make_scan_plots(self) -> None:
 
@@ -295,7 +382,8 @@ class PlotTester:
                 plt.close()
 
         return
-   
+   '''
+
     # Function that defines colors to plot using random RGB values
     def select_colors(self):
 
@@ -305,7 +393,8 @@ class PlotTester:
 
         # Return the values to call
         return color1, color2
-    
+
+    '''
     def load_prescan(self):
 
         # Retrieve the variable names for the model
