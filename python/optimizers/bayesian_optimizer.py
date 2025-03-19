@@ -35,7 +35,10 @@ class BayesianOptimizer:
         low_dict = {'thetaHS': tHS, 'thetaHX': tHX, 'thetaSX': tSX, 'vs': vs, 'vx': vx}
         params.update_low_high(low_dict, low_dict)
         point_sampler = PointSampler(out_dir, self.config_loader)
-        parser = point_sampler.sample_points(params=params, identifier='', num_points_requested=1, good_points_only=False)
+        try:
+            parser = point_sampler.sample_single_point(params=params, identifier='', good_points_only=False)
+        except TimeoutError:
+            return 0
         max_xb_point = parser.get_max_xb_point()
         return max_xb_point.xb
 
@@ -44,8 +47,11 @@ class BayesianOptimizer:
         optimizer = BayesianOptimization(
             f=self.point_getter, # function that returns a point
             pbounds=self.ranges, # ranges of each parameter
-            verbose=0 # verbose=1 gives message when new max found, verbose=2 gives messages at each point
+            verbose=2 # verbose=1 gives message when new max found, verbose=2 gives messages at each point
         )
+
+        print("random_point: " + str(self.random_point))
+        print("n_iter: " + str(self.n_points))
 
         optimizer.maximize(
             init_points=self.random_point,
