@@ -29,8 +29,8 @@ def scan_mass_list(model: str,
         arg_list = [
             "-m", model,
             "-d", decay_mode,
-            "-X", XMass,
-            "-S", SMass,
+            "-X", str(XMass),
+            "-S", str(SMass),
             "-s", "zoom",
             "-n", "10000"
         ]
