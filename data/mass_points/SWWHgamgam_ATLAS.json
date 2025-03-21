@@ -1,0 +1,150 @@
+{
+    "collaboration": "ATLAS",
+    "arxiv": "2405.20926",
+    "doi": "10.1007/JHEP10(2024)104",
+    "year": 2024,
+    "sqrt_s": 13.0,
+    "decay_channel": "X->S(WW)H(gamgam)",
+    "mass_points": [
+        {
+            "mX": 300,
+            "mS": 170,
+            "expected_limit": 579,
+            "observed_limit": 546,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 170,
+            "expected_limit": 518,
+            "observed_limit": 448,
+            "resolvable": true
+        },
+        {
+            "mX": 400,
+            "mS": 200,
+            "expected_limit": 620,
+            "observed_limit": 505,
+            "resolvable": true
+        },
+        {
+            "mX": 500,
+            "mS": 170,
+            "expected_limit": 331,
+            "observed_limit": 327,
+            "resolvable": true
+        },
+        {
+            "mX": 500,
+            "mS": 200,
+            "expected_limit": 371,
+            "observed_limit": 374,
+            "resolvable": true
+        },
+        {
+            "mX": 500,
+            "mS": 300,
+            "expected_limit": 453,
+            "observed_limit": 436,
+            "resolvable": true
+        },
+        {
+            "mX": 600,
+            "mS": 170,
+            "expected_limit": 282,
+            "observed_limit": 280,
+            "resolvable": true
+        },
+        {
+            "mX": 600,
+            "mS": 200,
+            "expected_limit": 261,
+            "observed_limit": 216,
+            "resolvable": true
+        },
+        {
+            "mX": 600,
+            "mS": 300,
+            "expected_limit": 284,
+            "observed_limit": 185,
+            "resolvable": true
+        },
+        {
+            "mX": 600,
+            "mS": 400,
+            "expected_limit": 361,
+            "observed_limit": 350,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 170,
+            "expected_limit": 233,
+            "observed_limit": 196,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 200,
+            "expected_limit": 203,
+            "observed_limit": 162,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 300,
+            "expected_limit": 211,
+            "observed_limit": 144,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 400,
+            "expected_limit": 196,
+            "observed_limit": 151,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 500,
+            "expected_limit": 267,
+            "observed_limit": 220,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 170,
+            "expected_limit": 163,
+            "observed_limit": 149,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 200,
+            "expected_limit": 128,
+            "observed_limit": 106,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 300,
+            "expected_limit": 122,
+            "observed_limit": 96,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 400,
+            "expected_limit": 124,
+            "observed_limit": 103,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 500,
+            "expected_limit": 141,
+            "observed_limit": 121,
+            "resolvable": true
+        }
+    ]
+}
