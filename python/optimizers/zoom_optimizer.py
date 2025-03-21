@@ -108,10 +108,17 @@ class ZoomOptimizer:
             self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
             self.num_points = self.min_points_per_iteration
 
-        # Create scan_parser using the point_sampler class
-        self.scan_parser = self.point_sampler.sample_points(params = self.params,
-                                                            num_points_requested = self.num_points,
-                                                            identifier = identifier)
+        # create scan_parser using the point_sampler class
+        try:
+            self.scan_parser = self.point_sampler.sample_points(params = self.params,
+                                                                num_points_requested = self.num_points,
+                                                                identifier = identifier)
+        # if point sampling times out, kill optimizer but don't throw error
+        except TimeoutError:
+            self.is_running = False
+            self.termination_message("No output detected")
+            self.termination_message("Terminating zoom optimizer")
+            return
         
         # get new point as the maximum from the current scan
         new_max = self.scan_parser.get_max_xb_point(self.decay)
@@ -168,11 +175,8 @@ class ZoomOptimizer:
                 # if point is less than 2nd highest point, end scan
                 if new_max < sorted_history[-2]:
                     self.is_running = False
-                    self.logger.info("Local max is not increasing")
-                    self.logger.info("Terminating zoom optimizer")
-                    with open(self.details_name,"a") as details:
-                        details.write("Local max is not increasing\n")
-                        details.write("Terminating zoom optimizer\n")
+                    self.termination_message("Local max is not increasing")
+                    self.termination_message("Terminating zoom optimizer")
 
         # store history of local max of xb
         self.local_history.append(new_max)
