@@ -1,0 +1,1339 @@
+{
+    "associated_files": [
+      {
+        "alt_location": "/opt/hepdata/var/data/08/141076/1690216940/SHvvditau_HEPData/SHvvditau_HEPData/tab_05.png",
+        "description": "Image file",
+        "id": 3342992,
+        "preview_location": "/record/resource/3342993?view=true",
+        "type": "png"
+      }
+    ],
+    "description": "Summary of observed and expected 95\\% CL upper limits on the production cross-section of $\\sigma(pp\\to X\\to SH)$ in fb in the combination of $WW$+$ZZ$, and in the $WW$ and $ZZ$ individual channels. The best expected limit is set to 85 fb for $m_{X}$ = 1250 GeV and $_{S}$ = 300 GeV. The combination limits gain about 26--53% over the best individual limit from the $WW1\\ell2\\tau_{\\mathrm{had}}$ channel.",
+    "doi": "10.17182/hepdata.141076.v1/t6",
+    "headers": [
+      {
+        "colspan": 1,
+        "name": "$m_X$, $m_S$ [GeV]"
+      },
+      {
+        "colspan": 1,
+        "name": "Observed limits on $\\sigma(pp\\to X\\to SH)$ [fb]"
+      },
+      {
+        "colspan": 1,
+        "name": "Expected limits on $\\sigma(pp\\to X\\to SH)$ [fb]"
+      },
+      {
+        "colspan": 1,
+        "name": "Observed limits on $\\sigma(X\\to SH\\to WW\\tau\\tau)$ [fb]"
+      },
+      {
+        "colspan": 1,
+        "name": "Expected limits on $\\sigma(X\\to SH\\to WW\\tau\\tau)$ [fb]"
+      },
+      {
+        "colspan": 1,
+        "name": "Observed limits on $\\sigma(X\\to SH\\to ZZ\\tau\\tau)$ [fb]"
+      },
+      {
+        "colspan": 1,
+        "name": "Expected limits on $\\sigma(X\\to SH\\to ZZ\\tau\\tau)$ [fb]"
+      }
+    ],
+    "keywords": {
+      "cmenergies": [
+        "13000.0"
+      ],
+      "phrases": [
+        "heavy scalar X --\u003E SH"
+      ],
+      "reactions": [
+        "P P --\u003E X --\u003E SH"
+      ]
+    },
+    "location": "Data from Table 5",
+    "name": "Table 6",
+    "qualifier_order": [
+      "Limits on"
+    ],
+    "qualifiers": {
+      "Limits on": [
+        {
+          "colspan": 6,
+          "group": 0,
+          "type": "Limits on",
+          "value": "$\\sigma(X\\to SH\\to VV\\tau\\tau)$"
+        }
+      ]
+    },
+    "related_tables": [],
+    "related_to_this": [],
+    "resources": [
+      {
+        "description": "Image file",
+        "type": "png",
+        "url": "https://www.hepdata.net/record/resource/3342992?landing_page=true"
+      },
+      {
+        "description": "Thumbnail image file",
+        "type": "png",
+        "url": "https://www.hepdata.net/record/resource/3342993?landing_page=true"
+      }
+    ],
+    "review": {
+      "messages": false,
+      "review_flag": "passed"
+    },
+    "size": 4390,
+    "size_check": true,
+    "table_license": {
+      "description": "CC0 enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, with no conditions.",
+      "name": "CC0",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+    },
+    "values": [
+      {
+        "x": [
+          {
+            "value": "500, 200"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "400"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "391$^{+170}_{-110}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "19"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "18$^{+8}_{-5}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "27"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "28$^{+13}_{-8}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "750, 200"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "182"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "168$^{+74}_{-47}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "8.8"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "8$^{+3.5}_{-2}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "14"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "16$^{+7}_{-4}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1000, 200"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "110"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "110$^{+49}_{-31}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "5.3"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "12"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "13$^{+6}_{-4}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1250, 200"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "112"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "100$^{+46}_{-28}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "5.4"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "12"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "13$^{+6}_{-4}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1500, 200"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "131"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "132$^{+62}_{-37}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "6.4"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "6$^{+3}_{-2}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "14"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "18$^{+9}_{-5}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "500, 300"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "538"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "672$^{+290}_{-190}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "26"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "31$^{+13}_{-9}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "33"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "42$^{+19}_{-12}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "750, 300"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "115"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "192$^{+83}_{-54}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "5.3"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "9$^{+4}_{-2}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "11"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "13$^{+6}_{-4}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1000, 300"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "88.6"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "108$^{+48}_{-30}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "4.3"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "6.3"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "8$^{+4}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1250, 300"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "82.6"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "85$^{+38}_{-24}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "3.6"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "4$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "8.4"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "8$^{+4}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1500, 300"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "85.4"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "107$^{+49}_{-30}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "3.7"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "10"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "10$^{+5}_{-3}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "750, 400"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "202"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "245$^{+107}_{-68}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "8.4"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "10$^{+4}_{-3}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "10"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "14$^{+6}_{-4}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1000, 400"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "101"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "139$^{+62}_{-39}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "4.2"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1.5}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "6"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "8$^{+4}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1250, 400"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "71.7"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "103$^{+46}_{-29}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "2.8"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "4$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "6"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "6.5$^{+3}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1500, 400"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "85.1"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "116$^{+53}_{-32}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "3.1"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "4.5$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "8.9"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "8$^{+4}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "750, 500"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "387"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "312$^{+135}_{-87}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "16"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "11$^{+5}_{-3}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "13"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "16$^{+8}_{-4.5}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1000, 500"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "138"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "147$^{+65}_{-41}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "5.5"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "5$^{+2}_{-1.5}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "6.5"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "9$^{+4}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1250, 500"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "77"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "105$^{+47}_{-29}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "2.8"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "4$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "6.2"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "7$^{+3}_{-2}$"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1500, 500"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "85.9"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 1,
+            "value": "109$^{+50}_{-31}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 2,
+            "value": "3.0"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 3,
+            "value": "4$^{+2}_{-1}$"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 4,
+            "value": "8"
+          },
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 5,
+            "value": "8$^{+4}_{-2}$"
+          }
+        ]
+      }
+    ],
+    "x_count": 1
+  }
