@@ -155,11 +155,8 @@ class ZoomOptimizer:
         # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            self.logger.info("Local max is consistently less than half of global max")
-            self.logger.info("Terminating zoom optimizer")
-            with open(self.details_name,"a") as details:
-                details.write("Local max is consistently less than half of global max\n")
-                details.write("Terminating zoom optimizer\n")
+            self.termination_message("Local max is consistently less than half of global max")
+            self.termination_message("Terminating zoom optimizer")
         
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
@@ -172,11 +169,8 @@ class ZoomOptimizer:
                     self.local_xb_fail += 1
                     if self.local_xb_fail >= 2:
                         self.is_running = False
-                        self.logger.info("Local max is increasing by less than 5%")
-                        self.logger.info("Terminating zoom optimizer")
-                        with open(self.details_name,"a") as details:
-                            details.write("Local max is increasing by less than 5%\n")
-                            details.write("Terminating zoom optimizer\n")
+                        self.termination_message("Local max is increasing by less than 5%")
+                        self.termination_message("Terminating zoom optimizer")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
@@ -209,9 +203,7 @@ class ZoomOptimizer:
         iter_time = iter_end - iter_start
 
         # record iteration time to screen
-        self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
-        with open(self.details_name,"a") as details:
-            details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n")
+        self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
             
         return new_max
 
@@ -257,6 +249,12 @@ class ZoomOptimizer:
                     content += f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n"
             content += "--------------------\n"
             details.write(content)
+
+    # print and write termination message
+    def termination_message(self, message: str) -> None:
+        self.logger.info(message)
+        with open(self.details_name,"a") as details:
+            details.write(message+"\n")
 
     # check if a new global max has been found
     def is_new_global_max(self,
