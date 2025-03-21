@@ -1,0 +1,371 @@
+{
+    "associated_files": [
+      {
+        "alt_location": "/opt/hepdata/var/data/c1/142396/1694789566/HIG-21-011/HIG-21-011/Figure_007.png",
+        "description": "Image file",
+        "id": 3402512,
+        "preview_location": "/record/resource/3402513?view=true",
+        "type": "png"
+      }
+    ],
+    "description": "Expected and observed 95% upper limits on the product of the production cross section and the branching fraction for a spin-0 resonance $X\\rightarrow HY\\rightarrow \\gamma\\gamma bb$, as a function of Y mass, for X mass = 600 GeV. The $\\pm1$ and $\\pm2$ $\\sigma$ uncertainty bands are given in addition to the expected median value. Numerical values provided in this table correspond to Figure 7 of the publication.",
+    "doi": "10.17182/hepdata.142396.v1/t9",
+    "headers": [
+      {
+        "colspan": 1,
+        "name": "Y mass [GeV]"
+      },
+      {
+        "colspan": 2,
+        "name": "95% CL limit on $\\sigma(pp\\rightarrow X)B(X\\rightarrow HY\\rightarrow\\gamma\\gamma bb)$ for mass X = 600 GeV [fb]"
+      }
+    ],
+    "keywords": {
+      "observables": [
+        "cross-section"
+      ],
+      "reactions": [
+        "P P --\u003E X --\u003E H Y --\u003E GAMMA GAMMA BQ BQ"
+      ]
+    },
+    "location": "Data from Figure 7, located on page 15.",
+    "name": "Figure 7 (X mass = 600 GeV)",
+    "qualifier_order": [
+      "SQRT(S)",
+      "LUMINOSITY",
+      "Limit"
+    ],
+    "qualifiers": {
+      "LUMINOSITY": [
+        {
+          "colspan": 2,
+          "group": 0,
+          "type": "LUMINOSITY",
+          "value": "138 fb$^{-1}$"
+        }
+      ],
+      "Limit": [
+        {
+          "colspan": 1,
+          "group": 0,
+          "type": "Limit",
+          "value": "Observed"
+        },
+        {
+          "colspan": 1,
+          "group": 1,
+          "type": "Limit",
+          "value": "Expected"
+        }
+      ],
+      "SQRT(S)": [
+        {
+          "colspan": 2,
+          "group": 0,
+          "type": "SQRT(S)",
+          "value": "13 TeV"
+        }
+      ]
+    },
+    "related_tables": [],
+    "related_to_this": [],
+    "resources": [
+      {
+        "description": "Image file",
+        "type": "png",
+        "url": "https://www.hepdata.net/record/resource/3402512?landing_page=true"
+      },
+      {
+        "description": "Thumbnail image file",
+        "type": "png",
+        "url": "https://www.hepdata.net/record/resource/3402513?landing_page=true"
+      }
+    ],
+    "review": {
+      "messages": false,
+      "review_flag": "passed"
+    },
+    "size": 2346,
+    "size_check": true,
+    "table_license": {
+      "description": "CC0 enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, with no conditions.",
+      "name": "CC0",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+    },
+    "values": [
+      {
+        "x": [
+          {
+            "value": "90.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.15377"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.068271",
+                  "plus": "0.1189"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.10529",
+                  "plus": "0.29508"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.17969"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "100.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.26094"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.065897",
+                  "plus": "0.11351"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.10162",
+                  "plus": "0.28019"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.17578"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "150.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.21085"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.051985",
+                  "plus": "0.08844"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.08017",
+                  "plus": "0.21765"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.13867"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "200.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.12964"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.046204",
+                  "plus": "0.07823"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.071686",
+                  "plus": "0.19047"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.12744"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "250.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.088905"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.045954",
+                  "plus": "0.076782"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.071733",
+                  "plus": "0.18536"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.12842"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "300.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.3524"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.050977",
+                  "plus": "0.08468"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.079575",
+                  "plus": "0.20243"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.14551"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "400.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.27351"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.079589",
+                  "plus": "0.13045"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.12424",
+                  "plus": "0.30837"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.23047"
+          }
+        ]
+      }
+    ],
+    "x_count": 1
+  }
