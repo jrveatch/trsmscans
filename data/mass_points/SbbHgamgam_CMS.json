@@ -1,8 +1,8 @@
 {
     "collaboration": "CMS",
     "arxiv": "2310.01643",
-    "doi": "10.1007/JHEP05%282024%29316",
-    "year": 2024,
+    "doi": "10.1007/JHEP05(2024)316",
+    "year": 2023,
     "sqrt_s": 13.0,
     "decay_channel": "X->S(bb)H(gamgam)",
     "mass_points": [
