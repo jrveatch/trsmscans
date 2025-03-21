@@ -33,6 +33,31 @@ class PointSampler:
         self.config_loader = config_loader
         self.efficiency = 1.0
 
+    @property
+    def nwidth(self) -> int:
+        """Number of points passing width check"""
+        return self.__nwidth
+
+    @property
+    def nbounds(self) -> int:
+        """Number of points passing bounds check"""
+        return self.__nbounds
+
+    @property
+    def nsignals(self) -> int:
+        """Number of points passing signals check"""
+        return self.__nsignals
+
+    @property
+    def npass(self) -> int:
+        """Number of points passing all checks"""
+        return self.__npass
+
+    @property
+    def total_points_run(self) -> int:
+        """Number of points that have been run"""
+        return self.curr_points_run
+
     # Method to sample a number of points
     def sample_points(self,
                       params: Params,
@@ -143,31 +168,6 @@ class PointSampler:
         self.parser.read_file(file_name=tsv_name)
 
         return self.parser
-
-    @property
-    def nwidth(self) -> int:
-        """Number of points passing width check"""
-        return self.__nwidth
-
-    @property
-    def nbounds(self) -> int:
-        """Number of points passing bounds check"""
-        return self.__nbounds
-
-    @property
-    def nsignals(self) -> int:
-        """Number of points passing signals check"""
-        return self.__nsignals
-
-    @property
-    def npass(self) -> int:
-        """Number of points passing all checks"""
-        return self.__npass
-
-    @property
-    def total_points_run(self) -> int:
-        """Number of points that have been run"""
-        return self.curr_points_run
 
 if __name__ == "__main__":
     pass

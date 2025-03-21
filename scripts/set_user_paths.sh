@@ -101,6 +101,11 @@ submodule_path() {
 
         # Check if the path exists
         if [ -d "$abs_path" ]; then
+            # Check to make sure ScannerS/build exists
+            if [ "$var_name" = "SCANNERS_PATH" ] && [ ! -d "$abs_path/build" ]; then
+                printf "Error: The directory '%s/build' does not exist. Ensure ScannerS is properly compiled before proceeding.\n" "$abs_path"
+                continue  # Prompt user again
+            fi
             break  # Valid path, exit loop
         else
             printf "Error: The path '$user_input' ($abs_path) does not exist. Please enter a valid path.\n"
@@ -180,11 +185,13 @@ echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
 echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
 
 # Ensure SCANNERS_PATH is set correctly
-if [ -n "$SCANNERS_PATH" ]; then
+if [ -n "${SCANNERS_PATH:-}" ] && [ -d "$SCANNERS_PATH/build" ]; then
     scanners_bin_path="$SCANNERS_PATH/build"
 else
     scanners_bin_path="$PWD/externals/ScannerS/build"
 fi
 
 # Append the new PATH setting to env.sh
-echo "export PATH=$scanners_bin_path:\$PATH" >> env.sh
+echo 'if [[ ":$PATH:" != *":'"$scanners_bin_path"':"* ]]; then' >> env.sh
+echo '    export PATH='"$scanners_bin_path"':$PATH' >> env.sh
+echo 'fi' >> env.sh
