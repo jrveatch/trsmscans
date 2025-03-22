@@ -1,0 +1,136 @@
+{
+    "collaboration": "ATLAS",
+    "arxiv": "2307.11120",
+    "doi": "10.1007/JHEP10(2023)009",
+    "year": 2023,
+    "sqrt_s": 13.0,
+    "decay_channel": "X->S(VV)H(tautau)",
+    "mass_points": [
+        {
+            "mX": 500,
+            "mS": 200,
+            "expected_limit": 0.391,
+            "observed_limit": 0.400,
+            "resolvable": true
+        },
+        {
+            "mX": 500,
+            "mS": 300,
+            "expected_limit": 0.672,
+            "observed_limit": 0.538,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 200,
+            "expected_limit": 0.168,
+            "observed_limit": 0.182,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 300,
+            "expected_limit": 0.192,
+            "observed_limit": 0.115,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 400,
+            "expected_limit": 0.245,
+            "observed_limit": 0.202,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 500,
+            "expected_limit": 0.312,
+            "observed_limit": 0.387,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 200,
+            "expected_limit": 0.110,
+            "observed_limit": 0.110,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 300,
+            "expected_limit": 0.108,
+            "observed_limit": 0.0886,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 400,
+            "expected_limit": 0.139,
+            "observed_limit": 0.101,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 500,
+            "expected_limit": 0.147,
+            "observed_limit": 0.138,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 200,
+            "expected_limit": 0.100,
+            "observed_limit": 0.112,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 300,
+            "expected_limit": 0.085,
+            "observed_limit": 0.0826,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 400,
+            "expected_limit": 0.103,
+            "observed_limit": 0.0717,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 500,
+            "expected_limit": 0.105,
+            "observed_limit": 0.077,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 200,
+            "expected_limit": 0.132,
+            "observed_limit": 0.131,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 300,
+            "expected_limit": 0.107,
+            "observed_limit": 0.0854,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 400,
+            "expected_limit": 0.116,
+            "observed_limit": 0.0851,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 500,
+            "expected_limit": 0.109,
+            "observed_limit": 0.0859,
+            "resolvable": true
+        }
+    ]
+}
