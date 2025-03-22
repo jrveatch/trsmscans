@@ -10,8 +10,12 @@ set -o pipefail
 
 # Check if a C++17-compatible compiler is available
 check_cxx17_support() {
-  # Create a temporary C++ file to test compilation with -std=c++17
-  cat > /tmp/test_cxx17.cpp <<EOF
+
+  # Create a temporary C++ file using mktemp
+  TMP_CXX=$(mktemp /tmp/test_cxx17.XXXXXX.cpp)
+  TMP_EXE=$(mktemp /tmp/test_cxx17.XXXXXX)  # Temporary executable file
+
+  cat > "$TMP_CXX" <<EOF
 #include <iostream>
 int main() {
     std::cout << "C++17 is supported!" << std::endl;
@@ -23,17 +27,17 @@ EOF
   for compiler in g++ clang++ c++ icpc pgc++; do
     if command -v "$compiler" >/dev/null 2>&1; then
       # Try compiling the file with the C++17 flag
-      if $compiler -std=c++17 /tmp/test_cxx17.cpp -o /tmp/test_cxx17 2>/dev/null; then
-        echo Installed version of "$compiler supports C++17!"
-        rm -f /tmp/test_cxx17.cpp /tmp/test_cxx17
+      if $compiler -std=c++17 "$TMP_CXX" -o "$TMP_EXE" 2>/dev/null; then
+        printf "Installed version of $compiler supports C++17!\n"
+        rm -f "$TMP_CXX" "$TMP_EXE"
         return 0
       fi
     fi
   done
 
   # If no compiler worked, return error
-  echo "No C++17-compatible compiler found."
-  rm -f /tmp/test_cxx17.cpp
+  printf "No C++17-compatible compiler found.\n"
+  rm -f "$TMP_CXX"
   return 1
 }
 
@@ -43,31 +47,34 @@ EOF
 
 # Check if a Fortran compiler is available and can compile
 check_fortran_support() {
-  # Create a temporary Fortran file to test compilation
-  cat > /tmp/test_fortran.f90 <<EOF
+
+  # Create temporary Fortran source and executable files
+  TMP_F90=$(mktemp /tmp/test_fortran.XXXXXX.f90)
+  TMP_EXE=$(mktemp /tmp/test_fortran.XXXXXX)
+
+  cat > "$TMP_F90" <<EOF
 program test_fortran
   print *, 'Fortran is supported!'
 end program test_fortran
 EOF
 
   # Try compiling the Fortran file with gfortran, ifort, or flang
-  for compiler in gfortran ifort flang; do
+  for compiler in gfortran ifort flang lfortran nvfortran; do
     if command -v "$compiler" >/dev/null 2>&1; then
-
       # Try compiling the file
-      if $compiler /tmp/test_fortran.f90 -o /tmp/test_fortran 2>/dev/null; then
-        echo Installed version of "$compiler can compile Fortran!"
-        rm -f /tmp/test_fortran.f90 /tmp/test_fortran
+      if $compiler "$TMP_F90" -o "$TMP_EXE" 2>/dev/null; then
+        printf "Installed version of $compiler can compile Fortran!\n"
+        rm -f "$TMP_F90" "$TMP_EXE"
         return 0
       else
-        echo "$compiler failed to compile Fortran code."
+        printf "$compiler failed to compile Fortran code.\n"
       fi
     fi
   done
 
   # If no Fortran compiler worked, exit with error
-  echo "No Fortran compiler found or failed to compile."
-  rm -f /tmp/test_fortran.f90
+  printf "No Fortran compiler found or failed to compile.\n"
+  rm -f "$TMP_F90"
   return 1
 }
 
@@ -79,7 +86,7 @@ EOF
 check_clang_version() {
   # Check if clang is installed
   if ! command -v clang &>/dev/null; then
-    echo "Error: clang is not installed."
+    printf "Error: clang is not installed.\n"
     return 1
   fi
 
@@ -93,10 +100,10 @@ check_clang_version() {
 
     # Apple Clang 7+ corresponds to LLVM Clang 5+
     if [[ "$APPLE_CLANG_VERSION" -ge 7 ]]; then
-      echo "Apple clang version $APPLE_CLANG_VERSION detected, which is sufficient."
+      printf "Apple clang version $APPLE_CLANG_VERSION detected, which is sufficient.\n"
       return 0
     else
-      echo "Error: Apple clang version $APPLE_CLANG_VERSION is too old. Version 7 or higher is required."
+      printf "Error: Apple clang version $APPLE_CLANG_VERSION is too old. Version 7 or higher is required.\n"
       return 1
     fi
   else
@@ -105,10 +112,10 @@ check_clang_version() {
 
     # Check if version is >= 5
     if [[ "$CLANG_VERSION" -ge 5 ]]; then
-      echo "clang version $CLANG_VERSION is installed and meets the requirement."
+      printf "clang version $CLANG_VERSION is installed and meets the requirement.\n"
       return 0
     else
-      echo "Error: clang version $CLANG_VERSION is too old. Version 5 or higher is required."
+      printf "Error: clang version $CLANG_VERSION is too old. Version 5 or higher is required.\n"
       return 1
     fi
   fi

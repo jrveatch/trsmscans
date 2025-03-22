@@ -7,6 +7,9 @@ from typing import Dict, List
 # third-party libraries
 import yaml
 
+# local modules
+from utils.env_utils import data_dir
+
 # class that holds information about the model being used
 class Model:
 
@@ -21,7 +24,7 @@ class Model:
         self.__name = name
 
         # directory where model information is stored
-        self.__model_dir = os.path.join(os.environ['DATADIR'],"models")
+        self.__model_dir = os.path.join(data_dir(),"models")
 
         # model yaml file
         self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")
@@ -38,6 +41,63 @@ class Model:
 
         # make dictionary of width parameters
         self.__make_width_params()
+
+    @property
+    def name(self) -> str:
+        """Model name"""
+        return self.__name
+
+    @property
+    def template_ini(self) -> str:
+        """Model template .ini file name"""
+        return self.__template_ini
+
+    @property
+    # TODO: Make this more generalized
+    def mass_string(self) -> str:
+        """
+        Returns a formatted string in the form "X<XMass>_S<SMass>".
+
+        :return: A string representation of the masses of X and S.
+        """
+        x_mass = self.__masses["X"]
+        s_mass = self.__masses["S"]
+        return f"X{int(x_mass)}_S{int(s_mass)}"
+
+    @property
+    def input_parameters(self) -> dict:
+        """Dictionary of input parameters"""
+        return self.__input_params
+
+    @property
+    def output_parameters(self) -> dict:
+        """Dictionary of output parameters"""
+        return self.__output_params
+
+    @property
+    def width_parameters(self) -> dict:
+        """Dictionary of width parameters"""
+        return self.__width_params
+
+    @property
+    def input_parameter_names(self) -> List[str]:
+        """List of input parameter names"""
+        return list(self.__input_params.keys())
+
+    @property
+    def output_parameter_names(self) -> List[str]:
+        """List of output parameter names"""
+        return list(self.__output_params.keys())
+
+    @property
+    def width_parameter_names(self) -> List[str]:
+        """List of output parameter names"""
+        return list(self.__width_params.keys())
+
+    @property
+    def all_parameter_names(self) -> List[str]:
+        """List of all parameter names"""
+        return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     def __read_yaml(self) -> None:
         """Read the model .yml file and store the information."""
@@ -143,57 +203,10 @@ class Model:
                 f"Invalid original name: {particle_name}. Available names: {self.AllScalars}"
             )
 
-    @property
-    # TODO: Make this more generalized
-    def mass_string(self) -> str:
-        """
-        Returns a formatted string in the form "X<XMass>_S<SMass>".
-
-        :return: A string representation of the masses of X and S.
-        """
-        x_mass = self.__masses["X"]
-        s_mass = self.__masses["S"]
-        return f"X{int(x_mass)}_S{int(s_mass)}"
-
-    @property
-    def input_parameters(self) -> dict:
-        """Dictionary of input parameters"""
-        return self.__input_params
-
-    @property
-    def output_parameters(self) -> dict:
-        """Dictionary of output parameters"""
-        return self.__output_params
-
-    @property
-    def width_parameters(self) -> dict:
-        """Dictionary of width parameters"""
-        return self.__width_params
-
     # get a single input parameter
     def input_parameter(self,
                         par_name: str) -> Dict[str,any]:
         return self.__input_params[par_name]
-
-    @property
-    def input_parameter_names(self) -> List[str]:
-        """List of input parameter names"""
-        return list(self.__input_params.keys())
-
-    @property
-    def output_parameter_names(self) -> List[str]:
-        """List of output parameter names"""
-        return list(self.__output_params.keys())
-
-    @property
-    def width_parameter_names(self) -> List[str]:
-        """List of output parameter names"""
-        return list(self.__width_params.keys())
-
-    @property
-    def all_parameter_names(self) -> List[str]:
-        """List of all parameter names"""
-        return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     # get model parameter starting min
     def starting_min(self,par_name) -> float:
@@ -202,13 +215,3 @@ class Model:
     # get model parameter starting max
     def starting_max(self,par_name) -> float:
         return self.__input_params[par_name]['max']
-
-    @property
-    def name(self) -> str:
-        """Model name"""
-        return self.__name
-
-    @property
-    def template_ini(self) -> str:
-        """Model template .ini file name"""
-        return self.__template_ini

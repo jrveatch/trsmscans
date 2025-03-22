@@ -79,8 +79,8 @@ class ZoomOptimizer:
 
         # get output information file names
         output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.mass_string}"
-        self.summary_name = f"{out_dir}scan_summary_{output_file_postfix}.tsv"
-        self.tsv_summary_name = f"{out_dir}scan_tsv_summary_{output_file_postfix}.tsv"
+        self.summary_name = f"{out_dir}summary_zoom_{output_file_postfix}.tsv"
+        self.tsv_summary_name = f"{out_dir}summary_zoom_tsv_{output_file_postfix}.tsv"
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
         self.details_name = f"{out_dir}files/details/scan_details_{self.label}_{output_file_postfix}.txt"
 
@@ -108,10 +108,17 @@ class ZoomOptimizer:
             self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
             self.num_points = self.min_points_per_iteration
 
-        # Create scan_parser using the point_sampler class
-        self.scan_parser = self.point_sampler.sample_points(params = self.params,
-                                                            num_points_requested = self.num_points,
-                                                            identifier = identifier)
+        # create scan_parser using the point_sampler class
+        try:
+            self.scan_parser = self.point_sampler.sample_points(params = self.params,
+                                                                num_points_requested = self.num_points,
+                                                                identifier = identifier)
+        # if point sampling times out, kill optimizer but don't throw error
+        except TimeoutError:
+            self.is_running = False
+            self.termination_message("No output detected")
+            self.termination_message("Terminating zoom optimizer")
+            return
         
         # get new point as the maximum from the current scan
         new_max = self.scan_parser.get_max_xb_point(self.decay)
@@ -145,11 +152,8 @@ class ZoomOptimizer:
         # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            self.logger.info("Local max is consistently less than half of global max")
-            self.logger.info("Terminating zoom optimizer")
-            with open(self.details_name,"a") as details:
-                details.write("Local max is consistently less than half of global max")
-                details.write("Terminating zoom optimizer")
+            self.termination_message("Local max is consistently less than half of global max")
+            self.termination_message("Terminating zoom optimizer")
         
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
@@ -162,11 +166,8 @@ class ZoomOptimizer:
                     self.local_xb_fail += 1
                     if self.local_xb_fail >= 2:
                         self.is_running = False
-                        self.logger.info("Local max is increasing by less than 5%")
-                        self.logger.info("Terminating zoom optimizer")
-                        with open(self.details_name,"a") as details:
-                            details.write("Local max is increasing by less than 5%")
-                            details.write("Terminating zoom optimizer")
+                        self.termination_message("Local max is increasing by less than 5%")
+                        self.termination_message("Terminating zoom optimizer")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
@@ -174,11 +175,8 @@ class ZoomOptimizer:
                 # if point is less than 2nd highest point, end scan
                 if new_max < sorted_history[-2]:
                     self.is_running = False
-                    self.logger.info("Local max is not increasing")
-                    self.logger.info("Terminating zoom optimizer")
-                    with open(self.details_name,"a") as details:
-                        details.write("Local max is not increasing")
-                        details.write("Terminating zoom optimizer")
+                    self.termination_message("Local max is not increasing")
+                    self.termination_message("Terminating zoom optimizer")
 
         # store history of local max of xb
         self.local_history.append(new_max)
@@ -198,18 +196,19 @@ class ZoomOptimizer:
         iter_end = time.time()
         iter_time = iter_end - iter_start
 
-        # print iteration time to screen
-        self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
+        # record iteration time to screen
+        self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
             
         return new_max
 
     # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
-            summary.write(self.local_max.format_xb())
+            content = self.local_max.format_xb()
             for val in self.local_max.par_vals.values():
-                summary.write(f"\t{round_sig(val)}")
-            summary.write(f"\t{identifier}\n")
+                content += f"\t{round_sig(val)}"
+            content += f"\t{identifier}\n"
+            summary.write(content)
 
     # write to details file
     def write_details(self,
@@ -221,28 +220,35 @@ class ZoomOptimizer:
 
         # TODO: Add details about R11, R21, R31
         with open(self.details_name,"a") as details:
-            details.write(f"Iteration = {identifier}\n")
-            details.write("--------------------\n")
-            details.write(f"Using {self.point_sampler.total_points_run} scan points\n")
-            details.write(f"Scan density = {density:.3E}\n")
-            details.write(f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n")
-            details.write(f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n")
-            details.write(f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n")
-            details.write(f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n")
-            details.write("--------------------\n")
-            details.write(f"New max xsec*BR = {new_max.format_xb()}\n")
-            details.write(f"Local max xsec*BR = {self.local_max.format_xb()}\n")
-            details.write(f"Global max xsec*BR = {self.global_max.format_xb()}\n")
-            details.write(f"Found new global max point: {self.is_new_global_max(new_max)}\n")
-            details.write("--------------------\n")
+            content = f"Iteration = {identifier}\n"
+            content += "--------------------\n"
+            content += f"Using {self.point_sampler.total_points_run} scan points\n"
+            content += f"Scan density = {density:.3E}\n"
+            content += f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n"
+            content += f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n"
+            content += f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n"
+            content += f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n"
+            content += "--------------------\n"
+            content += f"New max xsec*BR = {new_max.format_xb()}\n"
+            content += f"Local max xsec*BR = {self.local_max.format_xb()}\n"
+            content += f"Global max xsec*BR = {self.global_max.format_xb()}\n"
+            content += f"Found new global max point: {self.is_new_global_max(new_max)}\n"
+            content += "--------------------\n"
             for par in self.params.parameter_names:
-                details.write(f"{par}:\n")
-                details.write(f"  range = {self.params.parameter_value(par).format_range()}\n")
+                content += f"{par}:\n"
+                content += f"  range = {self.params.parameter_value(par).format_range()}\n"
                 if self.is_new_global_max(new_max):
-                    details.write(f"  new global max value = {self.local_max.format_param(par)}\n")
-                    details.write(f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n")
-                    details.write(f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n")
-            details.write("--------------------\n")
+                    content += f"  new global max value = {self.local_max.format_param(par)}\n"
+                    content += f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n"
+                    content += f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n"
+            content += "--------------------\n"
+            details.write(content)
+
+    # print and write termination message
+    def termination_message(self, message: str) -> None:
+        self.logger.info(message)
+        with open(self.details_name,"a") as details:
+            details.write(message+"\n")
 
     # check if a new global max has been found
     def is_new_global_max(self,

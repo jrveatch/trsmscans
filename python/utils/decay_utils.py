@@ -6,7 +6,7 @@ from typing import List, Set
 import yaml
 
 # local modules
-from utils.file_utils import data_dir
+from utils.env_utils import data_dir
 
 class DecayConfigManager:
     def __init__(self):

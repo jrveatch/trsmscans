@@ -1,0 +1,1253 @@
+{
+    "associated_files": [],
+    "description": "Expected and observed exclusion limits for heavy higgs boson mass 2500 GeV",
+    "doi": "10.17182/hepdata.102794.v1/t19",
+    "headers": [
+      {
+        "colspan": 1,
+        "name": "Light Higgs boson mass [GeV]"
+      },
+      {
+        "colspan": 2,
+        "name": "cross section x branching ratio upper limit at 95% CL [pb]"
+      }
+    ],
+    "keywords": {
+  
+    },
+    "location": "Data exclusion limits",
+    "name": "Exclusion limits for heavy higgs boson mass 2500 GeV",
+    "qualifier_order": [
+      "Limit",
+      "SQRT(S)",
+      "LUMINOSITY",
+      "Decay channels"
+    ],
+    "qualifiers": {
+      "Decay channels": [
+        {
+          "colspan": 2,
+          "group": 0,
+          "type": "Decay channels",
+          "value": "et,mt,tt"
+        }
+      ],
+      "LUMINOSITY": [
+        {
+          "colspan": 2,
+          "group": 0,
+          "type": "LUMINOSITY",
+          "value": "137.2 fb$^{-1}$"
+        }
+      ],
+      "Limit": [
+        {
+          "colspan": 1,
+          "group": 0,
+          "type": "Limit",
+          "value": "Observed"
+        },
+        {
+          "colspan": 1,
+          "group": 1,
+          "type": "Limit",
+          "value": "Expected"
+        }
+      ],
+      "SQRT(S)": [
+        {
+          "colspan": 2,
+          "group": 0,
+          "type": "SQRT(S)",
+          "value": "13 TeV"
+        }
+      ]
+    },
+    "related_tables": [],
+    "related_to_this": [],
+    "resources": [],
+    "review": {
+      "messages": false,
+      "review_flag": "passed"
+    },
+    "size": 7230,
+    "size_check": true,
+    "table_license": {
+      "description": "CC0 enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, with no conditions.",
+      "name": "CC0",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+    },
+    "values": [
+      {
+        "x": [
+          {
+            "value": "60.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.030741"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.01268",
+                  "plus": "0.0206"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.020038",
+                  "plus": "0.050487"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.038281"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "70.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.030404"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.012357",
+                  "plus": "0.020149"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.019527",
+                  "plus": "0.049453"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.037305"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "80.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.030988"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.012163",
+                  "plus": "0.019832"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.01922",
+                  "plus": "0.048569"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.036719"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "90.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.033447"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.012518",
+                  "plus": "0.020337"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.019782",
+                  "plus": "0.049898"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.037793"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "100.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.02979"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.012357",
+                  "plus": "0.020074"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.019527",
+                  "plus": "0.049199"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.037305"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "120.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.025686"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.012159",
+                  "plus": "0.019706"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.019455",
+                  "plus": "0.048082"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.036621"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "150.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.026565"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.011374",
+                  "plus": "0.018413"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.017974",
+                  "plus": "0.045201"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.03623"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "170.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.026298"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.011282",
+                  "plus": "0.018264"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.017828",
+                  "plus": "0.044674"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.035938"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "190.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.024942"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.010914",
+                  "plus": "0.017599"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.017247",
+                  "plus": "0.043129"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.034766"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "250.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.023066"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0098718",
+                  "plus": "0.015918"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0156",
+                  "plus": "0.038869"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.031445"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "300.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.02042"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0090535",
+                  "plus": "0.014781"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.014486",
+                  "plus": "0.036136"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.029199"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "350.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.018537"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.010113",
+                  "plus": "0.016512"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.016181",
+                  "plus": "0.040268"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.032617"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "400.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.017449"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0096591",
+                  "plus": "0.01577"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.015454",
+                  "plus": "0.038553"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.031152"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "450.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.016053"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0091973",
+                  "plus": "0.014831"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.014534",
+                  "plus": "0.036169"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.029297"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "500.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.014952"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0087681",
+                  "plus": "0.014139"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.013856",
+                  "plus": "0.034481"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.02793"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "550.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0143"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0083236",
+                  "plus": "0.013422"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.013153",
+                  "plus": "0.032892"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.026514"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "600.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.013695"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0076951",
+                  "plus": "0.012409"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.01216",
+                  "plus": "0.030335"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.024512"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "650.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.012836"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0074805",
+                  "plus": "0.012062"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.011821",
+                  "plus": "0.029453"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.023828"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "700.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.011893"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0070359",
+                  "plus": "0.011435"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.011119",
+                  "plus": "0.027917"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.022412"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "800.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.018007"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0066614",
+                  "plus": "0.010876"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.010658",
+                  "plus": "0.026524"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.021484"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "900.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.01508"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0058709",
+                  "plus": "0.0095043"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0092775",
+                  "plus": "0.02322"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.018701"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1000.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.014001"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0053804",
+                  "plus": "0.0087102"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0085024",
+                  "plus": "0.02128"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.017139"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1100.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.01178"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0046194",
+                  "plus": "0.0074489"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0072998",
+                  "plus": "0.018251"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0146"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1200.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.010518"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0041868",
+                  "plus": "0.0067514"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0066162",
+                  "plus": "0.016483"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.013232"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1300.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0068452"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.003311",
+                  "plus": "0.0053812"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0052322",
+                  "plus": "0.013138"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.010547"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1400.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0066392"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.00292",
+                  "plus": "0.0047453"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0046143",
+                  "plus": "0.011652"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0092285"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1600.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0037326"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.001881",
+                  "plus": "0.0030568"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0029724",
+                  "plus": "0.0074706"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0059448"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "1800.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0023767"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0012051",
+                  "plus": "0.0019508"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0019043",
+                  "plus": "0.0047822"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0038086"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "2000.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0017147"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.00083159",
+                  "plus": "0.0013515"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0013141",
+                  "plus": "0.0032996"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0026489"
+          }
+        ]
+      },
+      {
+        "x": [
+          {
+            "value": "2200.0"
+          }
+        ],
+        "y": [
+          {
+            "errors": [
+              {
+                "hide": true,
+                "symerror": 0
+              }
+            ],
+            "group": 0,
+            "value": "0.0034439"
+          },
+          {
+            "errors": [
+              {
+                "asymerror": {
+                  "minus": "-0.0017443",
+                  "plus": "0.0028302"
+                },
+                "label": "1 s.d."
+              },
+              {
+                "asymerror": {
+                  "minus": "-0.0027736",
+                  "plus": "0.0069107"
+                },
+                "label": "2 s.d."
+              }
+            ],
+            "group": 1,
+            "value": "0.0055908"
+          }
+        ]
+      }
+    ],
+    "x_count": 1
+  }

@@ -4,7 +4,6 @@ from collections import OrderedDict
 import logging
 import math
 import operator
-import os
 from typing import List
 
 # third-party libraries
@@ -12,7 +11,7 @@ from prettytable import PrettyTable
 from scipy.interpolate import interp1d
 
 # local modules
-from utils.file_utils import data_dir
+from utils.env_utils import data_dir
 from utils.math_utils import round_sig
 
 # get logger

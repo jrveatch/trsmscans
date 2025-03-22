@@ -11,7 +11,7 @@ fi
 
 # skip compilation if SCANNERS_PATH is set
 if [ -n "${SCANNERS_PATH:-}" ]; then
-  echo "A pre-compiled version of ScannerS is being used. Skipping ScannerS compilation."
+  printf "A pre-compiled version of ScannerS is being used. Skipping ScannerS compilation.\n"
   exit 0
 fi
 
@@ -28,7 +28,7 @@ fi
 CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 
 # compile ScannerS
-printf "Trying to compile ScannerS $CORES_TO_USE threads...\n"
+printf "\nTrying to compile ScannerS $CORES_TO_USE threads...\n"
 cd externals/ScannerS
 if [ ! -d build ]; then
     mkdir build

@@ -45,7 +45,7 @@ def combine_results(model: str,
                 
                 # Process summary .tsv files in the directory
                 for summary_file in tsv_files:
-                    if not summary_file.startswith('scan_summary'):
+                    if not summary_file.startswith('zoom_summary') or summary_file.startswith("zoom_summary_tsv"):
                         continue  # Skip files that don't start with "scan_summary"
                     summary_path = os.path.join(directory, summary_file)
                     try:
@@ -72,7 +72,7 @@ def combine_results(model: str,
                 
                 # Process tsv summary .tsv files in the directory
                 for tsv_summary_file in tsv_files:
-                    if not tsv_summary_file.startswith('scan_tsv_summary'):
+                    if not tsv_summary_file.startswith('summary_zoom_tsv'):
                         continue  # Skip files that don't start with "scan_tsv_summary"
                     tsv_summary_path = os.path.join(directory, tsv_summary_file)
                     try:
