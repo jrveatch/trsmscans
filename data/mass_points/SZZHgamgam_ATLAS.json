@@ -9,141 +9,141 @@
         {
             "mX": 300,
             "mS": 170,
-            "expected_limit": 2161,
-            "observed_limit": 1522,
+            "expected_limit": 2.161,
+            "observed_limit": 1.522,
             "resolvable": true
         },
         {
             "mX": 400,
             "mS": 170,
-            "expected_limit": 1657,
-            "observed_limit": 1166,
+            "expected_limit": 1.657,
+            "observed_limit": 1.166,
             "resolvable": true
         },
         {
             "mX": 400,
             "mS": 200,
-            "expected_limit": 1152,
-            "observed_limit": 779,
+            "expected_limit": 1.152,
+            "observed_limit": 0.779,
             "resolvable": true
         },
         {
             "mX": 500,
             "mS": 170,
-            "expected_limit": 1109,
-            "observed_limit": 923,
+            "expected_limit": 1.109,
+            "observed_limit": 0.923,
             "resolvable": true
         },
         {
             "mX": 500,
             "mS": 200,
-            "expected_limit": 820,
-            "observed_limit": 663,
+            "expected_limit": 0.820,
+            "observed_limit": 0.663,
             "resolvable": true
         },
         {
             "mX": 500,
             "mS": 300,
-            "expected_limit": 774,
-            "observed_limit": 649,
+            "expected_limit": 0.774,
+            "observed_limit": 0.649,
             "resolvable": true
         },
         {
             "mX": 600,
             "mS": 170,
-            "expected_limit": 1309,
-            "observed_limit": 816,
+            "expected_limit": 1.309,
+            "observed_limit": 0.816,
             "resolvable": true
         },
         {
             "mX": 600,
             "mS": 200,
-            "expected_limit": 746,
-            "observed_limit": 584,
+            "expected_limit": 0.746,
+            "observed_limit": 0.584,
             "resolvable": true
         },
         {
             "mX": 600,
             "mS": 300,
-            "expected_limit": 601,
-            "observed_limit": 528,
+            "expected_limit": 0.601,
+            "observed_limit": 0.528,
             "resolvable": true
         },
         {
             "mX": 600,
             "mS": 400,
-            "expected_limit": 1002,
-            "observed_limit": 612,
+            "expected_limit": 1.002,
+            "observed_limit": 0.612,
             "resolvable": true
         },
         {
             "mX": 750,
             "mS": 170,
-            "expected_limit": 933,
-            "observed_limit": 761,
+            "expected_limit": 0.933,
+            "observed_limit": 0.761,
             "resolvable": true
         },
         {
             "mX": 750,
             "mS": 200,
-            "expected_limit": 871,
-            "observed_limit": 555,
+            "expected_limit": 0.871,
+            "observed_limit": 0.555,
             "resolvable": true
         },
         {
             "mX": 750,
             "mS": 300,
-            "expected_limit": 651,
-            "observed_limit": 427,
+            "expected_limit": 0.651,
+            "observed_limit": 0.427,
             "resolvable": true
         },
         {
             "mX": 750,
             "mS": 400,
-            "expected_limit": 839,
-            "observed_limit": 462,
+            "expected_limit": 0.839,
+            "observed_limit": 0.462,
             "resolvable": true
         },
         {
             "mX": 750,
             "mS": 500,
-            "expected_limit": 508,
-            "observed_limit": 529,
+            "expected_limit": 0.508,
+            "observed_limit": 0.529,
             "resolvable": true
         },
         {
             "mX": 1000,
             "mS": 170,
-            "expected_limit": 917,
-            "observed_limit": 718,
+            "expected_limit": 0.917,
+            "observed_limit": 0.718,
             "resolvable": true
         },
         {
             "mX": 1000,
             "mS": 200,
-            "expected_limit": 1075,
-            "observed_limit": 605,
+            "expected_limit": 1.075,
+            "observed_limit": 0.605,
             "resolvable": true
         },
         {
             "mX": 1000,
             "mS": 300,
-            "expected_limit": 745,
-            "observed_limit": 366,
+            "expected_limit": 0.745,
+            "observed_limit": 0.366,
             "resolvable": true
         },
         {
             "mX": 1000,
             "mS": 400,
-            "expected_limit": 509,
-            "observed_limit": 364,
+            "expected_limit": 0.509,
+            "observed_limit": 0.364,
             "resolvable": true
         },
         {
             "mX": 1000,
             "mS": 500,
-            "expected_limit": 535,
-            "observed_limit": 383,
+            "expected_limit": 0.535,
+            "observed_limit": 0.383,
             "resolvable": true
         }
     ]
