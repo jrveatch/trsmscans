@@ -153,7 +153,6 @@ class ZoomOptimizer:
         if self.global_xb_fail >= 2:
             self.is_running = False
             self.termination_message("Local max is consistently less than half of global max")
-            self.termination_message("Terminating zoom optimizer")
         
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
@@ -167,7 +166,6 @@ class ZoomOptimizer:
                     if self.local_xb_fail >= 2:
                         self.is_running = False
                         self.termination_message("Local max is increasing by less than 5%")
-                        self.termination_message("Terminating zoom optimizer")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
@@ -176,7 +174,10 @@ class ZoomOptimizer:
                 if new_max < sorted_history[-2]:
                     self.is_running = False
                     self.termination_message("Local max is not increasing")
-                    self.termination_message("Terminating zoom optimizer")
+
+        # termination message if no longer running
+        if not self.is_running:
+            self.termination_message("Terminating zoom optimizer")
 
         # store history of local max of xb
         self.local_history.append(new_max)
