@@ -236,14 +236,25 @@ def run_test_process(process_args: List[str],
 def concatenate_files(directories: List[str],
                       file_name: str) -> None:
 
-    # loop over temporary directories
+    try:
+        # Loop over directories and concatenate their .tsv files
+        for directory in directories:
+            input_file = os.path.join(directory, file_name)
+            
+            # Check if the file exists before attempting to concatenate
+            if os.path.exists(input_file):
+                save_tsv_output(input_file=input_file, output_file=file_name)
+            else:
+                logger.warning(f"Missing expected file: {input_file}")
+
+        logger.debug(f"Successfully concatenated all files into {file_name}")
+
+    except Exception as e:
+        logger.error(f"Error during file concatenation: {e}")
+        return  # Do not proceed with deleting directories
+
+    # If everything worked, proceed to delete directories
     for directory in directories:
-
-        # write/append .tsv from directory to output file
-        save_tsv_output(input_file = directory + "/" + file_name,
-                        output_file = file_name)
-
-        # delete the temporary directory
         remove_temp_dir(directory)
 
 # if rmtree fails due to non-empty directory, try a few more times
