@@ -1,0 +1,24 @@
+{
+    "collaboration": "CMS",
+    "arxiv": "2106.10361",
+    "doi": "10.1007/JHEP11(2021)057",
+    "year": 2021,
+    "sqrt_s": 13.0,
+    "decay_channel": "X->S(bb)H(tautau)",
+    "mass_points": [
+        {
+            "mX": 240,
+            "mS": 60,
+            "expected_limit": -1.0,
+            "observed_limit": -1.0,
+            "resolvable": true
+        },
+        {
+            "mX": 240,
+            "mS": 70,
+            "expected_limit": -1.0,
+            "observed_limit": -1.0,
+            "resolvable": true
+        }
+    ]
+}

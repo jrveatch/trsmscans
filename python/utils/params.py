@@ -13,7 +13,7 @@ class Params:
 
     def __init__(self,
                  model: 'Model',
-                 decay: str = ""):
+                 decay: str = "NoDecay"):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
