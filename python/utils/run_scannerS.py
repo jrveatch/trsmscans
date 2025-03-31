@@ -127,11 +127,11 @@ def run_scannerS(ini_name: str,
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+    process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
-    # create a manager and a shared counter to track the number of finished processes
-    manager = mp.Manager()
-    counter = manager.Value("i",0)
+    # create a shared counter and a lock
+    counter = mp.Manager().Value("i",0)
+    lock = mp.Manager().Lock()
 
     # print empty job completion counter
     print(f"{counter.value}/{num_processes} processes finished")
@@ -140,7 +140,7 @@ def run_scannerS(ini_name: str,
     with mp.Pool(processes=num_processes) as pool:
 
         # map the run_process function to each directory
-        pool.starmap(run_process, [(process, directory, counter, num_processes) for directory in directories])
+        pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
 
         # wait for all processes to finish
         pool.close()
@@ -159,11 +159,15 @@ def run_scannerS(ini_name: str,
 # run a process for multiprocessing
 def run_process(process_args: List[str],
                 directory: str,
+                num_processes: int,
                 counter,
-                num_processes: int) -> None:
+                lock) -> None:
 
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
+
+    # get original directory
+    original_dir = os.getcwd()
 
     # change to the temporary directory
     os.chdir(directory)
@@ -174,12 +178,13 @@ def run_process(process_args: List[str],
     # run the process with arguments and suppress output
     subprocess.run(process_args, stdout=log, stderr=log)
 
-    # get Terminal for nicer outputs
-    term = Terminal()
+    # change back to the original directory
+    os.chdir(original_dir)
 
     # increment the counter and print out how many processes are finished
-    counter.value += 1
-    print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
+    with lock:
+        counter.value += 1
+        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
 def run_test_process(process_args: List[str],
