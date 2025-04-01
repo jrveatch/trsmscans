@@ -12,10 +12,23 @@ import pandas as pd
 
 # local modules
 from filters.setup_higgs_tools import *
+from utils.config_loader import ConfigLoader
 from utils.model import Model
 
 # get logger
 logger = logging.getLogger(__name__)
+
+# get configurations
+config_loader = ConfigLoader(config_file_name="ScannerS.yml")
+try:
+    # fraction of cpus to use when parallel processing
+    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
+except KeyError as e:
+    logger.error(e)
+    raise
+except Exception as e:
+    logger.error(e)
+    raise
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
 
@@ -28,7 +41,7 @@ def filter_bounds(dataframe: pd.DataFrame,
     
     dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
                                                                            model=model,
-                                                                           n_workers=mp.cpu_count())
+                                                                           n_workers=int(mp.cpu_count()*frac_cpu))
     
     return
 
@@ -286,7 +299,7 @@ def chunk_dataframe(df, n_chunks):
 
 def parallel_process(df: pd.DataFrame,
                      model: 'Model',
-                     n_workers: int = 4) -> Tuple[List[int], List[int]]:
+                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """Parallelizes processing and returns results for two output columns."""
     chunks = chunk_dataframe(df, n_workers)
 

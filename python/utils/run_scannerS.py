@@ -22,11 +22,11 @@ from utils.tsv_utils import save_tsv_output
 # get logger
 logger = logging.getLogger(__name__)
 
+# get configurations
 config_loader = ConfigLoader(config_file_name="ScannerS.yml")
-# get configurations from config file
 try:
     # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('ScannerS', 'frac_cpu')
+    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum number of points per job
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
