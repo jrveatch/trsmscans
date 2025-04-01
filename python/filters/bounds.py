@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import logging
 from collections import defaultdict
-from typing import Dict, Tuple
+import logging
+import multiprocessing as mp
+import numpy as np
+from typing import Dict, List, Tuple
 
 # third-party libraries
 import pandas as pd
@@ -23,6 +25,20 @@ def filter_bounds(dataframe: pd.DataFrame,
                   header_signals: str,
                   model: 'Model'
                  ) -> None:
+    
+    dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
+                                                                           model=model,
+                                                                           n_workers=mp.cpu_count())
+    
+    return
+
+def process_subset(subset_df: pd.DataFrame,
+                   model: 'Model') -> Tuple[List[int], List[int]]:
+    """Function to process a subset of the DataFrame."""
+
+    # make filter lists
+    filt_bounds = []
+    filt_signals = []
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -53,74 +69,68 @@ def filter_bounds(dataframe: pd.DataFrame,
     br_S_BSM = defaultdict(float)
     br_X_BSM = defaultdict(float)
 
-    # get filter lists
-    filt_bounds = []
-    filt_signals = []
+    for idx, row in subset_df.iterrows():
 
-    # masses
-    mH = dataframe['m'+HName].values
-    mS = dataframe['m'+SName].values
-    mX = dataframe['m'+XName].values
+        # masses
+        mH = row['m'+HName]
+        mS = row['m'+SName]
+        mX = row['m'+XName]
 
-    # widths
-    w_H = dataframe['w_'+HName].values
-    w_S = dataframe['w_'+SName].values
-    w_X = dataframe['w_'+XName].values
+        # widths
+        w_H = row['w_'+HName]
+        w_S = row['w_'+SName]
+        w_X = row['w_'+XName]
 
-    # rescalings
-    if HName == "H2": # mH > mS
-        RS = dataframe['R11'].values
-        RH = dataframe['R21'].values
-    else: # mH < mS
-        RH = dataframe['R11'].values
-        RS = dataframe['R21'].values
-    RX = dataframe['R31'].values
+        # rescalings
+        if HName == "H2": # mH > mS
+            RS = row['R11']
+            RH = row['R21']
+        else: # mH < mS
+            RH = row['R11']
+            RS = row['R21']
+        RX = row['R31']
 
-    for i in range(len(dataframe.index)):
-
-        idx = i
-
-        logger.verbose(f'Rescalings are {RH[i]} {RS[i]} {RX[i]}')
+        logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
-            br_H_SM[decay] = float(dataframe['b_'+HName+'_'+decay][i])
-            br_S_SM[decay] = float(dataframe['b_'+SName+'_'+decay][i])
-            br_X_SM[decay] = float(dataframe['b_'+XName+'_'+decay][i])
+            br_H_SM[decay] = row['b_'+HName+'_'+decay]
+            br_S_SM[decay] = row['b_'+SName+'_'+decay]
+            br_X_SM[decay] = row['b_'+XName+'_'+decay]
         
         # get BSM BRs
         if HName == "H2": # mH > mS
-            br_H_BSM['S','S'] = float(dataframe['b_H2_H1H1'][i])
+            br_H_BSM['S','S'] = row['b_H2_H1H1']
         if SName == "H2": # mH < mS
-            br_S_BSM['H','H'] = float(dataframe['b_H2_H1H1'][i])
-        br_X_BSM['H','H'] = float(dataframe['b_H3_'+HName+HName][i])
-        br_X_BSM['S','S'] = float(dataframe['b_H3_'+SName+SName][i])
-        br_X_BSM['S','H'] = float(dataframe['b_H3_H1H2'][i])
+            br_S_BSM['H','H'] = row['b_H2_H1H1']
+        br_X_BSM['H','H'] = row['b_H3_'+HName+HName]
+        br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
+        br_X_BSM['S','H'] = row['b_H3_H1H2']
         
         # Set masses and widths
-        H.setMass(mH[i])
-        S.setMass(mS[i])
-        X.setMass(mX[i])
+        H.setMass(mH)
+        S.setMass(mS)
+        X.setMass(mX)
 
-        H.setTotalWidth(w_H[i])
-        S.setTotalWidth(w_S[i])
-        X.setTotalWidth(w_X[i])
+        H.setTotalWidth(w_H)
+        S.setTotalWidth(w_S)
+        X.setTotalWidth(w_X)
 
         # set effective couplings for each scalar
-        set_effective_couplings(particle=H,mass=mH[i],rescaling=RH[i])
-        set_effective_couplings(particle=S,mass=mS[i],rescaling=RS[i])
-        set_effective_couplings(particle=X,mass=mX[i],rescaling=RX[i])
+        set_effective_couplings(particle=H,mass=mH,rescaling=RH)
+        set_effective_couplings(particle=S,mass=mS,rescaling=RS)
+        set_effective_couplings(particle=X,mass=mX,rescaling=RX)
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
-        H.setTotalWidth(w_H[i])
-        S.setTotalWidth(w_S[i])
-        X.setTotalWidth(w_X[i])
+        H.setTotalWidth(w_H)
+        S.setTotalWidth(w_S)
+        X.setTotalWidth(w_X)
 
         logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {w_H[i]}")
-        logger.verbose(f"  S: {w_S[i]}")
-        logger.verbose(f"  X: {w_X[i]}")
+        logger.verbose(f"  H: {w_H}")
+        logger.verbose(f"  S: {w_S}")
+        logger.verbose(f"  X: {w_X}")
 
         # set BRs for H
         set_BRs(particle=H,
@@ -156,9 +166,9 @@ def filter_bounds(dataframe: pd.DataFrame,
         if logger.isEnabledFor(logging.VERBOSE):
             print_bounds_result(bounds_result=bounds_result,
                                 idx=idx,
-                                mX=mX[i],
-                                mS=mS[i],
-                                mH=mH[i])
+                                mX=mX,
+                                mS=mS,
+                                mH=mH)
             logger.verbose(f"signals_result = {signals_result}")
             logger.verbose(f"HS_allowed = {HS_allowed}")
 
@@ -166,11 +176,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         filt_bounds.append(int(bounds_result.allowed))
         filt_signals.append(int(HS_allowed))
 
-    # add filters to dataframe
-    dataframe[header_bounds] = filt_bounds
-    dataframe[header_signals] = filt_signals
-
-    return
+    return filt_bounds, filt_signals  # Return as separate lists
 
 def set_effective_couplings(particle,
                             mass: float,
@@ -272,3 +278,26 @@ def print_bounds_result(bounds_result,
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+
+def chunk_dataframe(df, n_chunks):
+    """Splits a DataFrame into n_chunks approximately equal parts."""
+    chunk_size = int(np.ceil(len(df) / n_chunks))
+    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
+
+def parallel_process(df: pd.DataFrame,
+                     model: 'Model',
+                     n_workers: int = 4) -> Tuple[List[int], List[int]]:
+    """Parallelizes processing and returns results for two output columns."""
+    chunks = chunk_dataframe(df, n_workers)
+
+    with mp.Pool(n_workers) as pool:
+        results = pool.starmap(process_subset, [(chunk, model) for chunk in chunks])
+
+    # Unpack the results
+    filt_bounds, filt_signals = zip(*results)
+
+    # Flatten lists
+    filt_bounds = [item for sublist in filt_bounds for item in sublist]
+    filt_signals = [item for sublist in filt_signals for item in sublist]
+
+    return filt_bounds, filt_signals
