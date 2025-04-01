@@ -57,25 +57,30 @@ def filter_bounds(dataframe: pd.DataFrame,
     filt_bounds = []
     filt_signals = []
 
+    # masses
+    mH = dataframe['m'+HName].values
+    mS = dataframe['m'+SName].values
+    mX = dataframe['m'+XName].values
+
+    # widths
+    w_H = dataframe['w_'+HName].values
+    w_S = dataframe['w_'+SName].values
+    w_X = dataframe['w_'+XName].values
+
+    # rescalings
+    if HName == "H2": # mH > mS
+        RS = dataframe['R11'].values
+        RH = dataframe['R21'].values
+    else: # mH < mS
+        RH = dataframe['R11'].values
+        RS = dataframe['R21'].values
+    RX = dataframe['R31'].values
+
     for i in range(len(dataframe.index)):
 
         idx = i
 
-        # masses
-        mH = float(dataframe['m'+HName][i])
-        mS = float(dataframe['m'+SName][i])
-        mX = float(dataframe['m'+XName][i])
-
-        # rescalings
-        if HName == "H2": # mH > mS
-            RS = float(dataframe['R11'][i])
-            RH = float(dataframe['R21'][i])
-        else: # mH < mS
-            RH = float(dataframe['R11'][i])
-            RS = float(dataframe['R21'][i])
-        RX = float(dataframe['R31'][i])
-
-        logger.verbose(f'rescalings are {RH} {RS} {RX}')
+        logger.verbose(f'Rescalings are {RH[i]} {RS[i]} {RX[i]}')
 
         # get SM BRs
         for decay in SM_decays:
@@ -91,36 +96,31 @@ def filter_bounds(dataframe: pd.DataFrame,
         br_X_BSM['H','H'] = float(dataframe['b_H3_'+HName+HName][i])
         br_X_BSM['S','S'] = float(dataframe['b_H3_'+SName+SName][i])
         br_X_BSM['S','H'] = float(dataframe['b_H3_H1H2'][i])
-
-        # Widths
-        w_H = float(dataframe['w_'+HName][i])
-        w_S = float(dataframe['w_'+SName][i])
-        w_X = float(dataframe['w_'+XName][i])
         
         # Set masses and widths
-        H.setMass(mH)
-        S.setMass(mS)
-        X.setMass(mX)
+        H.setMass(mH[i])
+        S.setMass(mS[i])
+        X.setMass(mX[i])
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(w_H[i])
+        S.setTotalWidth(w_S[i])
+        X.setTotalWidth(w_X[i])
 
         # set effective couplings for each scalar
-        set_effective_couplings(particle=H,mass=mH,rescaling=RH)
-        set_effective_couplings(particle=S,mass=mS,rescaling=RS)
-        set_effective_couplings(particle=X,mass=mX,rescaling=RX)
+        set_effective_couplings(particle=H,mass=mH[i],rescaling=RH[i])
+        set_effective_couplings(particle=S,mass=mS[i],rescaling=RS[i])
+        set_effective_couplings(particle=X,mass=mX[i],rescaling=RX[i])
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(w_H[i])
+        S.setTotalWidth(w_S[i])
+        X.setTotalWidth(w_X[i])
 
         logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {w_H}")
-        logger.verbose(f"  S: {w_S}")
-        logger.verbose(f"  X: {w_X}")
+        logger.verbose(f"  H: {w_H[i]}")
+        logger.verbose(f"  S: {w_S[i]}")
+        logger.verbose(f"  X: {w_X[i]}")
 
         # set BRs for H
         set_BRs(particle=H,
@@ -156,9 +156,9 @@ def filter_bounds(dataframe: pd.DataFrame,
         if logger.isEnabledFor(logging.VERBOSE):
             print_bounds_result(bounds_result=bounds_result,
                                 idx=idx,
-                                mX=mX,
-                                mS=mS,
-                                mH=mH)
+                                mX=mX[i],
+                                mS=mS[i],
+                                mH=mH[i])
             logger.verbose(f"signals_result = {signals_result}")
             logger.verbose(f"HS_allowed = {HS_allowed}")
 
