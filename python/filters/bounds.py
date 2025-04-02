@@ -57,54 +57,56 @@ def filter_bounds(dataframe: pd.DataFrame,
     filt_bounds = []
     filt_signals = []
 
-    for i in range(len(dataframe.index)):
+    # rescaling column names
+    RH_name = 'R11'
+    RS_name = 'R21'
+    if HName == "H2":
+        RH_name = 'R21'
+        RS_name = 'R11'
+    RX_name = 'R31'
 
-        idx = i
+    for idx, row in dataframe.iterrows():
 
-        # masses
-        mH = float(dataframe['m'+HName][i])
-        mS = float(dataframe['m'+SName][i])
-        mX = float(dataframe['m'+XName][i])
+        # get masses
+        mH = row['m'+HName]
+        mS = row['m'+SName]
+        mX = row['m'+XName]
 
-        # rescalings
-        if HName == "H2": # mH > mS
-            RS = float(dataframe['R11'][i])
-            RH = float(dataframe['R21'][i])
-        else: # mH < mS
-            RH = float(dataframe['R11'][i])
-            RS = float(dataframe['R21'][i])
-        RX = float(dataframe['R31'][i])
+        # get widths
+        wH = row['w_'+HName]
+        wS = row['w_'+SName]
+        wX = row['w_'+XName]
 
-        logger.verbose(f'rescalings are {RH} {RS} {RX}')
+        # get rescalings
+        RH = row[RH_name]
+        RS = row[RS_name]
+        RX = row[RX_name]
+
+        logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
-            br_H_SM[decay] = float(dataframe['b_'+HName+'_'+decay][i])
-            br_S_SM[decay] = float(dataframe['b_'+SName+'_'+decay][i])
-            br_X_SM[decay] = float(dataframe['b_'+XName+'_'+decay][i])
+            br_H_SM[decay] = row['b_'+HName+'_'+decay]
+            br_S_SM[decay] = row['b_'+SName+'_'+decay]
+            br_X_SM[decay] = row['b_'+XName+'_'+decay]
         
         # get BSM BRs
         if HName == "H2": # mH > mS
-            br_H_BSM['S','S'] = float(dataframe['b_H2_H1H1'][i])
+            br_H_BSM['S','S'] = row['b_H2_H1H1']
         if SName == "H2": # mH < mS
-            br_S_BSM['H','H'] = float(dataframe['b_H2_H1H1'][i])
-        br_X_BSM['H','H'] = float(dataframe['b_H3_'+HName+HName][i])
-        br_X_BSM['S','S'] = float(dataframe['b_H3_'+SName+SName][i])
-        br_X_BSM['S','H'] = float(dataframe['b_H3_H1H2'][i])
-
-        # Widths
-        w_H = float(dataframe['w_'+HName][i])
-        w_S = float(dataframe['w_'+SName][i])
-        w_X = float(dataframe['w_'+XName][i])
+            br_S_BSM['H','H'] = row['b_H2_H1H1']
+        br_X_BSM['H','H'] = row['b_H3_'+HName+HName]
+        br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
+        br_X_BSM['S','H'] = row['b_H3_H1H2']
         
-        # Set masses and widths
+        # set scalar masses and widths
         H.setMass(mH)
         S.setMass(mS)
         X.setMass(mX)
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(wH)
+        S.setTotalWidth(wS)
+        X.setTotalWidth(wX)
 
         # set effective couplings for each scalar
         set_effective_couplings(particle=H,mass=mH,rescaling=RH)
@@ -113,14 +115,14 @@ def filter_bounds(dataframe: pd.DataFrame,
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(wH)
+        S.setTotalWidth(wS)
+        X.setTotalWidth(wX)
 
         logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {w_H}")
-        logger.verbose(f"  S: {w_S}")
-        logger.verbose(f"  X: {w_X}")
+        logger.verbose(f"  H: {wH}")
+        logger.verbose(f"  S: {wS}")
+        logger.verbose(f"  X: {wX}")
 
         # set BRs for H
         set_BRs(particle=H,
