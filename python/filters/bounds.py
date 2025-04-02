@@ -82,7 +82,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         RS = row[RS_name]
         RX = row[RX_name]
 
-        logger.verbose(f'rescalings are {RH} {RS} {RX}')
+        logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
