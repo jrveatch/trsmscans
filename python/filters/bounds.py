@@ -57,6 +57,14 @@ def filter_bounds(dataframe: pd.DataFrame,
     filt_bounds = []
     filt_signals = []
 
+    # rescaling column names
+    RH_name = 'R11'
+    RS_name = 'R21'
+    if HName == "H2":
+        RH_name = 'R21'
+        RS_name = 'R11'
+    RX_name = 'R31'
+
     for idx, row in dataframe.iterrows():
 
         # get masses
@@ -70,15 +78,11 @@ def filter_bounds(dataframe: pd.DataFrame,
         wX = row['w_'+XName]
 
         # get rescalings
-        if HName == "H2": # mH > mS
-            RS = row['R11']
-            RH = row['R21']
-        else: # mH < mS
-            RH = row['R11']
-            RS = row['R21']
-        RX = row['R31']
+        RH = row[RH_name]
+        RS = row[RS_name]
+        RX = row[RX_name]
 
-        logger.verbose(f'rescalings are {RH} {RS} {RX}')
+        logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
