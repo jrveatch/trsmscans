@@ -4,6 +4,9 @@ set -e
 set -u
 set -o pipefail
 
+# get useful functions
+source ./scripts/functions.sh
+
 # Source env.sh to load existing environment variables
 if [ -f env.sh ]; then
     source env.sh
@@ -34,18 +37,6 @@ get_absolute_path() {
 
     # Return the resolved absolute path
     echo "$abs_path"
-}
-
-# Function to remove variable from env.sh
-remove_var_from_env() {
-    local var_name=$1
-    if [ "$(uname)" = "Darwin" ]; then
-       # On macOS, we use sed -i '' for in-place editing
-        sed -i '' "/^export $var_name=/d" env.sh
-    else
-        # On Linux, we use sed -i
-        sed -i "/^export $var_name=/d" env.sh
-    fi
 }
 
 # Function to prompt user for a path to pre-installed submodules

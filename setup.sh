@@ -20,6 +20,13 @@ if [ "$CLEAN_RUN" = true ]; then
     rm -rf trsm_venv  # Remove virtual environment
 fi
 
+# Source env.sh to load existing environment variables
+if [ -f env.sh ]; then
+    source env.sh
+else
+    touch env.sh  # Create env.sh if it doesn't exist
+fi
+
 # Check dependencies
 if [ ! -f ".deps_ok" ] || [ "$FORCE_RUN" = true ]; then
     printf "Checking dependencies:\n"
