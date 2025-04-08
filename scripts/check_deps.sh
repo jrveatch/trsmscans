@@ -52,9 +52,7 @@ fi
 remove_var_from_env "PYTHON3_EXE"
 
 # Store python3 exe in env.sh
-if [ "$python3_exe" != "python3" ]; then
-  echo "export PYTHON3_EXE=\"${python3_exe}\"" >> env.sh
-fi
+echo "export PYTHON3_EXE=\"${python3_exe}\"" >> env.sh
 
 printf "Python version $python3_version is installed (>= $python3_minimum)\n" 
 
