@@ -186,3 +186,6 @@ fi
 echo 'if [[ ":$PATH:" != *":'"$scanners_bin_path"':"* ]]; then' >> env.sh
 echo '    export PATH='"$scanners_bin_path"':$PATH' >> env.sh
 echo 'fi' >> env.sh
+
+# Create file to indicate that all paths have been successfully set
+touch .paths_ok
