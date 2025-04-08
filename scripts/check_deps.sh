@@ -8,23 +8,8 @@ set -o pipefail
 python3_minimum="3.8"
 cmake_minimum="3.17"
 
-# Function to check if an installed version is less than the required version
-version_less_than() {
-  local installed_version=$1
-  local required_version=$2
-
-  local installed_major installed_minor required_major required_minor
-  IFS='.' read -r installed_major installed_minor _ <<< "$installed_version"
-  IFS='.' read -r required_major required_minor _ <<< "$required_version"
-
-  if [[ $installed_major -lt $required_major ]]; then
-    return 0
-  elif [[ $installed_major -eq $required_major && $installed_minor -lt $required_minor ]]; then
-    return 0
-  else
-    return 1
-  fi
-}
+# get useful functions
+source ./scripts/functions.sh
 
 ###########################################
 # Python
@@ -36,16 +21,39 @@ if ! command -v python3 &> /dev/null; then
   exit 1
 fi
 
-# Get the Python3 version
-python3_version=$(python3 --version 2>&1 | awk '{print $2}')
+# get default python executable and version
+python3_default_exe=$(which python3)
+python3_default_version=$(python3 --version 2>&1 | awk '{print $2}')
+
+# prompt user for input
+printf "\nYour default python3 executable is $python3_default_exe (version $python3_default_version).\n\n"
+printf "Enter the python3 executable you want to use (leave blank for default): "
+read python3_exe
+
+# check if the user entered something
+if [ -z "$python3_exe" ]; then
+    # if no input, use the default 'python3'
+    python3_exe="python3"
+fi
+
+# get python3 version
+python3_version=$($python3_exe --version 2>&1 | awk '{print $2}')
 
 # Check if Python version is less than minimum
 if version_less_than "$python3_version" "$python3_minimum"; then
-  printf "Warning: Your default Python3 version (%s) is below the minimum (%s)\n" "$python3_version" "$python3_minimum" >&2
-  printf "You may need to specify an alternative installation when setting up the virtual environment.\n" >&2
-  printf "You can upgrade Python3 using:\n" >&2
+  printf "Error: The specified Python3 version $python3_version is below the minimum $python3_minimum\n"
+  printf "Please try again after installing >= $python3_minimum using:\n"
   printf "  - pyenv (https://github.com/pyenv/pyenv)\n" >&2
   printf "  - Your package manager (apt, dnf, brew, etc.)\n" >&2
+  exit 1
+fi
+
+# Remove previous entry in env.sh
+remove_var_from_env "PYTHON3_EXE"
+
+# Store python3 exe in env.sh
+if [ "$python3_exe" != "python3" ]; then
+  echo "export PYTHON3_EXE=\"${python3_exe}\"" >> env.sh
 fi
 
 printf "Python version $python3_version is installed (>= $python3_minimum)\n" 

@@ -82,26 +82,30 @@ def process_subset(subset_df: pd.DataFrame,
     br_S_BSM = defaultdict(float)
     br_X_BSM = defaultdict(float)
 
+    # rescaling column names
+    RH_name = 'R11'
+    RS_name = 'R21'
+    if HName == "H2":
+        RH_name = 'R21'
+        RS_name = 'R11'
+    RX_name = 'R31'
+
     for idx, row in subset_df.iterrows():
 
-        # masses
+        # get masses
         mH = row['m'+HName]
         mS = row['m'+SName]
         mX = row['m'+XName]
 
-        # widths
-        w_H = row['w_'+HName]
-        w_S = row['w_'+SName]
-        w_X = row['w_'+XName]
+        # get widths
+        wH = row['w_'+HName]
+        wS = row['w_'+SName]
+        wX = row['w_'+XName]
 
-        # rescalings
-        if HName == "H2": # mH > mS
-            RS = row['R11']
-            RH = row['R21']
-        else: # mH < mS
-            RH = row['R11']
-            RS = row['R21']
-        RX = row['R31']
+        # get rescalings
+        RH = row[RH_name]
+        RS = row[RS_name]
+        RX = row[RX_name]
 
         logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
@@ -120,14 +124,14 @@ def process_subset(subset_df: pd.DataFrame,
         br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
         br_X_BSM['S','H'] = row['b_H3_H1H2']
         
-        # Set masses and widths
+        # set scalar masses and widths
         H.setMass(mH)
         S.setMass(mS)
         X.setMass(mX)
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(wH)
+        S.setTotalWidth(wS)
+        X.setTotalWidth(wX)
 
         # set effective couplings for each scalar
         set_effective_couplings(particle=H,mass=mH,rescaling=RH)
@@ -136,14 +140,14 @@ def process_subset(subset_df: pd.DataFrame,
 
         # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
 
-        H.setTotalWidth(w_H)
-        S.setTotalWidth(w_S)
-        X.setTotalWidth(w_X)
+        H.setTotalWidth(wH)
+        S.setTotalWidth(wS)
+        X.setTotalWidth(wX)
 
         logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {w_H}")
-        logger.verbose(f"  S: {w_S}")
-        logger.verbose(f"  X: {w_X}")
+        logger.verbose(f"  H: {wH}")
+        logger.verbose(f"  S: {wS}")
+        logger.verbose(f"  X: {wX}")
 
         # set BRs for H
         set_BRs(particle=H,

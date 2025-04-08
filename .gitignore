@@ -12,3 +12,4 @@ trsm_venv
 env.sh
 .deps_ok
 .submodules_ok
+.paths_ok
