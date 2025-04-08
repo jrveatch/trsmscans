@@ -37,6 +37,8 @@ class Scan:
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.logger.info("Creating a new scan")
+
         # store model name
         self.model = model
 
@@ -243,7 +245,7 @@ class Scan:
         if run_exists(out_dir=self.out_dir,
                         num_points=num_points):
                 self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info(f"Use the -o option to overwrite the existing run.")
+                self.logger.info(f"Use the -o option to overwrite the existing run.\n")
                 return
 
         # delete directory and reinitialize
@@ -445,7 +447,7 @@ if __name__ == "__main__":
                  )
 
     if args.strategy == "zoom":
-        logger.info("Running zoom optimization...\n")
+        logger.info("Running zoom optimization...")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     else:
