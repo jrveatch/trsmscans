@@ -37,7 +37,7 @@ def scan_mass_list(model: str,
         
         result = subprocess.run(["python", "../python/scan.py"] + arg_list, text=True)
         
-        print(result)
+        print(f"{result}\n")
             
 
 if __name__ == "__main__":
