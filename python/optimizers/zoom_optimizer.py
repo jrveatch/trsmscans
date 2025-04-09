@@ -108,19 +108,23 @@ class ZoomOptimizer:
             self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
             self.num_points = self.min_points_per_iteration
 
+        # flag to indicate if zooming should be done
+        do_zoom = True
+
         # create scan_parser using the point_sampler class
         try:
             self.scan_parser = self.point_sampler.sample_points(params = self.params,
                                                                 num_points_requested = self.num_points,
                                                                 identifier = identifier)
-        # if point sampling times out, kill optimizer but don't throw error
+
+        # if point sampling times out make a dummy new_max
         except TimeoutError:
-            self.is_running = False
             self.termination_message("No output detected")
             self.termination_message("Using empty point as new max")
             new_max = Point(xb = 0.0,
                             model = self.params.model,
                             par_vals = self.local_max.par_vals)
+            do_zoom = False
         
         # otherwise get new point as the maximum from the current scan
         else:
@@ -185,16 +189,17 @@ class ZoomOptimizer:
         # store history of local max of xb
         self.local_history.append(new_max)
 
-        # call the appropriate zoom method based on the strategy
-        # zoom in using percentile
-        if self.strategy == "percentile":
-            self.percentile_zoom()
-        # zoom in using rate
-        elif self.strategy == "rate":
-            self.rate_zoom()
-        # all other cases
-        else:
-            raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
+        if do_zoom:
+            # call the appropriate zoom method based on the strategy
+            # zoom in using percentile
+            if self.strategy == "percentile":
+                self.percentile_zoom()
+            # zoom in using rate
+            elif self.strategy == "rate":
+                self.rate_zoom()
+            # all other cases
+            else:
+                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
 
         # get iteration end time
         iter_end = time.time()
