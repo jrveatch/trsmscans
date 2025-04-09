@@ -16,8 +16,15 @@ done
 # If clean mode is enabled, remove all flag files and environment settings
 if [ "$CLEAN_RUN" = true ]; then
     printf "Cleaning setup state...\n"
-    rm -f .deps_ok .submodules_ok env.sh
+    rm -f .deps_ok .submodules_ok .paths_ok env.sh
     rm -rf trsm_venv  # Remove virtual environment
+fi
+
+# Source env.sh to load existing environment variables
+if [ -f env.sh ]; then
+    source env.sh
+else
+    touch env.sh  # Create env.sh if it doesn't exist
 fi
 
 # Check dependencies
@@ -32,7 +39,7 @@ else
 fi
 
 # Set user paths
-if [ ! -f env.sh ] || [ "$FORCE_RUN" = true ]; then
+if [ ! -f ".paths_ok" ] || [ "$FORCE_RUN" = true ]; then
     printf "\nSetting up user paths:\n"
     if ! bash scripts/set_user_paths.sh; then
         echo "Error: set_user_paths.sh failed!" >&2

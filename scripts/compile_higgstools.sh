@@ -26,8 +26,8 @@ printf "\nTrying to pip install HiggsTools\n"
 # Check if HIGGSTOOLS_PATH is set
 if [ -n "${HIGGSTOOLS_PATH:-}" ]; then
   # Install from the provided path
-  MAKEFLAGS="-j$CORES_TO_USE" pip install --no-deps "$HIGGSTOOLS_PATH"
+  MAKEFLAGS="-j$CORES_TO_USE" CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5" pip install --no-deps "$HIGGSTOOLS_PATH"
 else
   # Normal pip install for submodule
-  MAKEFLAGS="-j$CORES_TO_USE" pip install ./externals/higgstools
+  MAKEFLAGS="-j$CORES_TO_USE" CMAKE_ARGS="-DCMAKE_POLICY_VERSION_MINIMUM=3.5" pip install ./externals/higgstools
 fi

@@ -23,7 +23,7 @@ class ConfigLoader:
         if not config_path:
             config_path = config_dir()
 
-        self.logger.info(f"Loading configuration from {config_path + config_file_name}\n")
+        self.logger.info(f"Loading configuration from {config_path + config_file_name}")
 
         self.config = self.load_config(config_path + config_file_name)
 
