@@ -89,7 +89,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
-            global_max: 'Point') -> None:
+            global_max: Point) -> Point:
 
         # get time of iteration start
         iter_start = time.time()
