@@ -117,11 +117,14 @@ class ZoomOptimizer:
         except TimeoutError:
             self.is_running = False
             self.termination_message("No output detected")
-            self.termination_message("Terminating zoom optimizer")
-            return
+            self.termination_message("Using empty point as new max")
+            new_max = Point(xb = 0.0,
+                            model = self.params.model,
+                            par_vals = self.local_max.par_vals)
         
-        # get new point as the maximum from the current scan
-        new_max = self.scan_parser.get_max_xb_point(self.decay)
+        # otherwise get new point as the maximum from the current scan
+        else:
+            new_max = self.scan_parser.get_max_xb_point(self.decay)
 
         # store the previous point
         self.local_max_old = self.local_max
