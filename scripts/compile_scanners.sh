@@ -28,7 +28,7 @@ fi
 CORES_TO_USE=$(( TOTAL_CORES > 1 ? TOTAL_CORES - 1 : 1 ))
 
 # compile ScannerS
-printf "\nTrying to compile ScannerS $CORES_TO_USE threads...\n"
+printf "\nTrying to compile ScannerS with $CORES_TO_USE threads...\n"
 cd externals/ScannerS
 if [ ! -d build ]; then
     mkdir build
