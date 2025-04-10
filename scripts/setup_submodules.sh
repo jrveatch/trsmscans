@@ -64,6 +64,8 @@ function setup_submodule() {
 
   printf "\nSetting up $name at $path_default\n"
 
+  rm -rf "$path_default"
+
   local method
   if has_ssh_access; then
     method="ssh"
