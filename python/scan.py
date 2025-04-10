@@ -447,7 +447,7 @@ if __name__ == "__main__":
                  )
 
     if args.strategy == "zoom":
-        logger.info("Running zoom optimization...")
+        logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     else:
