@@ -34,6 +34,6 @@ if [ ! -d build ]; then
     mkdir build
 fi
 cd build
-cmake -DCMAKE_CXX_STANDARD=17 -Wno-dev ..
+cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -Wno-dev ..
 make -j"$CORES_TO_USE"
 cd ../../..

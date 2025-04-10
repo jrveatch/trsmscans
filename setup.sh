@@ -86,6 +86,7 @@ if ! bash scripts/update_submodules.sh; then
 fi
 
 # Install ScannerS
+# TODO: A better check is needed here in case compilation fails
 if { [ ! -d "externals/ScannerS/build" ] && [ -z "$SCANNERS_PATH" ]; } || [ "$FORCE_RUN" = true ]; then
     if ! bash scripts/compile_scanners.sh; then
         echo "Error: compile_scanners.sh failed!" >&2
