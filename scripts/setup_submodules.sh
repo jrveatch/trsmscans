@@ -57,10 +57,6 @@ function setup_submodule() {
 
   if [[ -n "$user_path" ]]; then
     printf "\nUsing manually provided path for $name: $user_path\n"
-    if [[ ! -d "$user_path/.git" ]]; then
-      printf "Error: $user_path is not a valid Git repository.\n"
-      exit 1
-    fi
     rm -rf "$path_default"
     ln -s "$user_path" "$path_default"
     return
