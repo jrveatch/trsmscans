@@ -48,8 +48,12 @@ function setup_submodule() {
   local git_https="$4"
   local env_var_name="$5"
 
-  local user_path=""
-  #user_path=$(printenv "$env_var_name")
+  local user_path
+  if printenv "$env_var_name" &>/dev/null; then
+    user_path="${!env_var_name}"
+  else
+    user_path=""
+  fi
 
   if [[ -n "$user_path" ]]; then
     printf "\nUsing manually provided path for $name: $user_path\n"
