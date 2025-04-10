@@ -79,12 +79,6 @@ fi
 # Start python virtual environment
 source scripts/start_venv.sh
 
-# Update submodules
-if ! bash scripts/update_submodules.sh; then
-    echo "Error: update_submodules.sh failed!" >&2
-    return 1
-fi
-
 # Install ScannerS
 if { [ ! -d "externals/ScannerS/build" ] && [ -z "$SCANNERS_PATH" ]; } || [ "$FORCE_RUN" = true ]; then
     if ! bash scripts/compile_scanners.sh; then
