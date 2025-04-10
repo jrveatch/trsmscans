@@ -48,12 +48,13 @@ function setup_submodule() {
   local git_https="$4"
   local env_var_name="$5"
 
-  local user_path="${!env_var_name}"
+  local user_path=""
+  #user_path=$(printenv "$env_var_name")
 
   if [[ -n "$user_path" ]]; then
-    echo "Using manually provided path for $name: $user_path"
+    printf "\nUsing manually provided path for $name: $user_path\n"
     if [[ ! -d "$user_path/.git" ]]; then
-      echo "Error: $user_path is not a valid Git repository."
+      printf "Error: $user_path is not a valid Git repository.\n"
       exit 1
     fi
     rm -rf "$path_default"
@@ -61,20 +62,15 @@ function setup_submodule() {
     return
   fi
 
-  echo "Setting up $name at $path_default"
+  printf "\nSetting up $name at $path_default\n"
 
   local method
-  if [[ -n "$GIT_METHOD" ]]; then
-    method="$GIT_METHOD"
-    echo "GIT_METHOD set to '$method'"
+  if has_ssh_access; then
+    method="ssh"
+    printf "Detected SSH access — using SSH for $name\n"
   else
-    if has_ssh_access; then
-      method="ssh"
-      echo "Detected SSH access — using SSH for $name"
-    else
-      method="https"
-      echo "SSH not available — falling back to HTTPS for $name"
-    fi
+    method="https"
+    printf "SSH not available — falling back to HTTPS for $name\n"
   fi
 
   local repo_url
@@ -83,12 +79,12 @@ function setup_submodule() {
   elif [[ "$method" == "https" ]]; then
     repo_url="$git_https"
   else
-    echo "Unknown GIT_METHOD: $method"
+    printf "Unknown git method: $method\n"
     exit 1
   fi
 
   if [[ -d "$path_default/.git" ]]; then
-    echo "$name already cloned, skipping clone."
+    printf "$name already cloned, skipping clone.\n"
   else
     git clone "$repo_url" "$path_default"
   fi
@@ -100,7 +96,7 @@ setup_submodule "HiggsTools"   "$HIGGSTOOLS_PATH_DEFAULT"   "$HIGGSTOOLS_GIT_SSH
 setup_submodule "HBDataSet"    "$HBDATASET_PATH_DEFAULT"    "$HBDATASET_GIT_SSH"    "$HBDATASET_GIT_HTTPS"    "$HBDATASET_ENV_VAR"
 setup_submodule "HSDataSet"    "$HSDATASET_PATH_DEFAULT"    "$HSDATASET_GIT_SSH"    "$HSDATASET_GIT_HTTPS"    "$HSDATASET_ENV_VAR"
 
-echo "All submodules set up."
+printf "\nAll submodules set up.\n"
 
 # Create a file to indicate that submodules are set up
 touch .submodules_ok
