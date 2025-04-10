@@ -166,12 +166,14 @@ create_output_symlink
 
 # Remove various directories and PATH from env.sh
 remove_var_from_env "DATADIR"
+remove_var_from_env "EXTERNALSDIR"
 remove_var_from_env "CONFIGDIR"
 remove_var_from_env "OUTPUTDIR"
 remove_var_from_env "PATH"
 
 # Add various directories to env.sh
 echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
+echo "export EXTERNALSDIR=\"${PWD}/externals/\"" >> env.sh
 echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
 echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
 
