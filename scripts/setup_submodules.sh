@@ -24,13 +24,13 @@ HIGGSTOOLS_GIT_HTTPS="https://gitlab.com/higgsbounds/higgstools.git"
 HIGGSTOOLS_ENV_VAR="HIGGSTOOLS_PATH"
 
 # HBDataSet
-HBDATASET_PATH_DEFAULT="data/hbdataset"
+HBDATASET_PATH_DEFAULT="externals/hbdataset"
 HBDATASET_GIT_SSH="git@gitlab.com:higgsbounds/hbdataset.git"
 HBDATASET_GIT_HTTPS="https://gitlab.com/higgsbounds/hbdataset.git"
 HBDATASET_ENV_VAR="HBDATASET_PATH"
 
 # HSDataSet
-HSDATASET_PATH_DEFAULT="data/hsdataset"
+HSDATASET_PATH_DEFAULT="externals/hsdataset"
 HSDATASET_GIT_SSH="git@gitlab.com:higgsbounds/hsdataset.git"
 HSDATASET_GIT_HTTPS="https://gitlab.com/higgsbounds/hsdataset.git"
 HSDATASET_ENV_VAR="HSDATASET_PATH"
