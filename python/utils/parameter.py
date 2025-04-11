@@ -20,12 +20,12 @@ class Parameter:
         self.__name = name
 
         # initialize values from dictionary
-        self.__lower_bound = bounds_dict['min']
-        self.__upper_bound = bounds_dict['max']
+        self.__min_value = bounds_dict['min']
+        self.__max_value = bounds_dict['max']
 
         # initialize low and high from lower and upper bounds
-        self.__low = self.__lower_bound
-        self.__high = self.__upper_bound
+        self.__low = self.__min_value
+        self.__high = self.__max_value
 
     @property
     def name(self) -> str:
@@ -40,9 +40,9 @@ class Parameter:
     @low.setter
     def low(self,
             new_low: float) -> None:
-        if new_low < self.__lower_bound:
+        if new_low < self.__min_value:
             """Restrict low if outside bound"""
-            self.__low = self.__lower_bound
+            self.__low = self.__min_value
         else:
             """Update to new value"""
             self.__low = new_low
@@ -55,38 +55,38 @@ class Parameter:
     @high.setter
     def high(self,
              new_high: float) -> None:
-        if new_high > self.__upper_bound:
+        if new_high > self.__max_value:
             """Restrict high if outside bound"""
-            self.__high = self.__upper_bound
+            self.__high = self.__max_value
         else:
             """Update to new value"""
             self.__high = new_high
 
     @property
-    def lower_bound(self) -> float:
+    def min_value(self) -> float:
         """Lower bound of the parameter"""
-        return self.__lower_bound
+        return self.__min_value
 
-    @lower_bound.setter
-    def lower_bound(self,
-                    new_lower_bound: float) -> None:
-        self.__lower_bound = new_lower_bound
+    @min_value.setter
+    def min_value(self,
+                    new_min_value: float) -> None:
+        self.__min_value = new_min_value
         """If current low is less than lower bound, adjust it"""
-        if self.__low < self.__lower_bound:
-            self.__low = self.__lower_bound
+        if self.__low < self.__min_value:
+            self.__low = self.__min_value
 
     @property
-    def upper_bound(self) -> float:
+    def max_value(self) -> float:
         """Upper bound of the parameter"""
-        return self.__upper_bound
+        return self.__max_value
 
-    @upper_bound.setter
-    def upper_bound(self,
-                    new_upper_bound: float) -> None:
-        self.__upper_bound = new_upper_bound
+    @max_value.setter
+    def max_value(self,
+                    new_max_value: float) -> None:
+        self.__max_value = new_max_value
         """If current high is greater than lower bound, adjust it"""
-        if self.__high > self.__upper_bound:
-            self.__high = self.__upper_bound
+        if self.__high > self.__max_value:
+            self.__high = self.__max_value
 
     @property
     def center(self) -> float:
@@ -124,36 +124,36 @@ class Parameter:
         self.__high = center + width / 2
 
         # adjust low and high based on lower bound
-        if self.__low < self.__lower_bound:
+        if self.__low < self.__min_value:
             
             # calculate how much the new low is below lower bound
-            overage = self.__lower_bound - self.__low
+            overage = self.__min_value - self.__low
 
             # add overage to high
             self.__high += overage
 
             # if new high is above upper bound, set it to max
-            if self.__high > self.__upper_bound:
-                self.__high = self.__upper_bound
+            if self.__high > self.__max_value:
+                self.__high = self.__max_value
 
             # set low to lower bound
-            self.__low = self.__lower_bound
+            self.__low = self.__min_value
 
         # adjust high and low based on upper bound
-        if self.__high > self.__upper_bound:
+        if self.__high > self.__max_value:
 
             # calculate how much the new high is above upper bound
-            overage = self.__high - self.__upper_bound
+            overage = self.__high - self.__max_value
 
             # subtract overage from low
             self.__low -= overage
 
             # if new low is below lower bound, set it to lower bound
-            if self.__low < self.__lower_bound:
-                self.__low = self.__lower_bound
+            if self.__low < self.__min_value:
+                self.__low = self.__min_value
             
             # set high to upper bound
-            self.__high = self.__upper_bound
+            self.__high = self.__max_value
 
         return
 
@@ -166,7 +166,7 @@ class Parameter:
 
     # format bounds as string
     def format_bounds(self) -> str:
-        return f"[{round_sig(self.__lower_bound)},{round_sig(self.__upper_bound)}]"
+        return f"[{round_sig(self.__min_value)},{round_sig(self.__max_value)}]"
 
     # get range as string
     def format_range(self) -> str:

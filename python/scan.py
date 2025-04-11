@@ -173,12 +173,12 @@ class Scan:
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params[parameter_name].lower_bound:
-                self.params[parameter_name].lower_bound = (new_min - one_percent)
+            if new_min - one_percent > self.params[parameter_name].min_value:
+                self.params[parameter_name].min_value = (new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params[parameter_name].upper_bound:
-                self.params[parameter_name].upper_bound = (new_max + one_percent)
+            if new_max + one_percent < self.params[parameter_name].max_value:
+                self.params[parameter_name].max_value = (new_max + one_percent)
 
             # add parameter name and range to rows
             rows.append([parameter_name, self.params.parameter_value(parameter_name).format_bounds()])
@@ -346,8 +346,8 @@ class Scan:
 
             # Zip the names and values together, assigning the data to each parameter
             for name, parameter in zip(param_dict.keys(), param_values):
-                params_copy[name].lower_bound = parameter['min']
-                params_copy[name].upper_bound = parameter['max']
+                params_copy[name].min_value = parameter['min']
+                params_copy[name].max_value = parameter['max']
                 param_combination_data[name] = parameter
 
             all_param_combinations.append((params_copy, param_combination_data))
