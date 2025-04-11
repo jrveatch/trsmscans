@@ -64,27 +64,27 @@ class Parameter:
 
     @property
     def min_value(self) -> float:
-        """Lower bound of the parameter"""
+        """Minimum value of the parameter"""
         return self.__min_value
 
     @min_value.setter
     def min_value(self,
                     new_min_value: float) -> None:
         self.__min_value = new_min_value
-        """If current low is less than lower bound, adjust it"""
+        """If current low is less than minimum value, adjust it"""
         if self.__low < self.__min_value:
             self.__low = self.__min_value
 
     @property
     def max_value(self) -> float:
-        """Upper bound of the parameter"""
+        """Maximum value of the parameter"""
         return self.__max_value
 
     @max_value.setter
     def max_value(self,
                     new_max_value: float) -> None:
         self.__max_value = new_max_value
-        """If current high is greater than lower bound, adjust it"""
+        """If current high is greater than minimum value, adjust it"""
         if self.__high > self.__max_value:
             self.__high = self.__max_value
 
@@ -95,19 +95,18 @@ class Parameter:
     
     @property
     def range(self) -> tuple:
-        """Range value of the parameter"""
+        """High and low values of the parameter"""
         return (self.__low, self.__high)
 
     @property
     def width(self) -> float:
-        """Width value of the parameter"""
+        """Width of the parameter"""
         return abs(self.__high - self.__low)
-    
-    # set new value, range, low and high
+
     def scale_width(self,
                     new_val: Optional[float] = None,
                     range_scale: float = 1.0) -> None:
-
+        """Set new central value, range, low and high based on scaling"""
         # complain and exit if there is nothing to do
         if new_val is None and range_scale == 1.0:
             self.logger.warning("Attempting to update parameter with no new information... returning...")
@@ -157,17 +156,17 @@ class Parameter:
 
         return
 
-    # update both low and high values
     def set_low_high(self,
                      new_low: float,
                      new_high: float):
+        """Update low and high values directly"""
         self.low = new_low
         self.high = new_high
 
-    # format bounds as string
     def format_bounds(self) -> str:
+        """Format bounds as string"""
         return f"[{round_sig(self.__min_value)},{round_sig(self.__max_value)}]"
 
-    # get range as string
     def format_range(self) -> str:
+        """Format range as string"""
         return f"[{round_sig(self.__low)},{round_sig(self.__high)}]"
