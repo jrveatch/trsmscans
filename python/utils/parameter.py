@@ -40,11 +40,10 @@ class Parameter:
     @low.setter
     def low(self,
             new_low: float) -> None:
+        """Set the low value, clamped to the min bound."""
         if new_low < self.__min_value:
-            """Restrict low if outside bound"""
             self.__low = self.__min_value
         else:
-            """Update to new value"""
             self.__low = new_low
 
     @property
@@ -55,11 +54,10 @@ class Parameter:
     @high.setter
     def high(self,
              new_high: float) -> None:
+        """Set the high value, clamped to the max bound."""
         if new_high > self.__max_value:
-            """Restrict high if outside bound"""
             self.__high = self.__max_value
         else:
-            """Update to new value"""
             self.__high = new_high
 
     @property
