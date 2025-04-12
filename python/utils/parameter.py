@@ -168,3 +168,7 @@ class Parameter:
     def format_range(self) -> str:
         """Format range as string"""
         return f"[{round_sig(self.__low)},{round_sig(self.__high)}]"
+
+    def __str__(self) -> str:
+        """String representation of the parameter"""
+        return f"Parameter '{self.__name}': bounds={self.format_bounds()}, current range={self.format_range()}"
