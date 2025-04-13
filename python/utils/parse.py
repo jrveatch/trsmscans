@@ -64,10 +64,10 @@ class Parse:
     def num_unfiltered_points(self) -> int:
         """Number of unfiltered points"""
         return len(self.data)
-    
-    # load new arrays
+
     def read_file(self,
                   file_name: str) -> None:
+        """Load new arrays from a .tsv file"""
 
         # create dataframe object if it does not exist
         if not hasattr(self,"tsv_data"):
@@ -76,9 +76,9 @@ class Parse:
         # get arrays masked by filters
         self.__make_filtered_arrays()
 
-    # find the point that maximizes xb
     def get_max_xb_point(self,
                          decay: str) -> Point:
+        """Find the point with the highest xb"""
         
         # get xb
         xb = self.get_xb(decay)
@@ -94,20 +94,20 @@ class Parse:
                      model = self.__model,
                      par_vals = max_xb_par_vals)
 
-    # get minimum value of a parameter
     def get_min(self,
                 par_name: str) -> float:
+        """Get the minimum value for a parameter in the data"""
         return self.__par_arrays[par_name].min()
 
-    # get maximum value of a parameter
     def get_max(self,
                 par_name: str) -> float:
+        """Get the maximum value for a parameter in the data"""
         return self.__par_arrays[par_name].max()
 
-    # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
                    param_name: str,
                    decay: str) -> bool:
+        """Check whether xb is unimodal in a parameter"""
 
         # percentile threshold for xb
         percentile_threshold = 0.98
@@ -147,9 +147,9 @@ class Parse:
         else:
             return False
 
-    # get xb array
     def get_xb(self,
                decay: str) -> pd.Series:
+        """Get array of xb values"""
 
         # get production cross section
         xsec_prod = self.__get_xsec_prod()
@@ -168,14 +168,13 @@ class Parse:
         # return total xsec time BR
         return xb
 
-    # get production xsec
     def __get_xsec_prod(self) -> pd.Series:
-
+        """Get array of production cross-sections"""
         return self.filtered_data['x_H3_gg'] #* self.filtered_data['b_H3_H1H2']
 
-    # get decay BR
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
+        """Get arrays of decay branching ratios"""
         
         # BSM BRs
         br_X_SH = self.filtered_data['b_H3_H1H2']
@@ -380,12 +379,12 @@ class Parse:
         # return the decay BR
         return br_decay
 
-    # get arrays of the filters
     def __set_filters(self) -> None:
+        """Get arrays of filter decisions"""
         self.__filters = (self.data['filt_width'] * self.data['filt_bounds'] * self.data['filt_signals']).astype(bool)
 
-    # apply filters as mask
     def __make_filtered_arrays(self) -> None:
+        """Apply filter decisions as a mask"""
         
         # get array of filters to use as a mask
         self.__set_filters()
@@ -402,10 +401,10 @@ class Parse:
         # combine all parameter arrays
         self.__par_arrays = {**self.__in_par_arrays, **self.__out_par_arrays, **self.__width_par_arrays}
 
-    # write max xb line to a .tsv file
     def write_max_xb_line(self,
                           file_name: str
                          ) -> None:
+        """Write line with max xb to a .tsv file"""
 
         # get max xb row from dataframe
         row = self.data.loc[[self.max_idx]]
@@ -416,5 +415,3 @@ class Parse:
                    index=True,
                    mode='a',
                    header=False)
-
-        return
