@@ -203,15 +203,15 @@ class Model:
                 f"Invalid original name: {particle_name}. Available names: {self.AllScalars}"
             )
 
-    # get a single input parameter
     def input_parameter(self,
                         par_name: str) -> Dict[str,any]:
+        """Get a single input parameter"""
         return self.__input_params[par_name]
 
-    # get model parameter starting min
     def starting_min(self,par_name) -> float:
+        """Get model parameter starting min"""
         return self.__input_params[par_name]['min']
 
-    # get model parameter starting max
     def starting_max(self,par_name) -> float:
+        """Get parameter starting max"""
         return self.__input_params[par_name]['max']
