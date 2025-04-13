@@ -69,30 +69,31 @@ class Params:
         """Decay mode being used"""
         return self.__decay
 
-    ## Calculated values
-
-    # get parameter from dict
     def parameter_value(self,
                         par_name: str) -> Parameter:
+        """Get parameter from dictionary"""
         return self.__parameters[par_name]
 
     def center_points(self) -> Tuple[float]:
+        """Get tuple of center points for parameters"""
         return tuple([param.center for param in self.__parameters.values()])
 
     def ranges(self) -> Tuple[Tuple[float]]:
+        """Get tuple of ranges for parameters"""
         return tuple([param.range for param in self.__parameters.values()])
 
     def widths(self) -> Tuple[float]:
+        """Get tuple of widths for parameters"""
         return tuple([param.width for param in self.__parameters.values()])
 
-    # get starting min value from model
     def starting_min(self,
                      par_name: str) -> float:
+        """Get starting min value for a parameter"""
         return self.__model.starting_min(par_name)
 
-    # get starting max value from model
     def starting_max(self,
                      par_name: str) -> float:
+        """Get starting max value for a parameter"""
         return self.__model.starting_max(par_name)
 
     # set new value, range, low and high
@@ -153,21 +154,16 @@ class Params:
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
-    # function to calculate volume of parameter space
     def volume(self) -> float:
-
+        """Calculate the volume of the parameter space defined"""
         # initialize volume to 1
         volume = 1.0
-
         # loop over parameters
         for par in self.__parameters.values():
-
             # make sure range is non-zero
             if par.width > 1e-13:
-
                 # multiply volume by parameter range
                 volume *= par.width
-
         return volume
 
     # function to write .ini file with parameters
