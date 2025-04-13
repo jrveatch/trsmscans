@@ -224,22 +224,6 @@ class Params:
         """Return the Parameter object corresponding to `par_name`."""
         return self.parameter_value(key)
 
-    ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
-
-    # initialize iteration
     def __iter__(self):
-        self.__iter_idx = -1
-        return self
-
-    # get next value
-    def __next__(self):
-        self.__iter_idx += 1
-
-        if self.__iter_idx >= len(self.parameters):
-            raise StopIteration
-
-        return list(self.parameters.values())[self.__iter_idx]
-
-    # length of params
-    def __len__(self):
-        return len(self.parameters)
+        """Define iterator over parameter values"""
+        return iter(self.parameters.values())
