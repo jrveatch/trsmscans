@@ -227,3 +227,11 @@ class Params:
     def __iter__(self):
         """Define iterator over parameter values"""
         return iter(self.parameters.values())
+    
+    def __str__(self) -> str:
+        """String representation of all parameters"""
+        lines = [f"Params object for model: {self.model_name}, decay: {self.decay}"]
+        for name in self.parameter_names:
+            param = self.parameters[name]
+            lines.append(str(param))  # uses Parameter.__str__
+        return "\n".join(lines) + "\n"
