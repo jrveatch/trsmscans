@@ -143,8 +143,8 @@ class Params:
             param.set_low_high(center - width, center + width)
 
     def update_low_high(self,
-                        low_dict: dict = None,
-                        high_dict: dict = None) -> None:
+                        low_dict: Optional[Dict[str, float]] = None,
+                        high_dict: Optional[Dict[str, float]] = None) -> None:
         """Update low and high of all parameters from dictionary"""
 
         # check to see if low_dict exists
