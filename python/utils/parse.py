@@ -142,10 +142,7 @@ class Parse:
         pval_threshold = 0.05
 
         # if p-value is below threshold, return True, otherwise return False
-        if pval < pval_threshold:
-            return True
-        else:
-            return False
+        return pval < pval_threshold
 
     def get_xb(self,
                decay: str) -> pd.Series:
