@@ -72,19 +72,19 @@ class Params:
     def parameter_value(self,
                         par_name: str) -> Parameter:
         """Get parameter from dictionary"""
-        return self.__parameters[par_name]
+        return self.parameters[par_name]
 
     def center_points(self) -> Tuple[float]:
         """Get tuple of center points for parameters"""
-        return tuple([param.center for param in self.__parameters.values()])
+        return tuple([param.center for param in self.parameters.values()])
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
-        return tuple([param.range for param in self.__parameters.values()])
+        return tuple([param.range for param in self.parameters.values()])
 
     def widths(self) -> Tuple[float]:
         """Get tuple of widths for parameters"""
-        return tuple([param.width for param in self.__parameters.values()])
+        return tuple([param.width for param in self.parameters.values()])
 
     def starting_min(self,
                      par_name: str) -> float:
@@ -117,12 +117,12 @@ class Params:
                 new_val = new_point.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.__parameters[par_name].scale_width(new_val=new_val,
-                                                   range_scale=range_scale)
+            self.parameters[par_name].scale_width(new_val=new_val,
+                                                  range_scale=range_scale)
 
     def reposition_center(self, point: Tuple[float]):
         """Change low and high of parameters around a new center point"""
-        for (center, param) in zip(point, self.__parameters.values()):
+        for (center, param) in zip(point, self.parameters.values()):
             width = param.width / 2
             param.set_low_high(center - width, center + width)
 
@@ -136,9 +136,9 @@ class Params:
 
             # loop over parameters
             for par_name, new_low in low_dict.items():
-                if par_name in self.__parameters:
+                if par_name in self.parameters:
                     # use low_dict to update the low for each parameter
-                    self.__parameters[par_name].low = new_low
+                    self.parameters[par_name].low = new_low
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -147,9 +147,9 @@ class Params:
 
             # loop over parameters
             for par_name, new_high in high_dict.items():
-                if par_name in self.__parameters:
+                if par_name in self.parameters:
                     # use high_dict to update the high for each parameter
-                    self.__parameters[par_name].high = new_high
+                    self.parameters[par_name].high = new_high
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -158,7 +158,7 @@ class Params:
         # initialize volume to 1
         volume = 1.0
         # loop over parameters
-        for par in self.__parameters.values():
+        for par in self.parameters.values():
             # make sure range is non-zero
             if par.width > 1e-13:
                 # multiply volume by parameter range
@@ -219,11 +219,11 @@ class Params:
     def __next__(self):
         self.__iter_idx += 1
 
-        if self.__iter_idx >= len(self.__parameters):
+        if self.__iter_idx >= len(self.parameters):
             raise StopIteration
 
-        return list(self.__parameters.values())[self.__iter_idx]
+        return list(self.parameters.values())[self.__iter_idx]
 
     # length of params
     def __len__(self):
-        return len(self.__parameters)
+        return len(self.parameters)
