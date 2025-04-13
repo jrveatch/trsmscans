@@ -33,9 +33,10 @@ class Params:
         self.__parameter_names: Tuple[str] = self.model.input_parameter_names
 
         # create dictionary of parameters
-        self.__parameters: Dict[str,'Parameter'] = {}
-        for name in self.__parameter_names:
-            self.__parameters[name] = Parameter(name,self.model.input_parameter(name))
+        self.__parameters = {
+            name: Parameter(name, self.__model.input_parameter(name))
+            for name in self.__parameter_names
+            }
 
     ## Class properties
 
