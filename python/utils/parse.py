@@ -70,7 +70,7 @@ class Parse:
         """Load new arrays from a .tsv file"""
 
         # create dataframe object if it does not exist
-        if not hasattr(self,"tsv_data"):
+        if not hasattr(self,"data"):
             self.data = get_df(file_name)
 
         # get arrays masked by filters
@@ -142,10 +142,7 @@ class Parse:
         pval_threshold = 0.05
 
         # if p-value is below threshold, return True, otherwise return False
-        if pval < pval_threshold:
-            return True
-        else:
-            return False
+        return pval < pval_threshold
 
     def get_xb(self,
                decay: str) -> pd.Series:
