@@ -70,7 +70,7 @@ class Parse:
         """Load new arrays from a .tsv file"""
 
         # create dataframe object if it does not exist
-        if not hasattr(self,"tsv_data"):
+        if not hasattr(self,"data"):
             self.data = get_df(file_name)
 
         # get arrays masked by filters
