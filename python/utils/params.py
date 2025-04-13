@@ -30,14 +30,29 @@ class Params:
         self.__decay = decay
 
         # get tuple of parameter names
-        self.__parameter_names: Tuple[str] = self.__model.input_parameter_names
+        self.__parameter_names: Tuple[str] = self.model.input_parameter_names
 
         # create dictionary of parameters
         self.__parameters: Dict[str,'Parameter'] = {}
         for name in self.__parameter_names:
-            self.__parameters[name] = Parameter(name,self.__model.input_parameter(name))
+            self.__parameters[name] = Parameter(name,self.model.input_parameter(name))
 
     ## Class properties
+
+    @property
+    def mH1(self) -> float:
+        """Mass of H1"""
+        return self.__mH1
+
+    @property
+    def mH2(self) -> float:
+        """Mass of H2"""
+        return self.__mH2
+
+    @property
+    def mH3(self) -> float:
+        """Mass of H3"""
+        return self.__mH3
 
     @property
     def parameters(self) -> Dict[str, Parameter]:
@@ -89,12 +104,12 @@ class Params:
     def starting_min(self,
                      par_name: str) -> float:
         """Get starting min value for a parameter"""
-        return self.__model.starting_min(par_name)
+        return self.model.starting_min(par_name)
 
     def starting_max(self,
                      par_name: str) -> float:
         """Get starting max value for a parameter"""
-        return self.__model.starting_max(par_name)
+        return self.model.starting_max(par_name)
 
     def scale_ranges(self,
                      new_point: Optional[Point] = None,
@@ -107,7 +122,7 @@ class Params:
             return
 
         # loop over parameters
-        for par_name in self.__parameter_names:
+        for par_name in self.parameter_names:
 
             # initialize new value to be None
             new_val = None
@@ -170,13 +185,13 @@ class Params:
         """Write .ini files with parameter values"""
 
         # read in template .ini file
-        with open(self.__model.template_ini,"r") as template:
+        with open(self.model.template_ini,"r") as template:
             ini_data = template.read()
 
         # create ini_data with parameters
-        ini_data = ini_data.replace("MH1",str(self.__mH1))
-        ini_data = ini_data.replace("MH2",str(self.__mH2))
-        ini_data = ini_data.replace("MH3",str(self.__mH3))
+        ini_data = ini_data.replace("MH1",str(self.mH1))
+        ini_data = ini_data.replace("MH2",str(self.mH2))
+        ini_data = ini_data.replace("MH3",str(self.mH3))
 
         # loop over parameters and fill low/high values
         for par in self.parameters.values():
