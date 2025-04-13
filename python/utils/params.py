@@ -1,7 +1,7 @@
 
 # standard libraries
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 # local modules
 from utils.model import Model
@@ -29,15 +29,31 @@ class Params:
         # Store decay name
         self.__decay = decay
 
-        # get list of parameter names
-        self.__parameter_names: List[str] = self.__model.input_parameter_names
+        # get tuple of parameter names
+        self.__parameter_names: Tuple[str] = self.model.input_parameter_names
 
         # create dictionary of parameters
-        self.__parameters: Dict[str,'Parameter'] = {}
-        for name in self.__parameter_names:
-            self.__parameters[name] = Parameter(name,self.__model.input_parameter(name))
+        self.__parameters = {
+            name: Parameter(name, self.__model.input_parameter(name))
+            for name in self.__parameter_names
+            }
 
     ## Class properties
+
+    @property
+    def mH1(self) -> float:
+        """Mass of H1"""
+        return self.__mH1
+
+    @property
+    def mH2(self) -> float:
+        """Mass of H2"""
+        return self.__mH2
+
+    @property
+    def mH3(self) -> float:
+        """Mass of H3"""
+        return self.__mH3
 
     @property
     def parameters(self) -> Dict[str, Parameter]:
@@ -45,8 +61,8 @@ class Params:
         return self.__parameters
 
     @property
-    def parameter_names(self) -> List[str]:
-        """List of parameter name"""
+    def parameter_names(self) -> Tuple[str]:
+        """Tuple of parameter name"""
         return self.__parameter_names
 
     @property
@@ -69,36 +85,37 @@ class Params:
         """Decay mode being used"""
         return self.__decay
 
-    ## Calculated values
-
-    # get parameter from dict
     def parameter_value(self,
                         par_name: str) -> Parameter:
-        return self.__parameters[par_name]
+        """Get parameter from dictionary"""
+        return self.parameters[par_name]
 
     def center_points(self) -> Tuple[float]:
-        return tuple([param.center for param in self.__parameters.values()])
+        """Get tuple of center points for parameters"""
+        return tuple([param.center for param in self.parameters.values()])
 
     def ranges(self) -> Tuple[Tuple[float]]:
-        return tuple([param.range for param in self.__parameters.values()])
+        """Get tuple of ranges for parameters"""
+        return tuple([param.range for param in self.parameters.values()])
 
     def widths(self) -> Tuple[float]:
-        return tuple([param.width for param in self.__parameters.values()])
+        """Get tuple of widths for parameters"""
+        return tuple([param.width for param in self.parameters.values()])
 
-    # get starting min value from model
     def starting_min(self,
                      par_name: str) -> float:
-        return self.__model.starting_min(par_name)
+        """Get starting min value for a parameter"""
+        return self.model.starting_min(par_name)
 
-    # get starting max value from model
     def starting_max(self,
                      par_name: str) -> float:
-        return self.__model.starting_max(par_name)
+        """Get starting max value for a parameter"""
+        return self.model.starting_max(par_name)
 
-    # set new value, range, low and high
     def scale_ranges(self,
                      new_point: Optional[Point] = None,
                      range_scale: float = 1.0) -> None:
+        """Set new central value, range, low and high for all parameters"""
 
         # complain and exit if there is nothing to do
         if new_point is None and range_scale == 1.0:
@@ -106,7 +123,7 @@ class Params:
             return
 
         # loop over parameters
-        for par_name in self.__parameter_names:
+        for par_name in self.parameter_names:
 
             # initialize new value to be None
             new_val = None
@@ -116,29 +133,28 @@ class Params:
                 new_val = new_point.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.__parameters[par_name].scale_width(new_val=new_val,
-                                                   range_scale=range_scale)
+            self.parameters[par_name].scale_width(new_val=new_val,
+                                                  range_scale=range_scale)
 
-    # change bounds of each parameter based on new center point
     def reposition_center(self, point: Tuple[float]):
-        for (center, param) in zip(point, self.__parameters.values()):
-            extent = param.width / 2
+        """Change low and high of parameters around a new center point"""
+        for (center, param) in zip(point, self.parameters.values()):
+            width = param.width / 2
+            param.set_low_high(center - width, center + width)
 
-            param.set_low_high(center - extent, center + extent)
-
-    # update both low and high of each parameter using dictionaries
     def update_low_high(self,
-                        low_dict: dict = None,
-                        high_dict: dict = None) -> None:
+                        low_dict: Optional[Dict[str, float]] = None,
+                        high_dict: Optional[Dict[str, float]] = None) -> None:
+        """Update low and high of all parameters from dictionary"""
 
         # check to see if low_dict exists
         if low_dict is not None:
 
             # loop over parameters
             for par_name, new_low in low_dict.items():
-                if par_name in self.__parameters:
+                if par_name in self.parameters:
                     # use low_dict to update the low for each parameter
-                    self.__parameters[par_name].low = new_low
+                    self.parameters[par_name].low = new_low
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -147,41 +163,36 @@ class Params:
 
             # loop over parameters
             for par_name, new_high in high_dict.items():
-                if par_name in self.__parameters:
+                if par_name in self.parameters:
                     # use high_dict to update the high for each parameter
-                    self.__parameters[par_name].high = new_high
+                    self.parameters[par_name].high = new_high
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
-    # function to calculate volume of parameter space
     def volume(self) -> float:
-
+        """Calculate the volume of the parameter space defined"""
         # initialize volume to 1
         volume = 1.0
-
         # loop over parameters
-        for par in self.__parameters.values():
-
+        for par in self.parameters.values():
             # make sure range is non-zero
             if par.width > 1e-13:
-
                 # multiply volume by parameter range
                 volume *= par.width
-
         return volume
 
-    # function to write .ini file with parameters
     def write_ini(self,
                   ini_name: str) -> None:
+        """Write .ini files with parameter values"""
 
         # read in template .ini file
-        with open(self.__model.template_ini,"r") as template:
+        with open(self.model.template_ini,"r") as template:
             ini_data = template.read()
 
         # create ini_data with parameters
-        ini_data = ini_data.replace("MH1",str(self.__mH1))
-        ini_data = ini_data.replace("MH2",str(self.__mH2))
-        ini_data = ini_data.replace("MH3",str(self.__mH3))
+        ini_data = ini_data.replace("MH1",str(self.mH1))
+        ini_data = ini_data.replace("MH2",str(self.mH2))
+        ini_data = ini_data.replace("MH3",str(self.mH3))
 
         # loop over parameters and fill low/high values
         for par in self.parameters.values():
@@ -209,26 +220,10 @@ class Params:
     def vol_range(self) -> Tuple[Tuple[float, float]]:
         return self.ranges()
 
-    # parameter name indexing
     def __getitem__(self, key) -> Parameter:
+        """Return the Parameter object corresponding to `par_name`."""
         return self.parameter_value(key)
 
-    ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
-
-    # initialize iteration
     def __iter__(self):
-        self.__iter_idx = -1
-        return self
-
-    # get next value
-    def __next__(self):
-        self.__iter_idx += 1
-
-        if self.__iter_idx >= len(self.__parameters):
-            raise StopIteration
-
-        return list(self.__parameters.values())[self.__iter_idx]
-
-    # length of params
-    def __len__(self):
-        return len(self.__parameters)
+        """Define iterator over parameter values"""
+        return iter(self.parameters.values())

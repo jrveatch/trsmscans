@@ -2,7 +2,7 @@
 # standard libraries
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, Tuple
 
 # third-party libraries
 import yaml
@@ -80,22 +80,22 @@ class Model:
         return self.__width_params
 
     @property
-    def input_parameter_names(self) -> List[str]:
+    def input_parameter_names(self) -> Tuple[str]:
         """List of input parameter names"""
-        return list(self.__input_params.keys())
+        return tuple(self.__input_params.keys())
 
     @property
-    def output_parameter_names(self) -> List[str]:
+    def output_parameter_names(self) -> Tuple[str]:
         """List of output parameter names"""
-        return list(self.__output_params.keys())
+        return tuple(self.__output_params.keys())
 
     @property
-    def width_parameter_names(self) -> List[str]:
+    def width_parameter_names(self) -> Tuple[str]:
         """List of output parameter names"""
-        return list(self.__width_params.keys())
+        return tuple(self.__width_params.keys())
 
     @property
-    def all_parameter_names(self) -> List[str]:
+    def all_parameter_names(self) -> Tuple[str]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
@@ -203,15 +203,15 @@ class Model:
                 f"Invalid original name: {particle_name}. Available names: {self.AllScalars}"
             )
 
-    # get a single input parameter
     def input_parameter(self,
                         par_name: str) -> Dict[str,any]:
+        """Get a single input parameter"""
         return self.__input_params[par_name]
 
-    # get model parameter starting min
     def starting_min(self,par_name) -> float:
+        """Get model parameter starting min"""
         return self.__input_params[par_name]['min']
 
-    # get model parameter starting max
     def starting_max(self,par_name) -> float:
+        """Get parameter starting max"""
         return self.__input_params[par_name]['max']
