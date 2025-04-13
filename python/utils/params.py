@@ -1,7 +1,7 @@
 
 # standard libraries
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 # local modules
 from utils.model import Model
@@ -29,8 +29,8 @@ class Params:
         # Store decay name
         self.__decay = decay
 
-        # get list of parameter names
-        self.__parameter_names: List[str] = self.__model.input_parameter_names
+        # get tuple of parameter names
+        self.__parameter_names: Tuple[str] = self.__model.input_parameter_names
 
         # create dictionary of parameters
         self.__parameters: Dict[str,'Parameter'] = {}
@@ -45,8 +45,8 @@ class Params:
         return self.__parameters
 
     @property
-    def parameter_names(self) -> List[str]:
-        """List of parameter name"""
+    def parameter_names(self) -> Tuple[str]:
+        """Tuple of parameter name"""
         return self.__parameter_names
 
     @property
