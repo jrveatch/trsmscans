@@ -1,7 +1,8 @@
 
 # standard libraries
+import copy
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # local modules
 from utils.model import Model
@@ -202,6 +203,41 @@ class Params:
         # write to .ini file
         with open(ini_name,"w") as outfile:
             outfile.write(ini_data)
+
+    def split_range(self,
+                    param_name: str,
+                    split_values: List[float]) -> List['Params']:
+        """Create new Params objects by splitting one parameter at the specified values"""
+        if param_name not in self.parameters:
+            raise ValueError(f"Parameter '{param_name}' not found in Params.")
+
+        # Ensure sorted and unique split points
+        split_points = sorted(set(split_values))
+
+        # Get original parameter range
+        param = self.parameters[param_name]
+        low = param.low
+        high = param.high
+
+        # Check that all split points are within the original range
+        for val in split_points:
+            if not (low < val < high):
+                raise ValueError(
+                    f"Split value {val} is outside the range of parameter '{param_name}' "
+                    f"({low}, {high})"
+                )
+
+        # Include endpoints to create full range intervals
+        all_bounds = [low] + split_points + [high]
+
+        # Create deep copies for each split
+        split_params_list = []
+        for i in range(len(all_bounds) - 1):
+            p = copy.deepcopy(self)
+            p.parameters[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
+            split_params_list.append(p)
+
+        return split_params_list
 
     ## Aliases
 
