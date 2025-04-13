@@ -96,10 +96,10 @@ class Params:
         """Get starting max value for a parameter"""
         return self.__model.starting_max(par_name)
 
-    # set new value, range, low and high
     def scale_ranges(self,
                      new_point: Optional[Point] = None,
                      range_scale: float = 1.0) -> None:
+        """Set new central value, range, low and high for all parameters"""
 
         # complain and exit if there is nothing to do
         if new_point is None and range_scale == 1.0:
@@ -120,17 +120,16 @@ class Params:
             self.__parameters[par_name].scale_width(new_val=new_val,
                                                    range_scale=range_scale)
 
-    # change bounds of each parameter based on new center point
     def reposition_center(self, point: Tuple[float]):
+        """Change low and high of parameters around a new center point"""
         for (center, param) in zip(point, self.__parameters.values()):
-            extent = param.width / 2
+            width = param.width / 2
+            param.set_low_high(center - width, center + width)
 
-            param.set_low_high(center - extent, center + extent)
-
-    # update both low and high of each parameter using dictionaries
     def update_low_high(self,
                         low_dict: dict = None,
                         high_dict: dict = None) -> None:
+        """Update low and high of all parameters from dictionary"""
 
         # check to see if low_dict exists
         if low_dict is not None:
@@ -166,9 +165,9 @@ class Params:
                 volume *= par.width
         return volume
 
-    # function to write .ini file with parameters
     def write_ini(self,
                   ini_name: str) -> None:
+        """Write .ini files with parameter values"""
 
         # read in template .ini file
         with open(self.__model.template_ini,"r") as template:
@@ -205,8 +204,8 @@ class Params:
     def vol_range(self) -> Tuple[Tuple[float, float]]:
         return self.ranges()
 
-    # parameter name indexing
     def __getitem__(self, key) -> Parameter:
+        """Return the Parameter object corresponding to `par_name`."""
         return self.parameter_value(key)
 
     ## FIXME: ! below not tested ! note: should be about right, but will need to update later on if bug
