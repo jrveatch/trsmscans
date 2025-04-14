@@ -6,8 +6,8 @@ from typing import Any, Dict, Optional
 # local modules
 from utils.math_utils import round_sig
 
-# class to hold and update a single model parameter
-class Parameter:
+# class to hold and update ranges for a single model parameter
+class ParamRange:
 
     def __init__(self,
                  name: str,
@@ -40,7 +40,7 @@ class Parameter:
 
     @property
     def low(self) -> float:
-        """Low value of the parameter"""
+        """Low value of the parameter range"""
         return self.__low
 
     @low.setter
@@ -53,7 +53,7 @@ class Parameter:
 
     @property
     def high(self) -> float:
-        """High value of the parameter"""
+        """High value of the parameter range"""
         return self.__high
     
     @high.setter
@@ -66,7 +66,7 @@ class Parameter:
 
     @property
     def min_value(self) -> float:
-        """Minimum value of the parameter"""
+        """Minimum bound of the parameter range"""
         return self.__min_value
 
     @min_value.setter
@@ -79,7 +79,7 @@ class Parameter:
 
     @property
     def max_value(self) -> float:
-        """Maximum value of the parameter"""
+        """Maximum bound of the parameter range"""
         return self.__max_value
 
     @max_value.setter
@@ -92,17 +92,17 @@ class Parameter:
 
     @property
     def center(self) -> float:
-        """Center value of the parameter"""
+        """Center value of the parameter range"""
         return (self.low + self.high) / 2
     
     @property
     def range(self) -> tuple:
-        """High and low values of the parameter"""
+        """High and low values of the parameter range"""
         return (self.low, self.high)
 
     @property
     def width(self) -> float:
-        """Width of the parameter"""
+        """Width of the parameter range"""
         return abs(self.high - self.low)
 
     def scale_width(self,
@@ -174,5 +174,5 @@ class Parameter:
         return f"[{round_sig(self.low)},{round_sig(self.high)}]"
 
     def __str__(self) -> str:
-        """String representation of the parameter"""
+        """String representation of the parameter range"""
         return f"Parameter '{self.name}': bounds={self.format_bounds()}, current range={self.format_range()}"
