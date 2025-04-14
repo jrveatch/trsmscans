@@ -1,8 +1,9 @@
 
 # standard libraries
+from functools import cached_property
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, Tuple
 
 # third-party libraries
 import yaml
@@ -39,9 +40,6 @@ class Model:
         self.__masses = masses
         self.__build_mass_maps()
 
-        # make dictionary of width parameters
-        self.__make_width_params()
-
     @property
     def name(self) -> str:
         """Model name"""
@@ -53,6 +51,11 @@ class Model:
         return self.__template_ini
 
     @property
+    def masses(self) -> Dict[str,float]:
+        """Dictionary of particle masses"""
+        return self.__masses
+
+    @property
     # TODO: Make this more generalized
     def mass_string(self) -> str:
         """
@@ -60,67 +63,91 @@ class Model:
 
         :return: A string representation of the masses of X and S.
         """
-        x_mass = self.__masses["X"]
-        s_mass = self.__masses["S"]
+        x_mass = self.masses["X"]
+        s_mass = self.masses["S"]
         return f"X{int(x_mass)}_S{int(s_mass)}"
 
     @property
-    def input_parameters(self) -> dict:
+    def yaml_name(self) -> str:
+        """Model yaml file name"""
+        return self.__yaml_name
+
+    @property
+    def input_parameters(self) -> dict[str, any]:
         """Dictionary of input parameters"""
         return self.__input_params
+
+    @input_parameters.setter
+    def input_parameters(self,
+                         new_input_params: dict[str, any]) -> None:
+        """Set the input parameters dictionary"""
+        self.__input_params = new_input_params
 
     @property
     def output_parameters(self) -> dict:
         """Dictionary of output parameters"""
         return self.__output_params
 
-    @property
-    def width_parameters(self) -> dict:
-        """Dictionary of width parameters"""
-        return self.__width_params
+    @output_parameters.setter
+    def output_parameters(self,\
+                          new_output_params: dict[str, any]) -> None:
+        """Set the output parameters dictionary"""
+        self.__output_params = new_output_params
+
+    @cached_property
+    def width_parameters(self) -> dict[str, dict[str, str]]:
+        """Dictionary mapping 'w<particle>' to {'fullname': 'w_<H_i>'}."""
+        return {
+            "w" + particle: {
+                'fullname': f"w_{self.get_ordered_scalar_name(particle)}"
+            }
+            for particle in self.AllScalars
+        }
 
     @property
-    def input_parameter_names(self) -> List[str]:
+    def input_parameter_names(self) -> Tuple[str]:
         """List of input parameter names"""
-        return list(self.__input_params.keys())
+        return tuple(self.input_parameters.keys())
 
     @property
-    def output_parameter_names(self) -> List[str]:
+    def output_parameter_names(self) -> Tuple[str]:
         """List of output parameter names"""
-        return list(self.__output_params.keys())
+        return tuple(self.output_parameters.keys())
 
     @property
-    def width_parameter_names(self) -> List[str]:
+    def width_parameter_names(self) -> Tuple[str]:
         """List of output parameter names"""
-        return list(self.__width_params.keys())
+        return tuple(self.width_parameters.keys())
 
     @property
-    def all_parameter_names(self) -> List[str]:
+    def all_parameter_names(self) -> Tuple[str]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
+    @property
+    def particles(self) -> dict[str, any]:
+        """Dictionary of particles"""
+        return self.__particles
+
+    @particles.setter
+    def particles(self,
+                   new_particles: dict[str, any]) -> None:
+        """Set the particles dictionary"""
+        self.__particles = new_particles
+
     def __read_yaml(self) -> None:
         """Read the model .yml file and store the information."""
-      
-        # create empty particles dictionary
-        self.particles = {}
-
-        # create empty dictionary of input parameters
-        self.__input_params: dict[str,any] = {}
-
-        # create empty list of of output parameters
-        self.__output_params: dict[str,any] = {}
 
         # read in model yaml file
-        with open(self.__yaml_name,'r') as file:
+        with open(self.yaml_name,'r') as file:
             # read yaml data for model
-            yaml_data = yaml.safe_load(file)[self.__name]
+            yaml_data = yaml.safe_load(file)[self.name]
             # read particles
             self.particles = yaml_data['particles']
             # read input parameters
-            self.__input_params = yaml_data['input_parameters']
+            self.input_parameters = yaml_data['input_parameters']
             # read output parameters
-            self.__output_params = yaml_data['output_parameters']
+            self.output_parameters = yaml_data['output_parameters']
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
@@ -146,16 +173,15 @@ class Model:
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
-
     def __build_mass_maps(self) -> None:
         """Build dictionaries to map between original particle names and mass-ordered 'H_i' names."""
 
         # check that all scalar masses are provided
-        if not all(k in self.__masses for k in self.AllScalars):
-            raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.__masses.keys())}")
+        if not all(k in self.masses for k in self.AllScalars):
+            raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.masses.keys())}")
         
         # Sort particles by mass and assign "H_i" names
-        sorted_particles = sorted(self.__masses.items(), key=lambda x: x[1])
+        sorted_particles = sorted(self.masses.items(), key=lambda x: x[1])
         self.name_map = {}  # Maps scalar particle names to 'H_i' names
         self.h_map = {}  # Maps 'H_i' names to (original name, mass)
 
@@ -163,12 +189,6 @@ class Model:
             hi_name = f"H{i}"
             self.name_map[particle] = hi_name
             self.h_map[hi_name] = (particle, mass)
-
-    def __make_width_params(self) -> None:
-        """Make dictionary of width parameters, mapping particle name to mass-ordered 'H_i' name."""
-        self.__width_params: dict[str,any] = {}
-        for particle in self.AllScalars:
-            self.__width_params["w"+particle] = {'fullname': f"w_{self.get_ordered_scalar_name(particle)}"}
 
     def get_mass(self,
                  name: str) -> float:
@@ -179,8 +199,8 @@ class Model:
         :param name: Particle name (e.g., 'H', 'S', 'X') or 'H_i' name ('H1', 'H2', 'H3').
         :return: Corresponding mass value.
         """
-        if name in self.__masses:
-            return self.__masses[name]
+        if name in self.masses:
+            return self.masses[name]
         elif name in self.h_map:
             return self.h_map[name][1]
         else:
@@ -203,15 +223,15 @@ class Model:
                 f"Invalid original name: {particle_name}. Available names: {self.AllScalars}"
             )
 
-    # get a single input parameter
     def input_parameter(self,
                         par_name: str) -> Dict[str,any]:
-        return self.__input_params[par_name]
+        """Get a single input parameter"""
+        return self.input_parameters[par_name]
 
-    # get model parameter starting min
     def starting_min(self,par_name) -> float:
-        return self.__input_params[par_name]['min']
+        """Get model parameter starting min"""
+        return self.input_parameters[par_name]['min']
 
-    # get model parameter starting max
     def starting_max(self,par_name) -> float:
-        return self.__input_params[par_name]['max']
+        """Get parameter starting max"""
+        return self.input_parameters[par_name]['max']
