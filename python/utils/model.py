@@ -28,10 +28,10 @@ class Model:
         self.__model_dir = os.path.join(data_dir(),"models")
 
         # model yaml file
-        self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")
+        self.__yaml_name = os.path.join(self.__model_dir, f"{self.name}_params.yml")
 
         # template .ini file name
-        self.__template_ini = os.path.join(self.__model_dir, f"{self.__name}_template.ini")
+        self.__template_ini = os.path.join(self.__model_dir, f"{self.name}_template.ini")
 
         # read model yaml file
         self.__read_yaml()
