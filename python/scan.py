@@ -181,7 +181,7 @@ class Scan:
                 self.params[parameter_name].max_value = (new_max + one_percent)
 
             # add parameter name and range to rows
-            rows.append([parameter_name, self.params.parameter_value(parameter_name).format_bounds()])
+            rows.append([parameter_name, self.params.parameter_ranges[parameter_name].format_bounds()])
 
         # print table of parameter bounds
         log_table(logger=self.logger,
@@ -205,7 +205,7 @@ class Scan:
             for parameter_name in self.params.parameter_names:
                 content += f"{parameter_name}:\n"
                 content += f"  value = {self.global_max.format_param(parameter_name)}\n"
-                content += f"  range = {self.params.parameter_value(parameter_name).format_range()}\n"
+                content += f"  range = {self.params.parameter_ranges[parameter_name].format_range()}\n"
             content += "--------------------\n\n"
             details.write(content)
 
