@@ -243,9 +243,9 @@ class ZoomOptimizer:
             content += f"Global max xsec*BR = {self.global_max.format_xb()}\n"
             content += f"Found new global max point: {self.is_new_global_max(new_max)}\n"
             content += "--------------------\n"
-            for par in self.params.parameter_names:
+            for par in self.param_space.parameter_names:
                 content += f"{par}:\n"
-                content += f"  range = {self.params.parameter_ranges[par].format_range()}\n"
+                content += f"  range = {self.param_space.parameter_ranges[par].format_range()}\n"
                 if self.is_new_global_max(new_max):
                     content += f"  new global max value = {self.local_max.format_param(par)}\n"
                     content += f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n"

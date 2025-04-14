@@ -19,7 +19,7 @@ from utils.file_utils import scan_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.math_utils import round_sig
 from utils.model import Model
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.run_metadata import run_exists, save_run_metadata
 from optimizers.zoom_optimizer import ZoomOptimizer
@@ -70,10 +70,10 @@ class Scan:
             self.logger.error(f"Unexpected error: {e}")
             raise
 
-        # make instance of params
+        # make instance of param space
         # this automatically initializes the parameters
-        self.params = Params(model=self.model,
-                             decay=decay)
+        self.global_param_space = ParamSpace(model=self.model,
+                                             decay=decay)
 
         # make dummy optimal point
         self.global_max = Point(model=self.model)
@@ -157,7 +157,7 @@ class Scan:
         rows = []
 
         # loop over parameters
-        for parameter_name in self.params.parameter_names:
+        for parameter_name in self.global_param_space.parameter_names:
 
             """
             if the prescan ranges are more than 1% of the max range
@@ -166,22 +166,22 @@ class Scan:
             """
 
             # getting 1% of min and max from the model
-            one_percent = (self.params.starting_max(parameter_name) - self.params.starting_min(parameter_name)) / 100
+            one_percent = (self.global_param_space.starting_max(parameter_name) - self.global_param_space.starting_min(parameter_name)) / 100
 
             # get min and max from prescan
             new_min = self.prescan_parser.get_min(parameter_name)
             new_max = self.prescan_parser.get_max(parameter_name)
 
             # check min value
-            if new_min - one_percent > self.params[parameter_name].min_value:
-                self.params[parameter_name].min_value = (new_min - one_percent)
+            if new_min - one_percent > self.global_param_space[parameter_name].min_value:
+                self.global_param_space[parameter_name].min_value = (new_min - one_percent)
 
             # check max value
-            if new_max + one_percent < self.params[parameter_name].max_value:
-                self.params[parameter_name].max_value = (new_max + one_percent)
+            if new_max + one_percent < self.global_param_space[parameter_name].max_value:
+                self.global_param_space[parameter_name].max_value = (new_max + one_percent)
 
             # add parameter name and range to rows
-            rows.append([parameter_name, self.params.parameter_ranges[parameter_name].format_bounds()])
+            rows.append([parameter_name, self.global_param_space.parameter_ranges[parameter_name].format_bounds()])
 
         # print table of parameter bounds
         log_table(logger=self.logger,
@@ -189,7 +189,7 @@ class Scan:
                   rows=rows)
 
         # get scan density
-        density = num_prescan / self.params.volume()
+        density = num_prescan / self.global_param_space.volume()
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
@@ -202,10 +202,10 @@ class Scan:
             content += f"Scan density = {density:.3E}\n"
             content += f"Max xsec*BR = {self.global_max.format_xb()}\n"
             content += "--------------------\n"
-            for parameter_name in self.params.parameter_names:
+            for parameter_name in self.global_param_space.parameter_names:
                 content += f"{parameter_name}:\n"
                 content += f"  value = {self.global_max.format_param(parameter_name)}\n"
-                content += f"  range = {self.params.parameter_ranges[parameter_name].format_range()}\n"
+                content += f"  range = {self.global_param_space.parameter_ranges[parameter_name].format_range()}\n"
             content += "--------------------\n\n"
             details.write(content)
 
@@ -225,7 +225,7 @@ class Scan:
 
         # TODO: Is this needed?
         # scale new low and high values
-        self.params.scale_ranges(self.global_max)
+        self.global_param_space.scale_ranges(self.global_max)
 
         return
 
@@ -318,13 +318,13 @@ class Scan:
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
 
         # Populate param_dict with parameter information
-        for parameter_name in self.params.parameter_names:
+        for parameter_name in self.global_param_space.parameter_names:
 
             # Check if bimodal and get the current low and high values
             is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
                                                         decay=self.decay)
-            min_val = self.params[parameter_name].low
-            max_val = self.params[parameter_name].high
+            min_val = self.global_param_space[parameter_name].low
+            max_val = self.global_param_space[parameter_name].high
 
             # Split the zoom optimizer if bimodal and assign proper values
             if is_bimodal:
@@ -337,11 +337,11 @@ class Scan:
                 param_dict[parameter_name] = [{'min': min_val, 'max': max_val}]
 
         # List that holds parameter value combinations
-        all_param_combinations: List[Tuple['Params', Dict[str, float]]] = []
+        all_param_combinations: List[Tuple[ParamSpace, Dict[str, float]]] = []
 
         # Generate all parameter combinations
         for param_values in itertools.product(*param_dict.values()):  # Itertools.product serves as a way to get combinations of values
-            params_copy = deepcopy(self.params)  # Manipulate data locally
+            params_copy = deepcopy(self.global_param_space)  # Manipulate data locally
             param_combination_data = {}  # Dictionary to hold all combinations of values
 
             # Zip the names and values together, assigning the data to each parameter
@@ -369,7 +369,7 @@ class Scan:
             # Create the ZoomOptimizer
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
-                params = params_copy,
+                param_space = params_copy,
                 starting_max = self.global_max,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'

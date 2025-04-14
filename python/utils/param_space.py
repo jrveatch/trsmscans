@@ -201,7 +201,7 @@ class ParamSpace:
 
     def split_range(self,
                     param_name: str,
-                    split_values: List[float]) -> List['Params']:
+                    split_values: List[float]) -> List['ParamSpace']:
         """Create new Params objects by splitting one parameter range at the specified values"""
         if param_name not in self.parameter_ranges:
             raise ValueError(f"Parameter '{param_name}' not found in Params object")
