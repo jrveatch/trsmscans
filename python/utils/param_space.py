@@ -10,7 +10,7 @@ from utils.param_range import ParamRange
 from utils.point import Point
 
 # class to hold and update full set of parameter ranges used in a scan
-class Params:
+class ParamSpace:
 
     def __init__(self,
                  model: 'Model',
