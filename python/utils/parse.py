@@ -12,6 +12,7 @@ import pandas as pd
 from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
 from utils.model import Model
+from utils.param_space import ParamSpace
 from utils.point import Point
 
 # class to parse arrays and provide details about data
@@ -398,6 +399,18 @@ class Parse:
 
         # return the decay BR
         return br_decay
+
+    def filter_by_param_space(self,
+                              param_space: ParamSpace) -> pd.DataFrame:
+        """Return a view of filtered_data that is carved out by a parameter space"""
+        df = self.filtered_data
+        mask = pd.Series(True, index=df.index)
+
+        for param in param_space:
+            col = param.full_name
+            mask &= (df[col] > param.low) & (df[col] <= param.high)
+
+        return df[mask]
 
     def write_max_xb_line(self,
                           file_name: str
