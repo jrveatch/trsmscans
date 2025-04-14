@@ -1,16 +1,17 @@
 
 # standard libraries
 import copy
+from functools import cached_property
 import logging
 from typing import Dict, List, Optional, Tuple
 
 # local modules
 from utils.model import Model
-from utils.parameter import Parameter
+from utils.param_range import ParamRange
 from utils.point import Point
 
-# class to hold and update full set of parameters used in a scan
-class Params:
+# class to hold and update full set of parameter ranges used in a scan
+class ParamSpace:
 
     def __init__(self,
                  model: 'Model',
@@ -22,49 +23,36 @@ class Params:
         # get model using model_name
         self.__model = model
 
-        # set H1/2/3 mass values
-        self.__mH1 = model.get_mass("H1")
-        self.__mH2 = model.get_mass("H2")
-        self.__mH3 = model.get_mass("H3")
-
         # Store decay name
         self.__decay = decay
 
-        # get tuple of parameter names
-        self.__parameter_names: Tuple[str] = self.model.input_parameter_names
-
-        # create dictionary of parameters
-        self.__parameters = {
-            name: Parameter(name, self.__model.input_parameter(name))
-            for name in self.__parameter_names
-            }
-
     ## Class properties
 
-    @property
+    @cached_property
     def mH1(self) -> float:
         """Mass of H1"""
-        return self.__mH1
+        return self.model.get_mass("H1")
 
     @property
     def mH2(self) -> float:
         """Mass of H2"""
-        return self.__mH2
+        return self.model.get_mass("H2")
 
     @property
     def mH3(self) -> float:
         """Mass of H3"""
-        return self.__mH3
+        return self.model.get_mass("H3")
 
-    @property
-    def parameters(self) -> Dict[str, Parameter]:
-        """Dictionary of parameters"""
-        return self.__parameters
+    @cached_property
+    def parameter_ranges(self) -> Dict[str, ParamRange]:
+        """Dictionary of parameter ranges"""
+        return {name: ParamRange(name, self.model.input_parameter(name))
+                for name in self.parameter_names}
 
     @property
     def parameter_names(self) -> Tuple[str]:
         """Tuple of parameter name"""
-        return self.__parameter_names
+        return self.model.input_parameter_names
 
     @property
     def mass_string(self) -> str:
@@ -86,22 +74,17 @@ class Params:
         """Decay mode being used"""
         return self.__decay
 
-    def parameter_value(self,
-                        par_name: str) -> Parameter:
-        """Get parameter from dictionary"""
-        return self.parameters[par_name]
-
     def center_points(self) -> Tuple[float]:
         """Get tuple of center points for parameters"""
-        return tuple([param.center for param in self.parameters.values()])
+        return tuple([param_range.center for param_range in self.parameter_ranges.values()])
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
-        return tuple([param.range for param in self.parameters.values()])
+        return tuple([param_range.range for param_range in self.parameter_ranges.values()])
 
     def widths(self) -> Tuple[float]:
         """Get tuple of widths for parameters"""
-        return tuple([param.width for param in self.parameters.values()])
+        return tuple([param_range.width for param_range in self.parameter_ranges.values()])
 
     def starting_min(self,
                      par_name: str) -> float:
@@ -134,28 +117,28 @@ class Params:
                 new_val = new_point.get_val(par_name)
 
             # update parameter with new value and range scale
-            self.parameters[par_name].scale_width(new_val=new_val,
-                                                  range_scale=range_scale)
+            self.parameter_ranges[par_name].scale_width(new_val=new_val,
+                                                        range_scale=range_scale)
 
     def reposition_center(self, point: Tuple[float]):
-        """Change low and high of parameters around a new center point"""
-        for (center, param) in zip(point, self.parameters.values()):
-            width = param.width / 2
-            param.set_low_high(center - width, center + width)
+        """Change low and high of parameter ranges around a new center point"""
+        for (center, param_range) in zip(point, self.parameter_ranges.values()):
+            width = param_range.width / 2
+            param_range.set_low_high(center - width, center + width)
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
                         high_dict: Optional[Dict[str, float]] = None) -> None:
-        """Update low and high of all parameters from dictionary"""
+        """Update low and high of all parameter ranges from dictionary"""
 
         # check to see if low_dict exists
         if low_dict is not None:
 
             # loop over parameters
             for par_name, new_low in low_dict.items():
-                if par_name in self.parameters:
+                if par_name in self.parameter_ranges:
                     # use low_dict to update the low for each parameter
-                    self.parameters[par_name].low = new_low
+                    self.parameter_ranges[par_name].low = new_low
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -164,9 +147,9 @@ class Params:
 
             # loop over parameters
             for par_name, new_high in high_dict.items():
-                if par_name in self.parameters:
+                if par_name in self.parameter_ranges:
                     # use high_dict to update the high for each parameter
-                    self.parameters[par_name].high = new_high
+                    self.parameter_ranges[par_name].high = new_high
                 else:
                     self.logger.warning(f"{par_name} is not known")
 
@@ -175,16 +158,16 @@ class Params:
         # initialize volume to 1
         volume = 1.0
         # loop over parameters
-        for par in self.parameters.values():
+        for param_range in self.parameter_ranges.values():
             # make sure range is non-zero
-            if par.width > 1e-13:
+            if param_range.width > 1e-13:
                 # multiply volume by parameter range
-                volume *= par.width
+                volume *= param_range.width
         return volume
 
     def write_ini(self,
                   ini_name: str) -> None:
-        """Write .ini files with parameter values"""
+        """Write .ini files with parameter ranges"""
 
         # read in template .ini file
         with open(self.model.template_ini,"r") as template:
@@ -196,9 +179,9 @@ class Params:
         ini_data = ini_data.replace("MH3",str(self.mH3))
 
         # loop over parameters and fill low/high values
-        for par in self.parameters.values():
-            ini_data = ini_data.replace(par.name+"_LOW",str(par.low))
-            ini_data = ini_data.replace(par.name+"_HIGH",str(par.high))
+        for param_range in self.parameter_ranges.values():
+            ini_data = ini_data.replace(param_range.name+"_LOW",str(param_range.low))
+            ini_data = ini_data.replace(param_range.name+"_HIGH",str(param_range.high))
 
         # write to .ini file
         with open(ini_name,"w") as outfile:
@@ -206,16 +189,16 @@ class Params:
 
     def split_range(self,
                     param_name: str,
-                    split_values: List[float]) -> List['Params']:
-        """Create new Params objects by splitting one parameter at the specified values"""
-        if param_name not in self.parameters:
-            raise ValueError(f"Parameter '{param_name}' not found in Params.")
+                    split_values: List[float]) -> List['ParamSpace']:
+        """Create new Params objects by splitting one parameter range at the specified values"""
+        if param_name not in self.parameter_ranges:
+            raise ValueError(f"Parameter '{param_name}' not found in Params object")
 
         # Ensure sorted and unique split points
         split_points = sorted(set(split_values))
 
         # Get original parameter range
-        param = self.parameters[param_name]
+        param = self.parameter_ranges[param_name]
         low = param.low
         high = param.high
 
@@ -234,7 +217,7 @@ class Params:
         split_params_list = []
         for i in range(len(all_bounds) - 1):
             p = copy.deepcopy(self)
-            p.parameters[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
+            p.parameter_ranges[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
             split_params_list.append(p)
 
         return split_params_list
@@ -256,18 +239,18 @@ class Params:
     def vol_range(self) -> Tuple[Tuple[float, float]]:
         return self.ranges()
 
-    def __getitem__(self, key) -> Parameter:
-        """Return the Parameter object corresponding to `par_name`."""
-        return self.parameter_value(key)
+    def __getitem__(self, key) -> ParamRange:
+        """Return the ParamRange object corresponding to `par_name`"""
+        return self.parameter_ranges[key]
 
     def __iter__(self):
         """Define iterator over parameter values"""
-        return iter(self.parameters.values())
+        return iter(self.parameter_ranges.values())
     
     def __str__(self) -> str:
         """String representation of all parameters"""
         lines = [f"Params object for model: {self.model_name}, decay: {self.decay}"]
         for name in self.parameter_names:
-            param = self.parameters[name]
-            lines.append(str(param))  # uses Parameter.__str__
+            param = self.parameter_ranges[name]
+            lines.append(str(param))  # uses ParamRange.__str__
         return "\n".join(lines) + "\n"
