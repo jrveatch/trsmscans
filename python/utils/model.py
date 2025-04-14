@@ -24,15 +24,6 @@ class Model:
         # name of the model
         self.__name = name
 
-        # directory where model information is stored
-        self.__model_dir = os.path.join(data_dir(),"models")
-
-        # model yaml file
-        self.__yaml_name = os.path.join(self.__model_dir, f"{self.__name}_params.yml")
-
-        # template .ini file name
-        self.__template_ini = os.path.join(self.__model_dir, f"{self.__name}_template.ini")
-
         # read model yaml file
         self.__read_yaml()
 
@@ -45,10 +36,15 @@ class Model:
         """Model name"""
         return self.__name
 
-    @property
+    @cached_property
+    def model_dir(self) -> str:
+        """Directory where model information is stored"""
+        return os.path.join(data_dir(),"models")
+
+    @cached_property
     def template_ini(self) -> str:
         """Model template .ini file name"""
-        return self.__template_ini
+        return os.path.join(self.model_dir, f"{self.name}_template.ini")
 
     @property
     def masses(self) -> Dict[str,float]:
@@ -67,10 +63,10 @@ class Model:
         s_mass = self.masses["S"]
         return f"X{int(x_mass)}_S{int(s_mass)}"
 
-    @property
+    @cached_property
     def yaml_name(self) -> str:
         """Model yaml file name"""
-        return self.__yaml_name
+        return os.path.join(self.model_dir, f"{self.name}_params.yml")
 
     @property
     def input_parameters(self) -> dict[str, any]:

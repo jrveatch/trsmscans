@@ -1,6 +1,7 @@
 
 # standard libraries
 import copy
+from functools import cached_property
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -22,49 +23,36 @@ class ParamSpace:
         # get model using model_name
         self.__model = model
 
-        # set H1/2/3 mass values
-        self.__mH1 = model.get_mass("H1")
-        self.__mH2 = model.get_mass("H2")
-        self.__mH3 = model.get_mass("H3")
-
         # Store decay name
         self.__decay = decay
 
-        # get tuple of parameter names
-        self.__parameter_names: Tuple[str] = self.model.input_parameter_names
-
-        # create dictionary of parameters
-        self.__parameter_ranges = {
-            name: ParamRange(name, self.__model.input_parameter(name))
-            for name in self.__parameter_names
-            }
-
     ## Class properties
 
-    @property
+    @cached_property
     def mH1(self) -> float:
         """Mass of H1"""
-        return self.__mH1
+        return self.model.get_mass("H1")
 
     @property
     def mH2(self) -> float:
         """Mass of H2"""
-        return self.__mH2
+        return self.model.get_mass("H2")
 
     @property
     def mH3(self) -> float:
         """Mass of H3"""
-        return self.__mH3
+        return self.model.get_mass("H3")
 
-    @property
+    @cached_property
     def parameter_ranges(self) -> Dict[str, ParamRange]:
         """Dictionary of parameter ranges"""
-        return self.__parameter_ranges
+        return {name: ParamRange(name, self.model.input_parameter(name))
+                for name in self.parameter_names}
 
     @property
     def parameter_names(self) -> Tuple[str]:
         """Tuple of parameter name"""
-        return self.__parameter_names
+        return self.model.input_parameter_names
 
     @property
     def mass_string(self) -> str:
