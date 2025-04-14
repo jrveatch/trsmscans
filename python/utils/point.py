@@ -26,7 +26,7 @@ class Point:
             self.__par_vals = par_vals
         # otherwise create default dictionary from model
         else:
-            self.__par_vals = {par: 0.0 for par in self.__model.all_parameter_names}
+            self.__par_vals = {par: 0.0 for par in self.model.all_parameter_names}
 
         # store xb value
         self.xb = xb
