@@ -26,7 +26,7 @@ class Point:
             self.__par_vals = par_vals
         # otherwise create default dictionary from model
         else:
-            self.__par_vals = {par: 0.0 for par in self.__model.all_parameter_names}
+            self.__par_vals = {par: 0.0 for par in self.model.all_parameter_names}
 
         # store xb value
         self.xb = xb
@@ -37,7 +37,7 @@ class Point:
         return self.__model.name
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """The model object"""
         return self.__model
     
@@ -54,7 +54,7 @@ class Point:
             return self.xb
         # otherwise return value from par_vals
         else:
-            return self.__par_vals[varname]
+            return self.par_vals[varname]
 
     # get difference between two values of varname
     def diff(self,
@@ -110,10 +110,10 @@ class Point:
 
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(model=self.__model, par_vals=self.__par_vals, xb=self.xb*scale_factor)
+        return Point(model=self.model, par_vals=self.par_vals, xb=self.xb*scale_factor)
 
     def __str__(self) -> str:
-        return f"{self.xb}\n{self.__par_vals}"
+        return f"{self.xb}\n{self.par_vals}"
 
     def __repr__(self) -> str:
-        return f"{self.xb}\n{self.__par_vals}"
+        return f"{self.xb}\n{self.par_vals}"
