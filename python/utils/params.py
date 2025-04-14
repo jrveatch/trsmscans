@@ -86,22 +86,17 @@ class Params:
         """Decay mode being used"""
         return self.__decay
 
-    #def parameter_range(self,
-    #                    par_name: str) -> ParamRange:
-    #    """Get parameter from dictionary"""
-    #    return self.parameter_ranges[par_name]
-
     def center_points(self) -> Tuple[float]:
         """Get tuple of center points for parameters"""
-        return tuple([param.center for param in self.parameter_ranges.values()])
+        return tuple([param_range.center for param_range in self.parameter_ranges.values()])
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
-        return tuple([param.range for param in self.parameter_ranges.values()])
+        return tuple([param_range.range for param_range in self.parameter_ranges.values()])
 
     def widths(self) -> Tuple[float]:
         """Get tuple of widths for parameters"""
-        return tuple([param.width for param in self.parameter_ranges.values()])
+        return tuple([param_range.width for param_range in self.parameter_ranges.values()])
 
     def starting_min(self,
                      par_name: str) -> float:
@@ -138,15 +133,15 @@ class Params:
                                                         range_scale=range_scale)
 
     def reposition_center(self, point: Tuple[float]):
-        """Change low and high of parameters around a new center point"""
-        for (center, param) in zip(point, self.parameter_ranges.values()):
-            width = param.width / 2
-            param.set_low_high(center - width, center + width)
+        """Change low and high of parameter ranges around a new center point"""
+        for (center, param_range) in zip(point, self.parameter_ranges.values()):
+            width = param_range.width / 2
+            param_range.set_low_high(center - width, center + width)
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
                         high_dict: Optional[Dict[str, float]] = None) -> None:
-        """Update low and high of all parameters from dictionary"""
+        """Update low and high of all parameter ranges from dictionary"""
 
         # check to see if low_dict exists
         if low_dict is not None:
@@ -175,11 +170,11 @@ class Params:
         # initialize volume to 1
         volume = 1.0
         # loop over parameters
-        for par in self.parameter_ranges.values():
+        for param_range in self.parameter_ranges.values():
             # make sure range is non-zero
-            if par.width > 1e-13:
+            if param_range.width > 1e-13:
                 # multiply volume by parameter range
-                volume *= par.width
+                volume *= param_range.width
         return volume
 
     def write_ini(self,
@@ -196,9 +191,9 @@ class Params:
         ini_data = ini_data.replace("MH3",str(self.mH3))
 
         # loop over parameters and fill low/high values
-        for par in self.parameter_ranges.values():
-            ini_data = ini_data.replace(par.name+"_LOW",str(par.low))
-            ini_data = ini_data.replace(par.name+"_HIGH",str(par.high))
+        for param_range in self.parameter_ranges.values():
+            ini_data = ini_data.replace(param_range.name+"_LOW",str(param_range.low))
+            ini_data = ini_data.replace(param_range.name+"_HIGH",str(param_range.high))
 
         # write to .ini file
         with open(ini_name,"w") as outfile:
