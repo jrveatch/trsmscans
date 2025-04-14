@@ -1,5 +1,6 @@
 
 # standard libraries
+from functools import cached_property
 import logging
 from typing import Dict
 
@@ -27,10 +28,6 @@ class Parse:
         # initialize model
         self.__model = model
 
-        # initialize HName and SName
-        self.__HName = model.get_ordered_scalar_name('H')
-        self.__SName = model.get_ordered_scalar_name('S')
-
         # get arrays from file name if it is provided
         if file_name:
             self.read_file(file_name)
@@ -39,6 +36,16 @@ class Parse:
     def model(self) -> 'Model':
         """Model object"""
         return self.__model
+
+    @cached_property
+    def HName(self) -> str:
+        """Name of the H scalar"""
+        return self.model.get_ordered_scalar_name('H')
+
+    @cached_property
+    def SName(self) -> str:
+        """Name of the S scalar"""
+        return self.model.get_ordered_scalar_name('S')
 
     @property
     def filtered_data(self) -> pd.DataFrame:
@@ -191,22 +198,22 @@ class Parse:
         
         # BSM BRs
         br_X_SH = self.filtered_data['b_H3_H1H2']
-        br_X_SS = self.filtered_data['b_H3_'+self.__SName+self.__SName]
-        br_X_HH = self.filtered_data['b_H3_'+self.__HName+self.__HName]
+        br_X_SS = self.filtered_data['b_H3_'+self.SName+self.SName]
+        br_X_HH = self.filtered_data['b_H3_'+self.HName+self.HName]
 
         # H SM BRs
-        br_H_bb = self.filtered_data['b_'+self.__HName+'_bb']
-        br_H_tautau = self.filtered_data['b_'+self.__HName+'_tautau']
-        br_H_WW = self.filtered_data['b_'+self.__HName+'_WW']
-        br_H_ZZ = self.filtered_data['b_'+self.__HName+'_ZZ']
-        br_H_gamgam = self.filtered_data['b_'+self.__HName+'_gamgam']
+        br_H_bb = self.filtered_data['b_'+self.HName+'_bb']
+        br_H_tautau = self.filtered_data['b_'+self.HName+'_tautau']
+        br_H_WW = self.filtered_data['b_'+self.HName+'_WW']
+        br_H_ZZ = self.filtered_data['b_'+self.HName+'_ZZ']
+        br_H_gamgam = self.filtered_data['b_'+self.HName+'_gamgam']
 
         # S SM BRs
-        br_S_bb = self.filtered_data['b_'+self.__SName+'_bb']
-        br_S_tautau = self.filtered_data['b_'+self.__SName+'_tautau']
-        br_S_WW = self.filtered_data['b_'+self.__SName+'_WW']
-        br_S_ZZ = self.filtered_data['b_'+self.__SName+'_ZZ']
-        br_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
+        br_S_bb = self.filtered_data['b_'+self.SName+'_bb']
+        br_S_tautau = self.filtered_data['b_'+self.SName+'_tautau']
+        br_S_WW = self.filtered_data['b_'+self.SName+'_WW']
+        br_S_ZZ = self.filtered_data['b_'+self.SName+'_ZZ']
+        br_S_gamgam = self.filtered_data['b_'+self.SName+'_gamgam']
 
         # get appropriate BR for decay mode
         # 4b cases
