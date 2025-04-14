@@ -13,7 +13,7 @@ from utils.config_loader import ConfigLoader
 from utils.file_utils import prescan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.model import Model
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.point_sampler import PointSampler
 from utils.tsv_utils import count_tsv_points
@@ -108,16 +108,16 @@ def prescan(model: 'Model',
         # load config file
         config_loader = ConfigLoader(config_file_name = config_file_name)
 
-    # make instance of params
+    # make instance of param space
     # this automatically initializes the parameters
-    params = Params(model)
+    param_space = ParamSpace(model)
 
     # create PointSampler object
     point_sampler = PointSampler(out_dir = out_dir,
                                  config_loader = config_loader)
 
     # sample points
-    parser = point_sampler.sample_points(params = params,
+    parser = point_sampler.sample_points(param_space = param_space,
                                          num_points_requested = num_points,
                                          identifier = "prescan",
                                          good_points_only = False)
