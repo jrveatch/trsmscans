@@ -11,7 +11,7 @@ class ParamRange:
 
     def __init__(self,
                  name: str,
-                 bounds_dict: Dict[str, Any]):
+                 param_info: Dict[str, Any]):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -19,9 +19,12 @@ class ParamRange:
         # initialize parameter name
         self.name = name
 
+        # initialize parameter full name
+        self.full_name = param_info['fullname']
+
         # initialize values from dictionary
-        self.__min_value = bounds_dict['min']
-        self.__max_value = bounds_dict['max']
+        self.__min_value = param_info['min']
+        self.__max_value = param_info['max']
 
         # initialize low and high from lower and upper bounds
         self.__low = self.min_value
@@ -37,6 +40,17 @@ class ParamRange:
              new_name: str) -> None:
         """Set the name property"""
         self.__name = new_name
+
+    @property
+    def full_name(self) -> str:
+        """Full name of the parameter"""
+        return self.__full_name
+    
+    @full_name.setter
+    def full_name(self,
+                  new_full_name: str) -> None:
+        """Set the full name property"""
+        self.__full_name = new_full_name
 
     @property
     def low(self) -> float:
