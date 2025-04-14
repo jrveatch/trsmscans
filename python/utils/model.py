@@ -124,11 +124,19 @@ class Model:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
+    @property
+    def particles(self) -> dict[str, any]:
+        """Dictionary of particles"""
+        return self.__particles
+
+    @particles.setter
+    def particles(self,
+                   new_particles: dict[str, any]) -> None:
+        """Set the particles dictionary"""
+        self.__particles = new_particles
+
     def __read_yaml(self) -> None:
         """Read the model .yml file and store the information."""
-      
-        # create empty particles dictionary
-        self.particles = {}
 
         # read in model yaml file
         with open(self.yaml_name,'r') as file:
