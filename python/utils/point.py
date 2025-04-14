@@ -37,7 +37,7 @@ class Point:
         return self.__model.name
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """The model object"""
         return self.__model
     
