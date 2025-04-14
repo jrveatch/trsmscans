@@ -77,15 +77,11 @@ else
 fi
 
 # Start python virtual environment
+# Note that this resets PATH, so env.sh will need to be sourced again later
 source scripts/start_venv.sh
 
-# Update submodules
-if ! bash scripts/update_submodules.sh; then
-    echo "Error: update_submodules.sh failed!" >&2
-    return 1
-fi
-
 # Install ScannerS
+# TODO: A better check is needed here in case compilation fails
 if { [ ! -d "externals/ScannerS/build" ] && [ -z "$SCANNERS_PATH" ]; } || [ "$FORCE_RUN" = true ]; then
     if ! bash scripts/compile_scanners.sh; then
         echo "Error: compile_scanners.sh failed!" >&2
@@ -103,4 +99,9 @@ if ! python -c "import Higgs" 2>/dev/null || [ "$FORCE_RUN" = true ]; then
     fi
 else
     printf "HiggsTools already compiled\n"
+fi
+
+# source env.sh again to ensure all environment variables are set
+if [ -f env.sh ]; then
+    source env.sh
 fi

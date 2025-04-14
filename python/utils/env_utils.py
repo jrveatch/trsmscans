@@ -20,6 +20,12 @@ def data_dir() -> str:
     """
     return os.environ['DATADIR']
 
+def externals_dir() -> str:
+    """
+    Get path to externals directory.
+    """
+    return os.environ['EXTERNALSDIR']
+
 def hbdataset_dir() -> str:
     """
     Get path to HBDataset directory.
@@ -27,7 +33,7 @@ def hbdataset_dir() -> str:
     if "HBDATASET_PATH" in os.environ:
         return os.environ['HBDATASET_PATH']
     else:
-        return data_dir()+"hbdataset/"
+        return externals_dir()+"hbdataset/"
 
 def hsdataset_dir() -> str:
     """
@@ -36,4 +42,4 @@ def hsdataset_dir() -> str:
     if "HSDATASET_PATH" in os.environ:
         return os.environ['HSDATASET_PATH']
     else:
-        return data_dir()+"hsdataset/"
+        return externals_dir()+"hsdataset/"

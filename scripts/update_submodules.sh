@@ -58,7 +58,7 @@ update_data_submodule() {
 }
 
 # Update data submodules if not stored in env.sh
-update_data_submodule "data/hbdataset" "HBDATASET_PATH"
-update_data_submodule "data/hsdataset" "HSDATASET_PATH"
+update_data_submodule "externals/hbdataset" "HBDATASET_PATH"
+update_data_submodule "externals/hsdataset" "HSDATASET_PATH"
 
 printf "All submodules are updated to the latest versions\n\n"
