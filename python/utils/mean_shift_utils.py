@@ -3,21 +3,21 @@ import logging
 import numpy as np
 from typing import Dict
 
-from utils.params import Params
+from utils.param_space import ParamSpace
 
 # get logger
 logger = logging.getLogger(__name__)
 
 def mean_shift(arrays: Dict[str,np.ndarray],
                Z: np.ndarray,
-               params: Params) -> None:
+               param_space: ParamSpace) -> None:
     """Updates center value based on sample pairs of X_i and Z.
 
     Args:
         arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names, 
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
-        params (Params): Object with a `reposition_center` method to update the center.
+        param_space (ParamSpace): Object with a `reposition_center` method to update the center.
     """
 
     XX = np.array(list(arrays.values()), dtype=np.float64)
@@ -37,4 +37,4 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     means = np.einsum('ij,j->i', XX, nZ)
 
     # Update center position
-    params.reposition_center(tuple(means))
+    param_space.reposition_center(tuple(means))

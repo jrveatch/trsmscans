@@ -19,7 +19,7 @@ import pandas as pd
 
 from utils.file_utils import scan_dir, plots_dir
 
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.config_loader import ConfigLoader
 from utils.point_sampler import PointSampler
 from utils.math_utils import round_sig
@@ -36,7 +36,7 @@ class MeanShiftOptimizer:
             label: str,
             initial_pos: tuple[tuple],
             points: int,
-            global_params: Params,
+            global_param_space: ParamSpace,
             config_loader: ConfigLoader,
             debug: bool = False):
         
@@ -48,8 +48,8 @@ class MeanShiftOptimizer:
         self.__stop_epochs = stop_epochs
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
-        self.__model = global_params.model
-        self.decay = global_params.decay
+        self.__model = global_param_space.model
+        self.decay = global_param_space.decay
 
         # Initialize paths
         self.__scan_path = scan_dir(
@@ -75,30 +75,30 @@ class MeanShiftOptimizer:
         self.__epoch_count = 0
         self.__stop = False
 
-        # Copy of params so that multiple instances of ms use global params
-        self.__local_params = copy.deepcopy(global_params)
+        # Copy of param space so that multiple instances of ms use global param space
+        self.__local_param_space = copy.deepcopy(global_param_space)
 
         # Set initial param widths
-        for param in self.__local_params:
-            center = param.center
-            extent = (param.width * scan_perc) / 2
+        for param_range in self.__local_param_space:
+            center = param_range.center
+            extent = (param_range.width * scan_perc) / 2
 
-            param.low = (center - extent)
-            param.high = (center + extent)
+            param_range.low = (center - extent)
+            param_range.high = (center + extent)
 
         # Set center of new params
-        self.__local_params.reposition_center(initial_pos)
+        self.__local_param_space.reposition_center(initial_pos)
 
         # Initialize positions
-        self.__test_position = self.__local_params.vol_position
-        self.__prev_position = self.__local_params.vol_position
+        self.__test_position = self.__local_param_space.vol_position
+        self.__prev_position = self.__local_param_space.vol_position
 
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                        config_loader = self.__config_loader,
-                                        use_file_dir = True)
+                                          config_loader = self.__config_loader,
+                                          use_file_dir = True)
         
-        output_file_postfix = f"{self.__model.name}_{self.decay}_{global_params.mass_string}"
+        output_file_postfix = f"{self.__model.name}_{self.decay}_{global_param_space.mass_string}"
 
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
         self.details_name = f"{out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
@@ -135,17 +135,17 @@ class MeanShiftOptimizer:
             ininame = outpath + f"/ini/{self.__model.name}_{identifier}.ini"
 
             # write new .ini file from template and parameters
-            self.__local_params.write_ini(ininame)
+            self.__local_param_space.write_ini(ininame)
 
             parser = None
             arrays = None
 
             # Create scan_parser using the point_sampler class
-            parser = self.point_sampler.sample_points(params = self.__local_params,
-                                                                identifier = identifier,
-                                                                num_points_requested = self.__points,
-                                                                good_points_only = True
-                                                                )
+            parser = self.point_sampler.sample_points(param_space = self.__local_param_space,
+                                                      identifier = identifier,
+                                                      num_points_requested = self.__points,
+                                                      good_points_only = True
+                                                      )
 
             arrays = parser.input_parameter_arrays
             xb = parser.get_xb(self.decay)
@@ -153,11 +153,11 @@ class MeanShiftOptimizer:
             if len(xb) == 0:
                 raise ValueError("Length of xb array was 0")
                 
-            self.__prev_position = self.__local_params.vol_position
+            self.__prev_position = self.__local_param_space.vol_position
 
             mean_shift(arrays = arrays,
                        Z = xb,
-                       params = self.__local_params)
+                       param_space = self.__local_param_space)
 
             self.__stop_check()
 
@@ -178,14 +178,14 @@ class MeanShiftOptimizer:
                 # content += "Update optimal point: " + str(update) + "\n"
                 # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
                 content += "--------------------\n"
-                for name in self.__local_params.parameter_names:
+                for name in self.__local_param_space.parameter_names:
                     content += name + ":\n"
-                    content += f"  range = {self.__local_params[name].format_range()}\n"
-                    content += f"  width = {round_sig(self.__local_params[name].width)}\n"
+                    content += f"  range = {self.__local_param_space[name].format_range()}\n"
+                    content += f"  width = {round_sig(self.__local_param_space[name].width)}\n"
                 content += "--------------------\n"
                 content += f"scan_pts  = {self.__points}\n"
-                content += f"cols      = {' '.join(self.__local_params.parameter_names)}\n"
-                content += f"curr_pos  = {' '.join([str(round_sig(p)) for p in self.__local_params.vol_position])}\n"
+                content += f"cols      = {' '.join(self.__local_param_space.parameter_names)}\n"
+                content += f"curr_pos  = {' '.join([str(round_sig(p)) for p in self.__local_param_space.vol_position])}\n"
                 content += f"prev_pos  = {' '.join([str(round_sig(p)) for p in self.__prev_position])}\n"
                 content += f"test_pos  = {' '.join([str(round_sig(p)) for p in self.__test_position])}\n"
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
@@ -196,19 +196,18 @@ class MeanShiftOptimizer:
 
             # NOTE: For debugging
             if self.__debug == True:
-                test_diff = tuple([self.__stop_sens * w for w in self.__local_params.vol_width])
-                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.__local_params.vol_position))])
+                test_diff = tuple([self.__stop_sens * w for w in self.__local_param_space.vol_width])
+                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.__local_param_space.vol_position))])
 
                 print(f"epoch count = {self.__epoch_count}")
                 print(f"avg xb      = {round_sig(np.average(xb))}")
                 print(f"max xb      = {round_sig(np.max(xb))}")
-                print(f"volume size = {self.__local_params.vol_width}")
-                print(f"curr pos    = {self.__local_params.vol_position}")
+                print(f"volume size = {self.__local_param_space.vol_width}")
+                print(f"curr pos    = {self.__local_param_space.vol_position}")
                 print(f"prev pos    = {self.__prev_position}")
                 print(f"test pos    = {self.__test_position}")
                 print(f"reset diff  = {test_diff}")
                 print(f"posit diff  = {position_diff}\n")
-
 
             # write step details to walk file
             with open(self.walk_file_name, 'a') as walk_file:
@@ -221,7 +220,7 @@ class MeanShiftOptimizer:
         #self.__generate_visualizations()
 
         return
-        #return self.__local_params.center_points()
+        #return self.__local_param_space.center_points()
 
     def __stop_check(self):
         """
@@ -229,7 +228,7 @@ class MeanShiftOptimizer:
         """
         advance_epoch = True
 
-        for pos, test in zip(self.__local_params.center_points(), self.__test_position if self.__stop_mode == 0 else self.__prev_position):
+        for pos, test in zip(self.__local_param_space.center_points(), self.__test_position if self.__stop_mode == 0 else self.__prev_position):
             percent_difference = np.abs(pos - test) / test
 
             if percent_difference > self.__stop_sens:
@@ -237,7 +236,7 @@ class MeanShiftOptimizer:
 
         if advance_epoch == False:
             self.__epoch_count = 0
-            self.__test_position = self.__local_params.vol_position
+            self.__test_position = self.__local_param_space.vol_position
         else:
             self.__epoch_count += 1
 
@@ -262,7 +261,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"vol_{p}": a for p, a in zip(
-                                    self.__local_params.parameter_names,
+                                    self.__local_param_space.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -271,7 +270,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 p: a for p, a in zip(
-                                    self.__local_params.parameter_names,
+                                    self.__local_param_space.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -280,7 +279,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"prev_{p}": a for p, a in zip(
-                                    self.__local_params.parameter_names,
+                                    self.__local_param_space.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -289,7 +288,7 @@ class MeanShiftOptimizer:
                         elem.update(
                             {
                                 f"test_{p}": a for p, a in zip(
-                                    self.__local_params.parameter_names,
+                                    self.__local_param_space.parameter_names,
                                     [float(token) for token in line.split('=')[1].strip().split(' ')]
                                 )
                             }
@@ -322,10 +321,10 @@ class MeanShiftOptimizer:
         df = pd.read_csv(walk_tsv, sep="\t")
 
         # Create param plots
-        for i in range(len(self.__local_params.parameter_names)):
-            for j in range(i, len(self.__local_params.parameter_names)):
-                x_label = self.__local_params.parameter_names[i]
-                y_label = self.__local_params.parameter_names[j]
+        for i in range(len(self.__local_param_space.parameter_names)):
+            for j in range(i, len(self.__local_param_space.parameter_names)):
+                x_label = self.__local_param_space.parameter_names[i]
+                y_label = self.__local_param_space.parameter_names[j]
 
                 plt.plot(df[x_label], df[y_label])
                 plt.plot(df[x_label].iloc[-1], df[y_label].iloc[-1], marker="*")
@@ -333,12 +332,12 @@ class MeanShiftOptimizer:
                 plt.xlabel(x_label)
                 plt.ylabel(y_label)
                 # plt.scatter(X, Y)
-                plt.savefig(f"{self.__plot_path}{self.__local_params.model_name}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
+                plt.savefig(f"{self.__plot_path}{self.__local_param_space.model_name}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
                 plt.cla()
                 plt.clf()
 
         # Create time series
-        for parname in self.__local_params.parameter_names:
+        for parname in self.__local_param_space.parameter_names:
             plt.plot(df["iter"], df[parname], c="tab:blue", label=parname)
             plt.xlabel("iter")
             plt.ylabel(parname)
@@ -353,6 +352,6 @@ class MeanShiftOptimizer:
             handles.reverse()
             labels.reverse()
             plt.legend(handles = handles, labels = labels, loc = "lower right", )
-            plt.savefig(f"{self.__plot_path}{self.__local_params.model_name}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
+            plt.savefig(f"{self.__plot_path}{self.__local_param_space.model_name}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
             plt.cla()
             plt.clf()

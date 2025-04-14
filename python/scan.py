@@ -249,12 +249,12 @@ class Scan:
 
         # Returns a random position within the upper and lower bounds of the params
         def random_pos() -> tuple[float]:
-            params = self.params
+            param_space = self.global_param_space
 
             return tuple(
                 [
-                    random.uniform(params[name].low, params[name].high)
-                    for name in params.parameter_names
+                    random.uniform(param_space[name].low, param_space[name].high)
+                    for name in param_space.parameter_names
                 ]
             )
         
@@ -270,7 +270,7 @@ class Scan:
                 initial_point = random_pos()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-                offsets = [param.width * coeff for param in self.params]
+                offsets = [param.width * coeff for param in self.global_param_space]
 
                 results.append(initial_point)
 
@@ -315,7 +315,7 @@ class Scan:
                 label=label,
                 initial_pos=initial_pos,
                 points=points,
-                global_params=self.params,
+                global_param_space=self.global_param_space,
                 config_loader=config_loader,
                 debug=debug
             ).run()
