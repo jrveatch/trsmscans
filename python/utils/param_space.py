@@ -74,9 +74,10 @@ class ParamSpace:
         """Decay mode being used"""
         return self.__decay
 
-    def center_points(self) -> Tuple[float]:
-        """Get tuple of center points for parameters"""
-        return tuple([param_range.center for param_range in self.parameter_ranges.values()])
+    def center_point(self) -> Point:
+        """Get center point for parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].center for name in self.parameter_names})
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
@@ -226,8 +227,8 @@ class ParamSpace:
 
     # Alias for self.center_point()
     @property
-    def vol_position(self) -> Tuple[float]:
-        return self.center_points()
+    def vol_position(self) -> Point:
+        return self.center_point()
 
     # Alias for self.widths()
     @property

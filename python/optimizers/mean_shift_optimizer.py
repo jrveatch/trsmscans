@@ -184,10 +184,9 @@ class MeanShiftOptimizer:
                     content += f"  width = {round_sig(self.__local_param_space[name].width)}\n"
                 content += "--------------------\n"
                 content += f"scan_pts  = {self.__points}\n"
-                content += f"cols      = {' '.join(self.__local_param_space.parameter_names)}\n"
-                content += f"curr_pos  = {' '.join([str(round_sig(p)) for p in self.__local_param_space.vol_position])}\n"
-                content += f"prev_pos  = {' '.join([str(round_sig(p)) for p in self.__prev_position])}\n"
-                content += f"test_pos  = {' '.join([str(round_sig(p)) for p in self.__test_position])}\n"
+                content += f"curr_pos  = {self.__local_param_space.vol_position}\n"
+                content += f"prev_pos  = {self.__prev_position}\n"
+                content += f"test_pos  = {self.__test_position}\n"
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
                 content += f"max_xb    = {round_sig(np.max(xb))}\n"
                 content += "--------------------\n"
@@ -228,8 +227,12 @@ class MeanShiftOptimizer:
         """
         advance_epoch = True
 
-        for pos, test in zip(self.__local_param_space.center_points(), self.__test_position if self.__stop_mode == 0 else self.__prev_position):
-            percent_difference = np.abs(pos - test) / test
+        comp_point = self.__prev_position
+        if self.__stop_mode ==0:
+            comp_point = self.__test_position
+
+        for par_name in self.__local_param_space.parameter_names:
+            percent_difference = self.__local_param_space.center_point().diff_frac(comp_point, par_name)
 
             if percent_difference > self.__stop_sens:
                 advance_epoch = False
