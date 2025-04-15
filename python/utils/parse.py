@@ -22,7 +22,7 @@ class Parse:
     def __init__(self,
                  model: 'Model',
                  file_name: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -103,13 +103,13 @@ class Parse:
     def get_max_xb_point(self,
                          decay: str) -> Point:
         """Find the point with the highest xb"""
-        
+
         # get xb
         xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
         self.max_idx = xb.idxmax()
-        
+
         # make dictionary for parameter values for max_xb
         max_xb_par_vals = {par: array[self.max_idx] for par, array in self.parameter_arrays.items()}
 
@@ -157,7 +157,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value] 
+        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
         _, pval = diptest.diptest(param_selected)
@@ -196,7 +196,7 @@ class Parse:
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
         """Get arrays of decay branching ratios"""
-        
+
         # BSM BRs
         br_X_SH = self.filtered_data['b_H3_H1H2']
         br_X_SS = self.filtered_data['b_H3_'+self.SName+self.SName]

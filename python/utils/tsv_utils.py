@@ -35,7 +35,7 @@ def save_tsv_output(input_file: str,
     # normalize paths to absolute paths for comparison
     input_file = os.path.abspath(input_file)
     output_file = os.path.abspath(output_file)
-    
+
     # check if input_file and output_file point to the same file
     if input_file==output_file:
         logger.warning(f"Input file path '{input_file}' and output file path '{output_file}' are the same.")

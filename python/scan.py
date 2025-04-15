@@ -33,7 +33,7 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -291,7 +291,7 @@ class Scan:
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
-                
+
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
 
@@ -382,7 +382,7 @@ class Scan:
                  optimization: str,
                  scan_time: float,
                  num_points: int = -1) -> None:
-        
+
         # print message indicating scan is done
         self.logger.info("Done!")
 
@@ -392,7 +392,7 @@ class Scan:
         # write time info to details file
         with open(self.details_name, "a") as details:
             details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
-    
+
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
                           optimization=optimization,
@@ -424,7 +424,7 @@ if __name__ == "__main__":
     # create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-    
+
     # directory where we want the output to go
     out_dir = scan_dir(model=model,
                        decay=args.decay)
@@ -432,7 +432,7 @@ if __name__ == "__main__":
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
-    
+
     # get logger
     logger = logging.getLogger()
 

@@ -87,7 +87,7 @@ class Plot:
 
         # Loop through each iteration
         for file_list in self.all_files_dict.values():
-            
+
             first_file = True
             for file_name in file_list:
 
@@ -155,7 +155,7 @@ class Plot:
 
             # Get the first variable 2D-list from the all variable list
             var1 = self.var_lists[self.var_names[v]]
-            
+
             for j in range(v+1, self.num_vars):
 
                 # Get the second variable 2D-List from the all variable list
@@ -179,7 +179,7 @@ class Plot:
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
 
                     # Adjust the opacity
-                    opacity += op 
+                    opacity += op
 
                 # Reset opacity for star points
                 opacity = op
@@ -243,7 +243,7 @@ class Plot:
             # Skip xb
             if var1 == 'xb':
                 continue
-            
+
             for v2 in range(v1+1, self.num_vars):
 
                 # Get the first variable name from the all variable list
@@ -277,7 +277,7 @@ class Plot:
 
                 # Close the figure
                 plt.close()
-    
+
     # Function that defines colors to plot using random RGB values
     def select_colors(self):
 

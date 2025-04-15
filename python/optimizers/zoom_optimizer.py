@@ -25,7 +25,7 @@ class ZoomOptimizer:
                  starting_max: Point,
                  config_loader: ConfigLoader,
                  label: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -116,7 +116,6 @@ class ZoomOptimizer:
             self.scan_parser = self.point_sampler.sample_points(param_space = self.param_space,
                                                                 num_points_requested = self.num_points,
                                                                 identifier = identifier)
-
         # if point sampling times out make a dummy new_max
         except TimeoutError:
             self.termination_message("No output detected")
@@ -125,7 +124,6 @@ class ZoomOptimizer:
                             model = self.param_space.model,
                             par_vals = self.local_max.par_vals)
             do_zoom = False
-        
         # otherwise get new point as the maximum from the current scan
         else:
             new_max = self.scan_parser.get_max_xb_point(self.decay)
