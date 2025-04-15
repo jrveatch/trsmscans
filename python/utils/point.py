@@ -11,15 +11,12 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  par_vals: Dict[str,float] = {},
                  xb: float = 0.0):
 
         # store model name
         self.__model = model
-
-        # initialize empty dictionary of parameter values
-        self.__par_vals: Dict[str,float] = {}
 
         # if par_vals exists, store it
         if par_vals:
@@ -34,13 +31,13 @@ class Point:
     @property
     def model_name(self) -> str:
         """Name of the model"""
-        return self.__model.name
+        return self.model.name
 
     @property
     def model(self) -> Model:
         """The model object"""
         return self.__model
-    
+
     @property
     def par_vals(self) -> Dict[str,float]:
         """Dictionary of parameter values"""
@@ -53,8 +50,10 @@ class Point:
         if varname == "xb":
             return self.xb
         # otherwise return value from par_vals
-        else:
+        try:
             return self.par_vals[varname]
+        except KeyError:
+            raise KeyError(f"Parameter '{varname}' not found in this point.")
 
     # get difference between two values of varname
     def diff(self,

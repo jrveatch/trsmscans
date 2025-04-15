@@ -17,7 +17,7 @@ class Model:
     def __init__(self,
                  name: str,
                  masses: Dict[str,float] = {}) -> None:
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -149,12 +149,12 @@ class Model:
         for key in self.particles:
             if self.particles[key] == None:
                 self.particles[key] = {}
-        
+
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
             self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
             return
-        
+
         # store SM-like Higgs
         self.SMHiggs = self.particles['SMHiggs'][0]
 
@@ -165,7 +165,7 @@ class Model:
             if key == 'SMHiggs':
                 continue
             self.BSMScalars.extend(self.particles[key])
-        
+
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
@@ -175,7 +175,7 @@ class Model:
         # check that all scalar masses are provided
         if not all(k in self.masses for k in self.AllScalars):
             raise ValueError(f"Mass dictionary must contain keys {self.AllScalars}. Provided keys: {list(self.masses.keys())}")
-        
+
         # Sort particles by mass and assign "H_i" names
         sorted_particles = sorted(self.masses.items(), key=lambda x: x[1])
         self.name_map = {}  # Maps scalar particle names to 'H_i' names

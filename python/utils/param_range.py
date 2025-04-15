@@ -11,17 +11,20 @@ class ParamRange:
 
     def __init__(self,
                  name: str,
-                 bounds_dict: Dict[str, Any]):
-        
+                 param_info: Dict[str, Any]):
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize parameter name
         self.name = name
 
+        # initialize parameter full name
+        self.full_name = param_info['fullname']
+
         # initialize values from dictionary
-        self.__min_value = bounds_dict['min']
-        self.__max_value = bounds_dict['max']
+        self.__min_value = param_info['min']
+        self.__max_value = param_info['max']
 
         # initialize low and high from lower and upper bounds
         self.__low = self.min_value
@@ -31,12 +34,23 @@ class ParamRange:
     def name(self) -> str:
         """Name of the parameter"""
         return self.__name
-    
+
     @name.setter
     def name(self,
              new_name: str) -> None:
         """Set the name property"""
         self.__name = new_name
+
+    @property
+    def full_name(self) -> str:
+        """Full name of the parameter"""
+        return self.__full_name
+
+    @full_name.setter
+    def full_name(self,
+                  new_full_name: str) -> None:
+        """Set the full name property"""
+        self.__full_name = new_full_name
 
     @property
     def low(self) -> float:
@@ -55,7 +69,7 @@ class ParamRange:
     def high(self) -> float:
         """High value of the parameter range"""
         return self.__high
-    
+
     @high.setter
     def high(self,
              new_high: float) -> None:
@@ -94,7 +108,7 @@ class ParamRange:
     def center(self) -> float:
         """Center value of the parameter range"""
         return (self.low + self.high) / 2
-    
+
     @property
     def range(self) -> tuple:
         """High and low values of the parameter range"""
@@ -126,7 +140,7 @@ class ParamRange:
 
         # adjust low and high based on lower bound
         if self.low < self.min_value:
-            
+
             # calculate how much the new low is below lower bound
             overage = self.min_value - self.low
 
@@ -152,11 +166,9 @@ class ParamRange:
             # if new low is below lower bound, set it to lower bound
             if self.low < self.min_value:
                 self.low = self.min_value
-            
+
             # set high to upper bound
             self.high = self.max_value
-
-        return
 
     def set_low_high(self,
                      new_low: float,

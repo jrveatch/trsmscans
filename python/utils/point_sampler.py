@@ -13,13 +13,13 @@ from utils.run_scannerS import run_scannerS
 from utils.tsv_utils import save_tsv_output
 
 class PointSampler:
-        
+
     # Initializer: passes output directory, model name, and config loader
     def __init__(self,
                  out_dir: str,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -149,16 +149,12 @@ class PointSampler:
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
-
                 # Print points passed and efficiency
                 self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
-
                 # Update the efficiency to the running efficiency with a small cushion
                 self.efficiency = running_efficiency * 0.98
-
             else:
-
-                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
+                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.npass} points that pass filters")
