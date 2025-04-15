@@ -132,6 +132,9 @@ class MeanShiftOptimizer:
 
     def run(self):
 
+        # get time of mean shift start
+        shift_start = time.time()
+
         # Initialize iteration counter
         iter = -1
 
@@ -227,6 +230,13 @@ class MeanShiftOptimizer:
 
         #self.__create_walk_file()
         #self.__generate_visualizations()
+
+        # get mean shift end time
+        shift_end = time.time()
+        shift_time = shift_end - shift_start
+
+        # print iteration time to screen
+        self.logger.info(f"{self.__label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
         #return self.__local_param_space.center_points()
