@@ -15,7 +15,7 @@ class ConfigLoader:
     def __init__(self,
                  config_file_name: str,
                  config_path: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -49,12 +49,10 @@ class ConfigLoader:
             default: Optional[Any] = None) -> Optional[Any]:
         """
         Retrieve a specific setting from the config with an optional default value.
-        
         Args:
             section: The section of the configuration to retrieve.
             key: The specific key within the section.
             default: The default value to return if the key is not found.
-        
         Returns:
             The value from the configuration if found, otherwise the default value.
         """

@@ -35,7 +35,7 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -229,8 +229,6 @@ class Scan:
         # scale new low and high values
         self.global_param_space.scale_ranges(self.global_max)
 
-        return
-
     def run_ms_optimization(self, prescan_points: int, points: int) -> None:
 
         # get scan start time
@@ -329,7 +327,6 @@ class Scan:
         # finalize the run
         self.finalize(optimization="mean shift",
                       scan_time=scan_time)
-        return
 
     # run the full scan
     def run_zoom_optimization(self,
@@ -395,7 +392,7 @@ class Scan:
                     # store max_xb
                     if temp_max > self.global_max:
                         self.global_max = temp_max
-                
+
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
 
@@ -410,8 +407,6 @@ class Scan:
         self.finalize(optimization="zoom",
                       scan_time=scan_time,
                       num_points=num_points)
-
-        return
 
     # Function that creates needed zoom optimizers
     def create_zoom_optimizers(self, num_points: int) -> List['ZoomOptimizer']:
@@ -488,7 +483,7 @@ class Scan:
                  optimization: str,
                  scan_time: float,
                  num_points: int = -1) -> None:
-        
+
         # print message indicating scan is done
         self.logger.info("Done!")
 
@@ -498,7 +493,7 @@ class Scan:
         # write time info to details file
         with open(self.details_name, "a") as details:
             details.write(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
-    
+
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
                           optimization=optimization,
@@ -530,7 +525,7 @@ if __name__ == "__main__":
     # create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-    
+
     # directory where we want the output to go
     out_dir = scan_dir(model=model,
                        decay=args.decay)
@@ -538,7 +533,7 @@ if __name__ == "__main__":
     # set up logging
     setup_logging(log_file=os.path.join(out_dir, args.log),
                   level=LOG_LEVELS[args.log_level.lower()])
-    
+
     # get logger
     logger = logging.getLogger()
 

@@ -42,7 +42,7 @@ def combine_results(model: str,
 
                 # Get list of all .tsv files
                 tsv_files = [f for f in os.listdir(directory) if f.endswith('.tsv')]
-                
+
                 # Process summary .tsv files in the directory
                 for summary_file in tsv_files:
                     if not summary_file.startswith('zoom_summary') or summary_file.startswith("zoom_summary_tsv"):
@@ -54,7 +54,7 @@ def combine_results(model: str,
                             if not lines:
                                 print(f"{summary_path} is empty. Skipping.")
                                 continue
-                            
+
                             # Extract headers and remove the last column
                             file_headers = lines[0].strip().split('\t')[:-1]  # Exclude the last column
                             last_line = lines[-1].strip().split('\t')[:-1]  # Exclude the last column
@@ -69,7 +69,7 @@ def combine_results(model: str,
                             combination_file.write(f"{float(XMass)}\t{float(SMass)}\t125.09\t" + "\t".join(last_line) + "\n")
                     except Exception as e:
                         print(f"Error reading or processing {summary_path}: {e}")
-                
+
                 # Process tsv summary .tsv files in the directory
                 for tsv_summary_file in tsv_files:
                     if not tsv_summary_file.startswith('summary_zoom_tsv'):
@@ -81,7 +81,7 @@ def combine_results(model: str,
                             if not lines:
                                 print(f"{tsv_summary_path} is empty. Skipping.")
                                 continue
-                            
+
                             # Extract headers and remove the last column
                             file_headers = lines[0].strip().split('\t')[1:]  # Exclude the first column
                             last_line = lines[-1].strip().split('\t')[1:]  # Exclude the first column
@@ -111,5 +111,5 @@ if __name__ == "__main__":
     combine_results(model=args.model,
                     decay=args.decay,
                     identifier=args.identifier)
-    
+
     # TODO: Add function to plot combined results

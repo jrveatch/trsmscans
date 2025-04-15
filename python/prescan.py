@@ -152,7 +152,7 @@ if __name__ == "__main__":
     # create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-    
+
     # directory where we want the output to go
     out_dir = prescan_dir(model)
 
