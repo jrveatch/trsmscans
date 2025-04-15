@@ -33,8 +33,8 @@ class ZoomOptimizer:
         self.param_space = param_space
         self.decay = param_space.decay
         self.num_points = num_points
-        self.local_max = Point(starting_max.model)
-        self.global_max = starting_max
+        self.local_max = starting_max.copy(0.0)
+        self.global_max = starting_max.copy()
         self.label = label
         self.top_percentile = {}
         self.top_percentile_xb = None
