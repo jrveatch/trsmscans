@@ -8,6 +8,7 @@ import operator
 import os
 import shutil
 import time
+from functools import cached_property
 
 from pprint import pprint
 
@@ -24,6 +25,7 @@ from utils.config_loader import ConfigLoader
 from utils.point_sampler import PointSampler
 from utils.math_utils import round_sig
 from utils.mean_shift_utils import mean_shift
+from utils.model import Model
 
 class MeanShiftOptimizer:
 
@@ -43,29 +45,19 @@ class MeanShiftOptimizer:
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.global_param_space = global_param_space
+
         self.__points = points
         self.__label = label
         self.__stop_epochs = stop_epochs
         self.__stop_mode = stop_mode
         self.__stop_sens = (1 - stop_sens)
-        self.__model = global_param_space.model
-        self.decay = global_param_space.decay
 
-        # Initialize paths
-        self.__scan_path = scan_dir(
-                model = self.__model,
-                decay = self.decay
-            )
-        
-        out_dir = scan_dir(
-                model = self.__model,
-                decay = self.decay
-            )
-        
-        self.__plot_path = plots_dir(
-                model = self.__model,
-                decay = self.decay
-            )
+        # Initialize paths        
+        #self.__plot_path = plots_dir(
+        #        model = self.model,
+        #        decay = self.decay
+        #    )
 
         # Initialize config loader
         self.__config_loader = config_loader
@@ -94,15 +86,15 @@ class MeanShiftOptimizer:
         self.__prev_position = self.__local_param_space.vol_position
 
         # Init point sampler
-        self.point_sampler = PointSampler(out_dir = out_dir,
+        self.point_sampler = PointSampler(out_dir = self.out_dir,
                                           config_loader = self.__config_loader,
                                           use_file_dir = True)
         
-        output_file_postfix = f"{self.__model.name}_{self.decay}_{global_param_space.mass_string}"
+        output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
-        self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
-        self.details_name = f"{out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
-        self.walk_file_name = f"{out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
+        self.prescan_details_name = f"{self.out_dir}files/details/prescan_details_{output_file_postfix}.txt"
+        self.details_name = f"{self.out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
+        self.walk_file_name = f"{self.out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
 
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:
@@ -113,6 +105,33 @@ class MeanShiftOptimizer:
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
+
+    @property
+    def model(self) -> Model:
+        """Model used in scan"""
+        return self.global_param_space.model
+
+    @property
+    def decay(self) -> str:
+        """Decay mode used in scan"""
+        return self.global_param_space.decay
+
+    @property
+    def global_param_space(self) -> ParamSpace:
+        """Global param space"""
+        return self.__global_param_space
+    
+    @global_param_space.setter
+    def global_param_space(self,
+                           new_global_param_space: ParamSpace) -> None:
+        """Set the global param space"""
+        self.__global_param_space = new_global_param_space
+
+    @cached_property
+    def out_dir(self) -> str:
+        """Output directory name"""
+        return scan_dir(model=self.model,
+                        decay=self.decay)
 
     def run(self):
 
@@ -129,13 +148,6 @@ class MeanShiftOptimizer:
             # get iteration identifier
             identifier = self.__label + f"-{iter:04d}"
             self.logger.info(f"Iteration: {identifier}")
-
-            # set names of input .ini and output .tsv files
-            outpath = f"{self.__scan_path}files/"
-            ininame = outpath + f"/ini/{self.__model.name}_{identifier}.ini"
-
-            # write new .ini file from template and parameters
-            self.__local_param_space.write_ini(ininame)
 
             parser = None
             arrays = None
@@ -247,9 +259,9 @@ class MeanShiftOptimizer:
             self.__stop = True
 
     def __create_walk_file(self):
-        log_files = glob.glob(f"{self.__scan_path}files/log/*{self.__label}*_log.txt")
+        log_files = glob.glob(f"{self.out_dir}files/log/*{self.__label}*_log.txt")
         
-        walk_tsv = f"{self.__scan_path}files/tsv/{self.__label}_meanshift_walk.tsv"
+        walk_tsv = f"{self.out_dir}files/tsv/{self.__label}_meanshift_walk.tsv"
 
         data = []
 
@@ -319,7 +331,7 @@ class MeanShiftOptimizer:
         # Create plots dir
         os.makedirs(self.__plot_path, exist_ok=True)
 
-        walk_tsv = f"{self.__scan_path}files/tsv/{self.__label}_meanshift_walk.tsv"
+        walk_tsv = f"{self.out_dir}files/tsv/{self.__label}_meanshift_walk.tsv"
 
         df = pd.read_csv(walk_tsv, sep="\t")
 
