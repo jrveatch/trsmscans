@@ -45,12 +45,6 @@ class MeanShiftOptimizer:
         self.__points = points
         self.__label = label
 
-        # Initialize paths        
-        #self.__plot_path = plots_dir(
-        #        model = self.model,
-        #        decay = self.decay
-        #    )
-
         # get mean shift configuration from config file
         self.config_loader = config_loader
         try:
@@ -230,7 +224,7 @@ class MeanShiftOptimizer:
                 content += "\n"
                 walk_file.write(content)
 
-        self.__create_walk_file()
+        #self.__create_walk_file()
         #self.__generate_visualizations()
 
         return
@@ -331,8 +325,15 @@ class MeanShiftOptimizer:
         df.to_csv(walk_tsv, sep="\t")
 
     def __generate_visualizations(self):
+
+        # Initialize plot path        
+        plot_path = plots_dir(
+                model = self.model,
+                decay = self.decay
+        )
+
         # Create plots dir
-        os.makedirs(self.__plot_path, exist_ok=True)
+        os.makedirs(plot_path, exist_ok=True)
 
         walk_tsv = f"{self.out_dir}files/tsv/{self.__label}_meanshift_walk.tsv"
 
@@ -350,7 +351,7 @@ class MeanShiftOptimizer:
                 plt.xlabel(x_label)
                 plt.ylabel(y_label)
                 # plt.scatter(X, Y)
-                plt.savefig(f"{self.__plot_path}{self.__local_param_space.model_name}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
+                plt.savefig(f"{plot_path}{self.__local_param_space.model_name}_lines_{self.__label}_{x_label}_{y_label}.jpg", format="JPEG")
                 plt.cla()
                 plt.clf()
 
@@ -370,6 +371,6 @@ class MeanShiftOptimizer:
             handles.reverse()
             labels.reverse()
             plt.legend(handles = handles, labels = labels, loc = "lower right", )
-            plt.savefig(f"{self.__plot_path}{self.__local_param_space.model_name}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
+            plt.savefig(f"{plot_path}{self.__local_param_space.model_name}_timeseries_iter_{self.__label}_{parname}_xb.jpg", format="JPEG")
             plt.cla()
             plt.clf()
