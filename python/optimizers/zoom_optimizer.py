@@ -22,7 +22,7 @@ class ZoomOptimizer:
     def __init__(self,
                  param_space: ParamSpace,
                  num_points: int,
-                 starting_max: 'Point',
+                 starting_max: Point,
                  config_loader: ConfigLoader,
                  label: str = ""):
         
@@ -155,12 +155,12 @@ class ZoomOptimizer:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
-        
+
         # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
             self.termination_message("Local max is consistently less than half of global max")
-        
+
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
 
@@ -207,7 +207,7 @@ class ZoomOptimizer:
 
         # record iteration time to screen
         self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
-            
+
         return new_max
 
     # write max xb point summary to info file
