@@ -79,6 +79,11 @@ class ParamSpace:
         return Point(model=self.model,
                      par_vals={name:self.parameter_ranges[name].center for name in self.parameter_names})
 
+    def random_point(self) -> Point:
+        """Get random point within parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].random_point() for name in self.parameter_names})
+
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
         return tuple([param_range.range for param_range in self.parameter_ranges.values()])
