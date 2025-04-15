@@ -1,6 +1,6 @@
 
 # standard libraries
-from typing import Dict
+from typing import Dict, Optional
 
 # local modules
 from utils.math_utils import round_sig
@@ -11,30 +11,25 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model: Model,
-                 par_vals: Dict[str,float] = {},
+                 model: Optional[Model] = None,
+                 par_vals: Optional[Dict[str,float]] = {},
                  xb: float = 0.0):
 
         # store model name
         self.__model = model
 
-        # if par_vals exists, store it
-        if par_vals:
+        if par_vals is not None:
             self.__par_vals = par_vals
-        # otherwise create default dictionary from model
+        elif model is not None:
+            self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
         else:
-            self.__par_vals = {par: 0.0 for par in self.model.all_parameter_names}
+            raise ValueError("Either 'par_vals' or 'model' must be provided.")
 
         # store xb value
         self.xb = xb
 
     @property
-    def model_name(self) -> str:
-        """Name of the model"""
-        return self.model.name
-
-    @property
-    def model(self) -> Model:
+    def model(self) -> Optional[Model]:
         """The model object"""
         return self.__model
 
@@ -42,6 +37,12 @@ class Point:
     def par_vals(self) -> Dict[str,float]:
         """Dictionary of parameter values"""
         return self.__par_vals
+
+    def copy(self, new_xb: Optional[float] = None) -> 'Point':
+        """Return a copy of the point with a new xb value"""
+        if new_xb is None:
+            new_xb = self.xb
+        return Point(model=self.model, par_vals=self.par_vals, xb=new_xb)
 
     # wrapper function to get attribute
     def get_val(self,
