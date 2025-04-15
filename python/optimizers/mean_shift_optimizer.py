@@ -58,8 +58,6 @@ class MeanShiftOptimizer:
             self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
             self.__stop_sens: float = (1.0 - config_loader.get('meanshift', 'stop_sensitivity'))
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-            points_num: int = config_loader.get('meanshift', 'points_num')
-            points_gen: str = config_loader.get('meanshift', 'points_gen')
             self.__debug: bool = config_loader.get('meanshift', 'debug')
         except KeyError as e:
             self.logger.error(e)
