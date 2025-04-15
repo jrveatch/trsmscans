@@ -31,16 +31,11 @@ class MeanShiftOptimizer:
 
     def __init__(
             self,
-            scan_perc: float,
-            stop_mode: int,
-            stop_epochs: int,
-            stop_sens: float,
             label: str,
             initial_pos: tuple[tuple],
             points: int,
             global_param_space: ParamSpace,
-            config_loader: ConfigLoader,
-            debug: bool = False):
+            config_loader: ConfigLoader):
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -49,9 +44,6 @@ class MeanShiftOptimizer:
 
         self.__points = points
         self.__label = label
-        self.__stop_epochs = stop_epochs
-        self.__stop_mode = stop_mode
-        self.__stop_sens = (1 - stop_sens)
 
         # Initialize paths        
         #self.__plot_path = plots_dir(
@@ -59,9 +51,22 @@ class MeanShiftOptimizer:
         #        decay = self.decay
         #    )
 
-        # Initialize config loader
-        self.__config_loader = config_loader
-        self.__debug = debug
+        # get mean shift configuration from config file
+        self.config_loader = config_loader
+        try:
+            self.__stop_epochs: int = self.config_loader.get('meanshift', 'stop_epochs')
+            self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
+            self.__stop_sens: float = (1.0 - config_loader.get('meanshift', 'stop_sensitivity'))
+            self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
+            points_num: int = config_loader.get('meanshift', 'points_num')
+            points_gen: str = config_loader.get('meanshift', 'points_gen')
+            self.__debug: bool = config_loader.get('meanshift', 'debug')
+        except KeyError as e:
+            self.logger.error(e)
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error: {e}")
+            raise
 
         # Initialize control variables for iteration
         self.__epoch_count = 0
@@ -73,7 +78,7 @@ class MeanShiftOptimizer:
         # Set initial param widths
         for param_range in self.__local_param_space:
             center = param_range.center
-            extent = (param_range.width * scan_perc) / 2
+            extent = (param_range.width * self.__scan_perc) / 2
 
             param_range.low = (center - extent)
             param_range.high = (center + extent)
@@ -87,7 +92,7 @@ class MeanShiftOptimizer:
 
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.out_dir,
-                                          config_loader = self.__config_loader,
+                                          config_loader = config_loader,
                                           use_file_dir = True)
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"

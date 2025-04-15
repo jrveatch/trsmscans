@@ -285,14 +285,15 @@ class Scan:
             return tuple(results)
 
         # Load config
-        config_loader = self.config_loader
-        stop_epochs: int = config_loader.get('meanshift', 'stop_epochs')
-        stop_mode: int = config_loader.get('meanshift', 'stop_mode')
-        stop_sens: float = config_loader.get('meanshift', 'stop_sensitivity')
-        scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-        points_num: int = config_loader.get('meanshift', 'points_num')
-        points_gen: str = config_loader.get('meanshift', 'points_gen')
-        debug: bool = config_loader.get('meanshift', 'debug')
+        try:
+            points_num: int = self.config_loader.get('meanshift', 'points_num')
+            points_gen: str = self.config_loader.get('meanshift', 'points_gen')
+        except KeyError as e:
+            self.logger.error(e)
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error: {e}")
+            raise
 
         # Clear plots dir
         plot_dir = plots_dir(model=self.model,decay=self.decay)
@@ -308,16 +309,11 @@ class Scan:
             label = f"MeanShiftOptimizer-{i}"
 
             MeanShiftOptimizer(
-                scan_perc=scan_perc,
-                stop_mode=stop_mode,
-                stop_epochs=stop_epochs,
-                stop_sens=stop_sens,
                 label=label,
                 initial_pos=initial_pos,
                 points=points,
                 global_param_space=self.global_param_space,
-                config_loader=config_loader,
-                debug=debug
+                config_loader=self.config_loader
             ).run()
 
             #with open(self.summary_name, 'a') as scan_summary:
