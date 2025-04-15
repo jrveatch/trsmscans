@@ -30,7 +30,7 @@ def interpolate_HiggsBR(brdict) -> List[interp1d]:
     first_key = next(iter(brdict))
     first_value = brdict[first_key]
     NBRs = len(first_value)
-  
+
     # push back all the values of the masses, brs and width into arrays
     mass_array = list(brdict.keys())
     br_array =[[] for _ in range(NBRs)]
@@ -117,7 +117,7 @@ def calculate_heavy_BRs_only(interpolators_SM: List[interp1d],
     heavyBRs: List[float] = []
     # fix the SM Higgs mass
     mh1 = 125.09
-    if mh2 < 1000.: # 
+    if mh2 < 1000.: # only use the interpolators if mh2 < 1000 GeV
         Gamma_SM = interpolators_SM[-1](mh2)
     else:
         Gamma_SM = interpolators_SM[-1](1000.)
@@ -139,7 +139,7 @@ def calculate_heavy_BRs_only(interpolators_SM: List[interp1d],
 
     # add the total heavy Higgs width:
     heavyBRs.append(width_h2(sin_theta, mh1, mh2, l112, Gamma_SM))
-    
+
     return heavyBRs
 
 # the BR h2 -> h1 h1, given the m2, sin_theta, l112, Gam_SM (total SM BR)
@@ -240,7 +240,7 @@ def interpolate_HiggsXS(xs_dict):
 
     # define an array of interpolators
     interp_higgs_xss = []
-  
+
     # push back all the values of the masses, brs and width into arrays
     mass_array = []
     xs_array =[]

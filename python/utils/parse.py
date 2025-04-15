@@ -1,5 +1,6 @@
 
 # standard libraries
+from functools import cached_property
 import logging
 from typing import Dict
 
@@ -11,6 +12,7 @@ import pandas as pd
 from utils.decay_utils import valid_decays
 from utils.df_utils import get_df, get_header_string
 from utils.model import Model
+from utils.param_space import ParamSpace
 from utils.point import Point
 
 # class to parse arrays and provide details about data
@@ -20,30 +22,35 @@ class Parse:
     def __init__(self,
                  model: 'Model',
                  file_name: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize model
         self.__model = model
 
-        # initialize HName and SName
-        self.__HName = model.get_ordered_scalar_name('H')
-        self.__SName = model.get_ordered_scalar_name('S')
-
-        # initialize dictionaries of parameter arrays
-        self.__in_par_arrays: Dict[str,pd.Series] = {}
-        self.__out_par_arrays: Dict[str,pd.Series] = {}
-        self.__width_par_arrays: Dict[str,pd.Series] = {}
-        self.__par_arrays: Dict[str,pd.Series] = {}
-
         # get arrays from file name if it is provided
         if file_name:
             self.read_file(file_name)
 
     @property
+    def model(self) -> 'Model':
+        """Model object"""
+        return self.__model
+
+    @cached_property
+    def HName(self) -> str:
+        """Name of the H scalar"""
+        return self.model.get_ordered_scalar_name('H')
+
+    @cached_property
+    def SName(self) -> str:
+        """Name of the S scalar"""
+        return self.model.get_ordered_scalar_name('S')
+
+    @property
     def filtered_data(self) -> pd.DataFrame:
-        return self.data[self.__filters]
+        return self.data[self.filters]
 
     @property
     def tsv_header(self) -> str:
@@ -52,8 +59,28 @@ class Parse:
 
     @property
     def input_parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of the parameter arrays"""
-        return self.__in_par_arrays
+        """Dictionary of input parameter arrays"""
+        return {name: self.filtered_data[par['fullname']] for name, par in self.model.input_parameters.items()}
+
+    @property
+    def output_parameter_arrays(self) -> Dict[str,pd.Series]:
+        """Dictionary of output parameter arrays"""
+        return {name: self.filtered_data[par['fullname']] for name, par in self.model.output_parameters.items()}
+
+    @property
+    def width_parameter_arrays(self) -> Dict[str,pd.Series]:
+        """Dictionary of width parameter arrays"""
+        return {name: self.filtered_data[par['fullname']] for name, par in self.model.width_parameters.items()}
+
+    @property
+    def parameter_arrays(self) -> Dict[str,pd.Series]:
+        """Dictionary of parameter arrays"""
+        return {**self.input_parameter_arrays, **self.output_parameter_arrays, **self.width_parameter_arrays}
+
+    @property
+    def filters(self) -> pd.Series:
+        """Filter decisions as a boolean array"""
+        return (self.data['filt_width'] * self.data['filt_bounds'] * self.data['filt_signals']).astype(bool)
 
     @property
     def num_filtered_points(self) -> int:
@@ -64,50 +91,47 @@ class Parse:
     def num_unfiltered_points(self) -> int:
         """Number of unfiltered points"""
         return len(self.data)
-    
-    # load new arrays
+
     def read_file(self,
                   file_name: str) -> None:
+        """Load new arrays from a .tsv file"""
 
         # create dataframe object if it does not exist
-        if not hasattr(self,"tsv_data"):
+        if not hasattr(self,"data"):
             self.data = get_df(file_name)
 
-        # get arrays masked by filters
-        self.__make_filtered_arrays()
-
-    # find the point that maximizes xb
     def get_max_xb_point(self,
                          decay: str) -> Point:
-        
+        """Find the point with the highest xb"""
+
         # get xb
         xb = self.get_xb(decay)
 
         # get index of maximum xsec times BR
         self.max_idx = xb.idxmax()
-        
+
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals = {par: array[self.max_idx] for par, array in self.__par_arrays.items()}
+        max_xb_par_vals = {par: array[self.max_idx] for par, array in self.parameter_arrays.items()}
 
         # return a point object holding xb and other parameters
         return Point(xb = xb[self.max_idx],
-                     model = self.__model,
+                     model = self.model,
                      par_vals = max_xb_par_vals)
 
-    # get minimum value of a parameter
     def get_min(self,
                 par_name: str) -> float:
-        return self.__par_arrays[par_name].min()
+        """Get the minimum value for a parameter in the data"""
+        return self.parameter_arrays[par_name].min()
 
-    # get maximum value of a parameter
     def get_max(self,
                 par_name: str) -> float:
-        return self.__par_arrays[par_name].max()
+        """Get the maximum value for a parameter in the data"""
+        return self.parameter_arrays[par_name].max()
 
-    # function that checks whether xb is unimodal in a parameter
     def is_bimodal(self,
                    param_name: str,
                    decay: str) -> bool:
+        """Check whether xb is unimodal in a parameter"""
 
         # percentile threshold for xb
         percentile_threshold = 0.98
@@ -133,7 +157,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.__in_par_arrays[param_name][xb > threshold_value] 
+        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
         _, pval = diptest.diptest(param_selected)
@@ -142,14 +166,11 @@ class Parse:
         pval_threshold = 0.05
 
         # if p-value is below threshold, return True, otherwise return False
-        if pval < pval_threshold:
-            return True
-        else:
-            return False
+        return pval < pval_threshold
 
-    # get xb array
     def get_xb(self,
                decay: str) -> pd.Series:
+        """Get array of xb values"""
 
         # get production cross section
         xsec_prod = self.__get_xsec_prod()
@@ -168,33 +189,32 @@ class Parse:
         # return total xsec time BR
         return xb
 
-    # get production xsec
     def __get_xsec_prod(self) -> pd.Series:
-
+        """Get array of production cross-sections"""
         return self.filtered_data['x_H3_gg'] #* self.filtered_data['b_H3_H1H2']
 
-    # get decay BR
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
-        
+        """Get arrays of decay branching ratios"""
+
         # BSM BRs
         br_X_SH = self.filtered_data['b_H3_H1H2']
-        br_X_SS = self.filtered_data['b_H3_'+self.__SName+self.__SName]
-        br_X_HH = self.filtered_data['b_H3_'+self.__HName+self.__HName]
+        br_X_SS = self.filtered_data['b_H3_'+self.SName+self.SName]
+        br_X_HH = self.filtered_data['b_H3_'+self.HName+self.HName]
 
         # H SM BRs
-        br_H_bb = self.filtered_data['b_'+self.__HName+'_bb']
-        br_H_tautau = self.filtered_data['b_'+self.__HName+'_tautau']
-        br_H_WW = self.filtered_data['b_'+self.__HName+'_WW']
-        br_H_ZZ = self.filtered_data['b_'+self.__HName+'_ZZ']
-        br_H_gamgam = self.filtered_data['b_'+self.__HName+'_gamgam']
+        br_H_bb = self.filtered_data['b_'+self.HName+'_bb']
+        br_H_tautau = self.filtered_data['b_'+self.HName+'_tautau']
+        br_H_WW = self.filtered_data['b_'+self.HName+'_WW']
+        br_H_ZZ = self.filtered_data['b_'+self.HName+'_ZZ']
+        br_H_gamgam = self.filtered_data['b_'+self.HName+'_gamgam']
 
         # S SM BRs
-        br_S_bb = self.filtered_data['b_'+self.__SName+'_bb']
-        br_S_tautau = self.filtered_data['b_'+self.__SName+'_tautau']
-        br_S_WW = self.filtered_data['b_'+self.__SName+'_WW']
-        br_S_ZZ = self.filtered_data['b_'+self.__SName+'_ZZ']
-        br_S_gamgam = self.filtered_data['b_'+self.__SName+'_gamgam']
+        br_S_bb = self.filtered_data['b_'+self.SName+'_bb']
+        br_S_tautau = self.filtered_data['b_'+self.SName+'_tautau']
+        br_S_WW = self.filtered_data['b_'+self.SName+'_WW']
+        br_S_ZZ = self.filtered_data['b_'+self.SName+'_ZZ']
+        br_S_gamgam = self.filtered_data['b_'+self.SName+'_gamgam']
 
         # get appropriate BR for decay mode
         # 4b cases
@@ -380,32 +400,22 @@ class Parse:
         # return the decay BR
         return br_decay
 
-    # get arrays of the filters
-    def __set_filters(self) -> None:
-        self.__filters = (self.data['filt_width'] * self.data['filt_bounds'] * self.data['filt_signals']).astype(bool)
+    def filter_by_param_space(self,
+                              param_space: ParamSpace) -> pd.DataFrame:
+        """Return a view of filtered_data that is carved out by a parameter space"""
+        df = self.filtered_data
+        mask = pd.Series(True, index=df.index)
 
-    # apply filters as mask
-    def __make_filtered_arrays(self) -> None:
-        
-        # get array of filters to use as a mask
-        self.__set_filters()
+        for param in param_space:
+            col = param.full_name
+            mask &= (df[col] > param.low) & (df[col] <= param.high)
 
-        # populate a dictionary of series for each input parameter
-        self.__in_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.input_parameters.items()}
+        return df[mask]
 
-        # populate a dictionary of series for each output parameter
-        self.__out_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.output_parameters.items()}
-
-        # populate a dictionary of series for each width parameter
-        self.__width_par_arrays = {name: self.filtered_data[par['fullname']] for name, par in self.__model.width_parameters.items()}
-
-        # combine all parameter arrays
-        self.__par_arrays = {**self.__in_par_arrays, **self.__out_par_arrays, **self.__width_par_arrays}
-
-    # write max xb line to a .tsv file
     def write_max_xb_line(self,
                           file_name: str
                          ) -> None:
+        """Write line with max xb to a .tsv file"""
 
         # get max xb row from dataframe
         row = self.data.loc[[self.max_idx]]
@@ -416,5 +426,3 @@ class Parse:
                    index=True,
                    mode='a',
                    header=False)
-
-        return

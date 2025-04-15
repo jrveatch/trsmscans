@@ -11,22 +11,19 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  par_vals: Dict[str,float] = {},
                  xb: float = 0.0):
 
         # store model name
         self.__model = model
 
-        # initialize empty dictionary of parameter values
-        self.__par_vals: Dict[str,float] = {}
-
         # if par_vals exists, store it
         if par_vals:
             self.__par_vals = par_vals
         # otherwise create default dictionary from model
         else:
-            self.__par_vals = {par: 0.0 for par in self.__model.all_parameter_names}
+            self.__par_vals = {par: 0.0 for par in self.model.all_parameter_names}
 
         # store xb value
         self.xb = xb
@@ -34,13 +31,13 @@ class Point:
     @property
     def model_name(self) -> str:
         """Name of the model"""
-        return self.__model.name
+        return self.model.name
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """The model object"""
         return self.__model
-    
+
     @property
     def par_vals(self) -> Dict[str,float]:
         """Dictionary of parameter values"""
@@ -53,8 +50,10 @@ class Point:
         if varname == "xb":
             return self.xb
         # otherwise return value from par_vals
-        else:
-            return self.__par_vals[varname]
+        try:
+            return self.par_vals[varname]
+        except KeyError:
+            raise KeyError(f"Parameter '{varname}' not found in this point.")
 
     # get difference between two values of varname
     def diff(self,
@@ -110,10 +109,10 @@ class Point:
 
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(model=self.__model, par_vals=self.__par_vals, xb=self.xb*scale_factor)
+        return Point(model=self.model, par_vals=self.par_vals, xb=self.xb*scale_factor)
 
     def __str__(self) -> str:
-        return f"{self.xb}\n{self.__par_vals}"
+        return f"{self.xb}\n{self.par_vals}"
 
     def __repr__(self) -> str:
-        return f"{self.xb}\n{self.__par_vals}"
+        return f"{self.xb}\n{self.par_vals}"

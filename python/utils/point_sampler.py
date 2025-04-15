@@ -7,19 +7,19 @@ import math
 # local modules
 from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.run_scannerS import run_scannerS
 from utils.tsv_utils import save_tsv_output
 
 class PointSampler:
-        
+
     # Initializer: passes output directory, model name, and config loader
     def __init__(self,
                  out_dir: str,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -60,28 +60,28 @@ class PointSampler:
 
     # Method to sample a number of points
     def sample_points(self,
-                      params: Params,
+                      param_space: ParamSpace,
                       num_points_requested: int,
                       identifier = "",
                       good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
-        out_name = params.model_name
+        out_name = param_space.model_name
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
         ini_name = self.ini_dir + out_name + ".ini"
         tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + params.model_name + ".tsv"
+        temp_tsv = self.out_dir + param_space.model_name + ".tsv"
 
         #Global variable for number of points
         self.total_points_requested = num_points_requested
 
         # write new .ini file from template and parameters
-        params.write_ini(ini_name)
+        param_space.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.model)
+        self.parser = Parse(param_space.model)
 
         # Initialize global variables given by filters
         self.__nwidth = 0
@@ -114,7 +114,7 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = params.model_name)
+                                  model_name = param_space.model_name)
 
             # Update the total points run
             self.curr_points_run += points
@@ -124,7 +124,7 @@ class PointSampler:
 
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
-                                    model = params.model,
+                                    model = param_space.model,
                                     config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
@@ -149,16 +149,12 @@ class PointSampler:
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
-
                 # Print points passed and efficiency
                 self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
-
                 # Update the efficiency to the running efficiency with a small cushion
                 self.efficiency = running_efficiency * 0.98
-
             else:
-
-                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
+                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.npass} points that pass filters")
