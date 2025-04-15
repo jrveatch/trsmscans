@@ -89,7 +89,7 @@ def filter_bounds(dataframe: pd.DataFrame,
             br_H_SM[decay] = row['b_'+HName+'_'+decay]
             br_S_SM[decay] = row['b_'+SName+'_'+decay]
             br_X_SM[decay] = row['b_'+XName+'_'+decay]
-        
+
         # get BSM BRs
         if HName == "H2": # mH > mS
             br_H_BSM['S','S'] = row['b_H2_H1H1']
@@ -98,7 +98,7 @@ def filter_bounds(dataframe: pd.DataFrame,
         br_X_BSM['H','H'] = row['b_H3_'+HName+HName]
         br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
         br_X_BSM['S','H'] = row['b_H3_H1H2']
-        
+
         # set scalar masses and widths
         H.setMass(mH)
         S.setMass(mS)
@@ -172,26 +172,20 @@ def filter_bounds(dataframe: pd.DataFrame,
     dataframe[header_bounds] = filt_bounds
     dataframe[header_signals] = filt_signals
 
-    return
-
 def set_effective_couplings(particle,
                             mass: float,
                             rescaling: float
                            ) -> None:
-    
     if mass < 150:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
     else:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling))
-    
-    return
 
 def set_BRs(particle,
             BRs_SM: Dict[str,float],
             BRs_BSM: Dict[Tuple[str,str],float],
             adjust_ZZ: bool
            ) -> None:
-    
     # check total width and return if it is too small
     if particle.totalWidth() < 1e-11:
         return
@@ -237,13 +231,11 @@ def set_BRs(particle,
         # if BR sum is too large, adjust ZZ BR
         if sum_BR > 1.0:
             BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
-        
+
         logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
-
-    return
 
 def print_bounds_result(bounds_result,
                         idx: int,
@@ -253,13 +245,13 @@ def print_bounds_result(bounds_result,
 
     logger.verbose(bounds_result)
     logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
-    
+
     if bounds_result.allowed is False:
         limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]
         limits2 = [a for a in bounds_result.appliedLimits if "S" in a.contributingParticles()]
         limits3 = [a for a in bounds_result.appliedLimits if "X" in a.contributingParticles()]
         limits = [a for a in bounds_result.appliedLimits if a.obsRatio() > 1.0]
-        
+
         # TODO: lim.limit().id() is the channel identifier
         # we will want to ignore 13022 at least near 125 since it excludes SM
         for lim in limits1:

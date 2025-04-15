@@ -3,16 +3,15 @@ import scipy.interpolate as spi
 import matplotlib.pyplot as plt # type: ignore
 import matplotlib.colors as mcolors
 from utils.env_utils import output_dir
-import argparse 
+import argparse
 import os
 
 def plot_combination(model:str,
                      decay:str,
                      identifier:str):
-   
+
     filename = f'{output_dir()}/{model}/scan/{decay}/{decay}_{identifier}_combination.tsv'
     columns = np.genfromtxt(filename, delimiter='\t' , skip_header=1)
-    
 
     x_values = columns[:,0]
     y_values = columns[:,1]
@@ -28,17 +27,13 @@ def plot_combination(model:str,
     ax = fig.add_subplot(111)
     contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
 
-
     ax.set_xlabel('XMass')
     ax.set_ylabel('SMass')
-
-
 
     scatter = ax.scatter(x_values, y_values, c=z_values,norm=mcolors.LogNorm(), cmap='viridis')
 
     cbar = plt.colorbar(scatter)
     cbar.set_label('Max xb')
-
 
     ax.legend
     output_directory  = f'{output_dir()}/{model}/plots/{decay}'

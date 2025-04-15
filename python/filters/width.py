@@ -47,5 +47,3 @@ def filter_widths(dataframe: pd.DataFrame,
 
     # add filter to dataframe
     dataframe[header_width] = filt_width.astype(int)
-
-    return

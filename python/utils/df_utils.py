@@ -17,10 +17,10 @@ def get_df(file_name: str) -> pd.DataFrame:
     dataframe = pd.read_csv(file_name,
                             sep='\t',
                             header=0)
-    
+
     # drop first column to avoid compounding indices
     dataframe = dataframe.iloc[:, 1:]
-    
+
     return dataframe
 
 # get header as tab separated string including idx

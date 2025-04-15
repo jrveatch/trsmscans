@@ -37,7 +37,7 @@ class Point:
     def model(self) -> Model:
         """The model object"""
         return self.__model
-    
+
     @property
     def par_vals(self) -> Dict[str,float]:
         """Dictionary of parameter values"""
