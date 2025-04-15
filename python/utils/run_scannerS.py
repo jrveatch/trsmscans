@@ -229,9 +229,6 @@ def run_test_process(process_args: List[str],
         # wait 1 second before checking again
         time.sleep(1)
 
-    # successful run
-    return
-
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: List[str],
                       file_name: str) -> None:

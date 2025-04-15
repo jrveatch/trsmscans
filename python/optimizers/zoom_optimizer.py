@@ -316,8 +316,6 @@ class ZoomOptimizer:
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
         self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate))
 
-        return
-
     # method to zoom in based on a fixed rate
     def rate_zoom(self) -> None:
 
@@ -336,5 +334,3 @@ class ZoomOptimizer:
 
         # step down num_points
         self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate))
-    
-        return

@@ -227,8 +227,6 @@ class Scan:
         # scale new low and high values
         self.global_param_space.scale_ranges(self.global_max)
 
-        return
-
     # run the full scan
     def run_zoom_optimization(self,
                               num_points: int,
@@ -308,8 +306,6 @@ class Scan:
         self.finalize(optimization="zoom",
                       scan_time=scan_time,
                       num_points=num_points)
-
-        return
 
     # Function that creates needed zoom optimizers
     def create_zoom_optimizers(self, num_points: int) -> List['ZoomOptimizer']:

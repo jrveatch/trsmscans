@@ -170,8 +170,6 @@ class ParamRange:
             # set high to upper bound
             self.high = self.max_value
 
-        return
-
     def set_low_high(self,
                      new_low: float,
                      new_high: float):

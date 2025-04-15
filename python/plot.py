@@ -137,8 +137,6 @@ class Plot:
         # Store concatenated list as a pandas DataFrame
         self.df_comb = pd.DataFrame(self.comb_arrays)
 
-        return
-
     # Plot each iteration of the scan
     # TODO: find a way to make the process more efficient and faster !!
     def make_scan_plots(self) -> None:
@@ -217,8 +215,6 @@ class Plot:
                 # Close the figure
                 plt.close()
 
-        return
-
     # Plot the maximum xb in 2D bins for every parameter pair
     def make_max_xb_plots(self) -> None:
 
@@ -281,8 +277,6 @@ class Plot:
 
                 # Close the figure
                 plt.close()
-
-        return
     
     # Function that defines colors to plot using random RGB values
     def select_colors(self):

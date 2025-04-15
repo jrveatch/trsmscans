@@ -70,6 +70,3 @@ def save_tsv_output(input_file: str,
 
     # delete input .tsv file
     os.remove(input_file)
-
-    # return after a successful run
-    return

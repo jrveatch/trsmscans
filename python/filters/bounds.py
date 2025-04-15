@@ -172,8 +172,6 @@ def filter_bounds(dataframe: pd.DataFrame,
     dataframe[header_bounds] = filt_bounds
     dataframe[header_signals] = filt_signals
 
-    return
-
 def set_effective_couplings(particle,
                             mass: float,
                             rescaling: float
@@ -183,8 +181,6 @@ def set_effective_couplings(particle,
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
     else:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling))
-    
-    return
 
 def set_BRs(particle,
             BRs_SM: Dict[str,float],
@@ -242,8 +238,6 @@ def set_BRs(particle,
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
-
-    return
 
 def print_bounds_result(bounds_result,
                         idx: int,
