@@ -132,14 +132,15 @@ class MeanShiftOptimizer:
 
     def run(self):
 
-        # get time of iteration start
-        iter_start = time.time()
-
         # Initialize iteration counter
         iter = -1
 
         # Loop until stop condition is met
         while self.__stop != True:
+
+            # get time of iteration start
+            iter_start = time.time()
+
             iter += 1
 
             # get iteration identifier
