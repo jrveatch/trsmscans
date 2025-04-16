@@ -2,13 +2,13 @@
 
 import copy
 import datetime
+from functools import cached_property
 import glob
 import logging
 import operator
 import os
 import shutil
 import time
-from functools import cached_property
 
 from pprint import pprint
 
@@ -18,14 +18,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from utils.file_utils import scan_dir, plots_dir
-
-from utils.param_space import ParamSpace
 from utils.config_loader import ConfigLoader
-from utils.point_sampler import PointSampler
+from utils.file_utils import scan_dir, plots_dir
 from utils.math_utils import round_sig
 from utils.mean_shift_utils import mean_shift
 from utils.model import Model
+from utils.param_space import ParamSpace
+from utils.point_sampler import PointSampler
 
 class MeanShiftOptimizer:
 
