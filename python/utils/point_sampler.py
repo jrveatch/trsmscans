@@ -190,29 +190,29 @@ class PointSampler:
         return self.parser
 
     def sample_single_point(self,
-                      params: Params,
+                      param_space: ParamSpace,
                       identifier = "",
                       good_points_only: bool = False) -> Parse:
 
         num_points_requested = 1
 
         # set names of input .ini and output .tsv files
-        out_name = params.model_name
+        out_name = param_space.model_name
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
         ini_name = self.ini_dir + out_name + ".ini"
         tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + params.model_name + ".tsv"
+        temp_tsv = self.out_dir + param_space.model_name + ".tsv"
 
         #Global variable for number of points
         self.total_points_requested = num_points_requested
 
         # write new .ini file from template and parameters
-        params.write_ini(ini_name)
+        param_space.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.model)
+        self.parser = Parse(param_space.model)
 
         # Initialize global variables given by filters
         self.__nwidth = 0
@@ -232,7 +232,7 @@ class PointSampler:
         try:
             # Run ScannerS
             points = run_scannerS_single_point(ini_name = ini_name,
-                              model_name = params.model_name)
+                              model_name = param_space.model_name)
         except TimeoutError:
             raise
 
@@ -244,7 +244,7 @@ class PointSampler:
 
         # Apply filters
         results = apply_filters(file_name = temp_tsv,
-                                model = params.model,
+                                model = param_space.model,
                                 config_loader = self.config_loader)
 
         # Concatenate the information from temp_tsv to the tsv file
