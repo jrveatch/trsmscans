@@ -7,7 +7,6 @@ import datetime
 import itertools
 import logging
 import os
-import random
 import shutil
 import time
 from typing import Dict, List, Tuple
