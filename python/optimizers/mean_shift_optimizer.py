@@ -93,6 +93,7 @@ class MeanShiftOptimizer:
         self.walk_file_name = f"{self.out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
 
         # initialize walk file
+        # TODO: Write all parameters to walk file
         with open(self.walk_file_name, "w") as walk_file:
             content = "xb"
             content += "\n"
@@ -163,7 +164,6 @@ class MeanShiftOptimizer:
             identifier = self.__label + f"-{iter:04d}"
             self.logger.info(f"Iteration: {identifier}")
 
-            parser = None
             arrays = None
 
             # Create scan_parser using the point_sampler class
@@ -199,10 +199,6 @@ class MeanShiftOptimizer:
                 content = f"Iteration = {identifier}\n"
                 content += "--------------------\n"
                 content += f"Using {self.__points} scan points\n"
-                # content += "--------------------\n"
-                # content += "Found new max xsec*BR = " + newPoint.format_xb() + "\n"
-                # content += "Update optimal point: " + str(update) + "\n"
-                # content += "Optimal point xsec*BR = " + self.optPoint.format_xb() + "\n"
                 content += "--------------------\n"
                 for name in self.local_param_space.parameter_names:
                     content += name + ":\n"
