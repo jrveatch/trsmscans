@@ -248,7 +248,6 @@ class MeanShiftOptimizer:
         self.logger.info(f"{self.__label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
-        #return self.local_param_space.center_points()
 
     def __stop_check(self) -> bool:
         """
@@ -263,6 +262,7 @@ class MeanShiftOptimizer:
         for par_name in self.local_param_space.parameter_names:
             percent_difference = self.local_param_space.center_point().diff_frac(comp_point, par_name)
 
+            # If the percent difference exceeds the sensitivity in any dimension, reset the stop counter
             if percent_difference > self.__stop_sens:
                 advance_epoch = False
 
