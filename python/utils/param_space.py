@@ -57,12 +57,12 @@ class ParamSpace:
     @property
     def mass_string(self) -> str:
         """Mass string"""
-        return self.__model.mass_string
+        return self.model.mass_string
 
     @property
     def model_name(self) -> str:
         """Name of model being used"""
-        return self.__model.name
+        return self.model.name
 
     @property
     def model(self) -> 'Model':
