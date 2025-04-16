@@ -126,9 +126,12 @@ class ParamSpace:
             self.parameter_ranges[par_name].scale_width(new_val=new_val,
                                                         range_scale=range_scale)
 
-    def reposition_center(self, point: Tuple[float]):
+    def reposition_center(self, point: Point) -> None:
         """Change low and high of parameter ranges around a new center point"""
-        for (center, param_range) in zip(point, self.parameter_ranges.values()):
+        for name, center in point.par_vals.items():
+            if name not in self.parameter_ranges:
+                raise ValueError(f"Parameter '{name}' not found in parameter_ranges")
+            param_range = self.parameter_ranges[name]
             width = param_range.width / 2
             param_range.set_low_high(center - width, center + width)
 

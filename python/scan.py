@@ -258,13 +258,16 @@ class Scan:
         
         # Returns a list of initial positions for shifters
         # points_num
-        def initial_positions(points: int, strategy: str) -> tuple[tuple[float]]:
+        def initial_positions(points: int, strategy: str) -> tuple[Point]:
             results = []
             
             if strategy == 'random':
                 for i in range(points):
-                    results.append(random_pos())
+                    results.append(self.global_param_space.random_point())
+                    #results.append(random_pos())
             elif strategy == 'pair':
+                # TODO: Temporary block for this option until it can be fixed using Point
+                raise NotImplementedError("Pair strategy not implemented yet.")
                 initial_point = random_pos()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
@@ -294,12 +297,12 @@ class Scan:
             raise
 
         # Clear plots dir
-        plot_dir = plots_dir(model=self.model,decay=self.decay)
-        shutil.rmtree(plot_dir, ignore_errors=True)
+        #plot_dir = plots_dir(model=self.model,decay=self.decay)
+        #shutil.rmtree(plot_dir, ignore_errors=True)
 
         initial_pos_set = initial_positions(points_num, points_gen)
 
-        self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set))
+        self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"

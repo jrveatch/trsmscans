@@ -28,9 +28,9 @@ meanshift:
   # Scan epochs used for stopping conditions
   stop_epochs: 3
   # Number of points to generate and shift on, represents separate meanshift instances, initialization strategy based on pionts_gen
-  points_num: 3
+  points_num: 4
   # Method of generating starting points, try "random" or "pair"
-  points_gen: 'pair'
+  points_gen: 'random'
   # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
   pair_points_coeff: 0.005
   # Debug mode
