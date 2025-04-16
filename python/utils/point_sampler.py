@@ -178,11 +178,6 @@ class PointSampler:
         # Initialize the amount of points run
         self.curr_points_run = 0
 
-
-        # Guarantee that there is no division by 0
-        if abs(self.efficiency - 0.0) < 1e-12:
-            self.efficiency = 1.0
-
         # Print number of points that pass so far
         self.logger.debug(f"{self.npass} of {self.total_points_requested} requested points done")
 
@@ -197,7 +192,7 @@ class PointSampler:
             raise
 
         # Update the total points run
-        self.curr_points_run += points
+        # self.curr_points_run += points
 
         # Print info about applying filters
         self.logger.debug("Applying filters...")
@@ -216,25 +211,8 @@ class PointSampler:
         self.__nsignals += results["signals"]
         self.__npass += results["pass"]
 
-        # Calculate the running efficiency of the points passed based on points run so far
-        running_efficiency = self.npass/self.curr_points_run
-
         # Print points passed and efficiency
-        self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
         self.logger.debug(f'A total of {self.npass} points have passed')
-
-        # Determine whether to adjust or keep the current efficiency
-        if abs((self.efficiency/running_efficiency)-1) > 0.05:
-
-            # Print points passed and efficiency
-            self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
-
-            # Update the efficiency to the running efficiency with a small cushion
-            self.efficiency = running_efficiency * 0.98
-
-        else:
-
-            self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.npass} points that pass filters")

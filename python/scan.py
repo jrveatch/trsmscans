@@ -390,15 +390,14 @@ class Scan:
         if num_points < 0:
             num_points = self.num_starting_points
 
-        # TODO: is it needed? init_points might work as a prescan
         # run prescan
-        # self.run_prescan(num_points = num_points)
+        self.run_prescan(num_points=num_points)
 
         # move into the working directory for scans
         os.chdir(self.out_dir)
 
         # create optimizer
-        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader)
+        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader, self.params)
 
         # run scan
         bayesian_optimizer.run()
