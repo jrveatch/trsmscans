@@ -23,13 +23,9 @@ class ParamRange:
         # initialize parameter full name
         self.full_name = param_info['fullname']
 
-        # initialize values from dictionary
-        self.__min_value = param_info['min']
-        self.__max_value = param_info['max']
-
-        # initialize low and high from lower and upper bounds
-        self.__low = self.min_value
-        self.__high = self.max_value
+        # initialize bounds
+        self.min_value = param_info['min']
+        self.max_value = param_info['max']
 
     @property
     def name(self) -> str:
@@ -88,9 +84,13 @@ class ParamRange:
     def min_value(self,
                     new_min_value: float) -> None:
         self.__min_value = new_min_value
-        """If current low is less than minimum value, adjust it"""
-        if self.low < self.min_value:
-            self.low = self.min_value
+        """If __low hasn't been set yet, initialize it to min_value.
+        Otherwise, ensure __low stays within bounds."""
+        if hasattr(self, '_ParamRange__low'):
+            if self.low < self.min_value:
+                self.low = self.min_value
+        else:
+            self.__low = self.__min_value
 
     @property
     def max_value(self) -> float:
@@ -101,9 +101,13 @@ class ParamRange:
     def max_value(self,
                     new_max_value: float) -> None:
         self.__max_value = new_max_value
-        """If current high is greater than minimum value, adjust it"""
-        if self.high > self.max_value:
-            self.high = self.max_value
+        """If __high hasn't been set yet, initialize it to max_value.
+        Otherwise, ensure __high stays within bounds."""
+        if hasattr(self, '_ParamRange__high'):
+            if self.high > self.max_value:
+                self.high = self.max_value
+        else:
+            self.__high = self.__max_value
 
     @property
     def center(self) -> float:
