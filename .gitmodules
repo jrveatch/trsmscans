@@ -1,8 +1,8 @@
 [submodule "HBDataSet"]
-	path = data/hbdataset
+	path = externals/hbdataset
 	url = git@gitlab.com:higgsbounds/hbdataset.git
 [submodule "HSDataSet"]
-	path = data/hsdataset
+	path = externals/hsdataset
 	url = git@gitlab.com:higgsbounds/hsdataset.git
 [submodule "ScannerS"]
 	path = externals/ScannerS

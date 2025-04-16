@@ -13,28 +13,28 @@ import pandas as pd
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
 from utils.math_utils import round_sig
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 
 class ZoomOptimizer:
 
     def __init__(self,
-                 params: 'Params',
+                 param_space: ParamSpace,
                  num_points: int,
-                 starting_max: 'Point',
+                 starting_max: Point,
                  config_loader: ConfigLoader,
                  label: str = ""):
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # some basic scanner information
-        self.params = params
-        self.decay = params.decay
+        self.param_space = param_space
+        self.decay = param_space.decay
         self.num_points = num_points
-        self.local_max = Point(starting_max.model)
-        self.global_max = starting_max
+        self.local_max = starting_max.copy(0.0)
+        self.global_max = starting_max.copy()
         self.label = label
         self.top_percentile = {}
         self.top_percentile_xb = None
@@ -69,8 +69,8 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model = params.model,
-                           decay = params.decay)
+        out_dir = scan_dir(model = param_space.model,
+                           decay = param_space.decay)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
@@ -78,7 +78,7 @@ class ZoomOptimizer:
                                           use_file_dir = True)
 
         # get output information file names
-        output_file_postfix = f"{self.params.model_name}_{self.decay}_{self.params.mass_string}"
+        output_file_postfix = f"{self.param_space.model_name}_{self.decay}_{self.param_space.mass_string}"
         self.summary_name = f"{out_dir}summary_zoom_{output_file_postfix}.tsv"
         self.tsv_summary_name = f"{out_dir}summary_zoom_tsv_{output_file_postfix}.tsv"
         self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
@@ -89,7 +89,7 @@ class ZoomOptimizer:
 
     def run(self,
             iter: int,
-            global_max: 'Point') -> None:
+            global_max: Point) -> Point:
 
         # get time of iteration start
         iter_start = time.time()
@@ -108,13 +108,25 @@ class ZoomOptimizer:
             self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
             self.num_points = self.min_points_per_iteration
 
-        # Create scan_parser using the point_sampler class
-        self.scan_parser = self.point_sampler.sample_points(params = self.params,
-                                                            num_points_requested = self.num_points,
-                                                            identifier = identifier)
-        
-        # get new point as the maximum from the current scan
-        new_max = self.scan_parser.get_max_xb_point(self.decay)
+        # flag to indicate if zooming should be done
+        do_zoom = True
+
+        # create scan_parser using the point_sampler class
+        try:
+            self.scan_parser = self.point_sampler.sample_points(param_space = self.param_space,
+                                                                num_points_requested = self.num_points,
+                                                                identifier = identifier)
+        # if point sampling times out make a dummy new_max
+        except TimeoutError:
+            self.termination_message("No output detected")
+            self.termination_message("Using empty point as new max")
+            new_max = Point(xb = 0.0,
+                            model = self.param_space.model,
+                            par_vals = self.local_max.par_vals)
+            do_zoom = False
+        # otherwise get new point as the maximum from the current scan
+        else:
+            new_max = self.scan_parser.get_max_xb_point(self.decay)
 
         # store the previous point
         self.local_max_old = self.local_max
@@ -141,16 +153,12 @@ class ZoomOptimizer:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
-        
+
         # end the ZoomOptimizer if counter reaches 2
         if self.global_xb_fail >= 2:
             self.is_running = False
-            self.logger.info("Local max is consistently less than half of global max")
-            self.logger.info("Terminating zoom optimizer")
-            with open(self.details_name,"a") as details:
-                details.write("Local max is consistently less than half of global max\n")
-                details.write("Terminating zoom optimizer\n")
-        
+            self.termination_message("Local max is consistently less than half of global max")
+
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
 
@@ -162,11 +170,7 @@ class ZoomOptimizer:
                     self.local_xb_fail += 1
                     if self.local_xb_fail >= 2:
                         self.is_running = False
-                        self.logger.info("Local max is increasing by less than 5%")
-                        self.logger.info("Terminating zoom optimizer")
-                        with open(self.details_name,"a") as details:
-                            details.write("Local max is increasing by less than 5%\n")
-                            details.write("Terminating zoom optimizer\n")
+                        self.termination_message("Local max is increasing by less than 5%")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
@@ -174,35 +178,34 @@ class ZoomOptimizer:
                 # if point is less than 2nd highest point, end scan
                 if new_max < sorted_history[-2]:
                     self.is_running = False
-                    self.logger.info("Local max is not increasing")
-                    self.logger.info("Terminating zoom optimizer")
-                    with open(self.details_name,"a") as details:
-                        details.write("Local max is not increasing\n")
-                        details.write("Terminating zoom optimizer\n")
+                    self.termination_message("Local max is not increasing")
+
+        # termination message if no longer running
+        if not self.is_running:
+            self.termination_message("Terminating zoom optimizer")
 
         # store history of local max of xb
         self.local_history.append(new_max)
 
-        # call the appropriate zoom method based on the strategy
-        # zoom in using percentile
-        if self.strategy == "percentile":
-            self.percentile_zoom()
-        # zoom in using rate
-        elif self.strategy == "rate":
-            self.rate_zoom()
-        # all other cases
-        else:
-            raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
+        if do_zoom:
+            # call the appropriate zoom method based on the strategy
+            # zoom in using percentile
+            if self.strategy == "percentile":
+                self.percentile_zoom()
+            # zoom in using rate
+            elif self.strategy == "rate":
+                self.rate_zoom()
+            # all other cases
+            else:
+                raise ValueError(f"Unrecognized zoom strategy: {self.strategy}")
 
         # get iteration end time
         iter_end = time.time()
         iter_time = iter_end - iter_start
 
         # record iteration time to screen
-        self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
-        with open(self.details_name,"a") as details:
-            details.write(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n")
-            
+        self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
+
         return new_max
 
     # write max xb point summary to info file
@@ -220,7 +223,7 @@ class ZoomOptimizer:
                       new_max: 'Point') -> None:
 
         # get point density from ranges
-        density = self.num_points / self.params.volume()
+        density = self.num_points / self.param_space.volume()
 
         # TODO: Add details about R11, R21, R31
         with open(self.details_name,"a") as details:
@@ -238,15 +241,21 @@ class ZoomOptimizer:
             content += f"Global max xsec*BR = {self.global_max.format_xb()}\n"
             content += f"Found new global max point: {self.is_new_global_max(new_max)}\n"
             content += "--------------------\n"
-            for par in self.params.parameter_names:
+            for par in self.param_space.parameter_names:
                 content += f"{par}:\n"
-                content += f"  range = {self.params.parameter_value(par).format_range()}\n"
+                content += f"  range = {self.param_space.parameter_ranges[par].format_range()}\n"
                 if self.is_new_global_max(new_max):
                     content += f"  new global max value = {self.local_max.format_param(par)}\n"
                     content += f"  diff. = {self.local_max.format_diff(self.local_max_old,par)}\n"
                     content += f"  rel. diff. = {self.local_max.format_diff_frac(self.local_max_old,par)}\n"
             content += "--------------------\n"
             details.write(content)
+
+    # print and write termination message
+    def termination_message(self, message: str) -> None:
+        self.logger.info(message)
+        with open(self.details_name,"a") as details:
+            details.write(message+"\n")
 
     # check if a new global max has been found
     def is_new_global_max(self,
@@ -299,13 +308,11 @@ class ZoomOptimizer:
             high_dict[param] = self.top_percentile[param].max()
 
         # update params lows and highs using dictionaries
-        self.params.update_low_high(low_dict, high_dict)
+        self.param_space.update_low_high(low_dict, high_dict)
 
         # calculate the new number of points based on the remaining xb range
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
         self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate))
-
-        return
 
     # method to zoom in based on a fixed rate
     def rate_zoom(self) -> None:
@@ -314,16 +321,14 @@ class ZoomOptimizer:
         range_scale = 1.0 - self.parameter_zoom_rate
 
         # get volume before zooming
-        volume_old = self.params.volume()
+        volume_old = self.param_space.volume()
 
         # set new low and high values
-        self.params.scale_ranges(self.local_max,range_scale)
+        self.param_space.scale_ranges(self.local_max,range_scale)
 
         # get volume after zooming
-        volume_new = self.params.volume()
+        volume_new = self.param_space.volume()
         volume_ratio = volume_new / volume_old
 
         # step down num_points
         self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate))
-    
-        return

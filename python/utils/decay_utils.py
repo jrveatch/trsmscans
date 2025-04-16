@@ -15,7 +15,7 @@ class DecayConfigManager:
         # Load the configuration file once during initialization
         with open(file_name, 'r') as config_file:
             config = yaml.safe_load(config_file)
-        
+
         self.allowed_decay_modes = config.get("allowed_decay_modes", {})
         # Create a reverse mapping from values to groups and their non-resolvable version
         self.decay_to_group = {}
@@ -41,7 +41,7 @@ class DecayConfigManager:
         group = self.decay_to_group.get(decay)
         if not group:
             raise ValueError(f"Decay '{decay}' not found in any decay group.")
-        
+
         # Return the non-resolvable version for the decay group
         return self.non_resolvable_map.get(group)
 
