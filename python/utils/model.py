@@ -3,7 +3,7 @@
 from functools import cached_property
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 # third-party libraries
 import yaml
@@ -16,7 +16,7 @@ class Model:
 
     def __init__(self,
                  name: str,
-                 masses: Dict[str,float] = {}) -> None:
+                 masses: Optional[Dict[str, float]] = None) -> None:
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -27,8 +27,8 @@ class Model:
         # read model yaml file
         self.__read_yaml()
 
-        # make mass maps
-        self.__masses = masses
+        # Use empty dict if masses is not provided
+        self.__masses = masses if masses is not None else {}
         self.__build_mass_maps()
 
     @property
