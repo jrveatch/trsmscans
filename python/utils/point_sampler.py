@@ -38,20 +38,44 @@ class PointSampler:
         """Number of points passing width check"""
         return self.__nwidth
 
+    @nwidth.setter
+    def nwidth(self,
+               new_n_width: int) -> None:
+        """Sets number of points passing width check"""
+        self.__nwidth = new_n_width
+
     @property
     def nbounds(self) -> int:
         """Number of points passing bounds check"""
         return self.__nbounds
+
+    @nbounds.setter
+    def nbounds(self,
+                new_n_bounds: int) -> None:
+        """Sets number of points passing bounds check"""
+        self.__nbounds = new_n_bounds
 
     @property
     def nsignals(self) -> int:
         """Number of points passing signals check"""
         return self.__nsignals
 
+    @nsignals.setter
+    def nsignals(self,
+                 new_n_signals: int) -> None:
+        """Sets number of points passing signals check"""
+        self.__nsignals = new_n_signals
+
     @property
     def npass(self) -> int:
         """Number of points passing all checks"""
         return self.__npass
+
+    @npass.setter
+    def npass(self,
+              new_n_pass: int) -> None:
+        """Sets number of points passing all checks"""
+        self.__npass = new_n_pass
 
     @property
     def total_points_run(self) -> int:
@@ -84,10 +108,10 @@ class PointSampler:
         self.parser = Parse(param_space.model)
 
         # Initialize global variables given by filters
-        self.__nwidth = 0
-        self.__nbounds = 0
-        self.__nsignals = 0
-        self.__npass = 0
+        self.nwidth = 0
+        self.nbounds = 0
+        self.nsignals = 0
+        self.npass = 0
 
         # Initialize the amount of points run
         self.curr_points_run = 0
@@ -131,10 +155,10 @@ class PointSampler:
             save_tsv_output(temp_tsv, tsv_name)
 
             # Update the filtered variables
-            self.__nwidth += results["width"]
-            self.__nbounds += results["bounds"]
-            self.__nsignals += results["signals"]
-            self.__npass += results["pass"]
+            self.nwidth += results["width"]
+            self.nbounds += results["bounds"]
+            self.nsignals += results["signals"]
+            self.npass += results["pass"]
 
             # Break if all points are being counted
             if not good_points_only:
