@@ -48,7 +48,7 @@ class MeanShiftOptimizer:
         # get mean shift configuration from config file
         self.config_loader = config_loader
         try:
-            self.__stop_epochs: int = self.config_loader.get('meanshift', 'stop_epochs')
+            self.max_small_steps: int = self.config_loader.get('meanshift', 'max_small_steps')
             self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
             self.__stop_sens: float = (1.0 - config_loader.get('meanshift', 'stop_sensitivity'))
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
@@ -59,9 +59,6 @@ class MeanShiftOptimizer:
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
             raise
-
-        # Initialize control variables for iteration
-        self.__epoch_count = 0
 
         # Copy of param space so that multiple instances of ms use global param space
         self.local_param_space = copy.deepcopy(global_param_space)
@@ -149,6 +146,9 @@ class MeanShiftOptimizer:
         # Initialize iteration counter
         iter = -1
 
+        # Initialize counter for number of small steps
+        self.n_small_steps = 0
+
         # Flag to indicate whether iterations should stop
         stop = False
 
@@ -220,7 +220,7 @@ class MeanShiftOptimizer:
                 test_diff = tuple([self.__stop_sens * w for w in self.local_param_space.vol_width])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.local_param_space.vol_position))])
 
-                print(f"epoch count = {self.__epoch_count}")
+                print(f"small steps = {self.n_small_steps}")
                 print(f"avg xb      = {round_sig(np.average(xb))}")
                 print(f"max xb      = {round_sig(np.max(xb))}")
                 print(f"volume size = {self.local_param_space.vol_width}")
@@ -251,31 +251,24 @@ class MeanShiftOptimizer:
 
     def __stop_check(self) -> bool:
         """
-        If epoch counter exceeds max stop epochs then set self.__stop to True.
+        If the center point is not moving significantly for a number of iterations,
+        return True to signal stopping.
         """
-        advance_epoch = True
+        comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 
-        comp_point = self.__prev_position
-        if self.__stop_mode == 0:
-            comp_point = self.__test_position
+        # Check if any parameter changed beyond the sensitivity threshold
+        changed = any(
+            self.local_param_space.center_point().diff_frac(comp_point, name) > self.__stop_sens
+            for name in self.local_param_space.parameter_names
+        )
 
-        for par_name in self.local_param_space.parameter_names:
-            percent_difference = self.local_param_space.center_point().diff_frac(comp_point, par_name)
-
-            # If the percent difference exceeds the sensitivity in any dimension, reset the stop counter
-            if percent_difference > self.__stop_sens:
-                advance_epoch = False
-
-        if advance_epoch == False:
-            self.__epoch_count = 0
+        if changed:
+            self.n_small_steps = 0
             self.__test_position = self.local_param_space.vol_position
         else:
-            self.__epoch_count += 1
+            self.n_small_steps += 1
 
-        if (self.__epoch_count >= self.__stop_epochs):
-            return True
-        
-        return False
+        return self.n_small_steps >= self.max_small_steps
 
     def __create_walk_file(self):
         log_files = glob.glob(f"{self.out_dir}files/log/*{self.__label}*_log.txt")
