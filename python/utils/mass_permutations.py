@@ -3,7 +3,7 @@ import json
 from typing import List, Tuple, Optional
 
 # local modules
-from utils.file_utils import data_dir
+from utils.env_utils import data_dir
 
 def get_mass_permutations(decay: str,
                           identifier: str) -> Optional[List[Tuple[int, int, bool]]]:

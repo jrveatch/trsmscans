@@ -7,19 +7,19 @@ import math
 # local modules
 from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.run_scannerS import run_scannerS
 from utils.tsv_utils import save_tsv_output
 
 class PointSampler:
-        
+
     # Initializer: passes output directory, model name, and config loader
     def __init__(self,
                  out_dir: str,
                  config_loader: ConfigLoader,
                  use_file_dir: bool = False) -> None:
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -33,36 +33,85 @@ class PointSampler:
         self.config_loader = config_loader
         self.efficiency = 1.0
 
+    @property
+    def nwidth(self) -> int:
+        """Number of points passing width check"""
+        return self.__nwidth
+
+    @nwidth.setter
+    def nwidth(self,
+               new_n_width: int) -> None:
+        """Sets number of points passing width check"""
+        self.__nwidth = new_n_width
+
+    @property
+    def nbounds(self) -> int:
+        """Number of points passing bounds check"""
+        return self.__nbounds
+
+    @nbounds.setter
+    def nbounds(self,
+                new_n_bounds: int) -> None:
+        """Sets number of points passing bounds check"""
+        self.__nbounds = new_n_bounds
+
+    @property
+    def nsignals(self) -> int:
+        """Number of points passing signals check"""
+        return self.__nsignals
+
+    @nsignals.setter
+    def nsignals(self,
+                 new_n_signals: int) -> None:
+        """Sets number of points passing signals check"""
+        self.__nsignals = new_n_signals
+
+    @property
+    def npass(self) -> int:
+        """Number of points passing all checks"""
+        return self.__npass
+
+    @npass.setter
+    def npass(self,
+              new_n_pass: int) -> None:
+        """Sets number of points passing all checks"""
+        self.__npass = new_n_pass
+
+    @property
+    def total_points_run(self) -> int:
+        """Number of points that have been run"""
+        return self.curr_points_run
+
     # Method to sample a number of points
     def sample_points(self,
-                      params: Params,
+                      param_space: ParamSpace,
                       num_points_requested: int,
                       identifier = "",
                       good_points_only: bool = False) -> Parse:
 
         # set names of input .ini and output .tsv files
-        out_name = params.model_name
+        out_name = param_space.model_name
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
         ini_name = self.ini_dir + out_name + ".ini"
         tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + params.model_name + ".tsv"
+        temp_tsv = self.out_dir + param_space.model_name + ".tsv"
 
         #Global variable for number of points
         self.total_points_requested = num_points_requested
 
         # write new .ini file from template and parameters
-        params.write_ini(ini_name)
+        param_space.write_ini(ini_name)
 
         # Initialize parser
-        self.parser = Parse(params.model)
+        self.parser = Parse(param_space.model)
 
         # Initialize global variables given by filters
-        self.__nwidth = 0
-        self.__nbounds = 0
-        self.__nsignals = 0
-        self.__npass = 0
+        self.nwidth = 0
+        self.nbounds = 0
+        self.nsignals = 0
+        self.npass = 0
 
         # Initialize the amount of points run
         self.curr_points_run = 0
@@ -89,7 +138,7 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = params.model_name)
+                                  model_name = param_space.model_name)
 
             # Update the total points run
             self.curr_points_run += points
@@ -99,17 +148,17 @@ class PointSampler:
 
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
-                                    model = params.model,
+                                    model = param_space.model,
                                     config_loader = self.config_loader)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
 
             # Update the filtered variables
-            self.__nwidth += results["width"]
-            self.__nbounds += results["bounds"]
-            self.__nsignals += results["signals"]
-            self.__npass += results["pass"]
+            self.nwidth += results["width"]
+            self.nbounds += results["bounds"]
+            self.nsignals += results["signals"]
+            self.npass += results["pass"]
 
             # Break if all points are being counted
             if not good_points_only:
@@ -124,16 +173,12 @@ class PointSampler:
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
-
                 # Print points passed and efficiency
                 self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
-
                 # Update the efficiency to the running efficiency with a small cushion
                 self.efficiency = running_efficiency * 0.98
-
             else:
-
-                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n') 
+                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.npass} points that pass filters")
@@ -143,31 +188,6 @@ class PointSampler:
         self.parser.read_file(file_name=tsv_name)
 
         return self.parser
-
-    @property
-    def nwidth(self) -> int:
-        """Number of points passing width check"""
-        return self.__nwidth
-
-    @property
-    def nbounds(self) -> int:
-        """Number of points passing bounds check"""
-        return self.__nbounds
-
-    @property
-    def nsignals(self) -> int:
-        """Number of points passing signals check"""
-        return self.__nsignals
-
-    @property
-    def npass(self) -> int:
-        """Number of points passing all checks"""
-        return self.__npass
-
-    @property
-    def total_points_run(self) -> int:
-        """Number of points that have been run"""
-        return self.curr_points_run
 
 if __name__ == "__main__":
     pass

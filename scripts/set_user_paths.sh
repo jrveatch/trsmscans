@@ -4,6 +4,9 @@ set -e
 set -u
 set -o pipefail
 
+# get useful functions
+source ./scripts/functions.sh
+
 # Source env.sh to load existing environment variables
 if [ -f env.sh ]; then
     source env.sh
@@ -34,18 +37,6 @@ get_absolute_path() {
 
     # Return the resolved absolute path
     echo "$abs_path"
-}
-
-# Function to remove variable from env.sh
-remove_var_from_env() {
-    local var_name=$1
-    if [ "$(uname)" = "Darwin" ]; then
-       # On macOS, we use sed -i '' for in-place editing
-        sed -i '' "/^export $var_name=/d" env.sh
-    else
-        # On Linux, we use sed -i
-        sed -i "/^export $var_name=/d" env.sh
-    fi
 }
 
 # Function to prompt user for a path to pre-installed submodules
@@ -149,7 +140,7 @@ create_output_symlink() {
             else
                 # Create a new directory if no path is provided
                 mkdir -p "run/output"
-                printf "New directory 'run/output' created.\n\n"
+                printf "New directory 'run/output' created.\n"
                 return
             fi
         done
@@ -175,12 +166,14 @@ create_output_symlink
 
 # Remove various directories and PATH from env.sh
 remove_var_from_env "DATADIR"
+remove_var_from_env "EXTERNALSDIR"
 remove_var_from_env "CONFIGDIR"
 remove_var_from_env "OUTPUTDIR"
 remove_var_from_env "PATH"
 
 # Add various directories to env.sh
 echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
+echo "export EXTERNALSDIR=\"${PWD}/externals/\"" >> env.sh
 echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
 echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
 
@@ -195,3 +188,6 @@ fi
 echo 'if [[ ":$PATH:" != *":'"$scanners_bin_path"':"* ]]; then' >> env.sh
 echo '    export PATH='"$scanners_bin_path"':$PATH' >> env.sh
 echo 'fi' >> env.sh
+
+# Create file to indicate that all paths have been successfully set
+touch .paths_ok

@@ -20,18 +20,14 @@ def scan_mass_list(model: str,
     permutations = get_mass_permutations(decay=decay, identifier=identifier)
 
     for XMass, SMass, _ in permutations:
-
         arg_list = [
             "-m", model,
             "-X", str(XMass),
             "-S", str(SMass),
             "-n", "10000"
         ]
-        
         result = subprocess.run(["python", "../python/prescan.py"] + arg_list, text=True)
-        
         print(result)
-            
 
 if __name__ == "__main__":
 

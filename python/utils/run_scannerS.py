@@ -119,19 +119,19 @@ def run_scannerS(ini_name: str,
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
         num_points = points_to_run + min_points_per_job
-    
+
     else:
         logger.info("Running as a single process")
-        
+
     # create list of directories
     directories = [f"dir_{i}" for i in range(num_processes)]
 
     # define process
-    process = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+    process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
-    # create a manager and a shared counter to track the number of finished processes
-    manager = mp.Manager()
-    counter = manager.Value("i",0)
+    # create a shared counter and a lock
+    counter = mp.Manager().Value("i",0)
+    lock = mp.Manager().Lock()
 
     # print empty job completion counter
     print(f"{counter.value}/{num_processes} processes finished")
@@ -140,7 +140,7 @@ def run_scannerS(ini_name: str,
     with mp.Pool(processes=num_processes) as pool:
 
         # map the run_process function to each directory
-        pool.starmap(run_process, [(process, directory, counter, num_processes) for directory in directories])
+        pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
 
         # wait for all processes to finish
         pool.close()
@@ -159,11 +159,15 @@ def run_scannerS(ini_name: str,
 # run a process for multiprocessing
 def run_process(process_args: List[str],
                 directory: str,
+                num_processes: int,
                 counter,
-                num_processes: int) -> None:
+                lock) -> None:
 
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
+
+    # get original directory
+    original_dir = os.getcwd()
 
     # change to the temporary directory
     os.chdir(directory)
@@ -174,12 +178,13 @@ def run_process(process_args: List[str],
     # run the process with arguments and suppress output
     subprocess.run(process_args, stdout=log, stderr=log)
 
-    # get Terminal for nicer outputs
-    term = Terminal()
+    # change back to the original directory
+    os.chdir(original_dir)
 
     # increment the counter and print out how many processes are finished
-    counter.value += 1
-    print(term.move_up() + f"{counter.value}/{num_processes} processes finished")
+    with lock:
+        counter.value += 1
+        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
 def run_test_process(process_args: List[str],
@@ -224,21 +229,29 @@ def run_test_process(process_args: List[str],
         # wait 1 second before checking again
         time.sleep(1)
 
-    # successful run
-    return
-
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: List[str],
                       file_name: str) -> None:
 
-    # loop over temporary directories
+    try:
+        # Loop over directories and concatenate their .tsv files
+        for directory in directories:
+            input_file = os.path.join(directory, file_name)
+
+            # Check if the file exists before attempting to concatenate
+            if os.path.exists(input_file):
+                save_tsv_output(input_file=input_file, output_file=file_name)
+            else:
+                logger.warning(f"Missing expected file: {input_file}")
+
+        logger.debug(f"Successfully concatenated all files into {file_name}")
+
+    except Exception as e:
+        logger.error(f"Error during file concatenation: {e}")
+        return  # Do not proceed with deleting directories
+
+    # If everything worked, proceed to delete directories
     for directory in directories:
-
-        # write/append .tsv from directory to output file
-        save_tsv_output(input_file = directory + "/" + file_name,
-                        output_file = file_name)
-
-        # delete the temporary directory
         remove_temp_dir(directory)
 
 # if rmtree fails due to non-empty directory, try a few more times

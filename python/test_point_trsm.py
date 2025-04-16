@@ -31,10 +31,10 @@ def check_singlet_point(mX: float,
 
     # get the cosine of theta:
     costheta = math.sqrt(1-sintheta**2)
-    
+
     # set the couplings of the SM-like Higgs boson to be rescaled according to costheta
     HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(costheta))
-    
+
     # set the mass of the heavy scalar and rescale the couplings according to sintheta (for production)
     # then set the BRs according to the calculation
     X.setMass(mX)
@@ -101,7 +101,6 @@ def check_singlet_point(mX: float,
         xs13_nnlonnll = round_sig(sintheta**2 * XS_interpolator_SM_13TeV_NNLONNLL(mX), sig_figs=5)
         print('independent calculation of the cross section:')
         print('gg -> X cross section @ pp @ 13 TeV (N^2LO+NNLL) =',  xs13_nnlonnll)
-        
 
     # get and print the HiggsBounds results
     resb = bounds(pred)
@@ -109,7 +108,7 @@ def check_singlet_point(mX: float,
     #print(resb.allowed)
     #print(resb.appliedLimits)
     #print([a for a in resb.appliedLimits if "H" in a.contributingParticles()])
-    
+
     # get and print the HiggsSignal result
     ress = signals(pred)
     #print(signals(pred).appliedLimits)
@@ -137,11 +136,7 @@ def tanb_to_lambda112(mH: float,
     lambda112 = - (lambda3 / 2) * ( x * costheta**3 + v*sintheta**3)
     lambda112 += (lambda3 - 3 * lambda1) * v * costheta**2 * sintheta
     lambda112 += (lambda3 - 3 * lambda2) * x * costheta * sintheta**2
-    # cross check:
-    #sin2alpha = lambda3 * x * v / math.sqrt( (lambda1 * v**2 - lambda2 * x**2)**2 + (lambda3 * x * v)**2)
-    #sinalpha_xcheck = math.sqrt( (1 - math.sqrt(1-sin2alpha**2))/2) 
-    #print('sin2alpha=', sin2alpha, 'corresponding to', sinalpha_xcheck)
-    
+
     return lambda112
 
 def test_point(mX: float,
@@ -159,7 +154,7 @@ def test_point(mX: float,
     print('v =', v)
     print('tanb =', tanb)
     print('l112 =', l112)
-    
+
     # check this example point:
     print('HiggsBounds Allowed, HiggsSignals chi-sq. =', check_singlet_point(mX, sintheta, l112, debug=True))
 
