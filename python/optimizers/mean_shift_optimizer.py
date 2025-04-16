@@ -62,7 +62,6 @@ class MeanShiftOptimizer:
 
         # Initialize control variables for iteration
         self.__epoch_count = 0
-        self.__stop = False
 
         # Copy of param space so that multiple instances of ms use global param space
         self.local_param_space = copy.deepcopy(global_param_space)
@@ -149,8 +148,11 @@ class MeanShiftOptimizer:
         # Initialize iteration counter
         iter = -1
 
+        # Flag to indicate whether iterations should stop
+        stop = False
+
         # Loop until stop condition is met
-        while self.__stop != True:
+        while not stop:
 
             # get time of iteration start
             iter_start = time.time()
@@ -169,7 +171,7 @@ class MeanShiftOptimizer:
                                                       identifier = identifier,
                                                       num_points_requested = self.__points,
                                                       good_points_only = True
-                                                      )
+                                                     )
 
             arrays = parser.input_parameter_arrays
             xb = parser.get_xb(self.decay)
@@ -183,7 +185,7 @@ class MeanShiftOptimizer:
                        Z = xb,
                        param_space = self.local_param_space)
 
-            self.__stop_check()
+            stop = self.__stop_check()
 
             # get iteration end time
             iter_end = time.time()
@@ -252,14 +254,14 @@ class MeanShiftOptimizer:
         return
         #return self.local_param_space.center_points()
 
-    def __stop_check(self):
+    def __stop_check(self) -> bool:
         """
-        If epoch counter for exceeds max stop epochs then set self.__stop to True.
+        If epoch counter exceeds max stop epochs then set self.__stop to True.
         """
         advance_epoch = True
 
         comp_point = self.__prev_position
-        if self.__stop_mode ==0:
+        if self.__stop_mode == 0:
             comp_point = self.__test_position
 
         for par_name in self.local_param_space.parameter_names:
@@ -275,7 +277,9 @@ class MeanShiftOptimizer:
             self.__epoch_count += 1
 
         if (self.__epoch_count >= self.__stop_epochs):
-            self.__stop = True
+            return True
+        
+        return False
 
     def __create_walk_file(self):
         log_files = glob.glob(f"{self.out_dir}files/log/*{self.__label}*_log.txt")
