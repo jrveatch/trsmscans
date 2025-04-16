@@ -244,27 +244,14 @@ class Scan:
         os.chdir(self.out_dir)
 
         # Define helper functions (as inner functions because only for meanshift implementation)
-
-        # Returns a random position within the upper and lower bounds of the params
-        def random_pos() -> tuple[float]:
-            param_space = self.global_param_space
-
-            return tuple(
-                [
-                    random.uniform(param_space[name].low, param_space[name].high)
-                    for name in param_space.parameter_names
-                ]
-            )
         
         # Returns a list of initial positions for shifters
-        # points_num
         def initial_positions(points: int, strategy: str) -> tuple[Point]:
             results = []
             
             if strategy == 'random':
                 for i in range(points):
                     results.append(self.global_param_space.random_point())
-                    #results.append(random_pos())
             elif strategy == 'pair':
                 # TODO: Temporary block for this option until it can be fixed using Point
                 raise NotImplementedError("Pair strategy not implemented yet.")
