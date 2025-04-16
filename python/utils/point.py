@@ -12,7 +12,7 @@ class Point:
     # initialize point parameters
     def __init__(self,
                  model: Optional[Model] = None,
-                 par_vals: Optional[Dict[str,float]] = {},
+                 par_vals: Optional[Dict[str,float]] = None,
                  xb: float = 0.0):
 
         # store model name
