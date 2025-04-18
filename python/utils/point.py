@@ -1,5 +1,6 @@
 
 # standard libraries
+import logging
 from typing import Dict, Optional
 
 # local modules
@@ -11,26 +12,24 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model: Optional[Model] = None,
+                 model: Model,
                  par_vals: Optional[Dict[str,float]] = None,
                  xb: float = 0.0):
+
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store model name
         self.__model = model
 
-        # throw error if no model or par_vals provided
-        if model is None and par_vals is None:
-            raise ValueError("Either 'par_vals' or 'model' must be provided.")
-
         # initialize parameter values to 0.0 if a model is provided
-        if model is not None:
-            self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
-        else:
-            self.__par_vals = {}
+        self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
 
         # if par_vals is provided, update the parameter values
         if par_vals is not None:
             self.__par_vals.update(par_vals)
+        else:
+            self.logger.debug("No parameter values provided, using default values.")
 
         # store xb value
         self.xb = xb
