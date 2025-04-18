@@ -92,7 +92,7 @@ class MeanShiftOptimizer:
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:
             content = "xb"
-            for parameter in initial_pos.par_vals.keys():
+            for parameter in initial_pos.parameter_values.keys():
                 content += f"\t{parameter}"
             content += "\n"
             walk_file.write(content)

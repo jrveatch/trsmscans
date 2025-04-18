@@ -128,7 +128,7 @@ class ParamSpace:
 
     def reposition_center(self, point: Point) -> None:
         """Change low and high of parameter ranges around a new center point"""
-        for name, center in point.par_vals.items():
+        for name, center in point.input_parameter_values.items():
             if name in self.parameter_ranges:
                 param_range = self.parameter_ranges[name]
                 width = param_range.width / 2
