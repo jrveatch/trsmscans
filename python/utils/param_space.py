@@ -33,12 +33,12 @@ class ParamSpace:
         """Mass of H1"""
         return self.model.get_mass("H1")
 
-    @property
+    @cached_property
     def mH2(self) -> float:
         """Mass of H2"""
         return self.model.get_mass("H2")
 
-    @property
+    @cached_property
     def mH3(self) -> float:
         """Mass of H3"""
         return self.model.get_mass("H3")
@@ -57,12 +57,12 @@ class ParamSpace:
     @property
     def mass_string(self) -> str:
         """Mass string"""
-        return self.__model.mass_string
+        return self.model.mass_string
 
     @property
     def model_name(self) -> str:
         """Name of model being used"""
-        return self.__model.name
+        return self.model.name
 
     @property
     def model(self) -> 'Model':

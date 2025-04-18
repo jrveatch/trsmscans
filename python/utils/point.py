@@ -18,12 +18,19 @@ class Point:
         # store model name
         self.__model = model
 
-        if par_vals is not None:
-            self.__par_vals = par_vals
-        elif model is not None:
+        # throw error if no model or par_vals provided
+        if model is None and par_vals is None:
+            raise ValueError("Either 'par_vals' or 'model' must be provided.")
+
+        # initialize parameter values to 0.0 if a model is provided
+        if model is not None:
             self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
         else:
-            raise ValueError("Either 'par_vals' or 'model' must be provided.")
+            self.__par_vals = {}
+
+        # if par_vals is provided, update the parameter values
+        if par_vals is not None:
+            self.__par_vals.update(par_vals)
 
         # store xb value
         self.xb = xb
