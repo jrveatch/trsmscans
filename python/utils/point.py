@@ -23,14 +23,12 @@ class Point:
         self.__model = model
 
         # initialize parameter values to 0.0 if a model is provided
-        self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
         self.__input_parameter_values = {par: 0.0 for par in model.input_parameter_names}
         self.__output_parameter_values = {par: 0.0 for par in model.output_parameter_names}
         self.__width_parameter_values = {par: 0.0 for par in model.width_parameter_names}
 
         # if par_vals is provided, update the parameter values
         if par_vals is not None:
-            self.__par_vals.update(par_vals)
             self.update_parameter_values(par_vals)
         else:
             self.logger.debug("No parameter values provided, using default values.")
@@ -42,11 +40,6 @@ class Point:
     def model(self) -> Optional[Model]:
         """The model object"""
         return self.__model
-
-    @property
-    def par_vals(self) -> Dict[str,float]:
-        """Dictionary of parameter values"""
-        return self.__par_vals
 
     @property
     def input_parameter_values(self) -> Dict[str,float]:
@@ -94,7 +87,7 @@ class Point:
         # if xb is requested, return it
         if varname == "xb":
             return self.xb
-        # otherwise return value from par_vals
+        # otherwise return value from parameter_values
         try:
             return self.parameter_values[varname]
         except KeyError:
