@@ -1,5 +1,6 @@
 
 # standard libraries
+import logging
 from typing import Dict, Optional
 
 # local modules
@@ -11,26 +12,26 @@ class Point:
 
     # initialize point parameters
     def __init__(self,
-                 model: Optional[Model] = None,
+                 model: Model,
                  par_vals: Optional[Dict[str,float]] = None,
                  xb: float = 0.0):
+
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store model name
         self.__model = model
 
-        # throw error if no model or par_vals provided
-        if model is None and par_vals is None:
-            raise ValueError("Either 'par_vals' or 'model' must be provided.")
-
         # initialize parameter values to 0.0 if a model is provided
-        if model is not None:
-            self.__par_vals = {par: 0.0 for par in model.all_parameter_names}
-        else:
-            self.__par_vals = {}
+        self.__input_parameter_values = {par: 0.0 for par in model.input_parameter_names}
+        self.__output_parameter_values = {par: 0.0 for par in model.output_parameter_names}
+        self.__width_parameter_values = {par: 0.0 for par in model.width_parameter_names}
 
         # if par_vals is provided, update the parameter values
         if par_vals is not None:
-            self.__par_vals.update(par_vals)
+            self.update_parameter_values(par_vals)
+        else:
+            self.logger.debug("No parameter values provided, using default values.")
 
         # store xb value
         self.xb = xb
@@ -41,15 +42,44 @@ class Point:
         return self.__model
 
     @property
-    def par_vals(self) -> Dict[str,float]:
-        """Dictionary of parameter values"""
-        return self.__par_vals
+    def input_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of input parameter values"""
+        return self.__input_parameter_values
+
+    @property
+    def output_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of output parameter values"""
+        return self.__output_parameter_values
+
+    @property
+    def width_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of width parameter values"""
+        return self.__width_parameter_values
+
+    # Combined view (read-only)
+    @property
+    def parameter_values(self):
+        return {
+            **self.input_parameter_values,
+            **self.output_parameter_values,
+            **self.width_parameter_values,
+        }
+
+    # Method to update existing keys only
+    def update_parameter_values(self, updates: dict):
+        for key, value in updates.items():
+            if key in self.__input_parameter_values:
+                self.__input_parameter_values[key] = value
+            elif key in self.__output_parameter_values:
+                self.__output_parameter_values[key] = value
+            elif key in self.__width_parameter_values:
+                self.__width_parameter_values[key] = value
 
     def copy(self, new_xb: Optional[float] = None) -> 'Point':
         """Return a copy of the point with a new xb value"""
         if new_xb is None:
             new_xb = self.xb
-        return Point(model=self.model, par_vals=self.par_vals, xb=new_xb)
+        return Point(model=self.model, par_vals=self.parameter_values, xb=new_xb)
 
     # wrapper function to get attribute
     def get_val(self,
@@ -57,9 +87,9 @@ class Point:
         # if xb is requested, return it
         if varname == "xb":
             return self.xb
-        # otherwise return value from par_vals
+        # otherwise return value from parameter_values
         try:
-            return self.par_vals[varname]
+            return self.parameter_values[varname]
         except KeyError:
             raise KeyError(f"Parameter '{varname}' not found in this point.")
 
@@ -117,10 +147,10 @@ class Point:
 
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(model=self.model, par_vals=self.par_vals, xb=self.xb*scale_factor)
+        return Point(model=self.model, par_vals=self.parameter_values, xb=self.xb*scale_factor)
 
     def __str__(self) -> str:
-        return f"{self.xb}\n{self.par_vals}"
+        return f"{self.xb}\n{self.parameter_values}"
 
     def __repr__(self) -> str:
-        return f"{self.xb}\n{self.par_vals}"
+        return f"{self.xb}\n{self.parameter_values}"
