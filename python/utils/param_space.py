@@ -129,11 +129,13 @@ class ParamSpace:
     def reposition_center(self, point: Point) -> None:
         """Change low and high of parameter ranges around a new center point"""
         for name, center in point.par_vals.items():
-            if name not in self.parameter_ranges:
-                raise ValueError(f"Parameter '{name}' not found in parameter_ranges")
-            param_range = self.parameter_ranges[name]
-            width = param_range.width / 2
-            param_range.set_low_high(center - width, center + width)
+            if name in self.parameter_ranges:
+                param_range = self.parameter_ranges[name]
+                width = param_range.width / 2
+                self.logger.debug(f"Updating parameter '{name}' range to ({center - width},{center + width})")
+                param_range.set_low_high(center - width, center + width)
+            else:
+                self.logger.debug(f"Skipping parameter '{name}' since it is not in the parameter ranges")
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
