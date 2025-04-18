@@ -24,6 +24,7 @@ from utils.math_utils import round_sig
 from utils.mean_shift_utils import mean_shift
 from utils.model import Model
 from utils.param_space import ParamSpace
+from utils.point import Point
 from utils.point_sampler import PointSampler
 
 class MeanShiftOptimizer:
@@ -89,12 +90,12 @@ class MeanShiftOptimizer:
         self.walk_file_name = f"{self.out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
 
         # initialize walk file
-        # TODO: Write all parameters to walk file
         with open(self.walk_file_name, "w") as walk_file:
             content = "xb"
+            for parameter in initial_pos.par_vals.keys():
+                content += f"\t{parameter}"
             content += "\n"
             walk_file.write(content)
-            pass
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
