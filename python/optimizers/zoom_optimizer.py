@@ -122,7 +122,7 @@ class ZoomOptimizer:
             self.termination_message("Using empty point as new max")
             new_max = Point(xb = 0.0,
                             model = self.param_space.model,
-                            par_vals = self.local_max.par_vals)
+                            par_vals = self.local_max.parameter_values)
             do_zoom = False
         # otherwise get new point as the maximum from the current scan
         else:
@@ -212,7 +212,7 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
-            for val in self.local_max.par_vals.values():
+            for val in self.local_max.parameter_values.values():
                 content += f"\t{round_sig(val)}"
             content += f"\t{identifier}\n"
             summary.write(content)
