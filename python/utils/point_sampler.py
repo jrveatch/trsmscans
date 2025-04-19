@@ -165,7 +165,10 @@ class PointSampler:
                 break
 
             # Calculate the running efficiency of the points passed based on points run so far
-            running_efficiency = self.npass/self.curr_points_run
+            if self.npass == 0 or self.curr_points_run == 0:
+                running_efficiency = 1.0
+            else:
+                running_efficiency = self.npass / self.curr_points_run
 
             # Print points passed and efficiency
             self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
