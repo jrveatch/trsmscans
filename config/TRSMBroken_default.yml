@@ -23,8 +23,10 @@ meanshift:
   scan_perc: 0.1
   # Mode to use for stop condition, 0 = test point, 1 = prev point
   stop_mode: 1
-  # Scan sensitivity for stopping conditions, values should be between 0 exclusive and 1 exclusive, higher = greater sensitivity
-  stop_sensitivity: 0.95
+  # Threshold fractional change in any parameter to continue optimization
+  stop_sensitivity_par: 0.05
+  # Threshold fractional change in xb to continue optimization
+  stop_sensitivity_xb: 0.05
   # Max number of small steps used for stopping conditions
   max_small_steps: 3
   # Number of points to generate and shift on, represents separate meanshift instances, initialization strategy based on points_gen

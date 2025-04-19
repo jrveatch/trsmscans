@@ -50,7 +50,8 @@ class MeanShiftOptimizer:
         try:
             self.max_small_steps: int = self.config_loader.get('meanshift', 'max_small_steps')
             self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
-            self.__stop_sens: float = (1.0 - config_loader.get('meanshift', 'stop_sensitivity'))
+            self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
+            self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
             self.__debug: bool = config_loader.get('meanshift', 'debug')
         except KeyError as e:
@@ -227,7 +228,7 @@ class MeanShiftOptimizer:
 
             # NOTE: For debugging
             if self.__debug == True:
-                test_diff = tuple([self.__stop_sens * w for w in self.local_param_space.vol_width])
+                test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, new_position))])
 
                 print(f"small steps = {self.n_small_steps}")
@@ -271,9 +272,10 @@ class MeanShiftOptimizer:
 
         # Check if any parameter changed beyond the sensitivity threshold
         changed = any(
-            self.local_param_space.center_point().diff_frac(comp_point, name) > self.__stop_sens
+            self.local_param_space.center_point().diff_frac(comp_point, name) > self.__stop_sens_par
             for name in self.local_param_space.parameter_names
         )
+        # TODO: Include check on xb change as well
 
         if changed:
             self.n_small_steps = 0
