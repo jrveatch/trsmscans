@@ -167,11 +167,16 @@ class MeanShiftOptimizer:
             arrays = None
 
             # Create scan_parser using the point_sampler class
-            parser = self.point_sampler.sample_points(param_space = self.local_param_space,
-                                                      identifier = identifier,
-                                                      num_points_requested = self.__points,
-                                                      good_points_only = True
-                                                     )
+            try:
+                parser = self.point_sampler.sample_points(param_space = self.local_param_space,
+                                                        identifier = identifier,
+                                                        num_points_requested = self.__points,
+                                                        good_points_only = True
+                                                        )
+            # if point sampling times out, exit
+            except TimeoutError:
+                self.logger.info(f"No points found. Exiting {identifier}\n")
+                return
 
             arrays = parser.input_parameter_arrays
             xb = parser.get_xb(self.decay)
