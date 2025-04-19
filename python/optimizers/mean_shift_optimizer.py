@@ -251,7 +251,6 @@ class MeanShiftOptimizer:
                 content += "\n"
                 walk_file.write(content)
 
-        #self.__create_walk_file()
         #self.__generate_visualizations()
 
         # get mean shift end time
@@ -284,75 +283,6 @@ class MeanShiftOptimizer:
             self.n_small_steps += 1
 
         return self.n_small_steps >= self.max_small_steps
-
-    def __create_walk_file(self):
-        log_files = glob.glob(f"{self.out_dir}files/log/*{self.__label}*_log.txt")
-        
-        walk_tsv = f"{self.out_dir}files/tsv/{self.__label}_meanshift_walk.tsv"
-
-        data = []
-
-        for path in log_files:
-            with open(path, 'r') as file:
-                elem = dict()
-
-                for line in file:
-                    if "iter" in line:
-                        elem.update({"iter": int(line.strip().split('=')[1])})
-                    if "widths" in line:
-                        elem.update(
-                            {
-                                f"vol_{p}": a for p, a in zip(
-                                    self.local_param_space.parameter_names,
-                                    [float(token) for token in line.split('=')[1].strip().split(' ')]
-                                )
-                            }
-                        )
-                    if "curr_pos" in line:
-                        elem.update(
-                            {
-                                p: a for p, a in zip(
-                                    self.local_param_space.parameter_names,
-                                    [float(token) for token in line.split('=')[1].strip().split(' ')]
-                                )
-                            }
-                        )
-                    if "prev_pos" in line:
-                        elem.update(
-                            {
-                                f"prev_{p}": a for p, a in zip(
-                                    self.local_param_space.parameter_names,
-                                    [float(token) for token in line.split('=')[1].strip().split(' ')]
-                                )
-                            }
-                        )
-                    if "test_pos" in line:
-                        elem.update(
-                            {
-                                f"test_{p}": a for p, a in zip(
-                                    self.local_param_space.parameter_names,
-                                    [float(token) for token in line.split('=')[1].strip().split(' ')]
-                                )
-                            }
-                        )
-                    if "avg_xb" in line:
-                        elem.update({"avg_xb": float(line.strip().split('=')[1])})
-                    if "max_xb" in line:
-                        elem.update({"max_xb": float(line.strip().split('=')[1])})
-
-                data.append(copy.deepcopy(elem))
-
-        data_sorted = sorted(data, key=operator.itemgetter("iter"))
-
-        if self.__debug == True:
-            print()
-            print("Data sorted\n========")
-            for d in data_sorted:
-                pprint(d, sort_dicts=False)
-            print()
-
-        df = pd.DataFrame(data_sorted)
-        df.to_csv(walk_tsv, sep="\t")
 
     def __generate_visualizations(self):
 
