@@ -184,6 +184,11 @@ class MeanShiftOptimizer:
             mean_shift(arrays = arrays,
                        Z = xb,
                        param_space = self.local_param_space)
+            
+            # get new position
+            new_position = self.local_param_space.vol_position
+
+            # TODO: Recalculate new_position to get xb and output parameters
 
             stop = self.__stop_check()
 
@@ -206,7 +211,7 @@ class MeanShiftOptimizer:
                     content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
                 content += "--------------------\n"
                 content += f"scan_pts  = {self.__points}\n"
-                content += f"curr_pos  = {self.local_param_space.vol_position}\n"
+                content += f"curr_pos  = {new_position}\n"
                 content += f"prev_pos  = {self.__prev_position}\n"
                 content += f"test_pos  = {self.__test_position}\n"
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
@@ -218,7 +223,7 @@ class MeanShiftOptimizer:
             # NOTE: For debugging
             if self.__debug == True:
                 test_diff = tuple([self.__stop_sens * w for w in self.local_param_space.vol_width])
-                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.local_param_space.vol_position))])
+                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, new_position))])
 
                 print(f"small steps = {self.n_small_steps}")
                 print(f"avg xb      = {round_sig(np.average(xb))}")
@@ -232,7 +237,10 @@ class MeanShiftOptimizer:
 
             # write step details to walk file
             with open(self.walk_file_name, 'a') as walk_file:
+                # TODO: Change this to use xb from recalculated point
                 content = f"{round_sig(np.max(xb))}"
+                for val in new_position.parameter_values.values():
+                    content += f"\t{round_sig(val)}"
                 # TODO: Write center and width for each parameter
                 content += "\n"
                 walk_file.write(content)
