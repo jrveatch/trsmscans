@@ -1,5 +1,6 @@
 
 # standard libraries
+from functools import cached_property
 import logging
 from typing import Dict, Optional
 
@@ -40,6 +41,21 @@ class Point:
     def model(self) -> Optional[Model]:
         """The model object"""
         return self.__model
+
+    @cached_property
+    def mH1(self) -> float:
+        """Mass of H1"""
+        return self.model.get_mass("H1")
+
+    @cached_property
+    def mH2(self) -> float:
+        """Mass of H2"""
+        return self.model.get_mass("H2")
+
+    @cached_property
+    def mH3(self) -> float:
+        """Mass of H3"""
+        return self.model.get_mass("H3")
 
     @property
     def input_parameter_values(self) -> Dict[str,float]:
@@ -107,6 +123,28 @@ class Point:
         if abs_val < 1e-13:
             return 1.0
         return self.diff(other,par_name) / abs_val
+
+    def write_ini(self,
+                  ini_name: str) -> None:
+        """Write .ini files with parameter values"""
+
+        # read in template .ini file
+        with open(self.model.template_ini,"r") as template:
+            ini_data = template.read()
+
+        # create ini_data with parameters
+        ini_data = ini_data.replace("MH1",str(self.mH1))
+        ini_data = ini_data.replace("MH2",str(self.mH2))
+        ini_data = ini_data.replace("MH3",str(self.mH3))
+
+        # loop over parameters and fill low/high values
+        for name, value in self.input_parameter_values.items():
+            ini_data = ini_data.replace(name+"_LOW",str(value))
+            ini_data = ini_data.replace(name+"_HIGH",str(value))
+
+        # write to .ini file
+        with open(ini_name,"w") as outfile:
+            outfile.write(ini_data)
 
     # get formatted string of xb
     def format_xb(self) -> str:
