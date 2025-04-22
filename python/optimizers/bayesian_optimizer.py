@@ -1,6 +1,7 @@
 from bayes_opt import BayesianOptimization
 from utils.param_space import ParamSpace
 from utils.model import Model
+from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.file_utils import scan_dir
 
@@ -11,7 +12,7 @@ class BayesianOptimizer:
                  random_point: int,
                  n_points: int,
                  config_loader,
-                 param_space):
+                 param_space: ParamSpace):
         # TODO: automate finding ranges
         self.model = model
         self.decay = decay
@@ -20,6 +21,7 @@ class BayesianOptimizer:
         self.n_points = n_points
         self.config_loader = config_loader
         self.param_space = param_space
+        self.out_dir = scan_dir(model=model,decay=decay)
 
     def set_ranges(self): # or get prescan ranges
         # TODO: automate ranges depending on config files
@@ -42,18 +44,17 @@ class BayesianOptimizer:
         # call sample_points, returns parse object
         # get xb_max from parse object
         # return xb_max from parse object
-        param_space = ParamSpace(self.model,decay=self.decay)
-        out_dir = scan_dir(model = param_space.model, decay = param_space.decay)
         low_dict = {'thetaHS': thetaHS, 'thetaHX': thetaHX, 'thetaSX': thetaSX, 'vs': vs, 'vx': vx}
-        param_space.update_low_high(low_dict, low_dict)
-        point_sampler = PointSampler(out_dir, self.config_loader)
+        point = Point(model=self.model,par_vals=low_dict)
+        point_sampler = PointSampler(self.out_dir, self.config_loader)
         print(low_dict)
         try:
-            parser = point_sampler.sample_single_point(param_space=param_space, identifier='x', good_points_only=False)
+            point = point_sampler.sample_single_point(point=point,
+                                                      decay=self.decay,
+                                                      identifier='x')
         except TimeoutError:
             return 0
-        max_xb_point = parser.get_max_xb_point(self.decay)
-        return max_xb_point.xb
+        return point.xb
 
     def run(self):
         # set new ranges
