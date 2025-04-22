@@ -42,7 +42,7 @@ class Plot:
         self.load_data()
 
     @cached_property
-    def var_names(self) -> Tuple[str]:
+    def var_names(self) -> Tuple[str, ...]:
         """
         Get the variable names for the model.
         """
