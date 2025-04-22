@@ -274,11 +274,11 @@ class Plot:
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-d", "--decay", required=True, type=str)
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-d", "--decay", required=True, type=str)
+    arg_parser.add_argument("-m", "--model", required=True, type=str)
     args = arg_parser.parse_args()
 
     # create model object
