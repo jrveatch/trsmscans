@@ -2,9 +2,10 @@
 
 # standard libraries
 import argparse
-import os
 from collections import defaultdict
-from typing import Dict, List
+from functools import cached_property
+import os
+from typing import Dict, List, Tuple
 
 # third-party libraries
 import matplotlib.pyplot as plt
@@ -40,6 +41,23 @@ class Plot:
         # Load data from all of the .tsv files
         self.load_data()
 
+    @cached_property
+    def var_names(self) -> Tuple[str, ...]:
+        """
+        Get the variable names for the model.
+        """
+        names = self.model.input_parameter_names
+        if 'xb' in names:
+            return names
+        return names + ('xb',)
+
+    @cached_property
+    def num_vars(self) -> int:
+        """
+        Get the number of variables for the model.
+        """
+        return len(self.var_names)
+
     # Function to get list of .tsv files for plotting
     def get_file_names(self) -> None:
 
@@ -52,8 +70,7 @@ class Plot:
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = file_utils.scan_dir(model=self.model,
-                                        decay=self.decay) + "files/tsv/"
+        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay), "files/tsv/")
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -63,32 +80,21 @@ class Plot:
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
                 self.all_files_dict[key].append(directory + file_name)
 
-        # Store number of files for easy access
-        self.num_files = sum(len(lst) for lst in self.all_files_dict.values())
-
     # Function to load data from files
     def load_data(self) -> None:
-
-        # Retrieve the variable names for the model
-        self.var_names = self.model.input_parameter_names
-
-        # Check if xb exists in the variable name list, if not append
-        if 'xb' not in self.var_names:
-            self.var_names.append('xb')
-
-        # Get number of variables for easy access
-        self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: List[Point] = []
 
-        # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
+         # This will store raw per-file data before we concatenate
+        per_file_data: List[Dict[str, NDArray]] = []
 
         # Loop through each iteration
         for file_list in self.all_files_dict.values():
 
-            first_file = True
+            combined_params: Dict[str, List[NDArray]] = defaultdict(list)
+            max_point: Point = None
+
             for file_name in file_list:
 
                 # Retrieve the variables from the file
@@ -96,45 +102,35 @@ class Plot:
                                model=self.model)
                 all_params = parser.input_parameter_arrays
                 xb = parser.get_xb(self.decay)
-                max_point = parser.get_max_xb_point(self.decay)
+                this_max = parser.get_max_xb_point(self.decay)
 
-                # If this is the first file for the iteration, create numpy arrays
-                if first_file:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+                for name, par in all_params.items():
+                    combined_params[name].append(par)
+                combined_params['xb'].append(xb)
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name].append(par)
+                if max_point is None or this_max > max_point:
+                    max_point = this_max
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'].append(xb)
+            # Concatenate all arrays for this group
+            concatenated: Dict[str, NDArray] = {
+                key: np.concatenate(val_list) for key, val_list in combined_params.items()
+            }
 
-                    # Append the maximum point to the list
-                    self.max_point_list.append(max_point)
+            per_file_data.append(concatenated)
+            self.max_point_list.append(max_point)
 
-                # Otherwise append to the existing numpy arrays
-                else:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+        # Now split per_file_data into lists of arrays for each variable
+        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
+        for entry in per_file_data:
+            for key in entry:
+                self.var_lists[key].append(entry[key])
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name][-1] = np.concatenate(self.var_lists[name][-1], par)
+        # Concatenate across all iterations
+        self.comb_arrays = {
+            key: np.concatenate(val_list) for key, val_list in self.var_lists.items()
+        }
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'][-1] = np.concatenate(self.var_lists['xb'][-1], xb)
-
-                    # Append the maximum point to the list if it is a new max
-                    if max_point > self.max_point_list[-1]:
-                        self.max_point_list[-1] = max_point
-
-        # Initialize a dictionary to hold combined arrays
-        self.comb_arrays = {}
-
-        # Loop over dictionary of lists and concatenate them
-        for vname, vlist in self.var_lists.items():
-            self.comb_arrays[vname] = np.concatenate(vlist)
-
-        # Store concatenated list as a pandas DataFrame
+        # Create a DataFrame from the combined arrays
         self.df_comb = pd.DataFrame(self.comb_arrays)
 
     # Plot each iteration of the scan
@@ -147,9 +143,6 @@ class Plot:
         # Find the Maximum point from the maximum points
         maximum = max(self.max_point_list)
 
-        # Set the start and end colors by random RGB values
-        start_rgb, end_rgb = self.select_colors()
-
         # Iterate through the list of all variables to plot each variable combination from each file
         for v in range(self.num_vars-1):
 
@@ -161,8 +154,8 @@ class Plot:
                 # Get the second variable 2D-List from the all variable list
                 var2 = self.var_lists[self.var_names[j]]
 
-                # Set the opacity to be between values 0.19 and 1 depending on the number of files
-                op = (0.8 / self.num_files)
+                # Set the opacity to be between values 0.19 and 1 depending on the number of iterations
+                op = 0.8 / len(self.var_lists['xb'])
                 opacity = op + 0.19
 
                 # Create a new scatter figure
@@ -172,18 +165,14 @@ class Plot:
                 for i in range(len(self.var_lists['xb'])):
 
                     # Decipher the color used for the scatter plot
-                    t = i / self.num_files
-                    color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
+                    t = i / len(self.var_lists['xb'])
+                    color = plt.cm.plasma(t)
 
                     # Plot the variables by file
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
 
                     # Adjust the opacity
                     opacity += op
-
-                # Reset opacity for star points
-                opacity = op
-                opacity += 0.19
 
                 for q in range(len(self.var_lists['xb'])):
 
@@ -195,14 +184,15 @@ class Plot:
                     point1 = self.max_point_list[q].get_val(variable1)
                     point2 = self.max_point_list[q].get_val(variable2)
 
-                    # Plot the max point from the scatter plot [star]
+                    # Plot the max point from the scatter plot [star] unless it is the maximum point
                     if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
-                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
-                    else: #If point is maximum point plot as a bigger star
-                        plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
-
-                    # Adjust the opacity
-                    opacity += op
+                        plt.scatter(point1, point2, s=25, color="yellow", alpha=0.8, marker="*") #plot normally
+                    else: # Store the maximum point
+                        max_point_1 = point1
+                        max_point_2 = point2
+                
+                # Plot the maximum point with a bigger star
+                plt.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
 
                 # Initialize scatter plot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
@@ -210,7 +200,7 @@ class Plot:
                 plt.ylabel(f"{self.var_names[j]}")
 
                 # Save the figure as a .png
-                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
+                plt.savefig(os.path.join(self.output_dir, f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png"))
 
                 # Close the figure
                 plt.close()
@@ -278,24 +268,14 @@ class Plot:
                 # Close the figure
                 plt.close()
 
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
-
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-d", "--decay", required=True, type=str)
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-d", "--decay", required=True, type=str)
+    arg_parser.add_argument("-m", "--model", required=True, type=str)
     args = arg_parser.parse_args()
 
     # create model object
