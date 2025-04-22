@@ -52,8 +52,7 @@ class Plot:
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = file_utils.scan_dir(model=self.model,
-                                        decay=self.decay) + "files/tsv/"
+        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay), "files/tsv/")
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -199,7 +198,7 @@ class Plot:
                 plt.ylabel(f"{self.var_names[j]}")
 
                 # Save the figure as a .png
-                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
+                plt.savefig(os.path.join(self.output_dir, f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png"))
 
                 # Close the figure
                 plt.close()
