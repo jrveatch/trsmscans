@@ -192,9 +192,9 @@ class MeanShiftOptimizer:
                        param_space = self.local_param_space)
             
             # get new position
-            new_position = self.local_param_space.vol_position
-
-            # TODO: Recalculate new_position to get xb and output parameters
+            new_position = self.point_sampler.sample_single_point(point=self.local_param_space.vol_position,
+                                                                  decay=self.decay,
+                                                                  identifier=identifier+"-point")
 
             stop = self.__stop_check()
 
@@ -222,6 +222,7 @@ class MeanShiftOptimizer:
                 content += f"test_pos  = {self.__test_position}\n"
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
                 content += f"max_xb    = {round_sig(np.max(xb))}\n"
+                content += f"new_xb    = {round_sig(new_position.xb)}\n"
                 content += "--------------------\n"
                 content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n"
                 details_file.write(content)
@@ -243,11 +244,9 @@ class MeanShiftOptimizer:
 
             # write step details to walk file
             with open(self.walk_file_name, 'a') as walk_file:
-                # TODO: Change this to use xb from recalculated point
-                content = f"{round_sig(np.max(xb))}"
+                content = f"{round_sig(new_position.xb)}"
                 for val in new_position.parameter_values.values():
                     content += f"\t{round_sig(val)}"
-                # TODO: Write center and width for each parameter
                 content += "\n"
                 walk_file.write(content)
 
