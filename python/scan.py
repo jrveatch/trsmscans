@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple
 from prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
-from utils.file_utils import scan_dir, plots_dir, recreate_dir
+from utils.file_utils import scan_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
 from utils.math_utils import round_sig
 from utils.model import Model
@@ -281,10 +281,6 @@ class Scan:
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
             raise
-
-        # Clear plots dir
-        #plot_dir = plots_dir(model=self.model,decay=self.decay)
-        #shutil.rmtree(plot_dir, ignore_errors=True)
 
         initial_pos_set = initial_positions(points_num, points_gen)
 
