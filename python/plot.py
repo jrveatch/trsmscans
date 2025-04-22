@@ -2,8 +2,9 @@
 
 # standard libraries
 import argparse
-import os
 from collections import defaultdict
+from functools import cached_property
+import os
 from typing import Dict, List
 
 # third-party libraries
@@ -40,6 +41,23 @@ class Plot:
         # Load data from all of the .tsv files
         self.load_data()
 
+    @cached_property
+    def var_names(self) -> List[str]:
+        """
+        Get the variable names for the model.
+        """
+        __var_names = list(self.model.input_parameter_names)
+        if 'xb' not in __var_names:
+            __var_names.append('xb')
+        return __var_names
+
+    @cached_property
+    def num_vars(self) -> int:
+        """
+        Get the number of variables for the model.
+        """
+        return len(self.var_names)
+
     # Function to get list of .tsv files for plotting
     def get_file_names(self) -> None:
 
@@ -67,16 +85,6 @@ class Plot:
 
     # Function to load data from files
     def load_data(self) -> None:
-
-        # Retrieve the variable names for the model
-        self.var_names = list(self.model.input_parameter_names)
-
-        # Check if xb exists in the variable name list, if not append
-        if 'xb' not in self.var_names:
-            self.var_names.append('xb')
-
-        # Get number of variables for easy access
-        self.num_vars = len(self.var_names)
 
         # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: List[Point] = []
