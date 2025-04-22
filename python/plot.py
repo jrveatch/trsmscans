@@ -82,13 +82,15 @@ class Plot:
         # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: List[Point] = []
 
-        # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
+         # This will store raw per-file data before we concatenate
+        per_file_data: List[Dict[str, NDArray]] = []
 
         # Loop through each iteration
         for file_list in self.all_files_dict.values():
 
-            first_file = True
+            combined_params: Dict[str, List[NDArray]] = defaultdict(list)
+            max_point: Point = None
+
             for file_name in file_list:
 
                 # Retrieve the variables from the file
@@ -96,45 +98,35 @@ class Plot:
                                model=self.model)
                 all_params = parser.input_parameter_arrays
                 xb = parser.get_xb(self.decay)
-                max_point = parser.get_max_xb_point(self.decay)
+                this_max = parser.get_max_xb_point(self.decay)
 
-                # If this is the first file for the iteration, create numpy arrays
-                if first_file:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+                for name, par in all_params.items():
+                    combined_params[name].append(par)
+                combined_params['xb'].append(xb)
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name].append(par)
+                if max_point is None or this_max > max_point:
+                    max_point = this_max
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'].append(xb)
+            # Concatenate all arrays for this group
+            concatenated: Dict[str, NDArray] = {
+                key: np.concatenate(val_list) for key, val_list in combined_params.items()
+            }
 
-                    # Append the maximum point to the list
-                    self.max_point_list.append(max_point)
+            per_file_data.append(concatenated)
+            self.max_point_list.append(max_point)
 
-                # Otherwise append to the existing numpy arrays
-                else:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+        # Now split per_file_data into lists of arrays for each variable
+        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
+        for entry in per_file_data:
+            for key in entry:
+                self.var_lists[key].append(entry[key])
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name][-1] = np.concatenate(self.var_lists[name][-1], par)
+        # Concatenate across all iterations
+        self.comb_arrays = {
+            key: np.concatenate(val_list) for key, val_list in self.var_lists.items()
+        }
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'][-1] = np.concatenate(self.var_lists['xb'][-1], xb)
-
-                    # Append the maximum point to the list if it is a new max
-                    if max_point > self.max_point_list[-1]:
-                        self.max_point_list[-1] = max_point
-
-        # Initialize a dictionary to hold combined arrays
-        self.comb_arrays = {}
-
-        # Loop over dictionary of lists and concatenate them
-        for vname, vlist in self.var_lists.items():
-            self.comb_arrays[vname] = np.concatenate(vlist)
-
-        # Store concatenated list as a pandas DataFrame
+        # Create a DataFrame from the combined arrays
         self.df_comb = pd.DataFrame(self.comb_arrays)
 
     # Plot each iteration of the scan
