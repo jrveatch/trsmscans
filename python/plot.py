@@ -174,10 +174,6 @@ class Plot:
                     # Adjust the opacity
                     opacity += op
 
-                # Reset opacity for star points
-                opacity = op
-                opacity += 0.19
-
                 for q in range(len(self.var_lists['xb'])):
 
                     # Initialize both variables to be retrieved from the Point
@@ -188,14 +184,15 @@ class Plot:
                     point1 = self.max_point_list[q].get_val(variable1)
                     point2 = self.max_point_list[q].get_val(variable2)
 
-                    # Plot the max point from the scatter plot [star]
+                    # Plot the max point from the scatter plot [star] unless it is the maximum point
                     if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
-                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
-                    else: #If point is maximum point plot as a bigger star
-                        plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
-
-                    # Adjust the opacity
-                    opacity += op
+                        plt.scatter(point1, point2, s=25, color="yellow", alpha=0.8, marker="*") #plot normally
+                    else: # Store the maximum point
+                        max_point_1 = point1
+                        max_point_2 = point2
+                
+                # Plot the maximum point with a bigger star
+                plt.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
 
                 # Initialize scatter plot labels
                 plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
