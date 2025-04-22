@@ -70,7 +70,7 @@ class Plot:
     def load_data(self) -> None:
 
         # Retrieve the variable names for the model
-        self.var_names = self.model.input_parameter_names
+        self.var_names = list(self.model.input_parameter_names)
 
         # Check if xb exists in the variable name list, if not append
         if 'xb' not in self.var_names:
