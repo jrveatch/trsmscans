@@ -80,9 +80,6 @@ class Plot:
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
                 self.all_files_dict[key].append(directory + file_name)
 
-        # Store number of files for easy access
-        self.num_files = sum(len(lst) for lst in self.all_files_dict.values())
-
     # Function to load data from files
     def load_data(self) -> None:
 
@@ -157,8 +154,8 @@ class Plot:
                 # Get the second variable 2D-List from the all variable list
                 var2 = self.var_lists[self.var_names[j]]
 
-                # Set the opacity to be between values 0.19 and 1 depending on the number of files
-                op = (0.8 / self.num_files)
+                # Set the opacity to be between values 0.19 and 1 depending on the number of iterations
+                op = 0.8 / len(self.var_lists['xb'])
                 opacity = op + 0.19
 
                 # Create a new scatter figure
@@ -168,7 +165,7 @@ class Plot:
                 for i in range(len(self.var_lists['xb'])):
 
                     # Decipher the color used for the scatter plot
-                    t = i / self.num_files
+                    t = i / len(self.var_lists['xb'])
                     color = plt.cm.plasma(t)
 
                     # Plot the variables by file
