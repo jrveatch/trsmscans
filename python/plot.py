@@ -147,9 +147,6 @@ class Plot:
         # Find the Maximum point from the maximum points
         maximum = max(self.max_point_list)
 
-        # Set the start and end colors by random RGB values
-        start_rgb, end_rgb = self.select_colors()
-
         # Iterate through the list of all variables to plot each variable combination from each file
         for v in range(self.num_vars-1):
 
@@ -173,7 +170,7 @@ class Plot:
 
                     # Decipher the color used for the scatter plot
                     t = i / self.num_files
-                    color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
+                    color = plt.cm.viridis(t)
 
                     # Plot the variables by file
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
@@ -277,16 +274,6 @@ class Plot:
 
                 # Close the figure
                 plt.close()
-
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
 
 if __name__ == '__main__':
 
