@@ -42,6 +42,11 @@ class Point:
         """The model object"""
         return self.__model
 
+    @property
+    def model_name(self) -> str:
+        """Name of model being used"""
+        return self.model.name
+
     @cached_property
     def mH1(self) -> float:
         """Mass of H1"""
