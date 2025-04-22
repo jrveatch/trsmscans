@@ -5,7 +5,7 @@ import argparse
 from collections import defaultdict
 from functools import cached_property
 import os
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # third-party libraries
 import matplotlib.pyplot as plt
@@ -42,14 +42,14 @@ class Plot:
         self.load_data()
 
     @cached_property
-    def var_names(self) -> List[str]:
+    def var_names(self) -> Tuple[str]:
         """
         Get the variable names for the model.
         """
-        __var_names = list(self.model.input_parameter_names)
-        if 'xb' not in __var_names:
-            __var_names.append('xb')
-        return __var_names
+        names = self.model.input_parameter_names
+        if 'xb' in names:
+            return names
+        return names + ('xb',)
 
     @cached_property
     def num_vars(self) -> int:
