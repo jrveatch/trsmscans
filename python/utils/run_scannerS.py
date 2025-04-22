@@ -45,8 +45,7 @@ logger = logging.getLogger(__name__)
 def run_scannerS(ini_name: str,
                  num_points: int,
                  model_name: str,
-                 use_multiprocessing: bool = True,
-                 single_point: bool = False) -> int:
+                 use_multiprocessing: bool = True) -> int:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
