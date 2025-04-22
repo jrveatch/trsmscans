@@ -162,7 +162,7 @@ class Plot:
 
                     # Decipher the color used for the scatter plot
                     t = i / self.num_files
-                    color = plt.cm.viridis(t)
+                    color = plt.cm.plasma(t)
 
                     # Plot the variables by file
                     plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
