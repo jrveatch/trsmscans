@@ -195,6 +195,7 @@ class PointSampler:
 
     def sample_single_point(self,
                             point: Point,
+                            decay: str,
                             identifier = "") -> Point:
 
         # Set names of input .ini and output .tsv files
@@ -249,7 +250,7 @@ class PointSampler:
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
 
-        return self.parser.get_max_xb_point()
+        return self.parser.get_max_xb_point(decay)
 
 if __name__ == "__main__":
     pass
