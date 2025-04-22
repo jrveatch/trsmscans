@@ -157,60 +157,6 @@ def run_scannerS(ini_name: str,
     # return number of points that are actually used, including test job points
     return num_points
 
-def run_scannerS_single_point(ini_name: str,
-                 model_name: str) -> int:
-
-    # raise exception if .ini doesn't exist
-    if not os.path.exists(ini_name):
-        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
-
-    #output file name
-    outfile = model_name + ".tsv"
-
-    # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
-
-    # log file
-    log = open("ScannerS.log", "w")
-
-    # launch process
-    process = subprocess.Popen(process_args, stdout=log, stderr=log)
-
-    # get start time
-    start_time = time.time()
-
-    # flag to check timeout
-    check_timeout = True
-
-    # check output while the process is still running
-    while process.poll() is None:
-
-        # check timeout once if it hasn't been checked before
-        if check_timeout and time.time() - start_time >= 1:
-
-            # if output file is empty, complain, kill process and exit
-            if os.path.exists(outfile) and not os.path.getsize(outfile):
-
-                # kill process
-                process.kill()
-
-                # make exception message
-                msg = f"No output after 1 seconds. Run directory should be cleaned up."
-
-                # raise timeout exception
-                raise TimeoutError(msg)
-
-            # only need to check timeout once
-            check_timeout = False
-
-        # wait 1 second before checking again
-        time.sleep(1)
-
-
-
-    # success message
-    logger.info("Process finished.")
-
 # run a process for multiprocessing
 def run_process(process_args: List[str],
                 directory: str,
