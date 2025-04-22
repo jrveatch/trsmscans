@@ -9,7 +9,8 @@ from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
 from utils.param_space import ParamSpace
 from utils.parse import Parse
-from utils.run_scannerS import run_scannerS
+from utils.point import Point
+from utils.run_scannerS import run_scannerS, run_scannerS_single_point
 from utils.tsv_utils import save_tsv_output
 
 class PointSampler:
@@ -89,7 +90,7 @@ class PointSampler:
                       identifier = "",
                       good_points_only: bool = False) -> Parse:
 
-        # set names of input .ini and output .tsv files
+        # Set names of input .ini and output .tsv files
         out_name = param_space.model_name
         # Check if identifier is defined
         if identifier:
@@ -98,16 +99,16 @@ class PointSampler:
         tsv_name = self.tsv_dir + out_name + ".tsv"
         temp_tsv = self.out_dir + param_space.model_name + ".tsv"
 
-        #Global variable for number of points
+        # Global variable for number of points
         self.total_points_requested = num_points_requested
 
-        # write new .ini file from template and parameters
+        # Write new .ini file from template and parameters
         param_space.write_ini(ini_name)
 
         # Initialize parser
         self.parser = Parse(param_space.model)
 
-        # Initialize global variables given by filters
+        # Initialize filter counters
         self.nwidth = 0
         self.nbounds = 0
         self.nsignals = 0
@@ -154,7 +155,7 @@ class PointSampler:
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
 
-            # Update the filtered variables
+            # Update the numbers of events passing filters
             self.nwidth += results["width"]
             self.nbounds += results["bounds"]
             self.nsignals += results["signals"]
@@ -191,6 +192,65 @@ class PointSampler:
         self.parser.read_file(file_name=tsv_name)
 
         return self.parser
+
+    def sample_single_point(self,
+                            point: Point,
+                            decay: str,
+                            identifier = "") -> Point:
+
+        # Set names of input .ini and output .tsv files
+        out_name = point.model_name
+        # Check if identifier is defined
+        if identifier:
+            out_name += "_" + identifier
+        ini_name = self.ini_dir + out_name + ".ini"
+        tsv_name = self.tsv_dir + out_name + ".tsv"
+        temp_tsv = self.out_dir + point.model_name + ".tsv"
+
+        # Write new .ini file from template and parameters
+        point.write_ini(ini_name)
+
+        # Initialize parser
+        self.parser = Parse(point.model)
+
+        # Print number of points requested
+        self.logger.debug('Generating 1 point')
+
+        try:
+            # Run ScannerS
+            run_scannerS_single_point(ini_name = ini_name,
+                                      model_name = point.model_name)
+        except TimeoutError:
+            raise
+
+        # Print info about applying filters
+        self.logger.debug("Applying filters...")
+
+        # Apply filters
+        results = apply_filters(file_name = temp_tsv,
+                                model = point.model,
+                                config_loader = self.config_loader)
+
+        # Concatenate the information from temp_tsv to the tsv file
+        save_tsv_output(temp_tsv, tsv_name)
+
+        # Update the filtered variables
+        self.nwidth = results["width"]
+        self.nbounds = results["bounds"]
+        self.nsignals = results["signals"]
+        self.npass = results["pass"]
+
+        # Print points passed and efficiency
+        self.logger.debug(f'A total of {self.npass} points have passed')
+
+        # Print final number of events that pass
+        self.logger.info(f"Generated {self.npass} points that pass filters")
+        self.logger.debug(f'1 point generated, {self.npass} pass filters')
+
+        # Create parser from output .tsv
+        self.parser.read_file(file_name=tsv_name)
+
+        return self.parser.get_max_xb_point(decay)
 
 if __name__ == "__main__":
     pass
