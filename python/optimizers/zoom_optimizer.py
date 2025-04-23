@@ -220,7 +220,7 @@ class ZoomOptimizer:
     # write to details file
     def write_details(self,
                       identifier: str,
-                      new_max: 'Point') -> None:
+                      new_max: Point) -> None:
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
@@ -259,7 +259,7 @@ class ZoomOptimizer:
 
     # check if a new global max has been found
     def is_new_global_max(self,
-                          new_max: 'Point') -> bool:
+                          new_max: Point) -> bool:
         return new_max > self.global_max
 
     # method to zoom in based on a percentile cut on xb

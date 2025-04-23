@@ -24,7 +24,7 @@ class Plot:
 
     def __init__(self,
                  decay: str,
-                 model: 'Model'):
+                 model: Model):
 
         # Save arguments as class members
         self.decay = decay
