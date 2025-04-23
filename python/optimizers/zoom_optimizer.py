@@ -33,8 +33,8 @@ class ZoomOptimizer:
         self.param_space = param_space
         self.decay = param_space.decay
         self.num_points = num_points
-        self.local_max = Point(starting_max.model)
-        self.global_max = starting_max
+        self.local_max = starting_max.copy(0.0)
+        self.global_max = starting_max.copy()
         self.label = label
         self.top_percentile = {}
         self.top_percentile_xb = None
@@ -122,7 +122,7 @@ class ZoomOptimizer:
             self.termination_message("Using empty point as new max")
             new_max = Point(xb = 0.0,
                             model = self.param_space.model,
-                            par_vals = self.local_max.par_vals)
+                            par_vals = self.local_max.parameter_values)
             do_zoom = False
         # otherwise get new point as the maximum from the current scan
         else:
@@ -212,7 +212,7 @@ class ZoomOptimizer:
     def write_summary(self, identifier) -> None:
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
-            for val in self.local_max.par_vals.values():
+            for val in self.local_max.parameter_values.values():
                 content += f"\t{round_sig(val)}"
             content += f"\t{identifier}\n"
             summary.write(content)
@@ -220,7 +220,7 @@ class ZoomOptimizer:
     # write to details file
     def write_details(self,
                       identifier: str,
-                      new_max: 'Point') -> None:
+                      new_max: Point) -> None:
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
@@ -259,7 +259,7 @@ class ZoomOptimizer:
 
     # check if a new global max has been found
     def is_new_global_max(self,
-                          new_max: 'Point') -> bool:
+                          new_max: Point) -> bool:
         return new_max > self.global_max
 
     # method to zoom in based on a percentile cut on xb

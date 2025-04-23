@@ -36,7 +36,7 @@ SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu",
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
-                  model: 'Model'
+                  model: Model
                  ) -> None:
     
     dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,

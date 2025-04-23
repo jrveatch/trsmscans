@@ -16,25 +16,30 @@ class Model:
 
     def __init__(self,
                  name: str,
-                 masses: Dict[str,float] = {}) -> None:
+                 masses: Dict[str, float]) -> None:
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
-        self.__name = name
+        self.name = name
 
         # read model yaml file
         self.__read_yaml()
 
-        # make mass maps
-        self.__masses = masses
-        self.__build_mass_maps()
+        # store masses and build mass maps
+        self.masses = masses
 
     @property
     def name(self) -> str:
         """Model name"""
         return self.__name
+
+    @name.setter
+    def name(self,
+             new_name: str) -> None:
+        """Set the name property"""
+        self.__name = new_name
 
     @cached_property
     def model_dir(self) -> str:
@@ -50,6 +55,13 @@ class Model:
     def masses(self) -> Dict[str,float]:
         """Dictionary of particle masses"""
         return self.__masses
+
+    @masses.setter
+    def masses(self,
+                new_masses: Dict[str,float]) -> None:
+        """Set the masses dictionary and build mass maps"""
+        self.__masses = new_masses
+        self.__build_mass_maps()
 
     @property
     # TODO: Make this more generalized

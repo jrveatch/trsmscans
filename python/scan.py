@@ -28,7 +28,7 @@ from optimizers.zoom_optimizer import ZoomOptimizer
 class Scan:
 
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  decay: str,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -104,7 +104,7 @@ class Scan:
         self.zoom_summary_name = self.out_dir + f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
         with open(self.zoom_summary_name, "w") as summary:
             content = "xbmax"
-            for parameter in self.global_max.par_vals.keys():
+            for parameter in self.global_max.parameter_values.keys():
                 content += f"\t{parameter}"
             content += "\titer\n"
             summary.write(content)
@@ -212,7 +212,7 @@ class Scan:
         # write scan results to summary file
         with open(self.zoom_summary_name, "a") as summary:
             content = self.global_max.format_xb()
-            for val in self.global_max.par_vals.values():
+            for val in self.global_max.parameter_values.values():
                 content += f"\t{round_sig(val)}"
             content += "\tPre\n"
             summary.write(content)

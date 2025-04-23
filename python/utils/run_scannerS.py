@@ -90,7 +90,8 @@ def run_scannerS(ini_name: str,
 
         # run test process
         try:
-            run_test_process(test_process_args,model_name)
+            run_timed_process(process_args=test_process_args,
+                              model_name=model_name)
         except TimeoutError:
             raise
 
@@ -156,6 +157,23 @@ def run_scannerS(ini_name: str,
     # return number of points that are actually used, including test job points
     return num_points
 
+def run_scannerS_single_point(ini_name: str,
+                              model_name: str) -> None:
+
+    # raise exception if .ini doesn't exist
+    if not os.path.exists(ini_name):
+        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+
+    # define process
+    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
+
+    # run timed process
+    try:
+        run_timed_process(process_args=process_args,
+                          model_name=model_name)
+    except TimeoutError:
+        raise
+
 # run a process for multiprocessing
 def run_process(process_args: List[str],
                 directory: str,
@@ -187,8 +205,8 @@ def run_process(process_args: List[str],
         print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")
 
 # run a python test process as a single job
-def run_test_process(process_args: List[str],
-                     model_name: str) -> None:
+def run_timed_process(process_args: List[str],
+                      model_name: str) -> None:
 
     # output file name
     outfile = model_name + ".tsv"

@@ -8,26 +8,26 @@ from typing import List, Optional
 from utils.env_utils import output_dir
 from utils.model import Model
 
-def scan_dir(model: 'Model',
+def scan_dir(model: Model,
              decay: str) -> str:
     """
     Get the directory path for the scan for a given model, decay, and masses.
     """
     return output_dir()+model.name+f"/scan/{decay}/{model.mass_string}/"
 
-def prescan_dir(model: 'Model') -> str:
+def prescan_dir(model: Model) -> str:
     """
     Get the directory path for the prescan for a given model and masses.
     """
     return output_dir()+model.name+f"/prescan/{model.mass_string}/"
 
-def prescan_tsv(model: 'Model') -> str:
+def prescan_tsv(model: Model) -> str:
     """
     Get the path to the prescan .tsv file for a given model and masses.
     """
     return prescan_dir(model)+model.name+"_prescan.tsv"
 
-def plots_dir(model: 'Model',
+def plots_dir(model: Model,
               decay: str) -> str:
     """
     Get the directory path for the plots for a given model, decay, and masses.
