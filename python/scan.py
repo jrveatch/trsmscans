@@ -29,7 +29,7 @@ from optimizers.zoom_optimizer import ZoomOptimizer
 class Scan:
 
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  decay: str,
                  overwrite: bool = False,
                  config_file_name: str = ""

@@ -14,7 +14,7 @@ from utils.point import Point
 class ParamSpace:
 
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  decay: str = "NoDecay"):
 
         # get logger
@@ -65,7 +65,7 @@ class ParamSpace:
         return self.model.name
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """Model object"""
         return self.__model
 

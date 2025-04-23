@@ -19,8 +19,8 @@ header_bounds = "filt_bounds"
 header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
-                  model: 'Model',
-                  config_loader: 'ConfigLoader'
+                  model: Model,
+                  config_loader: ConfigLoader
                  ) -> Tuple[int,int,int]:
 
     # load in dataframe from .tsv file
