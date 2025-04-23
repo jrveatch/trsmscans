@@ -20,7 +20,7 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  file_name: str = ""):
 
         # get logger
@@ -34,7 +34,7 @@ class Parse:
             self.read_file(file_name)
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """Model object"""
         return self.__model
 

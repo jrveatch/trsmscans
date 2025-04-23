@@ -21,11 +21,11 @@ from utils.tsv_utils import count_tsv_points
 # get logger
 logger = logging.getLogger(__name__)
 
-def prescan(model: 'Model',
+def prescan(model: Model,
             num_points: int,
             config_loader: Union[ConfigLoader, None] = None,
             config_file_name: str = "",
-            overwrite: bool = False) -> 'Parse':
+            overwrite: bool = False) -> Parse:
 
     # get scan start time
     scan_start = time.time()
