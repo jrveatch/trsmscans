@@ -234,7 +234,7 @@ class Scan:
         scan_start = time.time()
 
         # create directory for walk files
-        os.makedirs(os.path.join(self.out_dir,"files/walk"), exist_ok=True)
+        os.makedirs(os.path.join(self.out_dir,"files","walk"), exist_ok=True)
 
         # run prescan
         self.run_prescan(prescan_points)

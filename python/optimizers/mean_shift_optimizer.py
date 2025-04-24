@@ -4,6 +4,7 @@ import copy
 import datetime
 from functools import cached_property
 import logging
+import os
 import shutil
 import time
 
@@ -77,9 +78,9 @@ class MeanShiftOptimizer:
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
-        self.prescan_details_name = f"{self.out_dir}files/details/prescan_details_{output_file_postfix}.txt"
-        self.details_name = f"{self.out_dir}files/details/scan_details_{self.__label}_{output_file_postfix}.txt"
-        self.walk_file_name = f"{self.out_dir}files/walk/walk_{self.__label}_{output_file_postfix}.tsv"
+        self.prescan_details_name = os.path.join(self.out_dir,"files","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(self.out_dir,"files","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
+        self.walk_file_name = os.path.join(self.out_dir,"files","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
 
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:
