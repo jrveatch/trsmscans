@@ -45,7 +45,6 @@ class MeanShiftOptimizer:
             self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
             self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-            self.__debug: bool = config_loader.get('meanshift', 'debug')
         except KeyError as e:
             self.logger.error(e)
             raise
@@ -224,19 +223,19 @@ class MeanShiftOptimizer:
                 details_file.write(content)
 
             # NOTE: For debugging
-            if self.__debug == True:
+            if self.logger.isEnabledFor(logging.DEBUG):
                 test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
                 position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.new_position))])
 
-                print(f"small steps = {self.n_small_steps}")
-                print(f"avg xb      = {round_sig(np.average(xb))}")
-                print(f"max xb      = {round_sig(np.max(xb))}")
-                print(f"volume size = {self.local_param_space.vol_width}")
-                print(f"curr pos    = {self.local_param_space.vol_position}")
-                print(f"prev pos    = {self.__prev_position}")
-                print(f"test pos    = {self.__test_position}")
-                print(f"reset diff  = {test_diff}")
-                print(f"posit diff  = {position_diff}\n")
+                self.logger.debug(f"small steps = {self.n_small_steps}")
+                self.logger.debug(f"avg xb      = {round_sig(np.average(xb))}")
+                self.logger.debug(f"max xb      = {round_sig(np.max(xb))}")
+                self.logger.debug(f"volume size = {self.local_param_space.vol_width}")
+                self.logger.debug(f"curr pos    = {self.local_param_space.vol_position}")
+                self.logger.debug(f"prev pos    = {self.__prev_position}")
+                self.logger.debug(f"test pos    = {self.__test_position}")
+                self.logger.debug(f"reset diff  = {test_diff}")
+                self.logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
             with open(self.walk_file_name, 'a') as walk_file:

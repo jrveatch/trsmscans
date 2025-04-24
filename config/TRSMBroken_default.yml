@@ -35,5 +35,3 @@ meanshift:
   points_gen: 'random'
   # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
   pair_points_coeff: 0.005
-  # Debug mode
-  debug: False
