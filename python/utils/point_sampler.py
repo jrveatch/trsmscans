@@ -6,8 +6,9 @@ import math
 import os
 
 # local modules
-from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
+from filters.filter import apply_filters
+from utils.exceptions import NoPointsPassedError
 from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.point import Point
@@ -162,15 +163,18 @@ class PointSampler:
             self.nsignals += results["signals"]
             self.npass += results["pass"]
 
+            # If no points passed the filters, raise an error
+            if self.npass == 0:
+                self.logger.error("No points passed the filters")
+                self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
+                raise NoPointsPassedError()
+
             # Break if all points are being counted
             if not good_points_only:
                 break
 
             # Calculate the running efficiency of the points passed based on points run so far
-            if self.npass == 0 or self.curr_points_run == 0:
-                running_efficiency = 1.0
-            else:
-                running_efficiency = self.npass / self.curr_points_run
+            running_efficiency = self.npass / self.curr_points_run
 
             # Print points passed and efficiency
             self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
