@@ -67,14 +67,15 @@ class MeanShiftOptimizer:
         # Set center of new params
         self.local_param_space.reposition_center(initial_pos)
 
-        # Initialize positions
-        self.__test_position = self.local_param_space.vol_position
-        self.__prev_position = self.local_param_space.vol_position
-
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.out_dir,
                                           config_loader = config_loader,
                                           use_file_dir = True)
+
+        # Initialize positions
+        self.__test_position = self.local_param_space.vol_position
+        self.new_position = self.local_param_space.vol_position
+        self.__prev_position = self.local_param_space.vol_position
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
@@ -176,17 +177,18 @@ class MeanShiftOptimizer:
 
             if len(xb) == 0:
                 raise ValueError("Length of xb array was 0")
-                
-            self.__prev_position = self.local_param_space.vol_position
+
+            # Store previous position before calculating a new one
+            self.__prev_position = self.new_position
 
             mean_shift(arrays = arrays,
                        Z = xb,
                        param_space = self.local_param_space)
             
             # get new position
-            new_position = self.point_sampler.sample_single_point(point=self.local_param_space.vol_position,
-                                                                  decay=self.decay,
-                                                                  identifier=identifier+"-point")
+            self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.vol_position,
+                                                                       decay=self.decay,
+                                                                       identifier=identifier+"-point")
 
             stop = self.__stop_check()
 
@@ -209,12 +211,12 @@ class MeanShiftOptimizer:
                     content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
                 content += "--------------------\n"
                 content += f"scan_pts  = {self.__points}\n"
-                content += f"curr_pos  = {new_position}\n"
+                content += f"curr_pos  = {self.new_position}\n"
                 content += f"prev_pos  = {self.__prev_position}\n"
                 content += f"test_pos  = {self.__test_position}\n"
                 content += f"avg_xb    = {round_sig(np.average(xb))}\n"
                 content += f"max_xb    = {round_sig(np.max(xb))}\n"
-                content += f"new_xb    = {round_sig(new_position.xb)}\n"
+                content += f"new_xb    = {round_sig(self.new_position.xb)}\n"
                 content += "--------------------\n"
                 content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n"
                 details_file.write(content)
@@ -222,7 +224,7 @@ class MeanShiftOptimizer:
             # NOTE: For debugging
             if self.__debug == True:
                 test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
-                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, new_position))])
+                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.new_position))])
 
                 print(f"small steps = {self.n_small_steps}")
                 print(f"avg xb      = {round_sig(np.average(xb))}")
@@ -236,8 +238,8 @@ class MeanShiftOptimizer:
 
             # write step details to walk file
             with open(self.walk_file_name, 'a') as walk_file:
-                content = f"{round_sig(new_position.xb)}"
-                for val in new_position.parameter_values.values():
+                content = f"{round_sig(self.new_position.xb)}"
+                for val in self.new_position.parameter_values.values():
                     content += f"\t{round_sig(val)}"
                 content += "\n"
                 walk_file.write(content)
@@ -260,14 +262,13 @@ class MeanShiftOptimizer:
 
         # Check if any parameter changed beyond the sensitivity threshold
         changed = any(
-            self.local_param_space.center_point().diff_frac(comp_point, name) > self.__stop_sens_par
+            self.new_position.diff_frac(comp_point, name) > self.__stop_sens_par
             for name in self.local_param_space.parameter_names
-        )
-        # TODO: Include check on xb change as well
+        ) or (self.new_position.diff_frac(comp_point, 'xb') > self.__stop_sens_xb)
 
         if changed:
             self.n_small_steps = 0
-            self.__test_position = self.local_param_space.vol_position
+            self.__test_position = self.new_position
         else:
             self.n_small_steps += 1
 
