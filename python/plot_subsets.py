@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 
 import os
-from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
-import itertools
 import logging
 
 import re
 from collections import defaultdict
 from plot import Plot
-from numpy.typing import NDArray
 import glob
 import configparser
 from utils import file_utils
 from utils.model import Model
 import argparse
 import logging
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.parse import Parse
 class PlotTester:
 
@@ -32,11 +29,12 @@ class PlotTester:
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
         self.ini_dir = os.path.join(self.scan_dir,"files","ini")
 
-        self.params = Params(model=self.model,
-                             decay=decay)
+        # TODO: Is this used anywhere?
+        self.param_space = ParamSpace(model=self.model,
+                                      decay=decay)
         
         # Initialize parser
-        self.parser = Parse(self.params.model)
+        self.parser = Parse(self.model)
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
