@@ -98,7 +98,7 @@ class Scan:
         os.makedirs(self.out_dir, exist_ok=True)
 
         # recreate files directory along with subdirectories
-        recreate_dir(path=f"{self.out_dir}/files",
+        recreate_dir(path=os.path.join(self.out_dir,"files"),
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
