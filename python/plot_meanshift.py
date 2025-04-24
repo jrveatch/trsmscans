@@ -6,6 +6,8 @@ import matplotlib.lines
 import os
 
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+import numpy as np
 import pandas as pd
 
 from utils.file_utils import plots_dir, scan_dir
@@ -61,7 +63,75 @@ class MeanShiftPlotter:
         valid_rows = [df for df in walk_data_rows if not df.empty and not df.isna().all().all()]
         self.walk_data = pd.concat(valid_rows, ignore_index=True)
 
+    def plot_paths_2d(self, x: str, y: str, color_by: str = "xb", save=False, show=True):
+        """
+        Plot 2D paths for each optimizer, coloring each path with a gradient based on a column (e.g. xb).
+        The color scale is shared across all paths.
+
+        Parameters:
+            x (str): X-axis column
+            y (str): Y-axis column
+            color_by (str): Column used for coloring (default: "xb")
+            save (bool): Whether to save the plot
+            show (bool): Whether to display the plot
+        """
+        if self.walk_data.empty:
+            print("No data to plot.")
+            return
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Normalize the color scale across all values
+        all_values = self.walk_data[color_by].values
+        norm = plt.Normalize(all_values.min(), all_values.max())
+        cmap = plt.get_cmap("viridis")
+
+        # Plot each optimizer path as a colored segment collection
+        for optimizer, group in self.walk_data.groupby("optimizer_id"):
+            x_vals = group[x].values
+            y_vals = group[y].values
+            colors = group[color_by].values
+
+            if len(x_vals) < 2:
+                continue  # Can't form a line
+
+            # Create line segments between each pair of points
+            points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+            # Use segment-wise color (except last point which has no next point)
+            lc = LineCollection(segments, cmap=cmap, norm=norm)
+            lc.set_array(colors[:-1])  # one color per segment
+            lc.set_linewidth(2)
+            ax.add_collection(lc)
+
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
+        ax.set_title(f"Mean Shift Walks: {x} vs {y}")
+        ax.autoscale()
+        ax.set_aspect('auto')
+
+        # Add a shared colorbar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])  # Only needed for the colorbar
+        cbar = fig.colorbar(sm, ax=ax)
+        cbar.set_label(color_by)
+
+        plt.tight_layout()
+
+        if save:
+            filename = f"meanshift_path_gradient_{x}_vs_{y}.png"
+            filepath = os.path.join(self.out_dir, filename)
+            plt.savefig(filepath, dpi=300)
+            print(f"Plot saved to: {filepath}")
+
+        if show:
+            plt.show()
+        else:
+            plt.close()
+
     def make_mean_shift_plots(self):
+        self.plot_paths_2d(x="thetaHS",y="xb")
         pass
 
 def __generate_visualizations(self):
