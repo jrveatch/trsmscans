@@ -26,6 +26,7 @@ class MeanShiftPlotter:
         # Set output directory for plots
         self.out_dir = plots_dir(model=self.model, decay=self.decay)
 
+        self.walk_data = pd.DataFrame()
         self.load_files()
 
     def parse_optimizer_id(self, filename: str) -> str:
