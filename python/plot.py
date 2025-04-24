@@ -70,7 +70,7 @@ class Plot:
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay), "files/tsv/")
+        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay),"files","tsv")
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -78,7 +78,7 @@ class Plot:
             # Check if the file is a .tsv file, if it is, append to the list
             if file_name.endswith(".tsv"):
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
-                self.all_files_dict[key].append(directory + file_name)
+                self.all_files_dict[key].append(os.path.join(directory,file_name))
 
     # Function to load data from files
     def load_data(self) -> None:

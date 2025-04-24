@@ -3,6 +3,7 @@
 # standard libraries
 import logging
 import math
+import os
 
 # local modules
 from filters.filter import apply_filters
@@ -29,8 +30,8 @@ class PointSampler:
         self.ini_dir = out_dir
         self.tsv_dir = out_dir
         if use_file_dir:
-            self.ini_dir += "files/ini/"
-            self.tsv_dir += "files/tsv/"
+            self.ini_dir = os.path.join(self.ini_dir,"files","ini")
+            self.tsv_dir = os.path.join(self.tsv_dir,"files","tsv")
         self.config_loader = config_loader
         self.efficiency = 1.0
 
@@ -95,9 +96,9 @@ class PointSampler:
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
-        ini_name = self.ini_dir + out_name + ".ini"
-        tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + param_space.model_name + ".tsv"
+        ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
+        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
+        temp_tsv = os.path.join(self.out_dir,f"{param_space.model_name}.tsv")
 
         # Global variable for number of points
         self.total_points_requested = num_points_requested
@@ -203,9 +204,9 @@ class PointSampler:
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
-        ini_name = self.ini_dir + out_name + ".ini"
-        tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + point.model_name + ".tsv"
+        ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
+        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
+        temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
 
         # Write new .ini file from template and parameters
         point.write_ini(ini_name)
