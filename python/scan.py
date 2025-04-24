@@ -102,7 +102,7 @@ class Scan:
                      subdirs=["details", "ini", "tsv"])
 
         # create summary file
-        self.zoom_summary_name = self.out_dir + f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
+        self.zoom_summary_name = os.path.join(self.out_dir,f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
         with open(self.zoom_summary_name, "w") as summary:
             content = "xbmax"
             for parameter in self.global_max.parameter_values.keys():
@@ -111,12 +111,12 @@ class Scan:
             summary.write(content)
 
         # create raw output file
-        self.zoom_tsv_summary_name = self.out_dir + f"summary_zoom_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv"
+        self.zoom_tsv_summary_name = os.path.join(self.out_dir,f"summary_zoom_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
         with open(self.zoom_tsv_summary_name, "w"):
             pass
 
         # create details file
-        self.details_name = self.out_dir + f"files/details/prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt"
+        self.details_name = os.path.join(self.out_dir,"files","details",f"prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt")
         with open(self.details_name, "w") as details:
             details.write("Scan details\n\n")
 
