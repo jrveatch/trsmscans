@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 
-from utils.file_utils import plots_dir
+from utils.file_utils import plots_dir, scan_dir
 
 import matplotlib.pyplot as plt
 
@@ -26,9 +26,14 @@ class MeanShiftPlotter:
         self.decay = decay
 
         # Set output directory for plots
-        self.out_dir = plots_dir()
+        self.out_dir = plots_dir(model=self.model, decay=self.decay)
+
+        self.load_files()
 
     def load_files(self):
+        input_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
+        print(input_dir)
+        print(os.listdir(input_dir))
         pass
 
     def make_mean_shift_plots(self):
