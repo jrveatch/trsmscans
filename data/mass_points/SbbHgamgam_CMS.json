@@ -9,750 +9,750 @@
         {
             "mX": 300.0,
             "mS": 90.0,
-            "expected_value": 0.78125,
-            "observed_value": 0.9027,
+            "expected_limit": 0.78125,
+            "observed_limit": 0.9027,
             "resolvable": true
         },
         {
             "mX": 300.0,
             "mS": 100.0,
-            "expected_value": 0.72266,
-            "observed_value": 0.66965,
+            "expected_limit": 0.72266,
+            "observed_limit": 0.66965,
             "resolvable": true
         },
         {
             "mX": 300.0,
             "mS": 150.0,
-            "expected_value": 0.64258,
-            "observed_value": 0.43641,
+            "expected_limit": 0.64258,
+            "observed_limit": 0.43641,
             "resolvable": true
         },
         {
             "mX": 350.0,
             "mS": 90.0,
-            "expected_value": 0.5625,
-            "observed_value": 0.80172,
+            "expected_limit": 0.5625,
+            "observed_limit": 0.80172,
             "resolvable": true
         },
         {
             "mX": 350.0,
             "mS": 100.0,
-            "expected_value": 0.52734,
-            "observed_value": 0.34282,
+            "expected_limit": 0.52734,
+            "observed_limit": 0.34282,
             "resolvable": true
         },
         {
             "mX": 350.0,
             "mS": 150.0,
-            "expected_value": 0.48828,
-            "observed_value": 0.39478,
+            "expected_limit": 0.48828,
+            "observed_limit": 0.39478,
             "resolvable": true
         },
         {
             "mX": 400.0,
             "mS": 90.0,
-            "expected_value": 0.43555,
-            "observed_value": 0.51925,
+            "expected_limit": 0.43555,
+            "observed_limit": 0.51925,
             "resolvable": true
         },
         {
             "mX": 400.0,
             "mS": 100.0,
-            "expected_value": 0.41992,
-            "observed_value": 0.46385,
+            "expected_limit": 0.41992,
+            "observed_limit": 0.46385,
             "resolvable": true
         },
         {
             "mX": 400.0,
             "mS": 150.0,
-            "expected_value": 0.37695,
-            "observed_value": 0.18968,
+            "expected_limit": 0.37695,
+            "observed_limit": 0.18968,
             "resolvable": true
         },
         {
             "mX": 400.0,
             "mS": 200.0,
-            "expected_value": 0.4082,
-            "observed_value": 0.36986,
+            "expected_limit": 0.4082,
+            "observed_limit": 0.36986,
             "resolvable": true
         },
         {
             "mX": 400.0,
             "mS": 250.0,
-            "expected_value": 0.58984,
-            "observed_value": 0.45445,
+            "expected_limit": 0.58984,
+            "observed_limit": 0.45445,
             "resolvable": true
         },
         {
             "mX": 450.0,
             "mS": 90.0,
-            "expected_value": 0.2832,
-            "observed_value": 0.30904,
+            "expected_limit": 0.2832,
+            "observed_limit": 0.30904,
             "resolvable": true
         },
         {
             "mX": 450.0,
             "mS": 100.0,
-            "expected_value": 0.26367,
-            "observed_value": 0.21847,
+            "expected_limit": 0.26367,
+            "observed_limit": 0.21847,
             "resolvable": true
         },
         {
             "mX": 450.0,
             "mS": 150.0,
-            "expected_value": 0.25781,
-            "observed_value": 0.34219,
+            "expected_limit": 0.25781,
+            "observed_limit": 0.34219,
             "resolvable": true
         },
         {
             "mX": 450.0,
             "mS": 200.0,
-            "expected_value": 0.30078,
-            "observed_value": 0.2129,
+            "expected_limit": 0.30078,
+            "observed_limit": 0.2129,
             "resolvable": true
         },
         {
             "mX": 450.0,
             "mS": 250.0,
-            "expected_value": 0.26758,
-            "observed_value": 0.15411,
+            "expected_limit": 0.26758,
+            "observed_limit": 0.15411,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 90.0,
-            "expected_value": 0.28516,
-            "observed_value": 0.17639,
+            "expected_limit": 0.28516,
+            "observed_limit": 0.17639,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 100.0,
-            "expected_value": 0.27246,
-            "observed_value": 0.26265,
+            "expected_limit": 0.27246,
+            "observed_limit": 0.26265,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 150.0,
-            "expected_value": 0.22852,
-            "observed_value": 0.12612,
+            "expected_limit": 0.22852,
+            "observed_limit": 0.12612,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 200.0,
-            "expected_value": 0.20898,
-            "observed_value": 0.30315,
+            "expected_limit": 0.20898,
+            "observed_limit": 0.30315,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 250.0,
-            "expected_value": 0.24316,
-            "observed_value": 0.34753,
+            "expected_limit": 0.24316,
+            "observed_limit": 0.34753,
             "resolvable": true
         },
         {
             "mX": 500.0,
             "mS": 300.0,
-            "expected_value": 0.27246,
-            "observed_value": 0.38556,
+            "expected_limit": 0.27246,
+            "observed_limit": 0.38556,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 90.0,
-            "expected_value": 0.25879,
-            "observed_value": 0.16257,
+            "expected_limit": 0.25879,
+            "observed_limit": 0.16257,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 100.0,
-            "expected_value": 0.2373,
-            "observed_value": 0.17741,
+            "expected_limit": 0.2373,
+            "observed_limit": 0.17741,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 150.0,
-            "expected_value": 0.22754,
-            "observed_value": 0.33564,
+            "expected_limit": 0.22754,
+            "observed_limit": 0.33564,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 200.0,
-            "expected_value": 0.17773,
-            "observed_value": 0.16644,
+            "expected_limit": 0.17773,
+            "observed_limit": 0.16644,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 250.0,
-            "expected_value": 0.18457,
-            "observed_value": 0.23918,
+            "expected_limit": 0.18457,
+            "observed_limit": 0.23918,
             "resolvable": true
         },
         {
             "mX": 550.0,
             "mS": 300.0,
-            "expected_value": 0.19189,
-            "observed_value": 0.51407,
+            "expected_limit": 0.19189,
+            "observed_limit": 0.51407,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 90.0,
-            "expected_value": 0.17969,
-            "observed_value": 0.15377,
+            "expected_limit": 0.17969,
+            "observed_limit": 0.15377,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 100.0,
-            "expected_value": 0.17578,
-            "observed_value": 0.26094,
+            "expected_limit": 0.17578,
+            "observed_limit": 0.26094,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 150.0,
-            "expected_value": 0.13867,
-            "observed_value": 0.21085,
+            "expected_limit": 0.13867,
+            "observed_limit": 0.21085,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 200.0,
-            "expected_value": 0.12744,
-            "observed_value": 0.12964,
+            "expected_limit": 0.12744,
+            "observed_limit": 0.12964,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 250.0,
-            "expected_value": 0.12842,
-            "observed_value": 0.088905,
+            "expected_limit": 0.12842,
+            "observed_limit": 0.088905,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 300.0,
-            "expected_value": 0.14551,
-            "observed_value": 0.3524,
+            "expected_limit": 0.14551,
+            "observed_limit": 0.3524,
             "resolvable": true
         },
         {
             "mX": 600.0,
             "mS": 400.0,
-            "expected_value": 0.23047,
-            "observed_value": 0.27351,
+            "expected_limit": 0.23047,
+            "observed_limit": 0.27351,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 90.0,
-            "expected_value": 0.19092,
-            "observed_value": 0.63878,
+            "expected_limit": 0.19092,
+            "observed_limit": 0.63878,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 100.0,
-            "expected_value": 0.17969,
-            "observed_value": 0.53301,
+            "expected_limit": 0.17969,
+            "observed_limit": 0.53301,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 150.0,
-            "expected_value": 0.15234,
-            "observed_value": 0.13536,
+            "expected_limit": 0.15234,
+            "observed_limit": 0.13536,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 200.0,
-            "expected_value": 0.10303,
-            "observed_value": 0.20054,
+            "expected_limit": 0.10303,
+            "observed_limit": 0.20054,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 250.0,
-            "expected_value": 0.12744,
-            "observed_value": 0.17872,
+            "expected_limit": 0.12744,
+            "observed_limit": 0.17872,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 300.0,
-            "expected_value": 0.11084,
-            "observed_value": 0.11128,
+            "expected_limit": 0.11084,
+            "observed_limit": 0.11128,
             "resolvable": true
         },
         {
             "mX": 650.0,
             "mS": 400.0,
-            "expected_value": 0.14893,
-            "observed_value": 0.34045,
+            "expected_limit": 0.14893,
+            "observed_limit": 0.34045,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 90.0,
-            "expected_value": 0.1582,
-            "observed_value": 0.24672,
+            "expected_limit": 0.1582,
+            "observed_limit": 0.24672,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 100.0,
-            "expected_value": 0.1543,
-            "observed_value": 0.22919,
+            "expected_limit": 0.1543,
+            "observed_limit": 0.22919,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 150.0,
-            "expected_value": 0.13184,
-            "observed_value": 0.16597,
+            "expected_limit": 0.13184,
+            "observed_limit": 0.16597,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 200.0,
-            "expected_value": 0.099121,
-            "observed_value": 0.095602,
+            "expected_limit": 0.099121,
+            "observed_limit": 0.095602,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 250.0,
-            "expected_value": 0.10986,
-            "observed_value": 0.17918,
+            "expected_limit": 0.10986,
+            "observed_limit": 0.17918,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 300.0,
-            "expected_value": 0.081543,
-            "observed_value": 0.11986,
+            "expected_limit": 0.081543,
+            "observed_limit": 0.11986,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 400.0,
-            "expected_value": 0.10938,
-            "observed_value": 0.19406,
+            "expected_limit": 0.10938,
+            "observed_limit": 0.19406,
             "resolvable": true
         },
         {
             "mX": 700.0,
             "mS": 500.0,
-            "expected_value": 0.24609,
-            "observed_value": 0.57755,
+            "expected_limit": 0.24609,
+            "observed_limit": 0.57755,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 90.0,
-            "expected_value": 0.146,
-            "observed_value": 0.10104,
+            "expected_limit": 0.146,
+            "observed_limit": 0.10104,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 100.0,
-            "expected_value": 0.13086,
-            "observed_value": 0.09584,
+            "expected_limit": 0.13086,
+            "observed_limit": 0.09584,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 150.0,
-            "expected_value": 0.10107,
-            "observed_value": 0.1424,
+            "expected_limit": 0.10107,
+            "observed_limit": 0.1424,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 200.0,
-            "expected_value": 0.094238,
-            "observed_value": 0.080499,
+            "expected_limit": 0.094238,
+            "observed_limit": 0.080499,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 250.0,
-            "expected_value": 0.1123,
-            "observed_value": 0.21131,
+            "expected_limit": 0.1123,
+            "observed_limit": 0.21131,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 300.0,
-            "expected_value": 0.07666,
-            "observed_value": 0.075287,
+            "expected_limit": 0.07666,
+            "observed_limit": 0.075287,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 400.0,
-            "expected_value": 0.078613,
-            "observed_value": 0.087494,
+            "expected_limit": 0.078613,
+            "observed_limit": 0.087494,
             "resolvable": true
         },
         {
             "mX": 750.0,
             "mS": 500.0,
-            "expected_value": 0.11084,
-            "observed_value": 0.25267,
+            "expected_limit": 0.11084,
+            "observed_limit": 0.25267,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 90.0,
-            "expected_value": 0.15186,
-            "observed_value": 0.20014,
+            "expected_limit": 0.15186,
+            "observed_limit": 0.20014,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 100.0,
-            "expected_value": 0.1377,
-            "observed_value": 0.17601,
+            "expected_limit": 0.1377,
+            "observed_limit": 0.17601,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 150.0,
-            "expected_value": 0.096191,
-            "observed_value": 0.10941,
+            "expected_limit": 0.096191,
+            "observed_limit": 0.10941,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 200.0,
-            "expected_value": 0.093262,
-            "observed_value": 0.096397,
+            "expected_limit": 0.093262,
+            "observed_limit": 0.096397,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 250.0,
-            "expected_value": 0.079102,
-            "observed_value": 0.058226,
+            "expected_limit": 0.079102,
+            "observed_limit": 0.058226,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 300.0,
-            "expected_value": 0.075195,
-            "observed_value": 0.077446,
+            "expected_limit": 0.075195,
+            "observed_limit": 0.077446,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 400.0,
-            "expected_value": 0.069336,
-            "observed_value": 0.072589,
+            "expected_limit": 0.069336,
+            "observed_limit": 0.072589,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 500.0,
-            "expected_value": 0.10303,
-            "observed_value": 0.14792,
+            "expected_limit": 0.10303,
+            "observed_limit": 0.14792,
             "resolvable": true
         },
         {
             "mX": 800.0,
             "mS": 600.0,
-            "expected_value": 0.21191,
-            "observed_value": 0.17496,
+            "expected_limit": 0.21191,
+            "observed_limit": 0.17496,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 90.0,
-            "expected_value": 0.15332,
-            "observed_value": 0.37951,
+            "expected_limit": 0.15332,
+            "observed_limit": 0.37951,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 100.0,
-            "expected_value": 0.12988,
-            "observed_value": 0.33707,
+            "expected_limit": 0.12988,
+            "observed_limit": 0.33707,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 150.0,
-            "expected_value": 0.10303,
-            "observed_value": 0.12839,
+            "expected_limit": 0.10303,
+            "observed_limit": 0.12839,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 200.0,
-            "expected_value": 0.075684,
-            "observed_value": 0.074673,
+            "expected_limit": 0.075684,
+            "observed_limit": 0.074673,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 250.0,
-            "expected_value": 0.095215,
-            "observed_value": 0.087016,
+            "expected_limit": 0.095215,
+            "observed_limit": 0.087016,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 300.0,
-            "expected_value": 0.064453,
-            "observed_value": 0.044543,
+            "expected_limit": 0.064453,
+            "observed_limit": 0.044543,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 400.0,
-            "expected_value": 0.064941,
-            "observed_value": 0.078827,
+            "expected_limit": 0.064941,
+            "observed_limit": 0.078827,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 500.0,
-            "expected_value": 0.084473,
-            "observed_value": 0.086194,
+            "expected_limit": 0.084473,
+            "observed_limit": 0.086194,
             "resolvable": true
         },
         {
             "mX": 850.0,
             "mS": 600.0,
-            "expected_value": 0.13818,
-            "observed_value": 0.24069,
+            "expected_limit": 0.13818,
+            "observed_limit": 0.24069,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 90.0,
-            "expected_value": 0.16699,
-            "observed_value": 0.23349,
+            "expected_limit": 0.16699,
+            "observed_limit": 0.23349,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 100.0,
-            "expected_value": 0.1377,
-            "observed_value": 0.20392,
+            "expected_limit": 0.1377,
+            "observed_limit": 0.20392,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 150.0,
-            "expected_value": 0.1001,
-            "observed_value": 0.12358,
+            "expected_limit": 0.1001,
+            "observed_limit": 0.12358,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 200.0,
-            "expected_value": 0.086426,
-            "observed_value": 0.071479,
+            "expected_limit": 0.086426,
+            "observed_limit": 0.071479,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 250.0,
-            "expected_value": 0.065918,
-            "observed_value": 0.064645,
+            "expected_limit": 0.065918,
+            "observed_limit": 0.064645,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 300.0,
-            "expected_value": 0.059082,
-            "observed_value": 0.047125,
+            "expected_limit": 0.059082,
+            "observed_limit": 0.047125,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 400.0,
-            "expected_value": 0.065918,
-            "observed_value": 0.10693,
+            "expected_limit": 0.065918,
+            "observed_limit": 0.10693,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 500.0,
-            "expected_value": 0.063477,
-            "observed_value": 0.047285,
+            "expected_limit": 0.063477,
+            "observed_limit": 0.047285,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 600.0,
-            "expected_value": 0.097656,
-            "observed_value": 0.1329,
+            "expected_limit": 0.097656,
+            "observed_limit": 0.1329,
             "resolvable": true
         },
         {
             "mX": 900.0,
             "mS": 700.0,
-            "expected_value": 0.18359,
-            "observed_value": 0.15014,
+            "expected_limit": 0.18359,
+            "observed_limit": 0.15014,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 90.0,
-            "expected_value": 0.18262,
-            "observed_value": 0.16628,
+            "expected_limit": 0.18262,
+            "observed_limit": 0.16628,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 100.0,
-            "expected_value": 0.14404,
-            "observed_value": 0.13455,
+            "expected_limit": 0.14404,
+            "observed_limit": 0.13455,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 150.0,
-            "expected_value": 0.10205,
-            "observed_value": 0.085477,
+            "expected_limit": 0.10205,
+            "observed_limit": 0.085477,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 200.0,
-            "expected_value": 0.082031,
-            "observed_value": 0.12205,
+            "expected_limit": 0.082031,
+            "observed_limit": 0.12205,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 250.0,
-            "expected_value": 0.083496,
-            "observed_value": 0.11005,
+            "expected_limit": 0.083496,
+            "observed_limit": 0.11005,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 300.0,
-            "expected_value": 0.058105,
-            "observed_value": 0.045347,
+            "expected_limit": 0.058105,
+            "observed_limit": 0.045347,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 400.0,
-            "expected_value": 0.058594,
-            "observed_value": 0.091291,
+            "expected_limit": 0.058594,
+            "observed_limit": 0.091291,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 500.0,
-            "expected_value": 0.063477,
-            "observed_value": 0.053573,
+            "expected_limit": 0.063477,
+            "observed_limit": 0.053573,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 600.0,
-            "expected_value": 0.071777,
-            "observed_value": 0.051612,
+            "expected_limit": 0.071777,
+            "observed_limit": 0.051612,
             "resolvable": true
         },
         {
             "mX": 950.0,
             "mS": 700.0,
-            "expected_value": 0.1792,
-            "observed_value": 0.12387,
+            "expected_limit": 0.1792,
+            "observed_limit": 0.12387,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 90.0,
-            "expected_value": 0.20117,
-            "observed_value": 0.18302,
+            "expected_limit": 0.20117,
+            "observed_limit": 0.18302,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 100.0,
-            "expected_value": 0.15576,
-            "observed_value": 0.16613,
+            "expected_limit": 0.15576,
+            "observed_limit": 0.16613,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 150.0,
-            "expected_value": 0.10303,
-            "observed_value": 0.12677,
+            "expected_limit": 0.10303,
+            "observed_limit": 0.12677,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 200.0,
-            "expected_value": 0.077637,
-            "observed_value": 0.079908,
+            "expected_limit": 0.077637,
+            "observed_limit": 0.079908,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 250.0,
-            "expected_value": 0.07373,
-            "observed_value": 0.081881,
+            "expected_limit": 0.07373,
+            "observed_limit": 0.081881,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 300.0,
-            "expected_value": 0.058105,
-            "observed_value": 0.10726,
+            "expected_limit": 0.058105,
+            "observed_limit": 0.10726,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 400.0,
-            "expected_value": 0.047852,
-            "observed_value": 0.035531,
+            "expected_limit": 0.047852,
+            "observed_limit": 0.035531,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 500.0,
-            "expected_value": 0.059082,
-            "observed_value": 0.058421,
+            "expected_limit": 0.059082,
+            "observed_limit": 0.058421,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 600.0,
-            "expected_value": 0.062012,
-            "observed_value": 0.039285,
+            "expected_limit": 0.062012,
+            "observed_limit": 0.039285,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 700.0,
-            "expected_value": 0.093262,
-            "observed_value": 0.092228,
+            "expected_limit": 0.093262,
+            "observed_limit": 0.092228,
             "resolvable": true
         },
         {
             "mX": 1000.0,
             "mS": 800.0,
-            "expected_value": 0.15869,
-            "observed_value": 0.12104,
+            "expected_limit": 0.15869,
+            "observed_limit": 0.12104,
             "resolvable": true
         }
     ]
