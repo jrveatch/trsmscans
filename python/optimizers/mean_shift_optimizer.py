@@ -163,10 +163,10 @@ class MeanShiftOptimizer:
             # Create scan_parser using the point_sampler class
             try:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
-                                                        identifier = identifier,
-                                                        num_points_requested = self.__points,
-                                                        good_points_only = True
-                                                        )
+                                                          identifier = identifier,
+                                                          num_points_requested = self.__points,
+                                                          good_points_only = False
+                                                         )
             # if point sampling times out, exit
             except TimeoutError:
                 self.logger.info(f"No points found. Exiting {identifier}\n")
@@ -176,7 +176,9 @@ class MeanShiftOptimizer:
             xb = parser.get_xb(self.decay)
 
             if len(xb) == 0:
-                raise ValueError("Length of xb array was 0")
+                #raise ValueError("Length of xb array was 0")
+                self.logger.info(f"No points found. Exiting {identifier}\n")
+                return
 
             # Store previous position before calculating a new one
             self.__prev_position = self.new_position
