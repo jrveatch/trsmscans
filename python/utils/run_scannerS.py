@@ -269,8 +269,10 @@ def concatenate_files(directories: List[str],
         return  # Do not proceed with deleting directories
 
     # If everything worked, proceed to delete directories
+    logger.debug("Removing temp directories")
     for directory in directories:
         remove_temp_dir(directory)
+    logger.debug("Successfully removed temp directories")
 
 # if rmtree fails due to non-empty directory, try a few more times
 # this seems necessary on lxplus and maybe some other systems
@@ -278,11 +280,11 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.debug(f"Successfully removed: {directory}")
+            logger.verbose(f"Successfully removed: {directory}")
             return
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.debug(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
