@@ -11,6 +11,7 @@ import time
 import numpy as np
 
 from utils.config_loader import ConfigLoader
+from utils.exceptions import NoPointsPassedError
 from utils.file_utils import scan_dir
 from utils.math_utils import round_sig
 from utils.mean_shift_utils import mean_shift
@@ -167,17 +168,12 @@ class MeanShiftOptimizer:
                                                           good_points_only = False
                                                          )
             # if point sampling times out, exit
-            except TimeoutError:
+            except (TimeoutError, NoPointsPassedError):
                 self.logger.info(f"No points found. Exiting {identifier}\n")
                 return
 
             arrays = parser.input_parameter_arrays
             xb = parser.get_xb(self.decay)
-
-            if len(xb) == 0:
-                #raise ValueError("Length of xb array was 0")
-                self.logger.info(f"No points found. Exiting {identifier}\n")
-                return
 
             # Store previous position before calculating a new one
             self.__prev_position = self.new_position
