@@ -1,4 +1,5 @@
 
+import argparse
 import matplotlib
 import matplotlib.lines
 import os
@@ -19,11 +20,18 @@ class MeanShiftPlotter:
     def __init__(self,
                  model: Model,
                  decay: str):
+
         self.model = model
         self.decay = decay
 
         # Set output directory for plots
         self.out_dir = plots_dir()
+
+    def load_files(self):
+        pass
+
+    def make_mean_shift_plots(self):
+        pass
 
 def __generate_visualizations(self):
 
@@ -77,4 +85,21 @@ def __generate_visualizations(self):
         plt.clf()
 
 if __name__ == '__main__':
-    pass
+    
+    # Parse command line arguments
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
+    args = arg_parser.parse_args()
+
+    # create model object
+    model = Model(name=args.model,
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
+
+    plotter = MeanShiftPlotter(model=model,
+                               decay=args.decay)
+
+    plotter.make_mean_shift_plots()
