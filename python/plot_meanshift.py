@@ -5,17 +5,15 @@ import matplotlib
 import matplotlib.lines
 import os
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from utils.file_utils import plots_dir, scan_dir
-
-import matplotlib.pyplot as plt
-
 from utils.model import Model
 
 class MeanShiftPlotter:
     """
-    Class to plot the results of the mean shift algorithm.
+    Class to plot the results of the mean shift algorithm
     """
 
     def __init__(self,
@@ -31,10 +29,31 @@ class MeanShiftPlotter:
         self.load_files()
 
     def load_files(self):
-        input_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
-        print(input_dir)
-        print(os.listdir(input_dir))
-        pass
+        """Load walk file data into a single pandas DataFrame"""
+        data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
+
+        # List of individual DataFrames from each file
+        walk_data_rows = []
+
+        # Loop over .tsv files and build a list of DataFrames
+        for filename in sorted(os.listdir(data_dir)):
+            if not filename.endswith(".tsv"):
+                continue
+            path = os.path.join(data_dir,filename)
+            try:
+                optimizer_id = filename.split('_')[1]
+                df = pd.read_csv(path, sep="\t")
+                df['optimizer_id'] = optimizer_id
+                walk_data_rows.append(df)
+            except Exception as e:
+                print(f"Error loading {path}: {e}")
+
+        # Raise an error if no data is loaded
+        if not walk_data_rows:
+            raise ValueError(f"No .tsv files found in {data_dir}")
+
+        # Combine all into one long DataFrame
+        self.walk_data = pd.concat(walk_data_rows, ignore_index=True)
 
     def make_mean_shift_plots(self):
         pass
