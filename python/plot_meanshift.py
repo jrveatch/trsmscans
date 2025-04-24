@@ -28,6 +28,10 @@ class MeanShiftPlotter:
 
         self.load_files()
 
+    def parse_optimizer_id(self, filename: str) -> str:
+        """Extract the optimizer identifier from the filename."""
+        return filename.split('_')[1]
+
     def load_files(self):
         """Load walk file data into a single pandas DataFrame"""
         data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
@@ -41,7 +45,7 @@ class MeanShiftPlotter:
                 continue
             path = os.path.join(data_dir,filename)
             try:
-                optimizer_id = filename.split('_')[1]
+                optimizer_id = self.parse_optimizer_id(filename)
                 df = pd.read_csv(path, sep="\t")
                 df['optimizer_id'] = optimizer_id
                 walk_data_rows.append(df)
@@ -53,7 +57,8 @@ class MeanShiftPlotter:
             raise ValueError(f"No .tsv files found in {data_dir}")
 
         # Combine all into one long DataFrame
-        self.walk_data = pd.concat(walk_data_rows, ignore_index=True)
+        valid_rows = [df for df in walk_data_rows if not df.empty and not df.isna().all().all()]
+        self.walk_data = pd.concat(valid_rows, ignore_index=True)
 
     def make_mean_shift_plots(self):
         pass
