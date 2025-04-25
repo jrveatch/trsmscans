@@ -174,21 +174,21 @@ class Plot:
         max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
 
         # Plot the heatmap
-        plt.figure(figsize=(10, 8))
-        plt.imshow(max_xb_in_bins.T,
-                origin='lower',
-                aspect='auto',
-                extent=[
-                    df_comb[var1_name].min(), df_comb[var1_name].max(),
-                    df_comb[var2_name].min(), df_comb[var2_name].max()
-                ],
-                cmap='viridis',
-                interpolation='bilinear')
-        plt.colorbar(label='Maximum value of xb')
-        plt.xlabel(var1_name)
-        plt.ylabel(var2_name)
-        plt.title(f'{var1_name} vs {var2_name}')
-        plt.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
+        fig, ax = plt.subplots(figsize=(10, 8))
+        im = ax.imshow(max_xb_in_bins.T,
+                       origin='lower',
+                       aspect='auto',
+                       extent=[
+                           df_comb[var1_name].min(), df_comb[var1_name].max(),
+                           df_comb[var2_name].min(), df_comb[var2_name].max()
+                           ],
+                       cmap='viridis',
+                       interpolation='bilinear')
+        fig.colorbar(im, ax=ax, label='Maximum value of xb')
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        ax.set_title(f'{var1_name} vs {var2_name}')
+        fig.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
     def make_max_xb_plots(self) -> None:
