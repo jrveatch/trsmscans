@@ -25,8 +25,9 @@ class MeanShiftPlotter:
         self.model = model
         self.decay = decay
 
-        # Set output directory for plots
-        self.out_dir = plots_dir(model=self.model, decay=self.decay)
+        # Set and create output directory for plots
+        self.out_dir = os.path.join(plots_dir(model=self.model, decay=self.decay),"meanshift")
+        os.makedirs(self.out_dir, exist_ok=True)
 
         self.walk_data = pd.DataFrame()
         self.load_files()
@@ -131,7 +132,7 @@ class MeanShiftPlotter:
             plt.close()
 
     def make_mean_shift_plots(self):
-        self.plot_paths_2d(x="thetaHS",y="xb")
+        self.plot_paths_2d(x="thetaHS",y="xb",save=True,show=False)
         pass
 
 def __generate_visualizations(self):
