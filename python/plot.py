@@ -130,9 +130,6 @@ class Plot:
             key: np.concatenate(val_list) for key, val_list in self.var_lists.items()
         }
 
-        # Create a DataFrame from the combined arrays
-        self.df_comb = pd.DataFrame(self.comb_arrays)
-
     # Plot each iteration of the scan
     # TODO: find a way to make the process more efficient and faster !!
     def make_scan_plots(self) -> None:
@@ -214,6 +211,9 @@ class Plot:
         # Define number of bins to use in each dimension
         num_bins = 100
 
+        # Create a DataFrame from the combined arrays
+        df_comb = pd.DataFrame(self.comb_arrays)
+
         # Loop over var names and bin the corresponding columns
         for var in self.var_names:
 
@@ -222,7 +222,7 @@ class Plot:
                 continue
 
             # Bin column
-            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = num_bins, labels = False)
+            df_comb[var+'_bin'] = pd.cut(df_comb[var], bins = num_bins, labels = False)
 
         # Loop over var names twice to get every pair
         for v1 in range(self.num_vars-1):
@@ -244,7 +244,7 @@ class Plot:
                     continue
 
                 # Group by the bins and compute the maximum value of X in each bin
-                max_xb_in_bins = self.df_comb.groupby([var1+'_bin', var2+'_bin'])['xb'].max().unstack(fill_value=np.nan)
+                max_xb_in_bins = df_comb.groupby([var1+'_bin', var2+'_bin'])['xb'].max().unstack(fill_value=np.nan)
 
                 # Plotting
                 plt.figure(figsize=(10, 8))
