@@ -138,7 +138,7 @@ class Plot:
             point1 = point.get_val(var1_name)
             point2 = point.get_val(var2_name)
             if point != maximum:
-                plt.scatter(point1, point2, s=25, color="yellow", alpha=0.8, marker="*")
+                plt.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
             else:
                 max_point_1 = point1
                 max_point_2 = point2
