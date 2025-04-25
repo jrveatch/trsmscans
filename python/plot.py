@@ -128,11 +128,11 @@ class Plot:
         op = 0.8 / len(self.var_lists['xb'])
         opacity = op + 0.19
 
-        plt.figure()
+        fig, ax = plt.subplots()
         for i in range(len(self.var_lists['xb'])):
             t = i / len(self.var_lists['xb'])
             color = plt.cm.viridis(t)
-            plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
+            ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
             opacity += op
 
         maximum = max(self.max_point_list)
@@ -140,19 +140,18 @@ class Plot:
             point1 = point.get_val(var1_name)
             point2 = point.get_val(var2_name)
             if point != maximum:
-                plt.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
+                ax.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
             else:
                 max_point_1 = point1
                 max_point_2 = point2
 
-        plt.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
-        plt.title(f"{var1_name} vs {var2_name}")
-        plt.xlabel(var1_name)
-        plt.ylabel(var2_name)
-        plt.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
+        ax.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
+        ax.set_title(f"{var1_name} vs {var2_name}")
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        fig.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
-    # TODO: find a way to make the process more efficient and faster !!
     def make_scan_plots(self) -> None:
         """
         Iterate over all unique pairs of variables and plot them.
