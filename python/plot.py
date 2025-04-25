@@ -125,11 +125,6 @@ class Plot:
             for key in entry:
                 self.var_lists[key].append(entry[key])
 
-        # Concatenate across all iterations
-        self.comb_arrays = {
-            key: np.concatenate(val_list) for key, val_list in self.var_lists.items()
-        }
-
     # Plot each iteration of the scan
     # TODO: find a way to make the process more efficient and faster !!
     def make_scan_plots(self) -> None:
@@ -211,8 +206,8 @@ class Plot:
         # Define number of bins to use in each dimension
         num_bins = 100
 
-        # Create a DataFrame from the combined arrays
-        df_comb = pd.DataFrame(self.comb_arrays)
+        # Create a DataFrame from the variable lists
+        df_comb = pd.DataFrame({key: np.concatenate(val_list) for key, val_list in self.var_lists.items()})
 
         # Loop over var names and bin the corresponding columns
         for var in self.var_names:
@@ -251,10 +246,10 @@ class Plot:
                 plt.imshow(max_xb_in_bins.T,
                            origin='lower',
                            aspect='auto',
-                           extent=[self.comb_arrays[var1].min(),
-                                   self.comb_arrays[var1].max(),
-                                   self.comb_arrays[var2].min(),
-                                   self.comb_arrays[var2].max()],
+                           extent=[df_comb[var1].min(),
+                                   df_comb[var1].max(),
+                                   df_comb[var2].min(),
+                                   df_comb[var2].max()],
                            cmap='viridis',
                            interpolation='bilinear')
                 plt.colorbar(label='Maximum value of xb')
