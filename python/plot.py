@@ -59,8 +59,10 @@ class Plot:
         """
         return len(self.var_names)
 
-    # Function to get list of .tsv files for plotting
     def get_file_names(self) -> None:
+        """
+        Get the list of .tsv files for plotting.
+        """
 
         # Empty array that will hold the files found
         self.all_files_dict: Dict[str, List[str]] = defaultdict(list)
@@ -114,6 +116,8 @@ class Plot:
             for key, arrays in grouped_vars.items():
                 self.var_lists[key].append(np.concatenate(arrays))
 
+            self.concatenated_vars = {key: np.concatenate(val_list) for key, val_list in self.var_lists.items()}
+
             self.max_point_list.append(best_point)
 
     def plot_variable_pair(self, var1_name: str, var2_name: str) -> None:
@@ -126,11 +130,11 @@ class Plot:
         op = 0.8 / len(self.var_lists['xb'])
         opacity = op + 0.19
 
-        plt.figure()
+        fig, ax = plt.subplots()
         for i in range(len(self.var_lists['xb'])):
             t = i / len(self.var_lists['xb'])
             color = plt.cm.viridis(t)
-            plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
+            ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
             opacity += op
 
         maximum = max(self.max_point_list)
@@ -138,19 +142,18 @@ class Plot:
             point1 = point.get_val(var1_name)
             point2 = point.get_val(var2_name)
             if point != maximum:
-                plt.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
+                ax.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
             else:
                 max_point_1 = point1
                 max_point_2 = point2
 
-        plt.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
-        plt.title(f"{var1_name} vs {var2_name}")
-        plt.xlabel(var1_name)
-        plt.ylabel(var2_name)
-        plt.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
+        ax.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
+        ax.set_title(f"{var1_name} vs {var2_name}")
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        fig.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
-    # TODO: find a way to make the process more efficient and faster !!
     def make_scan_plots(self) -> None:
         """
         Iterate over all unique pairs of variables and plot them.
@@ -163,7 +166,7 @@ class Plot:
         """
         Plot a 2D heatmap showing the maximum xb in each bin of var1 vs var2.
         """
-        df_comb = pd.DataFrame({key: np.concatenate(val_list) for key, val_list in self.var_lists.items()})
+        df_comb = pd.DataFrame({key: self.concatenated_vars[key] for key in (var1_name, var2_name, 'xb')})
 
         # Bin the variables
         df_comb[f'{var1_name}_bin'] = pd.cut(df_comb[var1_name], bins=num_bins, labels=False)
@@ -173,21 +176,21 @@ class Plot:
         max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
 
         # Plot the heatmap
-        plt.figure(figsize=(10, 8))
-        plt.imshow(max_xb_in_bins.T,
-                origin='lower',
-                aspect='auto',
-                extent=[
-                    df_comb[var1_name].min(), df_comb[var1_name].max(),
-                    df_comb[var2_name].min(), df_comb[var2_name].max()
-                ],
-                cmap='viridis',
-                interpolation='bilinear')
-        plt.colorbar(label='Maximum value of xb')
-        plt.xlabel(var1_name)
-        plt.ylabel(var2_name)
-        plt.title(f'{var1_name} vs {var2_name}')
-        plt.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
+        fig, ax = plt.subplots(figsize=(10, 8))
+        im = ax.imshow(max_xb_in_bins.T,
+                       origin='lower',
+                       aspect='auto',
+                       extent=[
+                           df_comb[var1_name].min(), df_comb[var1_name].max(),
+                           df_comb[var2_name].min(), df_comb[var2_name].max()
+                           ],
+                       cmap='viridis',
+                       interpolation='bilinear')
+        fig.colorbar(im, ax=ax, label='Maximum value of xb')
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        ax.set_title(f'{var1_name} vs {var2_name}')
+        fig.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
     def make_max_xb_plots(self) -> None:
@@ -209,7 +212,7 @@ if __name__ == '__main__':
     arg_parser.add_argument("-m", "--model", required=True, type=str)
     args = arg_parser.parse_args()
 
-    # create model object
+    # Create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
