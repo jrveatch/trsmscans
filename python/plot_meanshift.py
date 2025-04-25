@@ -132,7 +132,8 @@ class MeanShiftPlotter:
             plt.close()
 
     def make_mean_shift_plots(self):
-        self.plot_paths_2d(x="thetaHS",y="xb",save=True,show=False)
+        for param in self.model.input_parameter_names:
+            self.plot_paths_2d(x=param,y="xb",save=True,show=False)
         pass
 
 def __generate_visualizations(self):
