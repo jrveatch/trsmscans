@@ -29,13 +29,13 @@ class MeanShiftPlotter:
         os.makedirs(self.out_dir, exist_ok=True)
 
         self.walk_data = pd.DataFrame()
-        self.load_files()
+        self.load_data()
 
     def parse_optimizer_id(self, filename: str) -> str:
         """Extract the optimizer identifier from the filename."""
         return filename.split('_')[1]
 
-    def load_files(self):
+    def load_data(self):
         """Load walk file data into a single pandas DataFrame"""
         data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
 
