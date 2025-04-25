@@ -263,7 +263,7 @@ class Plot:
                 plt.title(f'{var1} vs {var2}')
 
                 # Save the figure as a .png
-                plt.savefig(self.output_dir + 'maxxb_' + f'{var1}_vs_{var2}.png')
+                plt.savefig(os.path.join(self.output_dir,f"maxxb_{var1}_vs_{var2}.png"))
 
                 # Close the figure
                 plt.close()
