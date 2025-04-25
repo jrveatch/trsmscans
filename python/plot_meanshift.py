@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import matplotlib
-import matplotlib.lines
+from itertools import combinations
 import os
 
 import matplotlib.pyplot as plt
