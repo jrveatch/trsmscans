@@ -123,7 +123,6 @@ class MeanShiftPlotter:
             filename = f"meanshift_path_gradient_{x}_vs_{y}.png"
             filepath = os.path.join(self.out_dir, filename)
             plt.savefig(filepath, dpi=300)
-            print(f"Plot saved to: {filepath}")
 
         if show:
             plt.show()
@@ -133,6 +132,8 @@ class MeanShiftPlotter:
     def make_mean_shift_plots(self):
         for param in self.model.input_parameter_names:
             self.plot_paths_2d(x=param,y="xb",save=True,show=False)
+        for pair in list(combinations(self.model.input_parameter_names,2)):
+            self.plot_paths_2d(x=pair[0],y=pair[1],save=True,show=False)
 
 if __name__ == '__main__':
     
