@@ -59,8 +59,10 @@ class Plot:
         """
         return len(self.var_names)
 
-    # Function to get list of .tsv files for plotting
     def get_file_names(self) -> None:
+        """
+        Get the list of .tsv files for plotting.
+        """
 
         # Empty array that will hold the files found
         self.all_files_dict: Dict[str, List[str]] = defaultdict(list)
@@ -210,7 +212,7 @@ if __name__ == '__main__':
     arg_parser.add_argument("-m", "--model", required=True, type=str)
     args = arg_parser.parse_args()
 
-    # create model object
+    # Create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
