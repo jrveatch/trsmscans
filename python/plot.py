@@ -114,6 +114,8 @@ class Plot:
             for key, arrays in grouped_vars.items():
                 self.var_lists[key].append(np.concatenate(arrays))
 
+            self.concatenated_vars = {key: np.concatenate(val_list) for key, val_list in self.var_lists.items()}
+
             self.max_point_list.append(best_point)
 
     def plot_variable_pair(self, var1_name: str, var2_name: str) -> None:
@@ -163,7 +165,7 @@ class Plot:
         """
         Plot a 2D heatmap showing the maximum xb in each bin of var1 vs var2.
         """
-        df_comb = pd.DataFrame({key: np.concatenate(val_list) for key, val_list in self.var_lists.items()})
+        df_comb = pd.DataFrame({key: self.concatenated_vars[key] for key in (var1_name, var2_name, 'xb')})
 
         # Bin the variables
         df_comb[f'{var1_name}_bin'] = pd.cut(df_comb[var1_name], bins=num_bins, labels=False)
