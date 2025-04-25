@@ -80,50 +80,40 @@ class Plot:
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
                 self.all_files_dict[key].append(os.path.join(directory,file_name))
 
-    # Function to load data from files
     def load_data(self) -> None:
+        """
+        Load parameter arrays and max-xb Points from all .tsv files.
+        Store combined parameter arrays for each iteration in self.var_lists.
+        Store max-xb Point per iteration in self.max_point_list.
+        """
 
-        # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: List[Point] = []
+        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
 
-         # This will store raw per-file data before we concatenate
-        per_file_data: List[Dict[str, NDArray]] = []
-
-        # Loop through each iteration
+        # Loop through each group of files (e.g. Pre, 0, 1, ...)
         for file_list in self.all_files_dict.values():
 
-            combined_params: Dict[str, List[NDArray]] = defaultdict(list)
-            max_point: Point = None
+            grouped_vars: Dict[str, List[NDArray]] = defaultdict(list)
+            best_point: Point = None
 
             for file_name in file_list:
-
-                # Retrieve the variables from the file
-                parser = Parse(file_name=file_name,
-                               model=self.model)
+                parser = Parse(file_name=file_name, model=self.model)
                 all_params = parser.input_parameter_arrays
                 xb = parser.get_xb(self.decay)
                 this_max = parser.get_max_xb_point(self.decay)
 
-                for name, par in all_params.items():
-                    combined_params[name].append(par)
-                combined_params['xb'].append(xb)
+                for name, array in all_params.items():
+                    grouped_vars[name].append(array)
+                grouped_vars['xb'].append(xb)
 
-                if max_point is None or this_max > max_point:
-                    max_point = this_max
+                if best_point is None or this_max > best_point:
+                    best_point = this_max
 
-            # Concatenate all arrays for this group
-            concatenated: Dict[str, NDArray] = {
-                key: np.concatenate(val_list) for key, val_list in combined_params.items()
-            }
+            # Concatenate all arrays in this group and append to self.var_lists
+            for key, arrays in grouped_vars.items():
+                self.var_lists[key].append(np.concatenate(arrays))
 
-            per_file_data.append(concatenated)
-            self.max_point_list.append(max_point)
-
-        # Now split per_file_data into lists of arrays for each variable
-        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
-        for entry in per_file_data:
-            for key in entry:
-                self.var_lists[key].append(entry[key])
+            self.max_point_list.append(best_point)
 
     # Plot each iteration of the scan
     # TODO: find a way to make the process more efficient and faster !!
