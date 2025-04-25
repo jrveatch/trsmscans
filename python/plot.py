@@ -159,71 +159,45 @@ class Plot:
         for var1, var2 in combinations(self.var_names, 2):
             self.plot_variable_pair(var1, var2)
 
-    # Plot the maximum xb in 2D bins for every parameter pair
-    def make_max_xb_plots(self) -> None:
-
-        # Print info to screen
-        print("Making max XB plots for",self.model.name,self.decay,self.model.mass_string)
-
-        # Define number of bins to use in each dimension
-        num_bins = 100
-
-        # Create a DataFrame from the variable lists
+    def plot_max_xb_heatmap(self, var1_name: str, var2_name: str, num_bins: int = 100) -> None:
+        """
+        Plot a 2D heatmap showing the maximum xb in each bin of var1 vs var2.
+        """
         df_comb = pd.DataFrame({key: np.concatenate(val_list) for key, val_list in self.var_lists.items()})
 
-        # Loop over var names and bin the corresponding columns
-        for var in self.var_names:
+        # Bin the variables
+        df_comb[f'{var1_name}_bin'] = pd.cut(df_comb[var1_name], bins=num_bins, labels=False)
+        df_comb[f'{var2_name}_bin'] = pd.cut(df_comb[var2_name], bins=num_bins, labels=False)
 
-            # Skip xb
-            if var == 'xb':
-                continue
+        # Group by binned values and compute max xb
+        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
 
-            # Bin column
-            df_comb[var+'_bin'] = pd.cut(df_comb[var], bins = num_bins, labels = False)
+        # Plot the heatmap
+        plt.figure(figsize=(10, 8))
+        plt.imshow(max_xb_in_bins.T,
+                origin='lower',
+                aspect='auto',
+                extent=[
+                    df_comb[var1_name].min(), df_comb[var1_name].max(),
+                    df_comb[var2_name].min(), df_comb[var2_name].max()
+                ],
+                cmap='viridis',
+                interpolation='bilinear')
+        plt.colorbar(label='Maximum value of xb')
+        plt.xlabel(var1_name)
+        plt.ylabel(var2_name)
+        plt.title(f'{var1_name} vs {var2_name}')
+        plt.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
+        plt.close()
 
-        # Loop over var names twice to get every pair
-        for v1 in range(self.num_vars-1):
-
-            # Get the first variable name from the all variable list
-            var1 = self.var_names[v1]
-
-            # Skip xb
-            if var1 == 'xb':
-                continue
-
-            for v2 in range(v1+1, self.num_vars):
-
-                # Get the first variable name from the all variable list
-                var2 = self.var_names[v2]
-
-                # Skip xb
-                if var2 == 'xb':
-                    continue
-
-                # Group by the bins and compute the maximum value of X in each bin
-                max_xb_in_bins = df_comb.groupby([var1+'_bin', var2+'_bin'])['xb'].max().unstack(fill_value=np.nan)
-
-                # Plotting
-                plt.figure(figsize=(10, 8))
-                plt.imshow(max_xb_in_bins.T,
-                           origin='lower',
-                           aspect='auto',
-                           extent=[df_comb[var1].min(),
-                                   df_comb[var1].max(),
-                                   df_comb[var2].min(),
-                                   df_comb[var2].max()],
-                           cmap='viridis',
-                           interpolation='bilinear')
-                plt.colorbar(label='Maximum value of xb')
-                plt.xlabel(var1)
-                plt.ylabel(var2)
-                plt.title(f'{var1} vs {var2}')
-
-                # Save the figure as a .png
-                plt.savefig(os.path.join(self.output_dir,f"maxxb_{var1}_vs_{var2}.png"))
-
-                # Close the figure
-                plt.close()
+    def make_max_xb_plots(self) -> None:
+        """
+        Create a heatmap of the maximum xb for all unique variable pairs (excluding xb).
+        """
+        print("Making max XB plots for", self.model.name, self.decay, self.model.mass_string)
+        for var1, var2 in combinations(self.var_names, 2):
+            if 'xb' not in (var1, var2):
+                self.plot_max_xb_heatmap(var1, var2)
 
 if __name__ == '__main__':
 
