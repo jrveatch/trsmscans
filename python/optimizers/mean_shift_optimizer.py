@@ -9,6 +9,7 @@ import shutil
 import time
 
 import numpy as np
+import pandas as pd
 
 from utils.config_loader import ConfigLoader
 from utils.exceptions import NoPointsPassedError
@@ -73,9 +74,10 @@ class MeanShiftOptimizer:
                                           use_file_dir = True)
 
         # Initialize positions
-        self.__test_position = self.local_param_space.vol_position
-        self.new_position = self.local_param_space.vol_position
-        self.__prev_position = self.local_param_space.vol_position
+        init_pos = self.local_param_space.vol_position
+        self.__test_position = init_pos
+        self.new_position = init_pos
+        self.__prev_position = init_pos
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
@@ -189,39 +191,20 @@ class MeanShiftOptimizer:
 
             stop = self.__stop_check()
 
+            # write scan details to details file
+            self.write_details(identifier=identifier,
+                               xb=xb)
+
             # get iteration end time
             iter_end = time.time()
             iter_time = iter_end - iter_start
-
-            # print iteration time to screen
-            self.logger.info(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
-
-            # write scan details to details file
-            with open(self.details_name, 'a') as details_file:
-                content = f"Iteration = {identifier}\n"
-                content += "--------------------\n"
-                content += f"Using {self.__points} scan points\n"
-                content += "--------------------\n"
-                for name in self.local_param_space.parameter_names:
-                    content += name + ":\n"
-                    content += f"  range = {self.local_param_space[name].format_range()}\n"
-                    content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
-                content += "--------------------\n"
-                content += f"scan_pts  = {self.__points}\n"
-                content += f"curr_pos  = {self.new_position}\n"
-                content += f"prev_pos  = {self.__prev_position}\n"
-                content += f"test_pos  = {self.__test_position}\n"
-                content += f"avg_xb    = {round_sig(np.average(xb))}\n"
-                content += f"max_xb    = {round_sig(np.max(xb))}\n"
-                content += f"new_xb    = {round_sig(self.new_position.xb)}\n"
-                content += "--------------------\n"
-                content += f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n\n"
-                details_file.write(content)
+            
+            self.iteration_termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # NOTE: For debugging
             if self.logger.isEnabledFor(logging.DEBUG):
                 test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
-                position_diff = tuple([pos[1] - pos[0] for pos in list(zip(self.__prev_position, self.new_position))])
+                position_diff = tuple(p2 - p1 for p1, p2 in zip(self.__prev_position, self.new_position))
 
                 self.logger.debug(f"small steps = {self.n_small_steps}")
                 self.logger.debug(f"avg xb      = {round_sig(np.average(xb))}")
@@ -234,12 +217,7 @@ class MeanShiftOptimizer:
                 self.logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
-            with open(self.walk_file_name, 'a') as walk_file:
-                content = f"{round_sig(self.new_position.xb)}"
-                for val in self.new_position.parameter_values.values():
-                    content += f"\t{round_sig(val)}"
-                content += "\n"
-                walk_file.write(content)
+            self.write_to_walk_file()
 
         # get mean shift end time
         shift_end = time.time()
@@ -249,6 +227,45 @@ class MeanShiftOptimizer:
         self.logger.info(f"{self.__label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
+
+    def write_details(self,
+                      identifier: str,
+                      xb: pd.Series) -> None:
+        """Write iteration information to details file."""
+        with open(self.details_name, 'a') as details_file:
+            content = f"Iteration = {identifier}\n"
+            content += "--------------------\n"
+            content += f"Using {self.__points} scan points\n"
+            content += "--------------------\n"
+            for name in self.local_param_space.parameter_names:
+                content += name + ":\n"
+                content += f"  range = {self.local_param_space[name].format_range()}\n"
+                content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
+            content += "--------------------\n"
+            content += f"scan_pts  = {self.__points}\n"
+            content += f"curr_pos  = {self.new_position}\n"
+            content += f"prev_pos  = {self.__prev_position}\n"
+            content += f"test_pos  = {self.__test_position}\n"
+            content += f"avg_xb    = {round_sig(np.average(xb))}\n"
+            content += f"max_xb    = {round_sig(np.max(xb))}\n"
+            content += f"new_xb    = {round_sig(self.new_position.xb)}\n"
+            content += "--------------------\n"
+            details_file.write(content)
+
+    def write_to_walk_file(self) -> None:
+        """Write iteration results to walk file."""
+        with open(self.walk_file_name, 'a') as walk_file:
+            content = f"{round_sig(self.new_position.xb)}"
+            for val in self.new_position.parameter_values.values():
+                content += f"\t{round_sig(val)}"
+            content += "\n"
+            walk_file.write(content)
+
+    # print and write termination message
+    def iteration_termination_message(self, message: str) -> None:
+        self.logger.info(message)
+        with open(self.details_name,"a") as details:
+            details.write(message+"\n")
 
     def __stop_check(self) -> bool:
         """
