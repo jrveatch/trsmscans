@@ -32,8 +32,7 @@ class Plot:
         self.model = model
 
         # Create plot output directory
-        self.output_dir = file_utils.plots_dir(model=self.model,
-                                               decay=self.decay)
+        self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"zoom")
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
