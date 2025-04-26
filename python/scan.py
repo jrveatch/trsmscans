@@ -22,6 +22,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.run_metadata import run_exists, save_run_metadata
+from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 
 # class to organize and run a complete scan
@@ -227,6 +228,89 @@ class Scan:
         # scale new low and high values
         self.global_param_space.scale_ranges(self.global_max)
 
+    def run_ms_optimization(self, prescan_points: int, points: int) -> None:
+
+        # get scan start time
+        scan_start = time.time()
+
+        # create directory for walk files
+        os.makedirs(os.path.join(self.out_dir,"files","walk"), exist_ok=True)
+
+        # run prescan
+        self.run_prescan(prescan_points)
+
+        # move into the working directory for scans
+        os.chdir(self.out_dir)
+
+        # Define helper functions (as inner functions because only for meanshift implementation)
+        
+        # Returns a list of initial positions for shifters
+        def initial_positions(points: int, strategy: str) -> tuple[Point]:
+            results = []
+            
+            if strategy == 'random':
+                for i in range(points):
+                    results.append(self.global_param_space.random_point())
+            elif strategy == 'pair':
+                # TODO: Temporary block for this option until it can be fixed using Point
+                raise NotImplementedError("Pair strategy not implemented yet.")
+                initial_point = random_pos()
+                lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
+                coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
+                offsets = [param.width * coeff for param in self.global_param_space]
+
+                results.append(initial_point)
+
+                next_point = list(deepcopy(initial_point))
+
+                for i in range(1, points):
+                    for i in range(len(next_point)):
+                        next_point[i] += lead_coeffs[i] * offsets[i]
+
+                    results.append(tuple(deepcopy(next_point)))
+
+            return tuple(results)
+
+        # Load config
+        try:
+            points_num: int = self.config_loader.get('meanshift', 'points_num')
+            points_gen: str = self.config_loader.get('meanshift', 'points_gen')
+        except KeyError as e:
+            self.logger.error(e)
+            raise
+        except Exception as e:
+            self.logger.error(f"Unexpected error: {e}")
+            raise
+
+        initial_pos_set = initial_positions(points_num, points_gen)
+
+        self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+
+        for i, initial_pos in enumerate(initial_pos_set):
+            label = f"MeanShiftOptimizer-{i}"
+
+            MeanShiftOptimizer(
+                label=label,
+                initial_pos=initial_pos,
+                points=points,
+                global_param_space=self.global_param_space,
+                config_loader=self.config_loader
+            ).run()
+
+            #with open(self.summary_name, 'a') as scan_summary:
+            #    scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
+            #    scan_summary.write(f"Opt_{i} {' '.join([str(e) for e in opt])}\n")
+
+        # SCAN LOGIC END HERE
+
+        # get total scan time
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(optimization="mean shift",
+                      scan_time=scan_time)
+
     # run the full scan
     def run_zoom_optimization(self,
                               num_points: int,
@@ -413,7 +497,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','ms'], help="Optimization strategy")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
@@ -446,6 +530,11 @@ if __name__ == "__main__":
         logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
+    elif args.strategy == "ms":
+        logger.info("Running mean shift optimization...\n")
+        myScan.run_ms_optimization(
+            prescan_points = args.num_points,
+            points = args.num_points
+        )
     else:
         raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
-
