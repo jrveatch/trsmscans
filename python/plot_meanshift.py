@@ -114,8 +114,7 @@ class MeanShiftPlotter:
         # Add a shared colorbar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])  # Only needed for the colorbar
-        cbar = fig.colorbar(sm, ax=ax)
-        cbar.set_label(color_by)
+        fig.colorbar(sm, ax=ax, label=color_by)
 
         plt.tight_layout()
 
