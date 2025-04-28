@@ -41,10 +41,8 @@ class Scan:
 
         self.logger.info("Creating a new scan")
 
-        # store model name
+        # store model and decay information
         self.model = model
-
-        # store decay information
         self.decay = decay
 
         # check whether decay is valid
@@ -164,7 +162,7 @@ class Scan:
         for parameter_name in self.global_param_space.parameter_names:
 
             """
-            if the prescan ranges are more than 1% of the max range
+            If the prescan ranges are more than 1% of the max range
             away from the boundaries, change the boundaries to restrict
             scan range and minimize scan points that are wasted
             """
