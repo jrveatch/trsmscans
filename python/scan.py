@@ -4,6 +4,7 @@
 import argparse
 from copy import deepcopy
 import datetime
+from functools import cached_property
 import itertools
 import logging
 import os
@@ -40,10 +41,8 @@ class Scan:
 
         self.logger.info("Creating a new scan")
 
-        # store model name
+        # store model and decay information
         self.model = model
-
-        # store decay information
         self.decay = decay
 
         # check whether decay is valid
@@ -74,14 +73,10 @@ class Scan:
         # make instance of param space
         # this automatically initializes the parameters
         self.global_param_space = ParamSpace(model=self.model,
-                                             decay=decay)
+                                             decay=self.decay)
 
         # make dummy optimal point
         self.global_max = Point(model=self.model)
-
-        # directory where we want the output to go
-        self.out_dir = scan_dir(model=self.model,
-                                decay=decay)
 
         # remove output directory if overwrite flag is set
         if overwrite:
@@ -90,6 +85,12 @@ class Scan:
         # create output directory structure and initialize files
         # TODO: Is this necessary to do here?
         self.initialize_dirs()
+
+    @cached_property
+    def out_dir(self) -> str:
+        """Output directory name"""
+        return scan_dir(model=self.model,
+                        decay=self.decay)
 
     # create output directory structure and files for scan
     def initialize_dirs(self) -> None:
@@ -105,7 +106,7 @@ class Scan:
         self.zoom_summary_name = os.path.join(self.out_dir,f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
         with open(self.zoom_summary_name, "w") as summary:
             content = "xbmax"
-            for parameter in self.global_max.parameter_values.keys():
+            for parameter in self.model.all_parameter_names:
                 content += f"\t{parameter}"
             content += "\titer\n"
             summary.write(content)
@@ -161,7 +162,7 @@ class Scan:
         for parameter_name in self.global_param_space.parameter_names:
 
             """
-            if the prescan ranges are more than 1% of the max range
+            If the prescan ranges are more than 1% of the max range
             away from the boundaries, change the boundaries to restrict
             scan range and minimize scan points that are wasted
             """
