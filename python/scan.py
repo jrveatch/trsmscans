@@ -4,6 +4,7 @@
 import argparse
 from copy import deepcopy
 import datetime
+from functools import cached_property
 import itertools
 import logging
 import os
@@ -79,10 +80,6 @@ class Scan:
         # make dummy optimal point
         self.global_max = Point(model=self.model)
 
-        # directory where we want the output to go
-        self.out_dir = scan_dir(model=self.model,
-                                decay=self.decay)
-
         # remove output directory if overwrite flag is set
         if overwrite:
             self.delete_run_directory()
@@ -90,6 +87,12 @@ class Scan:
         # create output directory structure and initialize files
         # TODO: Is this necessary to do here?
         self.initialize_dirs()
+
+    @cached_property
+    def out_dir(self) -> str:
+        """Output directory name"""
+        return scan_dir(model=self.model,
+                        decay=self.decay)
 
     # create output directory structure and files for scan
     def initialize_dirs(self) -> None:
