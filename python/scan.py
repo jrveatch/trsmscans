@@ -74,14 +74,14 @@ class Scan:
         # make instance of param space
         # this automatically initializes the parameters
         self.global_param_space = ParamSpace(model=self.model,
-                                             decay=decay)
+                                             decay=self.decay)
 
         # make dummy optimal point
         self.global_max = Point(model=self.model)
 
         # directory where we want the output to go
         self.out_dir = scan_dir(model=self.model,
-                                decay=decay)
+                                decay=self.decay)
 
         # remove output directory if overwrite flag is set
         if overwrite:
@@ -105,7 +105,7 @@ class Scan:
         self.zoom_summary_name = os.path.join(self.out_dir,f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
         with open(self.zoom_summary_name, "w") as summary:
             content = "xbmax"
-            for parameter in self.global_max.parameter_values.keys():
+            for parameter in self.model.all_parameter_names:
                 content += f"\t{parameter}"
             content += "\titer\n"
             summary.write(content)
