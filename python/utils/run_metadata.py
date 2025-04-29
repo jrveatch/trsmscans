@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 def metadata_file_name(optimization: str) -> str:
     """Generate a metadata file name based on the optimization."""
-    return f"run_metadata_{optimization}.json"
+    return os.path.join(optimization,f"run_metadata_{optimization}.json")
 
 def save_run_metadata(out_dir: str,
                       optimization: str,
                       num_points: Optional[int] = None,
                       num_iterations: Optional[int] = None) -> None:
     """Save run metadata to a JSON file."""
-    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(os.path.join(out_dir,optimization), exist_ok=True)
 
     metadata = {"optimization": optimization}
     if num_points is not None:
