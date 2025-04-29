@@ -27,7 +27,6 @@ class MeanShiftOptimizer:
             self,
             label: str,
             initial_pos: 'Point',
-            points: int,
             global_param_space: ParamSpace,
             config_loader: ConfigLoader):
         
@@ -36,7 +35,6 @@ class MeanShiftOptimizer:
 
         self.global_param_space = global_param_space
 
-        self.__points = points
         self.__label = label
 
         # get mean shift configuration from config file
@@ -47,6 +45,7 @@ class MeanShiftOptimizer:
             self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
             self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
+            self.num_points: int = config_loader.get('meanshift', 'num_points')
         except KeyError as e:
             self.logger.error(e)
             raise
@@ -71,7 +70,7 @@ class MeanShiftOptimizer:
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.out_dir,
                                           config_loader = config_loader,
-                                          use_file_dir = True)
+                                          subdir_name = "meanshift")
 
         # Initialize positions
         init_pos = self.local_param_space.vol_position
@@ -81,9 +80,9 @@ class MeanShiftOptimizer:
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
-        self.prescan_details_name = os.path.join(self.out_dir,"files","details",f"prescan_details_{output_file_postfix}.txt")
-        self.details_name = os.path.join(self.out_dir,"files","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
-        self.walk_file_name = os.path.join(self.out_dir,"files","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
+        self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
+        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
 
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:
@@ -134,6 +133,17 @@ class MeanShiftOptimizer:
         return scan_dir(model=self.model,
                         decay=self.decay)
 
+    @property
+    def num_points(self) -> int:
+        """Number of points to sample"""
+        return self.__num_points
+
+    @num_points.setter
+    def num_points(self,
+                   new_num_points: int) -> None:
+        """Set the number of points to sample"""
+        self.__num_points = new_num_points
+
     def run(self):
 
         # get time of mean shift start
@@ -166,7 +176,7 @@ class MeanShiftOptimizer:
             try:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
-                                                          num_points_requested = self.__points,
+                                                          num_points_requested = self.num_points,
                                                           good_points_only = False
                                                          )
             # if point sampling times out, exit
@@ -235,14 +245,14 @@ class MeanShiftOptimizer:
         with open(self.details_name, 'a') as details_file:
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
-            content += f"Using {self.__points} scan points\n"
+            content += f"Using {self.num_points} scan points\n"
             content += "--------------------\n"
             for name in self.local_param_space.parameter_names:
                 content += name + ":\n"
                 content += f"  range = {self.local_param_space[name].format_range()}\n"
                 content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
             content += "--------------------\n"
-            content += f"scan_pts  = {self.__points}\n"
+            content += f"scan_pts  = {self.num_points}\n"
             content += f"curr_pos  = {self.new_position}\n"
             content += f"prev_pos  = {self.__prev_position}\n"
             content += f"test_pos  = {self.__test_position}\n"

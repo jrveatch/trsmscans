@@ -76,14 +76,14 @@ class ZoomOptimizer:
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
                                           config_loader = config_loader,
-                                          use_file_dir = True)
+                                          subdir_name = "zoom")
 
         # get output information file names
         output_file_postfix = f"{self.param_space.model_name}_{self.decay}_{self.param_space.mass_string}"
         self.summary_name = os.path.join(out_dir,f"summary_zoom_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(out_dir,f"summary_zoom_tsv_{output_file_postfix}.tsv")
-        self.prescan_details_name = os.path.join(out_dir,"files","details",f"prescan_details_{output_file_postfix}.txt")
-        self.details_name = os.path.join(out_dir,"files","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
+        self.prescan_details_name = os.path.join(out_dir,"zoom","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(out_dir,"zoom","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)

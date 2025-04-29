@@ -21,7 +21,7 @@ class PointSampler:
     def __init__(self,
                  out_dir: str,
                  config_loader: ConfigLoader,
-                 use_file_dir: bool = False) -> None:
+                 subdir_name: str = "") -> None:
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -30,9 +30,9 @@ class PointSampler:
         self.out_dir = out_dir
         self.ini_dir = out_dir
         self.tsv_dir = out_dir
-        if use_file_dir:
-            self.ini_dir = os.path.join(self.ini_dir,"files","ini")
-            self.tsv_dir = os.path.join(self.tsv_dir,"files","tsv")
+        if subdir_name:
+            self.ini_dir = os.path.join(self.ini_dir,subdir_name,"ini")
+            self.tsv_dir = os.path.join(self.tsv_dir,subdir_name,"tsv")
         self.config_loader = config_loader
         self.efficiency = 1.0
 
