@@ -233,6 +233,8 @@ class Scan:
     def run_ms_optimization(self,
                             points: int) -> None:
 
+        self.logger.info("Running mean shift optimization...\n")
+
         # get scan start time
         scan_start = time.time()
 
@@ -314,6 +316,8 @@ class Scan:
     def run_zoom_optimization(self,
                               num_points: int,
                               niter: int) -> None:
+
+        self.logger.info("Running zoom optimization...\n")
 
         # get scan start time
         scan_start = time.time()
@@ -521,9 +525,6 @@ if __name__ == "__main__":
     setup_logging(log_file=os.path.join(out_dir, logfile_name),
                   level=LOG_LEVELS[args.log_level.lower()])
 
-    # get logger
-    logger = logging.getLogger()
-
     # create scan object
     myScan = Scan(model = model,
                   decay = args.decay,
@@ -532,11 +533,9 @@ if __name__ == "__main__":
                  )
 
     if args.strategy == "zoom":
-        logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     elif args.strategy == "meanshift":
-        logger.info("Running mean shift optimization...\n")
         myScan.run_ms_optimization(
             points = args.num_points
         )
