@@ -8,7 +8,7 @@ width:
   max_width_X: 0.15
 
 scan:
-  max_prescan_points: 10000
+  default_prescan_points: 10000
   num_starting_points: 100000
 
 zoom:
