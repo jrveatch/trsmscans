@@ -7,7 +7,9 @@ import os
 # get logger
 logger = logging.getLogger(__name__)
 
-metadata_file_name = "run_metadata.json"
+def metadata_file_name(optimization: str) -> str:
+    """Generate a metadata file name based on the optimization."""
+    return f"run_metadata_{optimization}.json"
 
 def save_run_metadata(out_dir: str,
                       optimization: str,
@@ -18,18 +20,19 @@ def save_run_metadata(out_dir: str,
         "num_points": num_points,
         "time_stamp": datetime.now().isoformat()
     }
-    metadata_path = os.path.join(out_dir, metadata_file_name)
+    metadata_path = os.path.join(out_dir, metadata_file_name(optimization))
     with open(metadata_path, "w") as f:
         json.dump(metadata, f)
 
 def run_exists(out_dir: str,
+               optimization: str,
                num_points: int = -1) -> bool:
     """Check if a run exists by looking for the metadata file."""
-    metadata_path = os.path.join(out_dir, metadata_file_name)
+    metadata_path = os.path.join(out_dir, metadata_file_name(optimization))
     if os.path.isfile(metadata_path):
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
-            if metadata["optimization"] == "zoom":
-                logger.info(f"Found a zoom run with {metadata['num_points']} points")
+            if metadata["optimization"] == optimization:
+                logger.info(f"Found a {optimization} run with {metadata['num_points']} points")
                 return num_points <= 1.5*metadata["num_points"]
     return False

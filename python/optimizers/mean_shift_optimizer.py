@@ -71,7 +71,7 @@ class MeanShiftOptimizer:
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.out_dir,
                                           config_loader = config_loader,
-                                          use_file_dir = True)
+                                          subdir_name = "meanshift")
 
         # Initialize positions
         init_pos = self.local_param_space.vol_position
@@ -81,9 +81,9 @@ class MeanShiftOptimizer:
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
-        self.prescan_details_name = os.path.join(self.out_dir,"files","details",f"prescan_details_{output_file_postfix}.txt")
-        self.details_name = os.path.join(self.out_dir,"files","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
-        self.walk_file_name = os.path.join(self.out_dir,"files","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
+        self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
+        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
 
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:

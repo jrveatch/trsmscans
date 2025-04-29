@@ -78,13 +78,12 @@ class Scan:
         # make dummy optimal point
         self.global_max = Point(model=self.model)
 
-        # remove output directory if overwrite flag is set
-        if overwrite:
-            self.delete_run_directory()
+        # store overwrite flag
+        self.overwrite = overwrite
 
-        # create output directory structure and initialize files
-        # TODO: Is this necessary to do here?
-        self.initialize_dirs()
+        # remove output directory if overwrite flag is set
+        #if overwrite:
+        #    self.delete_run_directory()
 
     @cached_property
     def out_dir(self) -> str:
@@ -93,18 +92,24 @@ class Scan:
                         decay=self.decay)
 
     # create output directory structure and files for scan
-    def initialize_dirs(self) -> None:
+    def initialize_output(self,
+                          optimizer: str) -> None:
 
         # make output directory if it doesn't already exist
         os.makedirs(self.out_dir, exist_ok=True)
 
+        # list of subdirectories to create
+        subdirs = ["details", "ini", "tsv"]
+        if optimizer == "meanshift":
+            subdirs.append("walk")
+
         # recreate files directory along with subdirectories
-        recreate_dir(path=os.path.join(self.out_dir,"files"),
-                     subdirs=["details", "ini", "tsv"])
+        recreate_dir(path=os.path.join(self.out_dir,optimizer),
+                     subdirs=subdirs)
 
         # create summary file
-        self.zoom_summary_name = os.path.join(self.out_dir,f"summary_zoom_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
-        with open(self.zoom_summary_name, "w") as summary:
+        self.summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
+        with open(self.summary_name, "w") as summary:
             content = "xbmax"
             for parameter in self.model.all_parameter_names:
                 content += f"\t{parameter}"
@@ -112,12 +117,12 @@ class Scan:
             summary.write(content)
 
         # create raw output file
-        self.zoom_tsv_summary_name = os.path.join(self.out_dir,f"summary_zoom_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
-        with open(self.zoom_tsv_summary_name, "w"):
+        self.tsv_summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
+        with open(self.tsv_summary_name, "w"):
             pass
 
         # create details file
-        self.details_name = os.path.join(self.out_dir,"files","details",f"prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt")
+        self.details_name = os.path.join(self.out_dir,optimizer,"details",f"prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt")
         with open(self.details_name, "w") as details:
             details.write("Scan details\n\n")
 
@@ -142,7 +147,7 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            self.delete_run_directory()
+            #self.delete_run_directory()
 
             # raise error
             raise
@@ -212,7 +217,7 @@ class Scan:
             details.write(content)
 
         # write scan results to summary file
-        with open(self.zoom_summary_name, "a") as summary:
+        with open(self.summary_name, "a") as summary:
             content = self.global_max.format_xb()
             for val in self.global_max.parameter_values.values():
                 content += f"\t{round_sig(val)}"
@@ -220,10 +225,10 @@ class Scan:
             summary.write(content)
 
         # write scan max xb tsv line to tsv summary file
-        with open(self.zoom_tsv_summary_name, "a") as tsv_summary:
+        with open(self.tsv_summary_name, "a") as tsv_summary:
             tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
 
-        self.prescan_parser.write_max_xb_line(self.zoom_tsv_summary_name)
+        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # TODO: Is this needed?
         # scale new low and high values
@@ -234,8 +239,8 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        # create directory for walk files
-        os.makedirs(os.path.join(self.out_dir,"files","walk"), exist_ok=True)
+        # initialize output directories and files
+        self.initialize_output("meanshift")
 
         # run prescan
         self.run_prescan(prescan_points)
@@ -298,10 +303,6 @@ class Scan:
                 config_loader=self.config_loader
             ).run()
 
-            #with open(self.summary_name, 'a') as scan_summary:
-            #    scan_summary.write(f"Ini_{i} {' '.join([str(e) for e in initial_pos])}\n")
-            #    scan_summary.write(f"Opt_{i} {' '.join([str(e) for e in opt])}\n")
-
         # SCAN LOGIC END HERE
 
         # get total scan time
@@ -324,16 +325,16 @@ class Scan:
         if num_points < 0:
             num_points = self.num_starting_points
 
-        # check if run already exists
+        # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
-                        num_points=num_points):
+                      optimization="zoom",
+                      num_points=num_points) and not self.overwrite:
                 self.logger.info(f"Skipping scan requested with {num_points} points.")
                 self.logger.info(f"Use the -o option to overwrite the existing run.\n")
                 return
 
-        # delete directory and reinitialize
-        self.delete_run_directory()
-        self.initialize_dirs()
+        # initialize output directories and files
+        self.initialize_output("zoom")
 
         # run prescan
         self.run_prescan(num_points = num_points)
