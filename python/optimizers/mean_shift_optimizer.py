@@ -35,7 +35,7 @@ class MeanShiftOptimizer:
 
         self.global_param_space = global_param_space
 
-        self.__label = label
+        self.label = label
 
         # get mean shift configuration from config file
         self.config_loader = config_loader
@@ -81,8 +81,8 @@ class MeanShiftOptimizer:
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
 
         self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
-        self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.__label}_{output_file_postfix}.txt")
-        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.__label}_{output_file_postfix}.tsv")
+        self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
+        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.label}_{output_file_postfix}.tsv")
 
         # initialize walk file
         with open(self.walk_file_name, "w") as walk_file:
@@ -104,6 +104,17 @@ class MeanShiftOptimizer:
     def decay(self) -> str:
         """Decay mode used in scan"""
         return self.global_param_space.decay
+
+    @property
+    def label(self) -> str:
+        """Label of the scan"""
+        return self.__label
+
+    @label.setter
+    def label(self,
+                new_label: str) -> None:
+        """Set the label of the scan"""
+        self.__label = new_label
 
     @property
     def global_param_space(self) -> ParamSpace:
@@ -167,7 +178,7 @@ class MeanShiftOptimizer:
             iter += 1
 
             # get iteration identifier
-            identifier = self.__label + f"-{iter:04d}"
+            identifier = self.label + f"-{iter:04d}"
             self.logger.info(f"Iteration: {identifier}")
 
             arrays = None
@@ -234,7 +245,7 @@ class MeanShiftOptimizer:
         shift_time = shift_end - shift_start
 
         # print iteration time to screen
-        self.logger.info(f"{self.__label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
+        self.logger.info(f"{self.label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
 
