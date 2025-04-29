@@ -32,6 +32,7 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
+                 prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
@@ -62,13 +63,18 @@ class Scan:
         # get configurations from config file
         try:
             self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
-            self.max_prescan_points: float = self.config_loader.get('scan', 'max_prescan_points')
+            default_prescan_points: float = self.config_loader.get('scan', 'default_prescan_points')
         except KeyError as e:
             self.logger.error(e)
             raise
         except Exception as e:
             self.logger.error(f"Unexpected error: {e}")
             raise
+
+        # number of prescan points to run
+        self.prescan_points = prescan_points
+        if self.prescan_points < 0:
+            self.prescan_points = default_prescan_points
 
         # make instance of param space
         # this automatically initializes the parameters
@@ -80,10 +86,6 @@ class Scan:
 
         # store overwrite flag
         self.overwrite = overwrite
-
-        # remove output directory if overwrite flag is set
-        #if overwrite:
-        #    self.delete_run_directory()
 
     @cached_property
     def out_dir(self) -> str:
@@ -127,19 +129,13 @@ class Scan:
             details.write("Scan details\n\n")
 
     # run a prescan to constrain scan parameter ranges
-    def run_prescan(self,
-                    num_points: int) -> None:
+    def run_prescan(self) -> None:
 
-        # default number of prescan points set to 10000
-        num_prescan = self.max_prescan_points
-
-        # if fewer points are requested than num_prescan, only use that many
-        if num_points < self.max_prescan_points:
-            num_prescan = num_points
+        prescan_points = self.prescan_points
 
         try:
             # call prescan
-            self.prescan_parser = prescan(num_points = num_prescan,
+            self.prescan_parser = prescan(num_points = prescan_points,
                                           model = self.model,
                                           config_loader = self.config_loader)
 
@@ -196,7 +192,7 @@ class Scan:
                   rows=rows)
 
         # get scan density
-        density = num_prescan / self.global_param_space.volume()
+        density = prescan_points / self.global_param_space.volume()
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
@@ -205,7 +201,7 @@ class Scan:
         with open(self.details_name, "a") as details:
             content = "Prescan\n"
             content += "--------------------\n"
-            content += f"Number of prescan points = {num_prescan}\n"
+            content += f"Number of prescan points = {prescan_points}\n"
             content += f"Scan density = {density:.3E}\n"
             content += f"Max xsec*BR = {self.global_max.format_xb()}\n"
             content += "--------------------\n"
@@ -234,7 +230,8 @@ class Scan:
         # scale new low and high values
         self.global_param_space.scale_ranges(self.global_max)
 
-    def run_ms_optimization(self, prescan_points: int, points: int) -> None:
+    def run_ms_optimization(self,
+                            points: int) -> None:
 
         # get scan start time
         scan_start = time.time()
@@ -243,7 +240,7 @@ class Scan:
         self.initialize_output("meanshift")
 
         # run prescan
-        self.run_prescan(prescan_points)
+        self.run_prescan()
 
         # move into the working directory for scans
         os.chdir(self.out_dir)
@@ -279,7 +276,7 @@ class Scan:
 
         # Load config
         try:
-            points_num: int = self.config_loader.get('meanshift', 'points_num')
+            num_walks: int = self.config_loader.get('meanshift', 'num_walks')
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
         except KeyError as e:
             self.logger.error(e)
@@ -288,7 +285,7 @@ class Scan:
             self.logger.error(f"Unexpected error: {e}")
             raise
 
-        initial_pos_set = initial_positions(points_num, points_gen)
+        initial_pos_set = initial_positions(num_walks, points_gen)
 
         self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
@@ -310,7 +307,7 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="mean shift",
+        self.finalize(optimization="meanshift",
                       scan_time=scan_time)
 
     # run the full scan
@@ -337,7 +334,7 @@ class Scan:
         self.initialize_output("zoom")
 
         # run prescan
-        self.run_prescan(num_points = num_points)
+        self.run_prescan()
 
         # move into the working directory for scans
         os.chdir(self.out_dir)
@@ -499,12 +496,13 @@ if __name__ == "__main__":
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','ms'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
+    arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
-    arg_parser.add_argument("-l", "--log", default="scan.log", help="Log file name")
+    arg_parser.add_argument("-l", "--log", default="", help="Log file name")
     args = arg_parser.parse_args()
 
     # create model object
@@ -516,7 +514,11 @@ if __name__ == "__main__":
                        decay=args.decay)
 
     # set up logging
-    setup_logging(log_file=os.path.join(out_dir, args.log),
+    if args.log:
+        logfile_name = args.log
+    else:
+        logfile_name = f"{args.strategy}.log"
+    setup_logging(log_file=os.path.join(out_dir, logfile_name),
                   level=LOG_LEVELS[args.log_level.lower()])
 
     # get logger
@@ -525,6 +527,7 @@ if __name__ == "__main__":
     # create scan object
     myScan = Scan(model = model,
                   decay = args.decay,
+                  prescan_points = args.prescan_points,
                   overwrite=args.overwrite
                  )
 
@@ -532,10 +535,9 @@ if __name__ == "__main__":
         logger.info("Running zoom optimization...\n")
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
-    elif args.strategy == "ms":
+    elif args.strategy == "meanshift":
         logger.info("Running mean shift optimization...\n")
         myScan.run_ms_optimization(
-            prescan_points = args.num_points,
             points = args.num_points
         )
     else:
