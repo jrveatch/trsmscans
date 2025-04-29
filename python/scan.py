@@ -288,7 +288,7 @@ class Scan:
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
 
-        self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+        self.logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"
