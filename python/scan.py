@@ -231,7 +231,7 @@ class Scan:
         self.global_param_space.scale_ranges(self.global_max)
 
     def run_ms_optimization(self,
-                            points: int) -> None:
+                            num_optimizers: int) -> None:
 
         self.logger.info("Running mean shift optimization...\n")
 
@@ -278,7 +278,6 @@ class Scan:
 
         # Load config
         try:
-            num_walks: int = self.config_loader.get('meanshift', 'num_walks')
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
         except KeyError as e:
             self.logger.error(e)
@@ -287,7 +286,7 @@ class Scan:
             self.logger.error(f"Unexpected error: {e}")
             raise
 
-        initial_pos_set = initial_positions(num_walks, points_gen)
+        initial_pos_set = initial_positions(num_optimizers, points_gen)
 
         self.logger.info("\nInitial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
@@ -297,7 +296,6 @@ class Scan:
             MeanShiftOptimizer(
                 label=label,
                 initial_pos=initial_pos,
-                points=points,
                 global_param_space=self.global_param_space,
                 config_loader=self.config_loader
             ).run()
@@ -504,7 +502,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points")
     arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations")
+    arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("-l", "--log", default="", help="Log file name")
     args = arg_parser.parse_args()
@@ -536,8 +534,6 @@ if __name__ == "__main__":
         myScan.run_zoom_optimization(num_points = args.num_points,
                                      niter = args.iterations)
     elif args.strategy == "meanshift":
-        myScan.run_ms_optimization(
-            points = args.num_points
-        )
+        myScan.run_ms_optimization(num_optimizers=args.iterations)
     else:
         raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")

@@ -1,1 +1,1 @@
-../python/scan.py -X 1001 -S 301 -m "TRSMBroken" -d "SbbHtautau" -n 20 -s "meanshift"
+../python/scan.py -X 1001 -S 301 -m "TRSMBroken" -d "SbbHtautau" -i 5 -s "meanshift"
