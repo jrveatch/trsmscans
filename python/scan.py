@@ -143,7 +143,7 @@ class Scan:
         except TimeoutError:
 
             # delete directory
-            #self.delete_run_directory()
+            self.delete_run_directory()
 
             # raise error
             raise
