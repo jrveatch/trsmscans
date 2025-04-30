@@ -137,9 +137,11 @@ class Parse:
         # percentile threshold for xb
         percentile_threshold = 0.98
 
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
         # get xb
-        xb = self.get_xb(decay=decay,
-                         param_space=param_space)
+        xb = self.get_xb(decay=decay)[mask]
 
         # number of points available
         num_points = len(xb)
@@ -159,7 +161,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value]
+        param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
         _, pval = diptest.diptest(param_selected)
