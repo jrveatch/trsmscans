@@ -1,6 +1,7 @@
 
 # standard libraries
 import logging
+import random
 from typing import Any, Dict, Optional
 
 # local modules
@@ -180,6 +181,10 @@ class ParamRange:
         """Update low and high values directly"""
         self.low = new_low
         self.high = new_high
+
+    def random_point(self) -> float:
+        """Generate a random point within the parameter range"""
+        return random.uniform(self.low, self.high)
 
     def format_bounds(self) -> str:
         """Format bounds as string"""
