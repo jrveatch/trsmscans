@@ -79,7 +79,8 @@ class MeanShiftOptimizer:
         self.__prev_position = init_pos
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
-
+        self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
+        self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
         self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
         self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
         self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.label}_{output_file_postfix}.tsv")
@@ -240,6 +241,8 @@ class MeanShiftOptimizer:
             # write step details to walk file
             self.write_to_walk_file()
 
+        self.write_summary(identifier)
+
         # get mean shift end time
         shift_end = time.time()
         shift_time = shift_end - shift_start
@@ -248,6 +251,15 @@ class MeanShiftOptimizer:
         self.logger.info(f"{self.label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
+
+    def write_summary(self, identifier) -> None:
+        """Write final point info to summary file."""
+        with open(self.summary_name,"a") as summary:
+            content = self.new_position.format_xb()
+            for val in self.new_position.parameter_values.values():
+                content += f"\t{round_sig(val)}"
+            content += f"\t{identifier}\n"
+            summary.write(content)
 
     def write_details(self,
                       identifier: str,

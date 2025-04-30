@@ -23,6 +23,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.run_metadata import run_exists, save_run_metadata
+from utils.tsv_utils import sort_tsv_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 
@@ -301,6 +302,9 @@ class Scan:
             ).run()
 
         # SCAN LOGIC END HERE
+
+        # sort summary file
+        sort_tsv_file(self.summary_name)
 
         # get total scan time
         scan_end = time.time()

@@ -219,8 +219,8 @@ class ZoomOptimizer:
 
         return new_max
 
-    # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
+        """Write max xb point info to summary file."""
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
             for val in self.local_max.parameter_values.values():
@@ -228,10 +228,10 @@ class ZoomOptimizer:
             content += f"\t{identifier}\n"
             summary.write(content)
 
-    # write to details file
     def write_details(self,
                       identifier: str,
                       new_max: Point) -> None:
+        """Write to details file."""
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
