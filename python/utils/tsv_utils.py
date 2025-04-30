@@ -1,5 +1,6 @@
 
 # standard libraries
+import csv
 import logging
 import os
 import subprocess
@@ -70,3 +71,23 @@ def save_tsv_output(input_file: str,
 
     # delete input .tsv file
     os.remove(input_file)
+
+def sort_tsv_file(filename: str,
+                  sort_column: str = "xbmax") -> None:
+    # Read the TSV file
+    with open(filename, newline='') as f:
+        reader = csv.DictReader(f, delimiter='\t')
+        rows = list(reader)
+        headers = reader.fieldnames
+
+    # Sort the rows by the specified column (converted to float if needed)
+    try:
+        rows.sort(key=lambda row: float(row[sort_column]))
+    except ValueError:
+        rows.sort(key=lambda row: row[sort_column])  # Fallback to string sort if not numeric
+
+    # Write the sorted data back to the same file
+    with open(filename, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t')
+        writer.writeheader()
+        writer.writerows(rows)
