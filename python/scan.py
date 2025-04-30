@@ -257,7 +257,7 @@ class Scan:
         os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
+        all_zoom_optimizers = self.new_create_zoom_optimizers(self.global_param_space)
 
         # list of which zoom optimizers are running
         running_list = [True]
@@ -377,6 +377,59 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
+    
+    def new_create_zoom_optimizers(self, param_space: 'ParamSpace'):
+
+        '''
+        1. Start with one param space in a list
+        2. For each param space in list:
+        3. Loop over paramerer names
+            4. If param space is bimodal (on either test) based on parameter:
+                a. Split param space & put new param spaces in list
+                b. Remove original param space from list
+                c. Go back to step 2
+        5. Shrink parameter space ***
+        6. Create zoom optimizers from param spaces
+
+        *** Calculate proportional points from each zoom optimizer based on paramater space volume
+        
+        '''
+        open_dict : Dict[str, List[ Dict[str, float] ]] = {}
+        curr_param_space_list = [param_space]
+        final_param_space_list = []
+
+        while curr_param_space_list:
+
+            current = curr_param_space_list.pop(0)
+            print(current)  
+            
+            for parameter_name in current.parameter_names:
+
+                if self.prescan_parser.is_bimodal(decay=self.decay, param_name=parameter_name, param_space=current):
+
+                    min_val = current[parameter_name].low
+                    max_val = current[parameter_name].high
+                    mid_val = (min_val + max_val) / 2.0
+
+                    new_param_space = current.split_range(parameter_name, [mid_val])
+                    curr_param_space_list.extend(new_param_space)
+                else:
+
+                    final_param_space_list.append(current)
+
+        print(final_param_space_list)
+
+        '''
+        Tools to use:
+            - split_range in param_space.py
+            - volume in param_space.py
+            - is_bimodal in parse.py
+            - 
+        '''
+
+    def assign_zoom_points(self, list_of_params: list[ParamSpace]):
+        pass
+
 
     def finalize(self,
                  optimization: str,
