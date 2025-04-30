@@ -21,11 +21,11 @@ from utils.tsv_utils import count_tsv_points
 # get logger
 logger = logging.getLogger(__name__)
 
-def prescan(model: 'Model',
+def prescan(model: Model,
             num_points: int,
             config_loader: Union[ConfigLoader, None] = None,
             config_file_name: str = "",
-            overwrite: bool = False) -> 'Parse':
+            overwrite: bool = False) -> Parse:
 
     # get scan start time
     scan_start = time.time()
@@ -34,7 +34,7 @@ def prescan(model: 'Model',
     out_dir = prescan_dir(model)
 
     # names of .ini and .tsv files
-    tsv_name = out_dir + model.name + "_prescan.tsv"
+    tsv_name = os.path.join(out_dir,f"{model.name}_prescan.tsv")
 
     # print starting message
     logger.info(f"Running a prescan with {num_points} points for {model.mass_string}")

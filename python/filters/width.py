@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 def filter_widths(dataframe: pd.DataFrame,
                   header_width: str,
-                  model: 'Model',
-                  config_loader: 'ConfigLoader'
+                  model: Model,
+                  config_loader: ConfigLoader
                  ) -> None:
 
     # get strings for 3 bosons

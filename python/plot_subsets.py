@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 
 import os
-from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
-import itertools
 import logging
 
 import re
 from collections import defaultdict
 from plot import Plot
-from numpy.typing import NDArray
 import glob
 import configparser
 from utils import file_utils
 from utils.model import Model
 import argparse
 import logging
-from utils.params import Params
+from utils.param_space import ParamSpace
 from utils.parse import Parse
 class PlotTester:
 
@@ -30,21 +27,20 @@ class PlotTester:
         self.decay = decay
         self.model = model
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
-        self.ini_dir = self.scan_dir + "files/ini/"
+        self.ini_dir = os.path.join(self.scan_dir,"files","ini")
 
-        self.params = Params(model=self.model,
-                             decay=decay)
+        # TODO: Is this used anywhere?
+        self.param_space = ParamSpace(model=self.model,
+                                      decay=decay)
         
         # Initialize parser
-        self.parser = Parse(self.params.model)
+        self.parser = Parse(self.model)
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # Create plot output directory
-        self.output_dir = file_utils.plots_dir(model=self.model, 
-                                               decay=self.decay)
-        self.output_dir += "prescan_subsets/" # Add a new directory to hold the prescan plots apart from the scan plots
+        self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Parse ini files and store ranges
@@ -178,7 +174,7 @@ class PlotTester:
             zoom_op_files = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
                 
             # Create a new output directory to organize output by Zoom Optimizer    
-            group_output_dir = os.path.join(self.output_dir, zoom_op) + "/"
+            group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
             # Set the start and end colors by random RGB values
@@ -239,7 +235,7 @@ class PlotTester:
                     plt.ylabel(f"{param2}")
 
                     # Save the figure as a .png
-                    plt.savefig(group_output_dir + f"scan_{param1}__vs__{param2}.png")
+                    plt.savefig(os.path.join(group_output_dir,f"scan_{param1}__vs__{param2}.png"))
 
                     # Close the figure
                     plt.close()

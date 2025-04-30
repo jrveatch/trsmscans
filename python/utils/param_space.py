@@ -14,7 +14,7 @@ from utils.point import Point
 class ParamSpace:
 
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  decay: str = "NoDecay"):
 
         # get logger
@@ -65,7 +65,7 @@ class ParamSpace:
         return self.model.name
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """Model object"""
         return self.__model
 
@@ -74,9 +74,15 @@ class ParamSpace:
         """Decay mode being used"""
         return self.__decay
 
-    def center_points(self) -> Tuple[float]:
-        """Get tuple of center points for parameters"""
-        return tuple([param_range.center for param_range in self.parameter_ranges.values()])
+    def center_point(self) -> Point:
+        """Get center point for parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].center for name in self.parameter_names})
+
+    def random_point(self) -> Point:
+        """Get random point within parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].random_point() for name in self.parameter_names})
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
@@ -120,11 +126,16 @@ class ParamSpace:
             self.parameter_ranges[par_name].scale_width(new_val=new_val,
                                                         range_scale=range_scale)
 
-    def reposition_center(self, point: Tuple[float]):
+    def reposition_center(self, point: Point) -> None:
         """Change low and high of parameter ranges around a new center point"""
-        for (center, param_range) in zip(point, self.parameter_ranges.values()):
-            width = param_range.width / 2
-            param_range.set_low_high(center - width, center + width)
+        for name, center in point.input_parameter_values.items():
+            if name in self.parameter_ranges:
+                param_range = self.parameter_ranges[name]
+                width = param_range.width / 2
+                self.logger.debug(f"Updating parameter '{name}' range to ({center - width},{center + width})")
+                param_range.set_low_high(center - width, center + width)
+            else:
+                self.logger.debug(f"Skipping parameter '{name}' since it is not in the parameter ranges")
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
@@ -226,8 +237,8 @@ class ParamSpace:
 
     # Alias for self.center_point()
     @property
-    def vol_position(self) -> Tuple[float]:
-        return self.center_points()
+    def vol_position(self) -> Point:
+        return self.center_point()
 
     # Alias for self.widths()
     @property

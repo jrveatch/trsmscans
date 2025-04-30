@@ -57,11 +57,6 @@ def run_scannerS(ini_name: str,
     # get number of available CPUs
     num_cpu = mp.cpu_count()
 
-    # make sure the minimum number of points are used
-    if num_points < min_points_per_job:
-        logger.debug(f"A minimum of {min_points_per_job} is required to run, adjusting...")
-        num_points = min_points_per_job
-
     # use num_points unless modified for parallel processes
     points_per_process = num_points
 
@@ -74,8 +69,8 @@ def run_scannerS(ini_name: str,
         logger.debug(f"Only 1 CPU available, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
-    # if fewer than 2 processes are needed, run as a single process
-    if num_points <= 2 * min_points_per_job:
+    # run as a single process if only one is needed
+    if num_points <= min_points_per_job:
         logger.debug(f"Only 1 process needed, running as a single process with {num_points} points.")
         use_multiprocessing = False
 
@@ -121,38 +116,48 @@ def run_scannerS(ini_name: str,
 
         num_points = points_to_run + min_points_per_job
 
+        # create list of directories
+        directories = [f"dir_{i}" for i in range(num_processes)]
+
+        # define process
+        process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+
+        # create a shared counter and a lock
+        counter = mp.Manager().Value("i",0)
+        lock = mp.Manager().Lock()
+
+        # print empty job completion counter
+        print(f"{counter.value}/{num_processes} processes finished")
+
+        # create a pool of processes
+        with mp.Pool(processes=num_processes) as pool:
+
+            # map the run_process function to each directory
+            pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
+
+            # wait for all processes to finish
+            pool.close()
+            pool.join()
+
+        # success message
+        logger.info("All processes finished. Merging outputs...")
+
+        # combine the outputs into a single file
+        concatenate_files(directories=directories,
+                        file_name=model_name+".tsv")
+
     else:
         logger.info("Running as a single process")
 
-    # create list of directories
-    directories = [f"dir_{i}" for i in range(num_processes)]
+        # define test process
+        process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
 
-    # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
-
-    # create a shared counter and a lock
-    counter = mp.Manager().Value("i",0)
-    lock = mp.Manager().Lock()
-
-    # print empty job completion counter
-    print(f"{counter.value}/{num_processes} processes finished")
-
-    # create a pool of processes
-    with mp.Pool(processes=num_processes) as pool:
-
-        # map the run_process function to each directory
-        pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
-
-        # wait for all processes to finish
-        pool.close()
-        pool.join()
-
-    # success message
-    logger.info("All processes finished. Merging outputs...")
-
-    # combine the outputs into a single file
-    concatenate_files(directories=directories,
-                      file_name=model_name+".tsv")
+        # run test process
+        try:
+            run_timed_process(process_args=process_args,
+                              model_name=model_name)
+        except TimeoutError:
+            raise
 
     # return number of points that are actually used, including test job points
     return num_points
@@ -269,8 +274,10 @@ def concatenate_files(directories: List[str],
         return  # Do not proceed with deleting directories
 
     # If everything worked, proceed to delete directories
+    logger.debug("Removing temp directories")
     for directory in directories:
         remove_temp_dir(directory)
+    logger.debug("Successfully removed temp directories")
 
 # if rmtree fails due to non-empty directory, try a few more times
 # this seems necessary on lxplus and maybe some other systems
@@ -278,11 +285,11 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.debug(f"Successfully removed: {directory}")
+            logger.verbose(f"Successfully removed: {directory}")
             return
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.debug(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error

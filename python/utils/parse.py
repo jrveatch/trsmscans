@@ -2,7 +2,7 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict
+from typing import Dict, Optional
 
 # third-party libraries
 import diptest
@@ -20,7 +20,7 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  file_name: str = ""):
 
         # get logger
@@ -34,7 +34,7 @@ class Parse:
             self.read_file(file_name)
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """Model object"""
         return self.__model
 
@@ -130,14 +130,16 @@ class Parse:
 
     def is_bimodal(self,
                    param_name: str,
-                   decay: str) -> bool:
+                   decay: str,
+                   param_space: Optional[ParamSpace] = None) -> bool:
         """Check whether xb is unimodal in a parameter"""
 
         # percentile threshold for xb
         percentile_threshold = 0.98
 
         # get xb
-        xb = self.get_xb(decay)
+        xb = self.get_xb(decay=decay,
+                         param_space=param_space)
 
         # number of points available
         num_points = len(xb)
@@ -169,7 +171,8 @@ class Parse:
         return pval < pval_threshold
 
     def get_xb(self,
-               decay: str) -> pd.Series:
+               decay: str,
+               param_space: Optional[ParamSpace] = None) -> pd.Series:
         """Get array of xb values"""
 
         # get production cross section
@@ -187,7 +190,8 @@ class Parse:
             xb = xsec_prod * br_decay
 
         # return total xsec time BR
-        return xb
+        mask = self.param_space_mask(param_space)
+        return xb[mask]
 
     def __get_xsec_prod(self) -> pd.Series:
         """Get array of production cross-sections"""
@@ -400,17 +404,28 @@ class Parse:
         # return the decay BR
         return br_decay
 
-    def filter_by_param_space(self,
-                              param_space: ParamSpace) -> pd.DataFrame:
+    def get_filtered_data(self,
+                          param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
         """Return a view of filtered_data that is carved out by a parameter space"""
+        mask = self.param_space_mask(param_space)
+        return self.filtered_data[mask]
+
+    def param_space_mask(self,
+                         param_space: Optional[ParamSpace] = None) -> pd.Series:
+        """Return a mask of filtered_data that is carved out by a parameter space"""
         df = self.filtered_data
         mask = pd.Series(True, index=df.index)
 
+        # if no param_space is provided, return the mask of all points
+        if param_space is None:
+            return mask
+
+        # loop over parameters in the parameter space and create a mask
         for param in param_space:
             col = param.full_name
             mask &= (df[col] > param.low) & (df[col] <= param.high)
 
-        return df[mask]
+        return mask
 
     def write_max_xb_line(self,
                           file_name: str
