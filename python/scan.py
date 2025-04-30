@@ -119,9 +119,10 @@ class Scan:
             summary.write(content)
 
         # create raw output file
-        self.tsv_summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
-        with open(self.tsv_summary_name, "w"):
-            pass
+        if optimizer == "zoom":
+            self.tsv_summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
+            with open(self.tsv_summary_name, "w"):
+                pass
 
         # create details file
         self.details_name = os.path.join(self.out_dir,optimizer,"details",f"prescan_details_{self.model.name}_{self.decay}_{self.model.mass_string}.txt")
