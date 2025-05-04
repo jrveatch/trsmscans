@@ -72,7 +72,7 @@ class Plot:
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay),"files","tsv")
+        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay),"zoom","tsv")
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
