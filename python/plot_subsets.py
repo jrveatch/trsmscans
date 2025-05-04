@@ -15,7 +15,6 @@ from utils import file_utils
 from utils.model import Model
 import argparse
 import logging
-from utils.param_space import ParamSpace
 from utils.parse import Parse
 class PlotTester:
 
@@ -27,11 +26,7 @@ class PlotTester:
         self.decay = decay
         self.model = model
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
-        self.ini_dir = os.path.join(self.scan_dir,"files","ini")
-
-        # TODO: Is this used anywhere?
-        self.param_space = ParamSpace(model=self.model,
-                                      decay=decay)
+        self.ini_dir = os.path.join(self.scan_dir,"zoom","ini")
         
         # Initialize parser
         self.parser = Parse(self.model)
@@ -108,7 +103,7 @@ class PlotTester:
         # Print current status
         self.logger.info("Loading prescan ...")
 
-        #Initialize the prescan directory that will be used to gather points
+        # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
         
         # Read the data from the prescan file
@@ -156,7 +151,6 @@ class PlotTester:
                     filter_condition &= (filtered_df[par_name]>min_val) & (filtered_df[par_name]<max_val)
                 filtered_df = filtered_df[filter_condition]
 
-               # print(f'Filter condition\n{filtered_df}')
                 # Store the filtered DataFrame under the filename key
                 self.filtered_files[file] = filtered_df
 
@@ -170,7 +164,7 @@ class PlotTester:
 
         for zoom_op in self.ini_ranges.keys():
             
-            # Retrive files based on the current Zoom Optimizer
+            # Retrieve files based on the current Zoom Optimizer
             zoom_op_files = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
                 
             # Create a new output directory to organize output by Zoom Optimizer    
@@ -179,8 +173,6 @@ class PlotTester:
 
             # Set the start and end colors by random RGB values
             start_rgb, end_rgb = self.select_colors()
-
-            #print(zoom_op_files)
 
             for i, param1 in enumerate(self.pars[:-1]):
                 for param2 in self.pars[i+1:]:
@@ -195,7 +187,6 @@ class PlotTester:
                     width=1.5
 
                     plt.figure()
-                    #ax = plt.gca()
                
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
@@ -229,7 +220,7 @@ class PlotTester:
                         # Adjust the opacity
                         opacity += op 
 
-            # Initialize scatter plot labels
+                    # Initialize scatter plot labels
                     plt.title(f"{zoom_op}: {param1} vs {param2}")
                     plt.xlabel(f"{param1}")
                     plt.ylabel(f"{param2}")
@@ -260,7 +251,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str)
     args = arg_parser.parse_args()
 
     model = Model(name=args.model,
