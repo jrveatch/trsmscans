@@ -6,7 +6,11 @@ from typing import Dict, Optional
 
 # third-party libraries
 import diptest
+import numpy as np
 import pandas as pd
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
+import matplotlib.pyplot as plt
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -171,6 +175,94 @@ class Parse:
 
         # if p-value is below threshold, return True, otherwise return False
         return pval < pval_threshold
+
+    def get_1d_splits(self,
+                      param_name: str,
+                      decay: str,
+                      param_space: Optional[ParamSpace] = None,
+                      min_prominence=0.1,
+                      density_threshold=0.01,
+                      bw=0.15,
+                      n_points=1000):
+        """
+        Suggests 1D split points for a parameter column based on:
+        - Valleys between peaks in the xb distribution
+        - Gaps in the sample density
+
+        Parameters:
+            param_col (str): Name of the parameter to analyze
+            value_col (str): Name of the function value column (default 'xb')
+            min_prominence (float): Minimum prominence for detecting peaks
+            density_threshold (float): Density threshold for detecting gaps
+            n_points (int): Resolution of the evaluation grid
+
+        Returns:
+            List of split points along the param_col axis
+        """
+
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
+        data = pd.DataFrame({param_name: self.input_parameter_arrays[param_name][mask],
+                     'xb': self.get_xb(decay=decay)[mask]})
+        data = data.dropna()
+        par_vals = data[param_name].values
+        xb = data['xb'].values
+
+        if len(par_vals) < 10:
+            return []
+
+        # Sort for consistency
+        idx = np.argsort(par_vals)
+        par_vals_sorted = par_vals[idx]
+        xb_sorted = xb[idx]
+
+        # Grid for KDE evaluation
+        par_vals_eval = np.linspace(par_vals_sorted.min(), par_vals_sorted.max(), n_points)
+
+        # KDE (xb-weighted)
+        kde_xb = gaussian_kde(par_vals_sorted, weights=xb_sorted, bw_method=bw)
+        kde_vals = kde_xb(par_vals_eval)
+
+        # Find peaks and valleys
+        peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
+        valleys, _ = find_peaks(-kde_vals)
+
+        # Plot
+        plt.figure(figsize=(8, 4))
+        plt.plot(par_vals_eval, kde_vals, label='KDE(xb-weighted)', color='blue')
+        plt.plot(par_vals_eval[peaks], kde_vals[peaks], 'x', label='Peaks', color='green', markersize=10)
+        plt.plot(par_vals_eval[valleys], kde_vals[valleys], 'o', label='Valleys', color='red', markersize=8)
+        plt.title(f"KDE of xb along {param_name}")
+        plt.xlabel(param_name)
+        plt.ylabel("Weighted Density")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+        # Modality-based: KDE weighted by xb
+        try:
+            kde_xb = gaussian_kde(par_vals_sorted, weights=xb_sorted, bw_method=bw)
+            kde_vals = kde_xb(par_vals_eval)
+            peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
+            valleys, _ = find_peaks(-kde_vals)
+            valley_points = par_vals_eval[valleys] if len(peaks) > 1 else []
+        except Exception:
+            valley_points = []
+
+        # Density-based: KDE of samples only
+        #try:
+        #    kde_density = gaussian_kde(par_vals_sorted)
+        #    density_vals = kde_density(par_vals_eval)
+        #    low_density = par_vals_eval[density_vals < density_threshold]
+        #except Exception:
+        #    low_density = []
+        low_density = []
+
+        # Combine, filter duplicates, and sort
+        all_splits = np.unique(np.concatenate([valley_points, low_density]))
+        return all_splits.tolist()
 
     def get_xb(self,
                decay: str,
