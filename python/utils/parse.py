@@ -183,7 +183,7 @@ class Parse:
                               min_prominence=0.1,
                               density_threshold=0.01,
                               bw=0.15,
-                              n_points=1000):
+                              n_points=200):
         """
         Suggests 1D split points for a parameter column based on:
         - Valleys between peaks in the xb distribution
