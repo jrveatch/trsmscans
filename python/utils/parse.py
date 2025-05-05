@@ -209,7 +209,8 @@ class Parse:
         par_vals = data[param_name].values
         xb = data['xb'].values
 
-        if len(par_vals) < 10:
+        # ensure a minimum number of points
+        if len(par_vals) < 100:
             return []
 
         # Sort for consistency
