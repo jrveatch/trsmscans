@@ -176,14 +176,14 @@ class Parse:
         # if p-value is below threshold, return True, otherwise return False
         return pval < pval_threshold
 
-    def get_1d_splits(self,
-                      param_name: str,
-                      decay: str,
-                      param_space: Optional[ParamSpace] = None,
-                      min_prominence=0.1,
-                      density_threshold=0.01,
-                      bw=0.15,
-                      n_points=1000):
+    def get_multimodal_splits(self,
+                              param_name: str,
+                              decay: str,
+                              param_space: Optional[ParamSpace] = None,
+                              min_prominence=0.1,
+                              density_threshold=0.01,
+                              bw=0.15,
+                              n_points=1000):
         """
         Suggests 1D split points for a parameter column based on:
         - Valleys between peaks in the xb distribution
