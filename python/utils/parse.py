@@ -252,13 +252,15 @@ class Parse:
             valley_points = []
 
         # Density-based: KDE of samples only
-        #try:
-        #    kde_density = gaussian_kde(par_vals_sorted)
-        #    density_vals = kde_density(par_vals_eval)
-        #    low_density = par_vals_eval[density_vals < density_threshold]
-        #except Exception:
-        #    low_density = []
-        low_density = []
+        try:
+            par_vals_scaled = (par_vals_sorted - par_vals_sorted.min()) / (par_vals_sorted.max() - par_vals_sorted.min())
+            kde_density = gaussian_kde(par_vals_scaled)
+            par_eval_scaled = np.linspace(0, 1, n_points)
+            density_vals = kde_density(par_eval_scaled)
+            low_density_scaled = par_vals_eval[density_vals < density_threshold]
+            low_density = low_density_scaled * (par_vals_sorted.max() - par_vals_sorted.min()) + par_vals_sorted.min()
+        except Exception:
+            low_density = []
 
         # Combine, filter duplicates, and sort
         all_splits = np.unique(np.concatenate([valley_points, low_density]))
