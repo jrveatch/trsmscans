@@ -25,17 +25,17 @@ def combine_results(model: str,
     combination_headers_written = False
     tsv_combination_headers_written = False
 
-    combination_file_name = output_dir() + f"{model}/scan/{decay}/{decay}_{identifier}_combination.tsv"
-    tsv_combination_file_name = output_dir() + f"{model}/scan/{decay}/{decay}_{identifier}_tsv_combination.tsv"
+    combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_combination.tsv")
+    tsv_combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_tsv_combination.tsv")
 
     try:
         with open(combination_file_name, 'w') as combination_file, open(tsv_combination_file_name, 'w') as tsv_combination_file:
             for XMass, SMass, resolvable in permutations:
                 # Get the directory for the mass point
-                directory = output_dir() + f"{model}/scan/{decay}/X{XMass}_S{SMass}/"
+                directory = os.path.join(output_dir(),model,"scan",decay,f"X{int(XMass)}_S{int(SMass)}")
                 # If mass point isn't resolvable, use the non-resolvable decay
                 if not resolvable:
-                    directory = output_dir() + f"{model}/scan/{get_non_resolvable_decay(decay)}/X{XMass}_S{SMass}/"
+                    directory = os.path.join(output_dir(),model,"scan",get_non_resolvable_decay(decay),f"X{int(XMass)}_S{int(SMass)}")
                 if not os.path.isdir(directory):
                     print(f"Directory {directory} does not exist. Skipping.")
                     continue

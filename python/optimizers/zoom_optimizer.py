@@ -14,6 +14,7 @@ import pandas as pd
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
 from utils.math_utils import round_sig
+from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
@@ -32,7 +33,6 @@ class ZoomOptimizer:
 
         # some basic scanner information
         self.param_space = param_space
-        self.decay = param_space.decay
         self.num_points = num_points
         self.local_max = starting_max.copy(0.0)
         self.global_max = starting_max.copy()
@@ -70,23 +70,33 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model = param_space.model,
-                           decay = param_space.decay)
+        out_dir = scan_dir(model = self.model,
+                           decay = self.decay)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
                                           config_loader = config_loader,
-                                          use_file_dir = True)
+                                          subdir_name = "zoom")
 
         # get output information file names
-        output_file_postfix = f"{self.param_space.model_name}_{self.decay}_{self.param_space.mass_string}"
+        output_file_postfix = f"{self.model.name}_{self.decay}_{self.model.mass_string}"
         self.summary_name = os.path.join(out_dir,f"summary_zoom_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(out_dir,f"summary_zoom_tsv_{output_file_postfix}.tsv")
-        self.prescan_details_name = os.path.join(out_dir,"files","details",f"prescan_details_{output_file_postfix}.txt")
-        self.details_name = os.path.join(out_dir,"files","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
+        self.prescan_details_name = os.path.join(out_dir,"zoom","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(out_dir,"zoom","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
+
+    @property
+    def model(self) -> Model:
+        """Model used in scan"""
+        return self.param_space.model
+
+    @property
+    def decay(self) -> str:
+        """Decay mode used in scan"""
+        return self.param_space.decay
 
     def run(self,
             iter: int,
@@ -122,7 +132,7 @@ class ZoomOptimizer:
             self.termination_message("No output detected")
             self.termination_message("Using empty point as new max")
             new_max = Point(xb = 0.0,
-                            model = self.param_space.model,
+                            model = self.model,
                             par_vals = self.local_max.parameter_values)
             do_zoom = False
         # otherwise get new point as the maximum from the current scan
@@ -209,8 +219,8 @@ class ZoomOptimizer:
 
         return new_max
 
-    # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
+        """Write max xb point info to summary file."""
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
             for val in self.local_max.parameter_values.values():
@@ -218,10 +228,10 @@ class ZoomOptimizer:
             content += f"\t{identifier}\n"
             summary.write(content)
 
-    # write to details file
     def write_details(self,
                       identifier: str,
                       new_max: Point) -> None:
+        """Write to details file."""
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
