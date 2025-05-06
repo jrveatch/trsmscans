@@ -38,6 +38,15 @@ class PlotTester:
         self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
         os.makedirs(self.output_dir, exist_ok=True)
 
+        # Define mapping between .ini file params and DataFrame columns
+        self.param_mapping = {
+            "t1": "thetahS",
+            "t2": "thetahX",
+            "t3": "thetaSX",
+            "vs": "vs",
+            "vx": "vx"
+        }
+
         # Parse ini files and store ranges
         self.ini_ranges = self.parse_ini_files(self.ini_dir)
 
@@ -123,15 +132,6 @@ class PlotTester:
         if self.panda_df.empty or not self.ini_ranges:
             self.logger.warning("No data to filter.")
             return
-
-        # Define mapping between .ini file params and DataFrame columns
-        self.param_mapping = {
-            "t1": "thetahS",
-            "t2": "thetahX",
-            "t3": "thetaSX",
-            "vs": "vs",
-            "vx": "vx"
-        }
 
         # Initialize empty dictionary to store filtered files
         self.filtered_files = {}
@@ -242,7 +242,6 @@ class PlotTester:
 
         # Return the values to call
         return color1, color2
-    
 
 if __name__ == "__main__":
 
