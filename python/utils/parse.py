@@ -2,7 +2,7 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 # third-party libraries
 import diptest
@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
-import matplotlib.pyplot as plt
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -176,14 +175,14 @@ class Parse:
         # if p-value is below threshold, return True, otherwise return False
         return pval < pval_threshold
 
-    def get_multimodal_splits(self,
-                              param_name: str,
-                              decay: str,
-                              param_space: Optional[ParamSpace] = None,
-                              min_prominence=0.1,
-                              density_threshold=0.01,
-                              bw=0.15,
-                              n_points=200):
+    def get_param_space_splits(self,
+                               param_name: str,
+                               decay: str,
+                               param_space: Optional[ParamSpace] = None,
+                               min_prominence=0.1,
+                               density_threshold=0.01,
+                               bw='silverman',
+                               n_points=200):
         """
         Suggests 1D split points for a parameter column based on:
         - Valleys between peaks in the xb distribution
@@ -210,7 +209,7 @@ class Parse:
         xb = data['xb'].values
 
         # ensure a minimum number of points
-        if len(par_vals) < 100:
+        if len(par_vals) < 500:
             return []
 
         # Sort for consistency
@@ -219,53 +218,82 @@ class Parse:
         xb_sorted = xb[idx]
 
         # Grid for KDE evaluation
-        par_vals_eval = np.linspace(par_vals_sorted.min(), par_vals_sorted.max(), n_points)
-
-        # KDE (xb-weighted)
-        kde_xb = gaussian_kde(par_vals_sorted, weights=xb_sorted, bw_method=bw)
-        kde_vals = kde_xb(par_vals_eval)
-
-        # Find peaks and valleys
-        peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
-        valleys, _ = find_peaks(-kde_vals)
-
-        # Plot
-        plt.figure(figsize=(8, 4))
-        plt.plot(par_vals_eval, kde_vals, label='KDE(xb-weighted)', color='blue')
-        plt.plot(par_vals_eval[peaks], kde_vals[peaks], 'x', label='Peaks', color='green', markersize=10)
-        plt.plot(par_vals_eval[valleys], kde_vals[valleys], 'o', label='Valleys', color='red', markersize=8)
-        plt.title(f"KDE of xb along {param_name}")
-        plt.xlabel(param_name)
-        plt.ylabel("Weighted Density")
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.show()
+        par_vals_eval: np.ndarray = np.linspace(par_vals_sorted.min(), par_vals_sorted.max(), n_points)
 
         # Modality-based: KDE weighted by xb
-        try:
-            kde_xb = gaussian_kde(par_vals_sorted, weights=xb_sorted, bw_method=bw)
-            kde_vals = kde_xb(par_vals_eval)
-            peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
-            valleys, _ = find_peaks(-kde_vals)
-            valley_points = par_vals_eval[valleys] if len(peaks) > 1 else []
-        except Exception:
-            valley_points = []
+        valley_points = self.get_modality_splits(par_vals=par_vals_sorted,
+                                                 xb_vals=xb_sorted,
+                                                 par_vals_eval=par_vals_eval,
+                                                 bw=bw,
+                                                 min_prominence=min_prominence)
 
         # Density-based: KDE of samples only
-        try:
-            par_vals_scaled = (par_vals_sorted - par_vals_sorted.min()) / (par_vals_sorted.max() - par_vals_sorted.min())
-            kde_density = gaussian_kde(par_vals_scaled)
-            par_eval_scaled = np.linspace(0, 1, n_points)
-            density_vals = kde_density(par_eval_scaled)
-            low_density_scaled = par_vals_eval[density_vals < density_threshold]
-            low_density = low_density_scaled * (par_vals_sorted.max() - par_vals_sorted.min()) + par_vals_sorted.min()
-        except Exception:
-            low_density = []
+        low_density = self.get_density_splits(par_vals=par_vals_sorted,
+                                              n_points=n_points,
+                                              density_threshold=density_threshold,
+                                              bw=bw)
 
         # Combine, filter duplicates, and sort
         all_splits = np.unique(np.concatenate([valley_points, low_density]))
         return all_splits.tolist()
+
+    def get_modality_splits(self,
+                            par_vals: np.ndarray,
+                            xb_vals: np.ndarray,
+                            par_vals_eval: np.ndarray,
+                            bw: str | float = 'silverman',
+                            min_prominence: float = 0.1) -> List[float]:
+        """Modality-based KDE splits weighted by xb."""
+        try:
+            kde_xb = gaussian_kde(par_vals, weights=xb_vals, bw_method=bw)
+            kde_vals = kde_xb(par_vals_eval)
+            peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
+            valleys, _ = find_peaks(-kde_vals)
+            splits = par_vals_eval[valleys] if len(peaks) > 1 else []
+        except Exception:
+            splits = []
+        return splits
+
+    def get_density_splits(self,
+                        par_vals: np.ndarray,
+                        n_points: int = 200,
+                        density_threshold: float = 0.01,
+                        bw: str | float = 'silverman',) -> List[float]:
+        """Density-based KDE splits: one midpoint per low-density region."""
+        try:
+            # Normalize parameter values to [0, 1]
+            par_min, par_max = par_vals.min(), par_vals.max()
+            par_scaled = (par_vals - par_min) / (par_max - par_min)
+
+            # Evaluate KDE
+            kde = gaussian_kde(par_scaled, bw_method=bw)
+            x_eval = np.linspace(0, 1, n_points)
+            density_vals = kde(x_eval)
+
+            # Find contiguous low-density regions
+            below = density_vals < density_threshold
+            splits = []
+            start_idx = None
+            for i, is_low in enumerate(below):
+                if is_low and start_idx is None:
+                    start_idx = i
+                elif not is_low and start_idx is not None:
+                    end_idx = i
+                    mid_idx = (start_idx + end_idx) // 2
+                    mid_x = x_eval[mid_idx]
+                    # Map back to original scale
+                    splits.append(mid_x * (par_max - par_min) + par_min)
+                    start_idx = None
+            if start_idx is not None:
+                mid_idx = (start_idx + len(x_eval)) // 2
+                mid_x = x_eval[mid_idx]
+                splits.append(mid_x * (par_max - par_min) + par_min)
+
+            return splits
+
+        except Exception as e:
+            print(f"[density_splits error] {e}")
+            return []
 
     def get_xb(self,
                decay: str,
