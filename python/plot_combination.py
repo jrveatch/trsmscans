@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import scipy.interpolate as spi
 import matplotlib.pyplot as plt # type: ignore
