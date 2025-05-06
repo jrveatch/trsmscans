@@ -25,7 +25,7 @@ def prescan_tsv(model: Model) -> str:
     """
     Get the path to the prescan .tsv file for a given model and masses.
     """
-    return os.path.join(prescan_dir(model),model.name,"_prescan.tsv")
+    return os.path.join(prescan_dir(model),f"{model.name}_prescan.tsv")
 
 def plots_dir(model: Model,
               decay: str) -> str:

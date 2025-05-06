@@ -7,1821 +7,1821 @@
     "decay_channel": "X->S(bb)H(bb)",
     "mass_points": [
         {
-            "mX": 900.0,
-            "mS": 60.0,
+            "mX": 900,
+            "mS": 60,
             "expected_limit": 11.812,
             "observed_limit": 18.175,
             "resolvable": true
         },
         {
-            "mX": 900.0,
-            "mS": 70.0,
+            "mX": 900,
+            "mS": 70,
             "expected_limit": 5.0312,
             "observed_limit": 5.3782,
             "resolvable": true
         },
         {
-            "mX": 900.0,
-            "mS": 80.0,
+            "mX": 900,
+            "mS": 80,
             "expected_limit": 5.5938,
             "observed_limit": 6.1753,
             "resolvable": true
         },
         {
-            "mX": 900.0,
-            "mS": 90.0,
+            "mX": 900,
+            "mS": 90,
             "expected_limit": 5.9062,
             "observed_limit": 9.8197,
             "resolvable": true
         },
         {
-            "mX": 900.0,
-            "mS": 100.0,
+            "mX": 900,
+            "mS": 100,
             "expected_limit": 5.8594,
             "observed_limit": 11.886,
             "resolvable": true
         },
         {
-            "mX": 900.0,
-            "mS": 125.0,
+            "mX": 900,
+            "mS": 125,
             "expected_limit": 4.7656,
             "observed_limit": 9.5311,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 60.0,
+            "mX": 1000,
+            "mS": 60,
             "expected_limit": 6.0312,
             "observed_limit": 9.5565,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 70.0,
+            "mX": 1000,
+            "mS": 70,
             "expected_limit": 2.4453,
             "observed_limit": 4.1018,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 80.0,
+            "mX": 1000,
+            "mS": 80,
             "expected_limit": 2.75,
             "observed_limit": 3.5846,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 90.0,
+            "mX": 1000,
+            "mS": 90,
             "expected_limit": 2.6406,
             "observed_limit": 2.2868,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 100.0,
+            "mX": 1000,
+            "mS": 100,
             "expected_limit": 2.8281,
             "observed_limit": 2.3568,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 125.0,
+            "mX": 1000,
+            "mS": 125,
             "expected_limit": 2.3516,
             "observed_limit": 1.8537,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 150.0,
+            "mX": 1000,
+            "mS": 150,
             "expected_limit": 3.7031,
             "observed_limit": 2.8949,
             "resolvable": true
         },
         {
-            "mX": 1000.0,
-            "mS": 200.0,
+            "mX": 1000,
+            "mS": 200,
             "expected_limit": 13.562,
             "observed_limit": 12.701,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 60.0,
+            "mX": 1100,
+            "mS": 60,
             "expected_limit": 4.4062,
             "observed_limit": 3.5359,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 70.0,
+            "mX": 1100,
+            "mS": 70,
             "expected_limit": 1.3164,
             "observed_limit": 1.651,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 80.0,
+            "mX": 1100,
+            "mS": 80,
             "expected_limit": 1.4609,
             "observed_limit": 1.797,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 90.0,
+            "mX": 1100,
+            "mS": 90,
             "expected_limit": 1.4141,
             "observed_limit": 1.2943,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 100.0,
+            "mX": 1100,
+            "mS": 100,
             "expected_limit": 1.4844,
             "observed_limit": 0.98475,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 125.0,
+            "mX": 1100,
+            "mS": 125,
             "expected_limit": 1.1719,
             "observed_limit": 0.74004,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 150.0,
+            "mX": 1100,
+            "mS": 150,
             "expected_limit": 1.7812,
             "observed_limit": 1.0746,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 200.0,
+            "mX": 1100,
+            "mS": 200,
             "expected_limit": 2.9219,
             "observed_limit": 3.5367,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 250.0,
+            "mX": 1100,
+            "mS": 250,
             "expected_limit": 27.375,
             "observed_limit": 23.236,
             "resolvable": true
         },
         {
-            "mX": 1100.0,
-            "mS": 300.0,
+            "mX": 1100,
+            "mS": 300,
             "expected_limit": 146.5,
             "observed_limit": 119.6,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 60.0,
+            "mX": 1200,
+            "mS": 60,
             "expected_limit": 3.5625,
             "observed_limit": 1.8634,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 70.0,
+            "mX": 1200,
+            "mS": 70,
             "expected_limit": 0.90625,
             "observed_limit": 0.53786,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 80.0,
+            "mX": 1200,
+            "mS": 80,
             "expected_limit": 0.98438,
             "observed_limit": 0.689,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 90.0,
+            "mX": 1200,
+            "mS": 90,
             "expected_limit": 0.96484,
             "observed_limit": 0.7857,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 100.0,
+            "mX": 1200,
+            "mS": 100,
             "expected_limit": 0.98047,
             "observed_limit": 0.77501,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 125.0,
+            "mX": 1200,
+            "mS": 125,
             "expected_limit": 0.75781,
             "observed_limit": 0.61527,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 150.0,
+            "mX": 1200,
+            "mS": 150,
             "expected_limit": 1.0898,
             "observed_limit": 0.89744,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 200.0,
+            "mX": 1200,
+            "mS": 200,
             "expected_limit": 1.4453,
             "observed_limit": 1.9673,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 250.0,
+            "mX": 1200,
+            "mS": 250,
             "expected_limit": 5.9688,
             "observed_limit": 7.6962,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 300.0,
+            "mX": 1200,
+            "mS": 300,
             "expected_limit": 49.875,
             "observed_limit": 45.84,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 350.0,
+            "mX": 1200,
+            "mS": 350,
             "expected_limit": 123.5,
             "observed_limit": 122.74,
             "resolvable": true
         },
         {
-            "mX": 1200.0,
-            "mS": 400.0,
+            "mX": 1200,
+            "mS": 400,
             "expected_limit": 142.75,
             "observed_limit": 116.74,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 60.0,
+            "mX": 1300,
+            "mS": 60,
             "expected_limit": 3.1562,
             "observed_limit": 3.1223,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 70.0,
+            "mX": 1300,
+            "mS": 70,
             "expected_limit": 0.72461,
             "observed_limit": 0.52136,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 80.0,
+            "mX": 1300,
+            "mS": 80,
             "expected_limit": 0.7207,
             "observed_limit": 0.4262,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 90.0,
+            "mX": 1300,
+            "mS": 90,
             "expected_limit": 0.73242,
             "observed_limit": 0.46362,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 100.0,
+            "mX": 1300,
+            "mS": 100,
             "expected_limit": 0.75391,
             "observed_limit": 0.53325,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 125.0,
+            "mX": 1300,
+            "mS": 125,
             "expected_limit": 0.57812,
             "observed_limit": 0.528,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 150.0,
+            "mX": 1300,
+            "mS": 150,
             "expected_limit": 0.77734,
             "observed_limit": 0.70926,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 200.0,
+            "mX": 1300,
+            "mS": 200,
             "expected_limit": 0.99219,
             "observed_limit": 1.3396,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 250.0,
+            "mX": 1300,
+            "mS": 250,
             "expected_limit": 1.9141,
             "observed_limit": 2.9599,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 300.0,
+            "mX": 1300,
+            "mS": 300,
             "expected_limit": 14.25,
             "observed_limit": 15.487,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 350.0,
+            "mX": 1300,
+            "mS": 350,
             "expected_limit": 54.75,
             "observed_limit": 52.732,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 400.0,
+            "mX": 1300,
+            "mS": 400,
             "expected_limit": 79.25,
             "observed_limit": 45.733,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 450.0,
+            "mX": 1300,
+            "mS": 450,
             "expected_limit": 94.25,
             "observed_limit": 67.874,
             "resolvable": true
         },
         {
-            "mX": 1300.0,
-            "mS": 500.0,
+            "mX": 1300,
+            "mS": 500,
             "expected_limit": 109.5,
             "observed_limit": 98.288,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 60.0,
+            "mX": 1400,
+            "mS": 60,
             "expected_limit": 2.9531,
             "observed_limit": 5.5121,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 70.0,
+            "mX": 1400,
+            "mS": 70,
             "expected_limit": 0.61914,
             "observed_limit": 1.0548,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 80.0,
+            "mX": 1400,
+            "mS": 80,
             "expected_limit": 0.57422,
             "observed_limit": 0.95447,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 90.0,
+            "mX": 1400,
+            "mS": 90,
             "expected_limit": 0.57422,
             "observed_limit": 0.73212,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 100.0,
+            "mX": 1400,
+            "mS": 100,
             "expected_limit": 0.5918,
             "observed_limit": 0.48962,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 125.0,
+            "mX": 1400,
+            "mS": 125,
             "expected_limit": 0.48242,
             "observed_limit": 0.39929,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 150.0,
+            "mX": 1400,
+            "mS": 150,
             "expected_limit": 0.6543,
             "observed_limit": 0.5153,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 200.0,
+            "mX": 1400,
+            "mS": 200,
             "expected_limit": 0.75781,
             "observed_limit": 0.50249,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 250.0,
+            "mX": 1400,
+            "mS": 250,
             "expected_limit": 1.0234,
             "observed_limit": 1.59,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 300.0,
+            "mX": 1400,
+            "mS": 300,
             "expected_limit": 5.9531,
             "observed_limit": 5.4759,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 350.0,
+            "mX": 1400,
+            "mS": 350,
             "expected_limit": 26.875,
             "observed_limit": 23.177,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 400.0,
+            "mX": 1400,
+            "mS": 400,
             "expected_limit": 48.375,
             "observed_limit": 37.461,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 450.0,
+            "mX": 1400,
+            "mS": 450,
             "expected_limit": 60.5,
             "observed_limit": 40.028,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 500.0,
+            "mX": 1400,
+            "mS": 500,
             "expected_limit": 69.75,
             "observed_limit": 57.127,
             "resolvable": true
         },
         {
-            "mX": 1400.0,
-            "mS": 600.0,
+            "mX": 1400,
+            "mS": 600,
             "expected_limit": 90.25,
             "observed_limit": 74.215,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 60.0,
+            "mX": 1500,
+            "mS": 60,
             "expected_limit": 2.7969,
             "observed_limit": 4.9106,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 70.0,
+            "mX": 1500,
+            "mS": 70,
             "expected_limit": 0.50391,
             "observed_limit": 0.99756,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 80.0,
+            "mX": 1500,
+            "mS": 80,
             "expected_limit": 0.45703,
             "observed_limit": 1.0131,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 90.0,
+            "mX": 1500,
+            "mS": 90,
             "expected_limit": 0.45703,
             "observed_limit": 1.0295,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 100.0,
+            "mX": 1500,
+            "mS": 100,
             "expected_limit": 0.46289,
             "observed_limit": 0.74509,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 125.0,
+            "mX": 1500,
+            "mS": 125,
             "expected_limit": 0.39062,
             "observed_limit": 0.23832,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 150.0,
+            "mX": 1500,
+            "mS": 150,
             "expected_limit": 0.52148,
             "observed_limit": 0.39304,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 200.0,
+            "mX": 1500,
+            "mS": 200,
             "expected_limit": 0.60547,
             "observed_limit": 0.34157,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 250.0,
+            "mX": 1500,
+            "mS": 250,
             "expected_limit": 0.65039,
             "observed_limit": 0.76176,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 300.0,
+            "mX": 1500,
+            "mS": 300,
             "expected_limit": 2.2656,
             "observed_limit": 1.9674,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 350.0,
+            "mX": 1500,
+            "mS": 350,
             "expected_limit": 13.312,
             "observed_limit": 11.215,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 400.0,
+            "mX": 1500,
+            "mS": 400,
             "expected_limit": 31.625,
             "observed_limit": 28.869,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 450.0,
+            "mX": 1500,
+            "mS": 450,
             "expected_limit": 45.75,
             "observed_limit": 36.205,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 500.0,
-            "expected_limit": 46.0,
+            "mX": 1500,
+            "mS": 500,
+            "expected_limit": 46,
             "observed_limit": 33.1,
             "resolvable": true
         },
         {
-            "mX": 1500.0,
-            "mS": 600.0,
+            "mX": 1500,
+            "mS": 600,
             "expected_limit": 60.25,
             "observed_limit": 41.836,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 60.0,
+            "mX": 1600,
+            "mS": 60,
             "expected_limit": 2.875,
             "observed_limit": 4.3252,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 70.0,
+            "mX": 1600,
+            "mS": 70,
             "expected_limit": 0.52148,
             "observed_limit": 0.946,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 80.0,
+            "mX": 1600,
+            "mS": 80,
             "expected_limit": 0.41602,
             "observed_limit": 0.99537,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 90.0,
+            "mX": 1600,
+            "mS": 90,
             "expected_limit": 0.43164,
             "observed_limit": 1.0241,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 100.0,
+            "mX": 1600,
+            "mS": 100,
             "expected_limit": 0.44141,
             "observed_limit": 0.95317,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 125.0,
+            "mX": 1600,
+            "mS": 125,
             "expected_limit": 0.34082,
             "observed_limit": 0.1985,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 150.0,
+            "mX": 1600,
+            "mS": 150,
             "expected_limit": 0.47852,
             "observed_limit": 0.28659,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 200.0,
+            "mX": 1600,
+            "mS": 200,
             "expected_limit": 0.57227,
             "observed_limit": 0.32154,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 250.0,
+            "mX": 1600,
+            "mS": 250,
             "expected_limit": 0.55273,
             "observed_limit": 0.47469,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 300.0,
+            "mX": 1600,
+            "mS": 300,
             "expected_limit": 1.2305,
             "observed_limit": 0.94397,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 350.0,
+            "mX": 1600,
+            "mS": 350,
             "expected_limit": 7.1562,
             "observed_limit": 5.1216,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 400.0,
+            "mX": 1600,
+            "mS": 400,
             "expected_limit": 20.875,
             "observed_limit": 13.136,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 450.0,
+            "mX": 1600,
+            "mS": 450,
             "expected_limit": 32.125,
             "observed_limit": 24.331,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 500.0,
-            "expected_limit": 38.0,
+            "mX": 1600,
+            "mS": 500,
+            "expected_limit": 38,
             "observed_limit": 26.636,
             "resolvable": true
         },
         {
-            "mX": 1600.0,
-            "mS": 600.0,
+            "mX": 1600,
+            "mS": 600,
             "expected_limit": 50.25,
             "observed_limit": 34.23,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 60.0,
+            "mX": 1700,
+            "mS": 60,
             "expected_limit": 2.4688,
             "observed_limit": 2.8036,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 70.0,
+            "mX": 1700,
+            "mS": 70,
             "expected_limit": 0.4375,
             "observed_limit": 0.70457,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 80.0,
+            "mX": 1700,
+            "mS": 80,
             "expected_limit": 0.36914,
             "observed_limit": 0.79424,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 90.0,
+            "mX": 1700,
+            "mS": 90,
             "expected_limit": 0.38477,
             "observed_limit": 0.90498,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 100.0,
+            "mX": 1700,
+            "mS": 100,
             "expected_limit": 0.39648,
             "observed_limit": 0.86709,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 125.0,
+            "mX": 1700,
+            "mS": 125,
             "expected_limit": 0.30273,
             "observed_limit": 0.23956,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 150.0,
+            "mX": 1700,
+            "mS": 150,
             "expected_limit": 0.4082,
             "observed_limit": 0.20645,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 200.0,
+            "mX": 1700,
+            "mS": 200,
             "expected_limit": 0.49609,
             "observed_limit": 0.30484,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 250.0,
+            "mX": 1700,
+            "mS": 250,
             "expected_limit": 0.45898,
             "observed_limit": 0.33054,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 300.0,
+            "mX": 1700,
+            "mS": 300,
             "expected_limit": 0.84375,
             "observed_limit": 0.58009,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 350.0,
+            "mX": 1700,
+            "mS": 350,
             "expected_limit": 3.7812,
             "observed_limit": 2.6956,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 400.0,
+            "mX": 1700,
+            "mS": 400,
             "expected_limit": 14.938,
             "observed_limit": 9.3551,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 450.0,
+            "mX": 1700,
+            "mS": 450,
             "expected_limit": 22.75,
             "observed_limit": 14.543,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 500.0,
-            "expected_limit": 29.0,
+            "mX": 1700,
+            "mS": 500,
+            "expected_limit": 29,
             "observed_limit": 22.634,
             "resolvable": true
         },
         {
-            "mX": 1700.0,
-            "mS": 600.0,
+            "mX": 1700,
+            "mS": 600,
             "expected_limit": 34.625,
             "observed_limit": 21.474,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 60.0,
+            "mX": 1800,
+            "mS": 60,
             "expected_limit": 2.4688,
             "observed_limit": 2.5753,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 70.0,
+            "mX": 1800,
+            "mS": 70,
             "expected_limit": 0.39062,
             "observed_limit": 0.4299,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 80.0,
+            "mX": 1800,
+            "mS": 80,
             "expected_limit": 0.30273,
             "observed_limit": 0.43535,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 90.0,
+            "mX": 1800,
+            "mS": 90,
             "expected_limit": 0.32422,
             "observed_limit": 0.58,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 100.0,
+            "mX": 1800,
+            "mS": 100,
             "expected_limit": 0.33789,
             "observed_limit": 0.59923,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 125.0,
+            "mX": 1800,
+            "mS": 125,
             "expected_limit": 0.26172,
             "observed_limit": 0.25004,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 150.0,
+            "mX": 1800,
+            "mS": 150,
             "expected_limit": 0.34082,
             "observed_limit": 0.19265,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 200.0,
+            "mX": 1800,
+            "mS": 200,
             "expected_limit": 0.41797,
             "observed_limit": 0.29347,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 250.0,
+            "mX": 1800,
+            "mS": 250,
             "expected_limit": 0.375,
             "observed_limit": 0.26493,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 300.0,
+            "mX": 1800,
+            "mS": 300,
             "expected_limit": 0.60547,
             "observed_limit": 0.41096,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 350.0,
+            "mX": 1800,
+            "mS": 350,
             "expected_limit": 1.875,
             "observed_limit": 1.4215,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 400.0,
+            "mX": 1800,
+            "mS": 400,
             "expected_limit": 8.4375,
             "observed_limit": 4.8658,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 450.0,
+            "mX": 1800,
+            "mS": 450,
             "expected_limit": 16.312,
             "observed_limit": 10.005,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 500.0,
+            "mX": 1800,
+            "mS": 500,
             "expected_limit": 22.375,
             "observed_limit": 12.326,
             "resolvable": true
         },
         {
-            "mX": 1800.0,
-            "mS": 600.0,
+            "mX": 1800,
+            "mS": 600,
             "expected_limit": 27.375,
             "observed_limit": 19.663,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 60.0,
+            "mX": 1900,
+            "mS": 60,
             "expected_limit": 2.8125,
             "observed_limit": 4.0689,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 70.0,
+            "mX": 1900,
+            "mS": 70,
             "expected_limit": 0.40234,
             "observed_limit": 0.42574,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 80.0,
+            "mX": 1900,
+            "mS": 80,
             "expected_limit": 0.29297,
             "observed_limit": 0.32263,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 90.0,
+            "mX": 1900,
+            "mS": 90,
             "expected_limit": 0.30273,
             "observed_limit": 0.37559,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 100.0,
+            "mX": 1900,
+            "mS": 100,
             "expected_limit": 0.31055,
             "observed_limit": 0.41368,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 125.0,
+            "mX": 1900,
+            "mS": 125,
             "expected_limit": 0.24121,
             "observed_limit": 0.23739,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 150.0,
+            "mX": 1900,
+            "mS": 150,
             "expected_limit": 0.31348,
             "observed_limit": 0.20336,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 200.0,
+            "mX": 1900,
+            "mS": 200,
             "expected_limit": 0.40625,
             "observed_limit": 0.30849,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 250.0,
+            "mX": 1900,
+            "mS": 250,
             "expected_limit": 0.34766,
             "observed_limit": 0.31461,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 300.0,
+            "mX": 1900,
+            "mS": 300,
             "expected_limit": 0.50977,
             "observed_limit": 0.37036,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 350.0,
+            "mX": 1900,
+            "mS": 350,
             "expected_limit": 1.2109,
             "observed_limit": 0.97407,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 400.0,
+            "mX": 1900,
+            "mS": 400,
             "expected_limit": 4.7812,
             "observed_limit": 2.8904,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 450.0,
+            "mX": 1900,
+            "mS": 450,
             "expected_limit": 11.5,
             "observed_limit": 6.653,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 500.0,
+            "mX": 1900,
+            "mS": 500,
             "expected_limit": 17.375,
             "observed_limit": 10.159,
             "resolvable": true
         },
         {
-            "mX": 1900.0,
-            "mS": 600.0,
+            "mX": 1900,
+            "mS": 600,
             "expected_limit": 22.875,
             "observed_limit": 14.603,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 60.0,
+            "mX": 2000,
+            "mS": 60,
             "expected_limit": 2.6562,
             "observed_limit": 4.4229,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 70.0,
+            "mX": 2000,
+            "mS": 70,
             "expected_limit": 0.44727,
             "observed_limit": 0.4747,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 80.0,
+            "mX": 2000,
+            "mS": 80,
             "expected_limit": 0.30664,
             "observed_limit": 0.31585,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 90.0,
+            "mX": 2000,
+            "mS": 90,
             "expected_limit": 0.30566,
             "observed_limit": 0.34092,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 100.0,
+            "mX": 2000,
+            "mS": 100,
             "expected_limit": 0.30469,
             "observed_limit": 0.37591,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 125.0,
+            "mX": 2000,
+            "mS": 125,
             "expected_limit": 0.23242,
             "observed_limit": 0.23757,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 150.0,
+            "mX": 2000,
+            "mS": 150,
             "expected_limit": 0.30078,
             "observed_limit": 0.21096,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 200.0,
+            "mX": 2000,
+            "mS": 200,
             "expected_limit": 0.40039,
             "observed_limit": 0.35529,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 250.0,
+            "mX": 2000,
+            "mS": 250,
             "expected_limit": 0.3418,
             "observed_limit": 0.44498,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 300.0,
+            "mX": 2000,
+            "mS": 300,
             "expected_limit": 0.47266,
             "observed_limit": 0.45405,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 350.0,
+            "mX": 2000,
+            "mS": 350,
             "expected_limit": 0.98438,
             "observed_limit": 1.1205,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 400.0,
+            "mX": 2000,
+            "mS": 400,
             "expected_limit": 3.0938,
             "observed_limit": 1.991,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 450.0,
+            "mX": 2000,
+            "mS": 450,
             "expected_limit": 9.125,
             "observed_limit": 5.3562,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 500.0,
+            "mX": 2000,
+            "mS": 500,
             "expected_limit": 13.312,
             "observed_limit": 8.277,
             "resolvable": true
         },
         {
-            "mX": 2000.0,
-            "mS": 600.0,
+            "mX": 2000,
+            "mS": 600,
             "expected_limit": 18.438,
             "observed_limit": 12.422,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 60.0,
+            "mX": 2200,
+            "mS": 60,
             "expected_limit": 2.1719,
             "observed_limit": 3.9607,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 70.0,
+            "mX": 2200,
+            "mS": 70,
             "expected_limit": 0.37305,
             "observed_limit": 0.39314,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 80.0,
+            "mX": 2200,
+            "mS": 80,
             "expected_limit": 0.25879,
             "observed_limit": 0.26065,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 90.0,
+            "mX": 2200,
+            "mS": 90,
             "expected_limit": 0.24023,
             "observed_limit": 0.2567,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 100.0,
+            "mX": 2200,
+            "mS": 100,
             "expected_limit": 0.23145,
             "observed_limit": 0.26972,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 125.0,
+            "mX": 2200,
+            "mS": 125,
             "expected_limit": 0.17725,
             "observed_limit": 0.216,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 150.0,
+            "mX": 2200,
+            "mS": 150,
             "expected_limit": 0.22656,
             "observed_limit": 0.20515,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 200.0,
+            "mX": 2200,
+            "mS": 200,
             "expected_limit": 0.30273,
             "observed_limit": 0.40538,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 250.0,
+            "mX": 2200,
+            "mS": 250,
             "expected_limit": 0.27344,
             "observed_limit": 0.36434,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 300.0,
+            "mX": 2200,
+            "mS": 300,
             "expected_limit": 0.33789,
             "observed_limit": 0.59672,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 350.0,
+            "mX": 2200,
+            "mS": 350,
             "expected_limit": 0.63672,
             "observed_limit": 1.0267,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 400.0,
+            "mX": 2200,
+            "mS": 400,
             "expected_limit": 1.457,
             "observed_limit": 1.7157,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 450.0,
+            "mX": 2200,
+            "mS": 450,
             "expected_limit": 4.4531,
             "observed_limit": 4.0358,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 500.0,
+            "mX": 2200,
+            "mS": 500,
             "expected_limit": 11.5,
             "observed_limit": 10.568,
             "resolvable": true
         },
         {
-            "mX": 2200.0,
-            "mS": 600.0,
+            "mX": 2200,
+            "mS": 600,
             "expected_limit": 13.438,
             "observed_limit": 12.64,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 60.0,
+            "mX": 2400,
+            "mS": 60,
             "expected_limit": 2.0938,
             "observed_limit": 3.1754,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 70.0,
+            "mX": 2400,
+            "mS": 70,
             "expected_limit": 0.36914,
             "observed_limit": 0.37285,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 80.0,
+            "mX": 2400,
+            "mS": 80,
             "expected_limit": 0.23633,
             "observed_limit": 0.22919,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 90.0,
+            "mX": 2400,
+            "mS": 90,
             "expected_limit": 0.21484,
             "observed_limit": 0.21577,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 100.0,
+            "mX": 2400,
+            "mS": 100,
             "expected_limit": 0.22754,
             "observed_limit": 0.23916,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 125.0,
+            "mX": 2400,
+            "mS": 125,
             "expected_limit": 0.14502,
             "observed_limit": 0.17275,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 150.0,
+            "mX": 2400,
+            "mS": 150,
             "expected_limit": 0.18213,
             "observed_limit": 0.17923,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 200.0,
+            "mX": 2400,
+            "mS": 200,
             "expected_limit": 0.27148,
             "observed_limit": 0.36728,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 250.0,
+            "mX": 2400,
+            "mS": 250,
             "expected_limit": 0.24316,
             "observed_limit": 0.35813,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 300.0,
+            "mX": 2400,
+            "mS": 300,
             "expected_limit": 0.28711,
             "observed_limit": 0.5311,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 350.0,
+            "mX": 2400,
+            "mS": 350,
             "expected_limit": 0.48828,
             "observed_limit": 0.96613,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 400.0,
+            "mX": 2400,
+            "mS": 400,
             "expected_limit": 0.9375,
             "observed_limit": 1.4558,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 450.0,
+            "mX": 2400,
+            "mS": 450,
             "expected_limit": 1.9453,
             "observed_limit": 2.0626,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 500.0,
+            "mX": 2400,
+            "mS": 500,
             "expected_limit": 5.0781,
             "observed_limit": 5.7539,
             "resolvable": true
         },
         {
-            "mX": 2400.0,
-            "mS": 600.0,
+            "mX": 2400,
+            "mS": 600,
             "expected_limit": 8.9688,
             "observed_limit": 13.606,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 60.0,
+            "mX": 2600,
+            "mS": 60,
             "expected_limit": 2.0312,
             "observed_limit": 3.3041,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 70.0,
+            "mX": 2600,
+            "mS": 70,
             "expected_limit": 0.38281,
             "observed_limit": 0.37662,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 80.0,
+            "mX": 2600,
+            "mS": 80,
             "expected_limit": 0.24219,
             "observed_limit": 0.22906,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 90.0,
+            "mX": 2600,
+            "mS": 90,
             "expected_limit": 0.21484,
             "observed_limit": 0.20961,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 100.0,
+            "mX": 2600,
+            "mS": 100,
             "expected_limit": 0.20117,
             "observed_limit": 0.2069,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 125.0,
+            "mX": 2600,
+            "mS": 125,
             "expected_limit": 0.13574,
             "observed_limit": 0.15019,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 150.0,
+            "mX": 2600,
+            "mS": 150,
             "expected_limit": 0.16309,
             "observed_limit": 0.15701,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 200.0,
+            "mX": 2600,
+            "mS": 200,
             "expected_limit": 0.26172,
             "observed_limit": 0.34456,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 250.0,
+            "mX": 2600,
+            "mS": 250,
             "expected_limit": 0.24707,
             "observed_limit": 0.36959,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 300.0,
+            "mX": 2600,
+            "mS": 300,
             "expected_limit": 0.27246,
             "observed_limit": 0.50508,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 350.0,
+            "mX": 2600,
+            "mS": 350,
             "expected_limit": 0.44141,
             "observed_limit": 0.89742,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 400.0,
+            "mX": 2600,
+            "mS": 400,
             "expected_limit": 0.79297,
             "observed_limit": 1.3587,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 450.0,
+            "mX": 2600,
+            "mS": 450,
             "expected_limit": 1.3516,
             "observed_limit": 1.4978,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 500.0,
+            "mX": 2600,
+            "mS": 500,
             "expected_limit": 2.5625,
             "observed_limit": 2.6522,
             "resolvable": true
         },
         {
-            "mX": 2600.0,
-            "mS": 600.0,
+            "mX": 2600,
+            "mS": 600,
             "expected_limit": 6.4688,
             "observed_limit": 12.469,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 60.0,
+            "mX": 2800,
+            "mS": 60,
             "expected_limit": 1.9531,
             "observed_limit": 2.2889,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 70.0,
+            "mX": 2800,
+            "mS": 70,
             "expected_limit": 0.39062,
             "observed_limit": 0.355,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 80.0,
+            "mX": 2800,
+            "mS": 80,
             "expected_limit": 0.25098,
             "observed_limit": 0.22651,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 90.0,
+            "mX": 2800,
+            "mS": 90,
             "expected_limit": 0.21973,
             "observed_limit": 0.19952,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 100.0,
+            "mX": 2800,
+            "mS": 100,
             "expected_limit": 0.20508,
             "observed_limit": 0.19611,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 125.0,
+            "mX": 2800,
+            "mS": 125,
             "expected_limit": 0.13428,
             "observed_limit": 0.1402,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 150.0,
+            "mX": 2800,
+            "mS": 150,
             "expected_limit": 0.15674,
             "observed_limit": 0.14623,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 200.0,
+            "mX": 2800,
+            "mS": 200,
             "expected_limit": 0.26367,
             "observed_limit": 0.32682,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 250.0,
+            "mX": 2800,
+            "mS": 250,
             "expected_limit": 0.24707,
             "observed_limit": 0.36762,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 300.0,
+            "mX": 2800,
+            "mS": 300,
             "expected_limit": 0.27148,
             "observed_limit": 0.52952,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 350.0,
+            "mX": 2800,
+            "mS": 350,
             "expected_limit": 0.42578,
             "observed_limit": 0.90984,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 400.0,
+            "mX": 2800,
+            "mS": 400,
             "expected_limit": 0.75,
             "observed_limit": 1.3091,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 450.0,
+            "mX": 2800,
+            "mS": 450,
             "expected_limit": 1.1484,
             "observed_limit": 1.2748,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 500.0,
+            "mX": 2800,
+            "mS": 500,
             "expected_limit": 1.7812,
             "observed_limit": 1.6781,
             "resolvable": true
         },
         {
-            "mX": 2800.0,
-            "mS": 600.0,
+            "mX": 2800,
+            "mS": 600,
             "expected_limit": 4.875,
             "observed_limit": 8.0928,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 60.0,
+            "mX": 3000,
+            "mS": 60,
             "expected_limit": 1.4766,
             "observed_limit": 1.3467,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 70.0,
+            "mX": 3000,
+            "mS": 70,
             "expected_limit": 0.37305,
             "observed_limit": 0.3124,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 80.0,
+            "mX": 3000,
+            "mS": 80,
             "expected_limit": 0.23926,
             "observed_limit": 0.1988,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 90.0,
+            "mX": 3000,
+            "mS": 90,
             "expected_limit": 0.21094,
             "observed_limit": 0.17328,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 100.0,
+            "mX": 3000,
+            "mS": 100,
             "expected_limit": 0.19922,
             "observed_limit": 0.16893,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 125.0,
+            "mX": 3000,
+            "mS": 125,
             "expected_limit": 0.12988,
             "observed_limit": 0.12045,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 150.0,
+            "mX": 3000,
+            "mS": 150,
             "expected_limit": 0.14502,
             "observed_limit": 0.12395,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 200.0,
+            "mX": 3000,
+            "mS": 200,
             "expected_limit": 0.25098,
             "observed_limit": 0.26175,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 250.0,
+            "mX": 3000,
+            "mS": 250,
             "expected_limit": 0.2373,
             "observed_limit": 0.34589,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 300.0,
+            "mX": 3000,
+            "mS": 300,
             "expected_limit": 0.26367,
             "observed_limit": 0.53231,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 350.0,
+            "mX": 3000,
+            "mS": 350,
             "expected_limit": 0.40039,
             "observed_limit": 1.0011,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 400.0,
+            "mX": 3000,
+            "mS": 400,
             "expected_limit": 0.69141,
             "observed_limit": 1.489,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 450.0,
+            "mX": 3000,
+            "mS": 450,
             "expected_limit": 1.0469,
             "observed_limit": 1.1682,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 500.0,
+            "mX": 3000,
+            "mS": 500,
             "expected_limit": 1.5703,
             "observed_limit": 1.443,
             "resolvable": true
         },
         {
-            "mX": 3000.0,
-            "mS": 600.0,
+            "mX": 3000,
+            "mS": 600,
             "expected_limit": 3.7188,
             "observed_limit": 4.4849,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 60.0,
+            "mX": 3500,
+            "mS": 60,
             "expected_limit": 1.0742,
             "observed_limit": 0.96159,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 70.0,
+            "mX": 3500,
+            "mS": 70,
             "expected_limit": 0.2793,
             "observed_limit": 0.25073,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 80.0,
+            "mX": 3500,
+            "mS": 80,
             "expected_limit": 0.17578,
             "observed_limit": 0.15673,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 90.0,
+            "mX": 3500,
+            "mS": 90,
             "expected_limit": 0.1499,
             "observed_limit": 0.13001,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 100.0,
+            "mX": 3500,
+            "mS": 100,
             "expected_limit": 0.14062,
             "observed_limit": 0.11937,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 125.0,
+            "mX": 3500,
+            "mS": 125,
             "expected_limit": 0.094238,
             "observed_limit": 0.079203,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 150.0,
+            "mX": 3500,
+            "mS": 150,
             "expected_limit": 0.099121,
             "observed_limit": 0.082155,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 200.0,
+            "mX": 3500,
+            "mS": 200,
             "expected_limit": 0.14746,
             "observed_limit": 0.11546,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 250.0,
+            "mX": 3500,
+            "mS": 250,
             "expected_limit": 0.15527,
             "observed_limit": 0.12878,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 300.0,
+            "mX": 3500,
+            "mS": 300,
             "expected_limit": 0.18018,
             "observed_limit": 0.19563,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 350.0,
+            "mX": 3500,
+            "mS": 350,
             "expected_limit": 0.25781,
             "observed_limit": 0.44454,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 400.0,
+            "mX": 3500,
+            "mS": 400,
             "expected_limit": 0.42773,
             "observed_limit": 0.75711,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 450.0,
+            "mX": 3500,
+            "mS": 450,
             "expected_limit": 0.70312,
             "observed_limit": 0.98674,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 500.0,
+            "mX": 3500,
+            "mS": 500,
             "expected_limit": 0.99609,
             "observed_limit": 0.96347,
             "resolvable": true
         },
         {
-            "mX": 3500.0,
-            "mS": 600.0,
+            "mX": 3500,
+            "mS": 600,
             "expected_limit": 1.6328,
             "observed_limit": 1.3805,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 60.0,
+            "mX": 4000,
+            "mS": 60,
             "expected_limit": 2.3281,
             "observed_limit": 2.0453,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 70.0,
+            "mX": 4000,
+            "mS": 70,
             "expected_limit": 0.47266,
             "observed_limit": 0.4272,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 80.0,
+            "mX": 4000,
+            "mS": 80,
             "expected_limit": 0.25,
             "observed_limit": 0.22696,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 90.0,
+            "mX": 4000,
+            "mS": 90,
             "expected_limit": 0.19727,
             "observed_limit": 0.17629,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 100.0,
+            "mX": 4000,
+            "mS": 100,
             "expected_limit": 0.1748,
             "observed_limit": 0.15367,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 125.0,
+            "mX": 4000,
+            "mS": 125,
             "expected_limit": 0.10889,
             "observed_limit": 0.094121,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 150.0,
+            "mX": 4000,
+            "mS": 150,
             "expected_limit": 0.10547,
             "observed_limit": 0.089443,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 200.0,
+            "mX": 4000,
+            "mS": 200,
             "expected_limit": 0.1709,
             "observed_limit": 0.13657,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 250.0,
+            "mX": 4000,
+            "mS": 250,
             "expected_limit": 0.18848,
             "observed_limit": 0.15126,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 300.0,
+            "mX": 4000,
+            "mS": 300,
             "expected_limit": 0.21191,
             "observed_limit": 0.1797,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 350.0,
+            "mX": 4000,
+            "mS": 350,
             "expected_limit": 0.30469,
             "observed_limit": 0.40461,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 400.0,
+            "mX": 4000,
+            "mS": 400,
             "expected_limit": 0.48828,
             "observed_limit": 0.67581,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 450.0,
+            "mX": 4000,
+            "mS": 450,
             "expected_limit": 0.82812,
             "observed_limit": 1.0395,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 500.0,
+            "mX": 4000,
+            "mS": 500,
             "expected_limit": 1.2031,
             "observed_limit": 1.2264,
             "resolvable": true
         },
         {
-            "mX": 4000.0,
-            "mS": 600.0,
+            "mX": 4000,
+            "mS": 600,
             "expected_limit": 1.7188,
             "observed_limit": 1.4733,
             "resolvable": true

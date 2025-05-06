@@ -2,11 +2,14 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 # third-party libraries
 import diptest
+import numpy as np
 import pandas as pd
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -137,9 +140,11 @@ class Parse:
         # percentile threshold for xb
         percentile_threshold = 0.98
 
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
         # get xb
-        xb = self.get_xb(decay=decay,
-                         param_space=param_space)
+        xb = self.get_xb(decay=decay)[mask]
 
         # number of points available
         num_points = len(xb)
@@ -159,7 +164,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value]
+        param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
         _, pval = diptest.diptest(param_selected)
@@ -169,6 +174,126 @@ class Parse:
 
         # if p-value is below threshold, return True, otherwise return False
         return pval < pval_threshold
+
+    def get_param_space_splits(self,
+                               param_name: str,
+                               decay: str,
+                               param_space: Optional[ParamSpace] = None,
+                               min_prominence=0.1,
+                               density_threshold=0.01,
+                               bw='silverman',
+                               n_points=200):
+        """
+        Suggests 1D split points for a parameter column based on:
+        - Valleys between peaks in the xb distribution
+        - Gaps in the sample density
+
+        Parameters:
+            param_col (str): Name of the parameter to analyze
+            value_col (str): Name of the function value column (default 'xb')
+            min_prominence (float): Minimum prominence for detecting peaks
+            density_threshold (float): Density threshold for detecting gaps
+            n_points (int): Resolution of the evaluation grid
+
+        Returns:
+            List of split points along the param_col axis
+        """
+
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
+        data = pd.DataFrame({param_name: self.input_parameter_arrays[param_name][mask],
+                     'xb': self.get_xb(decay=decay)[mask]})
+        data = data.dropna()
+        par_vals = data[param_name].values
+        xb = data['xb'].values
+
+        # ensure a minimum number of points
+        if len(par_vals) < 500:
+            return []
+
+        # Sort for consistency
+        idx = np.argsort(par_vals)
+        par_vals_sorted = par_vals[idx]
+        xb_sorted = xb[idx]
+
+        # Grid for KDE evaluation
+        par_vals_eval: np.ndarray = np.linspace(par_vals_sorted.min(), par_vals_sorted.max(), n_points)
+
+        # Modality-based: KDE weighted by xb
+        valley_points = self.get_modality_splits(par_vals=par_vals_sorted,
+                                                 xb_vals=xb_sorted,
+                                                 par_vals_eval=par_vals_eval,
+                                                 bw=bw,
+                                                 min_prominence=min_prominence)
+
+        # Density-based: KDE of samples only
+        low_density = self.get_density_splits(par_vals=par_vals_sorted,
+                                              n_points=n_points,
+                                              density_threshold=density_threshold,
+                                              bw=bw)
+
+        # Combine, filter duplicates, and sort
+        all_splits = np.unique(np.concatenate([valley_points, low_density]))
+        return all_splits.tolist()
+
+    def get_modality_splits(self,
+                            par_vals: np.ndarray,
+                            xb_vals: np.ndarray,
+                            par_vals_eval: np.ndarray,
+                            bw: str | float = 'silverman',
+                            min_prominence: float = 0.1) -> List[float]:
+        """Modality-based KDE splits weighted by xb."""
+        try:
+            kde_xb = gaussian_kde(par_vals, weights=xb_vals, bw_method=bw)
+            kde_vals = kde_xb(par_vals_eval)
+            peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
+            valleys, _ = find_peaks(-kde_vals)
+            splits = par_vals_eval[valleys] if len(peaks) > 1 else []
+        except Exception:
+            splits = []
+        return splits
+
+    def get_density_splits(self,
+                        par_vals: np.ndarray,
+                        n_points: int = 200,
+                        density_threshold: float = 0.01,
+                        bw: str | float = 'silverman',) -> List[float]:
+        """Density-based KDE splits: one midpoint per low-density region."""
+        try:
+            # Normalize parameter values to [0, 1]
+            par_min, par_max = par_vals.min(), par_vals.max()
+            par_scaled = (par_vals - par_min) / (par_max - par_min)
+
+            # Evaluate KDE
+            kde = gaussian_kde(par_scaled, bw_method=bw)
+            x_eval = np.linspace(0, 1, n_points)
+            density_vals = kde(x_eval)
+
+            # Find contiguous low-density regions
+            below = density_vals < density_threshold
+            splits = []
+            start_idx = None
+            for i, is_low in enumerate(below):
+                if is_low and start_idx is None:
+                    start_idx = i
+                elif not is_low and start_idx is not None:
+                    end_idx = i
+                    mid_idx = (start_idx + end_idx) // 2
+                    mid_x = x_eval[mid_idx]
+                    # Map back to original scale
+                    splits.append(mid_x * (par_max - par_min) + par_min)
+                    start_idx = None
+            if start_idx is not None:
+                mid_idx = (start_idx + len(x_eval)) // 2
+                mid_x = x_eval[mid_idx]
+                splits.append(mid_x * (par_max - par_min) + par_min)
+
+            return splits
+
+        except Exception as e:
+            print(f"[density_splits error] {e}")
+            return []
 
     def get_xb(self,
                decay: str,
