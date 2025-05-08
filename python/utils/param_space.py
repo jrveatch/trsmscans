@@ -15,7 +15,8 @@ class ParamSpace:
 
     def __init__(self,
                  model: Model,
-                 decay: str = "NoDecay"):
+                 decay: str = "NoDecay",
+                 name: str = "Default"):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -26,7 +27,20 @@ class ParamSpace:
         # Store decay name
         self.__decay = decay
 
+        self.name = name
+
     ## Class properties
+
+    @property
+    def name(self) -> str:
+        """Name of the parameter space"""
+        return self.__name
+
+    @name.setter
+    def name(self,
+             new_name: str) -> None:
+        """Set the name property"""
+        self.__name = new_name
 
     @cached_property
     def mH1(self) -> float:
@@ -228,6 +242,7 @@ class ParamSpace:
         split_params_list = []
         for i in range(len(all_bounds) - 1):
             p = copy.deepcopy(self)
+            p.name = p.name + str(i)
             p.parameter_ranges[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
             split_params_list.append(p)
 
@@ -260,7 +275,7 @@ class ParamSpace:
 
     def __str__(self) -> str:
         """String representation of all parameters"""
-        lines = [f"Params object for model: {self.model_name}, decay: {self.decay}"]
+        lines = [f"Params object {self.name} for model: {self.model_name}, decay: {self.decay}"]
         for name in self.parameter_names:
             param = self.parameter_ranges[name]
             lines.append(str(param))  # uses ParamRange.__str__
