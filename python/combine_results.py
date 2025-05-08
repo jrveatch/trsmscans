@@ -9,7 +9,8 @@ from utils.mass_permutations import get_mass_permutations
 
 def combine_results(model: str,
                     decay: str,
-                    identifier: str) -> None:
+                    identifier: str,
+                    optimization: str) -> None:
     """
     Processes directories based on permutations of two values, includes headers, and writes the last line of .tsv files to a new .tsv file.
 
@@ -45,8 +46,8 @@ def combine_results(model: str,
 
                 # Process summary .tsv files in the directory
                 for summary_file in tsv_files:
-                    if not summary_file.startswith('zoom_summary') or summary_file.startswith("zoom_summary_tsv"):
-                        continue  # Skip files that don't start with "scan_summary"
+                    if not summary_file.startswith(f"summary_{optimization}") or summary_file.startswith(f"summary_{optimization}_tsv"):
+                        continue  # Skip files that don't start with the correct prefix
                     summary_path = os.path.join(directory, summary_file)
                     try:
                         with open(summary_path, 'r') as summary:
@@ -72,8 +73,8 @@ def combine_results(model: str,
 
                 # Process tsv summary .tsv files in the directory
                 for tsv_summary_file in tsv_files:
-                    if not tsv_summary_file.startswith('summary_zoom_tsv'):
-                        continue  # Skip files that don't start with "scan_tsv_summary"
+                    if not tsv_summary_file.startswith(f'summary_{optimization}_tsv'):
+                        continue  # Skip files that don't start with the correct prefix
                     tsv_summary_path = os.path.join(directory, tsv_summary_file)
                     try:
                         with open(tsv_summary_path, 'r') as tsv_summary:
@@ -106,10 +107,12 @@ if __name__ == "__main__":
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Set identifier")
+    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
     combine_results(model=args.model,
                     decay=args.decay,
-                    identifier=args.identifier)
+                    identifier=args.identifier,
+                    optimization=args.strategy)
 
     # TODO: Add function to plot combined results
