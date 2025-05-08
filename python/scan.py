@@ -369,7 +369,7 @@ class Scan:
 
             running_list = []
 
-            for zoom_optimizer in all_zoom_optimizers:
+            '''for zoom_optimizer in all_zoom_optimizers:
 
                 if zoom_optimizer.is_running:
 
@@ -383,7 +383,7 @@ class Scan:
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
-
+            '''
             # count iteration
             iter += 1
 
@@ -487,7 +487,72 @@ class Scan:
         curr_param_space_list = [param_space]
         final_param_space_list = []
 
+        # Iterate through a list of Param Spaces
         while curr_param_space_list:
+
+            # Retrieve the first Param Space in the list and delete it from the list
+            current = curr_param_space_list.pop(0)
+            #print("current")
+            #print(param_space)
+
+            #print("-----")
+            #print(current)
+            #print(curr_param_space_list)
+            #print("******************")
+
+            list_param_splits = []
+
+            is_split = False
+
+            for param_name in current.parameter_names:
+                print(param_name)
+
+                param_name_splits = self.prescan_parser.get_param_space_splits(param_name=param_name, decay=self.decay, param_space=current)
+
+                print(param_name_splits)
+
+                if param_name_splits:
+
+                    is_split = True
+                    new_param_space = current.split_range(param_name, param_name_splits)
+                    curr_param_space_list.extend(new_param_space)
+                    print(curr_param_space_list)
+
+                    
+                    '''
+                    print(f"_________NEW PARAM SPACE FOR {param_name.upper()}__________\n")
+                    for items in new_param_space:
+                        print (items)
+                    '''
+                    
+                    break
+
+            if not is_split:      
+                final_param_space_list.append(current)
+
+        for all_param_spaces in final_param_space_list:
+
+            #print('---------space')
+            print(all_param_spaces.name)
+            #list_param_splits.append(self.prescan_parser.get_param_space_splits(param_name=param_name, decay=self.decay, param_space=current))
+
+        '''for i, item in enumerate(list_param_splits):
+
+            if item:
+                print(i)
+                print(item) 
+                new_param_space = current.split_range(current.parameter_names[i], item)
+
+                print("_________NEW PARAM SPACE__________")
+                for items in new_param_space:
+                    print (items)
+                curr_param_space_list.extend(new_param_space)'''
+                
+        #print(list_param_splits)
+        print(current)
+        print(curr_param_space_list)
+
+        '''while curr_param_space_list:
 
             current = curr_param_space_list.pop(0)
             print(current)  
@@ -505,8 +570,8 @@ class Scan:
                 else:
 
                     final_param_space_list.append(current)
-
-        print(final_param_space_list)
+'''
+       # print(final_param_space_list)
 
         '''
         Tools to use:
