@@ -82,7 +82,7 @@ class ParamRange:
 
     @min_value.setter
     def min_value(self,
-                    new_min_value: float) -> None:
+                  new_min_value: float) -> None:
         self.__min_value = new_min_value
         """If __low hasn't been set yet, initialize it to min_value.
         Otherwise, ensure __low stays within bounds."""
@@ -99,7 +99,7 @@ class ParamRange:
 
     @max_value.setter
     def max_value(self,
-                    new_max_value: float) -> None:
+                  new_max_value: float) -> None:
         self.__max_value = new_max_value
         """If __high hasn't been set yet, initialize it to max_value.
         Otherwise, ensure __high stays within bounds."""
