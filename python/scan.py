@@ -17,7 +17,7 @@ from prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
+from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
@@ -153,13 +153,6 @@ class Scan:
         self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
         self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
-        # print header about prescan ranges to the screen
-        self.logger.info("Found the following ranges from the prescan:")
-
-        # make list of headers for parameter bounds table and empty list of rows
-        headers = ["Parameter", "Bounds"]
-        rows = []
-
         # loop over parameters
         for parameter_name in self.global_param_space.parameter_names:
 
@@ -184,13 +177,9 @@ class Scan:
             if new_max + one_percent < self.global_param_space[parameter_name].max_value:
                 self.global_param_space[parameter_name].max_value = (new_max + one_percent)
 
-            # add parameter name and range to rows
-            rows.append([parameter_name, self.global_param_space.parameter_ranges[parameter_name].format_bounds()])
-
-        # print table of parameter bounds
-        log_table(logger=self.logger,
-                  headers=headers,
-                  rows=rows)
+        # print bounds table for new global parameter space
+        self.logger.info("Found the following ranges from the prescan:")
+        self.global_param_space.log_bounds_table()
 
         # get scan density
         density = prescan_points / self.global_param_space.volume()
