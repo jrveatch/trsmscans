@@ -216,10 +216,6 @@ class Scan:
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
-        # TODO: Is this needed?
-        # scale new low and high values
-        self.global_param_space.scale_ranges(self.global_max)
-
     def run_ms_optimization(self,
                             num_optimizers: int) -> None:
 
