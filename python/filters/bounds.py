@@ -292,7 +292,8 @@ def print_bounds_result(bounds_result,
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
 
-def chunk_dataframe(df, n_chunks) -> List[pd.DataFrame]:
+def chunk_dataframe(df: pd.DataFrame,
+                    n_chunks: int) -> List[pd.DataFrame]:
     """Splits a DataFrame into n_chunks approximately equal parts."""
     chunk_size = int(np.ceil(len(df) / n_chunks))
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
@@ -319,7 +320,7 @@ def parallel_process(df: pd.DataFrame,
 
     chunks = chunk_dataframe(df, n_chunks)
 
-    with mp.Pool(n_workers) as pool:
+    with mp.Pool(n_chunks) as pool:
         results = pool.starmap(process_data, [(chunk, model) for chunk in chunks])
 
     # Unpack the results
