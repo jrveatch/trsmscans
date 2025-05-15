@@ -177,7 +177,7 @@ class ParamRange:
 
     def set_low_high(self,
                      new_low: float,
-                     new_high: float):
+                     new_high: float) -> None:
         """Update low and high values directly"""
         self.low = new_low
         self.high = new_high
