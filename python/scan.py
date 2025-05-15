@@ -153,29 +153,8 @@ class Scan:
         self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
         self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
-        # loop over parameters
-        for parameter_name in self.global_param_space.parameter_names:
-
-            """
-            If the prescan ranges are more than 1% of the max range
-            away from the boundaries, change the boundaries to restrict
-            scan range and minimize scan points that are wasted
-            """
-
-            # getting 1% of min and max from the model
-            one_percent = (self.global_param_space.starting_max(parameter_name) - self.global_param_space.starting_min(parameter_name)) / 100
-
-            # get min and max from prescan
-            new_min = self.prescan_parser.get_min(parameter_name)
-            new_max = self.prescan_parser.get_max(parameter_name)
-
-            # check min value
-            if new_min - one_percent > self.global_param_space[parameter_name].min_value:
-                self.global_param_space[parameter_name].min_value = (new_min - one_percent)
-
-            # check max value
-            if new_max + one_percent < self.global_param_space[parameter_name].max_value:
-                self.global_param_space[parameter_name].max_value = (new_max + one_percent)
+        # shrink param space based on the points contained by it
+        self.prescan_parser.shrink_param_space_bounds(self.global_param_space)
 
         # print bounds table for new global parameter space
         self.logger.info("Found the following ranges from the prescan:")

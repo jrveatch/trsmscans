@@ -177,10 +177,21 @@ class ParamRange:
 
     def set_low_high(self,
                      new_low: float,
-                     new_high: float):
+                     new_high: float) -> None:
         """Update low and high values directly"""
         self.low = new_low
         self.high = new_high
+
+    def set_min_max(self,
+                    new_min: float,
+                    new_max: float,
+                    resolution: float = 0.01) -> None:
+        """Update min and max values with a buffer based on existing bounds"""
+        buffer = abs(self.max_value - self.min_value) * resolution
+        if new_min > self.min_value + buffer:
+            self.min_value = new_min - buffer
+        if new_max < self.max_value - buffer:
+            self.max_value = new_max + buffer
 
     def random_point(self) -> float:
         """Generate a random point within the parameter range"""
