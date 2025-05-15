@@ -19,7 +19,7 @@ from utils.model import Model
 logger = logging.getLogger(__name__)
 
 # get configurations
-config_loader = ConfigLoader(config_file_name="ScannerS.yml")
+config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
     # fraction of cpus to use when parallel processing
     frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
