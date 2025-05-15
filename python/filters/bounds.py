@@ -291,7 +291,7 @@ def print_bounds_result(bounds_result,
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
 
-def chunk_dataframe(df, n_chunks):
+def chunk_dataframe(df, n_chunks) -> List[pd.DataFrame]:
     """Splits a DataFrame into n_chunks approximately equal parts."""
     chunk_size = int(np.ceil(len(df) / n_chunks))
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
