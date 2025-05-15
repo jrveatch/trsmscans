@@ -32,19 +32,17 @@ except Exception as e:
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
 
-# TODO: Make this work for other models
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
                   model: Model
                  ) -> None:
-    
+    """Run bounds filter for the dataframe using the given model"""
     dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
                                                                            model=model,
                                                                            n_workers=int(mp.cpu_count()*frac_cpu))
-    
-    return
 
+# TODO: Make this work for other models
 def process_subset(subset_df: pd.DataFrame,
                    model: 'Model') -> Tuple[List[int], List[int]]:
     """Function to process a subset of the DataFrame."""
