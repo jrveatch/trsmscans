@@ -308,8 +308,8 @@ def parallel_process(df: pd.DataFrame,
     # Unpack the results
     filt_bounds, filt_signals = zip(*results)
 
-    # Flatten lists
-    filt_bounds = [item for sublist in filt_bounds for item in sublist]
-    filt_signals = [item for sublist in filt_signals for item in sublist]
-
-    return filt_bounds, filt_signals
+    # Return flattened lists
+    return (
+        [item for sublist in filt_bounds for item in sublist],
+        [item for sublist in filt_signals for item in sublist],
+    )
