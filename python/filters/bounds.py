@@ -43,9 +43,9 @@ def filter_bounds(dataframe: pd.DataFrame,
                                                                            n_workers=int(mp.cpu_count()*frac_cpu))
 
 # TODO: Make this work for other models
-def process_subset(subset_df: pd.DataFrame,
-                   model: 'Model') -> Tuple[List[int], List[int]]:
-    """Function to process a subset of the DataFrame."""
+def process_data(df: pd.DataFrame,
+                 model: 'Model') -> Tuple[List[int], List[int]]:
+    """Function to process a DataFrame."""
 
     # make filter lists
     filt_bounds = []
@@ -88,7 +88,7 @@ def process_subset(subset_df: pd.DataFrame,
         RS_name = 'R11'
     RX_name = 'R31'
 
-    for idx, row in subset_df.iterrows():
+    for idx, row in df.iterrows():
 
         # get masses
         mH = row['m'+HName]
@@ -192,7 +192,6 @@ def process_subset(subset_df: pd.DataFrame,
         filt_signals.append(int(HS_allowed))
 
     return filt_bounds, filt_signals  # Return as separate lists
-
 
 def set_effective_couplings(particle,
                             mass: float,
@@ -309,19 +308,19 @@ def parallel_process(df: pd.DataFrame,
 
     if df_len < min_chunk_size or n_workers <= 1:
         # Too small — run serially
-        return process_subset(df, model)
+        return process_data(df, model)
 
     # Determine optimal number of chunks to balance load vs overhead
     n_chunks = min(n_workers, max(1, df_len // min_chunk_size))
 
     if n_chunks == 1:
         # Not enough data to justify parallelism
-        return process_subset(df, model)
+        return process_data(df, model)
 
     chunks = chunk_dataframe(df, n_chunks)
 
     with mp.Pool(n_workers) as pool:
-        results = pool.starmap(process_subset, [(chunk, model) for chunk in chunks])
+        results = pool.starmap(process_data, [(chunk, model) for chunk in chunks])
 
     # Unpack the results
     filt_bounds, filt_signals = zip(*results)
