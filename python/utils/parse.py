@@ -121,16 +121,6 @@ class Parse:
                      model = self.model,
                      par_vals = max_xb_par_vals)
 
-    def get_min(self,
-                par_name: str) -> float:
-        """Get the minimum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].min()
-
-    def get_max(self,
-                par_name: str) -> float:
-        """Get the maximum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].max()
-
     def is_bimodal(self,
                    param_name: str,
                    decay: str,
