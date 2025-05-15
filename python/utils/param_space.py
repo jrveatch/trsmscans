@@ -6,6 +6,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 # local modules
+from utils.logging_utils import log_table
 from utils.model import Model
 from utils.param_range import ParamRange
 from utils.point import Point
@@ -15,7 +16,8 @@ class ParamSpace:
 
     def __init__(self,
                  model: Model,
-                 decay: str = "NoDecay"):
+                 decay: str = "NoDecay",
+                 name: str = "Default"):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -26,7 +28,20 @@ class ParamSpace:
         # Store decay name
         self.__decay = decay
 
+        self.name = name
+
     ## Class properties
+
+    @property
+    def name(self) -> str:
+        """Name of the parameter space"""
+        return self.__name
+
+    @name.setter
+    def name(self,
+             new_name: str) -> None:
+        """Set the name property"""
+        self.__name = new_name
 
     @cached_property
     def mH1(self) -> float:
@@ -74,9 +89,15 @@ class ParamSpace:
         """Decay mode being used"""
         return self.__decay
 
-    def center_points(self) -> Tuple[float]:
-        """Get tuple of center points for parameters"""
-        return tuple([param_range.center for param_range in self.parameter_ranges.values()])
+    def center_point(self) -> Point:
+        """Get center point for parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].center for name in self.parameter_names})
+
+    def random_point(self) -> Point:
+        """Get random point within parameter space"""
+        return Point(model=self.model,
+                     par_vals={name:self.parameter_ranges[name].random_point() for name in self.parameter_names})
 
     def ranges(self) -> Tuple[Tuple[float]]:
         """Get tuple of ranges for parameters"""
@@ -120,11 +141,16 @@ class ParamSpace:
             self.parameter_ranges[par_name].scale_width(new_val=new_val,
                                                         range_scale=range_scale)
 
-    def reposition_center(self, point: Tuple[float]):
+    def reposition_center(self, point: Point) -> None:
         """Change low and high of parameter ranges around a new center point"""
-        for (center, param_range) in zip(point, self.parameter_ranges.values()):
-            width = param_range.width / 2
-            param_range.set_low_high(center - width, center + width)
+        for name, center in point.input_parameter_values.items():
+            if name in self.parameter_ranges:
+                param_range = self.parameter_ranges[name]
+                width = param_range.width / 2
+                self.logger.debug(f"Updating parameter '{name}' range to ({center - width},{center + width})")
+                param_range.set_low_high(center - width, center + width)
+            else:
+                self.logger.debug(f"Skipping parameter '{name}' since it is not in the parameter ranges")
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
@@ -217,17 +243,34 @@ class ParamSpace:
         split_params_list = []
         for i in range(len(all_bounds) - 1):
             p = copy.deepcopy(self)
+            p.name = p.name + str(i)
             p.parameter_ranges[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
             split_params_list.append(p)
 
         return split_params_list
 
+    def log_bounds_table(self) -> None:
+        """Log the bounds of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Bounds"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_bounds()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
+
     ## Aliases
 
     # Alias for self.center_point()
     @property
-    def vol_position(self) -> Tuple[float]:
-        return self.center_points()
+    def vol_position(self) -> Point:
+        return self.center_point()
 
     # Alias for self.widths()
     @property
@@ -249,7 +292,7 @@ class ParamSpace:
 
     def __str__(self) -> str:
         """String representation of all parameters"""
-        lines = [f"Params object for model: {self.model_name}, decay: {self.decay}"]
+        lines = [f"Params object {self.name} for model: {self.model_name}, decay: {self.decay}"]
         for name in self.parameter_names:
             param = self.parameter_ranges[name]
             lines.append(str(param))  # uses ParamRange.__str__

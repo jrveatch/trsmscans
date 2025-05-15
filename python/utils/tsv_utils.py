@@ -1,5 +1,6 @@
 
 # standard libraries
+import csv
 import logging
 import os
 import subprocess
@@ -7,10 +8,11 @@ import subprocess
 # get logger
 logger = logging.getLogger(__name__)
 
-# function to get number of points in a file
-# returns 0 if file does not exist
-# otherwise returns number of existing points in file
 def count_tsv_points(file_name: str) -> int:
+    """
+    Get the number of points in a .tsv file.
+    Returns 0 if the file does not exist.
+    """
 
     # if file doesn't exist, return -1
     if not os.path.exists(file_name):
@@ -28,9 +30,13 @@ def count_tsv_points(file_name: str) -> int:
     # return number of points
     return num_points
 
-# function to save output tsv file
 def save_tsv_output(input_file: str,
                     output_file: str) -> None:
+
+    """
+    Save output from input_file (.tsv file) into output_file.
+    If output_file already exists, contents of input_file are appended.
+    """
 
     # normalize paths to absolute paths for comparison
     input_file = os.path.abspath(input_file)
@@ -70,3 +76,24 @@ def save_tsv_output(input_file: str,
 
     # delete input .tsv file
     os.remove(input_file)
+
+def sort_tsv_file(filename: str,
+                  sort_column: str = "xbmax") -> None:
+    """Sort the contents of a .tsv file based on a column."""
+    # Read the TSV file
+    with open(filename, newline='') as f:
+        reader = csv.DictReader(f, delimiter='\t')
+        rows = list(reader)
+        headers = reader.fieldnames
+
+    # Sort the rows by the specified column (converted to float if needed)
+    try:
+        rows.sort(key=lambda row: float(row[sort_column]))
+    except ValueError:
+        rows.sort(key=lambda row: row[sort_column])  # Fallback to string sort if not numeric
+
+    # Write the sorted data back to the same file
+    with open(filename, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t')
+        writer.writeheader()
+        writer.writerows(rows)

@@ -34,7 +34,7 @@ def prescan(model: Model,
     out_dir = prescan_dir(model)
 
     # names of .ini and .tsv files
-    tsv_name = out_dir + model.name + "_prescan.tsv"
+    tsv_name = os.path.join(out_dir,f"{model.name}_prescan.tsv")
 
     # print starting message
     logger.info(f"Running a prescan with {num_points} points for {model.mass_string}")

@@ -3,10 +3,12 @@
 # standard libraries
 import logging
 import math
+import os
 
 # local modules
-from filters.filter import apply_filters
 from utils.config_loader import ConfigLoader
+from filters.filter import apply_filters
+from utils.exceptions import NoPointsPassedError
 from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.point import Point
@@ -19,7 +21,7 @@ class PointSampler:
     def __init__(self,
                  out_dir: str,
                  config_loader: ConfigLoader,
-                 use_file_dir: bool = False) -> None:
+                 subdir_name: str = "") -> None:
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -28,9 +30,9 @@ class PointSampler:
         self.out_dir = out_dir
         self.ini_dir = out_dir
         self.tsv_dir = out_dir
-        if use_file_dir:
-            self.ini_dir += "files/ini/"
-            self.tsv_dir += "files/tsv/"
+        if subdir_name:
+            self.ini_dir = os.path.join(self.ini_dir,subdir_name,"ini")
+            self.tsv_dir = os.path.join(self.tsv_dir,subdir_name,"tsv")
         self.config_loader = config_loader
         self.efficiency = 1.0
 
@@ -95,9 +97,9 @@ class PointSampler:
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
-        ini_name = self.ini_dir + out_name + ".ini"
-        tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + param_space.model_name + ".tsv"
+        ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
+        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
+        temp_tsv = os.path.join(self.out_dir,f"{param_space.model_name}.tsv")
 
         # Global variable for number of points
         self.total_points_requested = num_points_requested
@@ -161,15 +163,18 @@ class PointSampler:
             self.nsignals += results["signals"]
             self.npass += results["pass"]
 
+            # If no points passed the filters, raise an error
+            if self.npass == 0:
+                self.logger.error("No points passed the filters")
+                self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
+                raise NoPointsPassedError()
+
             # Break if all points are being counted
             if not good_points_only:
                 break
 
             # Calculate the running efficiency of the points passed based on points run so far
-            if self.npass == 0 or self.curr_points_run == 0:
-                running_efficiency = 1.0
-            else:
-                running_efficiency = self.npass / self.curr_points_run
+            running_efficiency = self.npass / self.curr_points_run
 
             # Print points passed and efficiency
             self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
@@ -203,9 +208,9 @@ class PointSampler:
         # Check if identifier is defined
         if identifier:
             out_name += "_" + identifier
-        ini_name = self.ini_dir + out_name + ".ini"
-        tsv_name = self.tsv_dir + out_name + ".tsv"
-        temp_tsv = self.out_dir + point.model_name + ".tsv"
+        ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
+        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
+        temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
 
         # Write new .ini file from template and parameters
         point.write_ini(ini_name)
