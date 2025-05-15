@@ -298,9 +298,26 @@ def chunk_dataframe(df, n_chunks) -> List[pd.DataFrame]:
 
 def parallel_process(df: pd.DataFrame,
                      model: 'Model',
-                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
-    """Parallelizes processing and returns results for two output columns."""
-    chunks = chunk_dataframe(df, n_workers)
+                     n_workers: int = 1,
+                     min_chunk_size: int = 100) -> Tuple[List[int], List[int]]:
+    """
+    Automatically parallelizes processing based on DataFrame size.
+    Avoids parallelism if not worth the overhead.
+    """
+    df_len = len(df)
+
+    if df_len < min_chunk_size or n_workers <= 1:
+        # Too small — run serially
+        return process_subset(df, model)
+
+    # Determine optimal number of chunks to balance load vs overhead
+    n_chunks = min(n_workers, max(1, df_len // min_chunk_size))
+
+    if n_chunks == 1:
+        # Not enough data to justify parallelism
+        return process_subset(df, model)
+
+    chunks = chunk_dataframe(df, n_chunks)
 
     with mp.Pool(n_workers) as pool:
         results = pool.starmap(process_subset, [(chunk, model) for chunk in chunks])
