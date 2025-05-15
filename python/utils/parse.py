@@ -318,6 +318,19 @@ class Parse:
         mask = self.param_space_mask(param_space)
         return xb[mask]
 
+    def shrink_param_space_bounds(self,
+                                  param_space: ParamSpace,
+                                  resolution: float = 0.01) -> None:
+        """Shrink bounds of ParamSpace based on points contained"""
+        filtered_data = self.get_filtered_data(param_space)
+        for name, par in self.model.input_parameters.items():
+            full_name: str = par['fullname']
+            new_min = filtered_data[full_name].min()
+            new_max = filtered_data[full_name].max()
+            param_space[name].set_min_max(new_min=new_min,
+                                          new_max=new_max,
+                                          resolution=resolution)
+
     def get_filtered_data(self,
                           param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
         """Return a view of filtered_data that is carved out by a parameter space"""
