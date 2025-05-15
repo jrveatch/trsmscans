@@ -198,6 +198,7 @@ def set_effective_couplings(particle,
                             mass: float,
                             rescaling: float
                            ) -> None:
+    """Set effective couplings"""
     if mass < 150:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
     else:
@@ -208,6 +209,7 @@ def set_BRs(particle,
             BRs_BSM: Dict[Tuple[str,str],float],
             adjust_ZZ: bool
            ) -> None:
+    """Set scalar branching ratios"""
     # check total width and return if it is too small
     if particle.totalWidth() < 1e-11:
         return
@@ -264,6 +266,7 @@ def print_bounds_result(bounds_result,
                         mX: float,
                         mS: float,
                         mH: float) -> None:
+    """Print results of bounds check"""
 
     logger.verbose(bounds_result)
     logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
