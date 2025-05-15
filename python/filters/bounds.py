@@ -23,6 +23,7 @@ config_loader = ConfigLoader(config_file_name="ScannerS.yml")
 try:
     # fraction of cpus to use when parallel processing
     frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
+    min_chunk_size: float = config_loader.get('bounds', 'min_chunk_size')
 except KeyError as e:
     logger.error(e)
     raise
@@ -298,8 +299,7 @@ def chunk_dataframe(df, n_chunks) -> List[pd.DataFrame]:
 
 def parallel_process(df: pd.DataFrame,
                      model: 'Model',
-                     n_workers: int = 1,
-                     min_chunk_size: int = 100) -> Tuple[List[int], List[int]]:
+                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """
     Automatically parallelizes processing based on DataFrame size.
     Avoids parallelism if not worth the overhead.

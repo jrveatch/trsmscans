@@ -5,3 +5,6 @@ ScannerS:
 
 MultiProcessing:
   frac_cpu: 0.9 # Fraction of available CPUs to use for parallel processing
+
+bounds:
+  min_chunk_size: 100 # minimum number of dataframe rows in a bounds check
