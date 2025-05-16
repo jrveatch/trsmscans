@@ -265,6 +265,22 @@ class ParamSpace:
                   headers=headers,
                   rows=rows)
 
+    def log_range_table(self) -> None:
+        """Log the range of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Range"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_range()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
+
     ## Aliases
 
     # Alias for self.center_point()
