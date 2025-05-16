@@ -277,11 +277,6 @@ class ParamSpace:
     def vol_width(self) -> Tuple[float]:
         return self.widths()
 
-    # Alias for self.ranges()
-    @property
-    def vol_range(self) -> Tuple[Tuple[float, float]]:
-        return self.ranges()
-
     def __getitem__(self, key) -> ParamRange:
         """Return the ParamRange object corresponding to `par_name`"""
         return self.parameter_ranges[key]

@@ -51,13 +51,6 @@ class Plot:
             return names
         return names + ('xb',)
 
-    @cached_property
-    def num_vars(self) -> int:
-        """
-        Get the number of variables for the model.
-        """
-        return len(self.var_names)
-
     def get_file_names(self) -> None:
         """
         Get the list of .tsv files for plotting.
