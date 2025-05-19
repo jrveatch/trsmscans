@@ -37,6 +37,10 @@ allowed_decay_modes:
     all_modes: [SbbHgamgam, SgamgamHbb, SHbbgamgam, SSbbgamgam, HHbbgamgam, Xbbgamgam]
     non_resolvable: Xbbgamgam
 
+  ttbb: # No H->tt decays are allowed due to the BR being too small
+    all_modes: [SttHbb, SSttbb, Xttbb]
+    non_resolvable: Xttbb
+
   nodecay:
     all_modes: [NoDecay]
     non_resolvable: NoDecay

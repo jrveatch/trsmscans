@@ -380,6 +380,7 @@ class Parse:
         br_H_gamgam = self.filtered_data['b_'+self.HName+'_gamgam']
 
         # S SM BRs
+        br_S_tt = self.filtered_data['b_'+self.SName+'_tt']
         br_S_bb = self.filtered_data['b_'+self.SName+'_bb']
         br_S_tautau = self.filtered_data['b_'+self.SName+'_tautau']
         br_S_WW = self.filtered_data['b_'+self.SName+'_WW']
@@ -559,6 +560,16 @@ class Parse:
             br3 = br_X_SS * br_S_bb * br_S_gamgam
             br4 = br_X_HH * br_H_bb * br_H_gamgam
             br_decay = br1 + br2 + br3 + br4
+
+        # ttbb cases
+        elif decay == "SttHbb":
+            br_decay = br_X_SH * br_S_tt * br_H_bb
+        elif decay == "SSttbb":
+            br_decay = br_X_SS * br_S_tt * br_S_bb
+        elif decay == "Xttbb":
+            br1 = br_X_SH * br_S_tt * br_H_bb
+            br2 = br_X_SS * br_S_tt * br_S_bb
+            br_decay = br1 + br2
 
         # raise an exception in all other cases
         else:
