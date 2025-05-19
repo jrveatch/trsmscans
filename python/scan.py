@@ -42,6 +42,9 @@ class Scan:
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.logger.info("Creating a new scan")
+        self.logger.info(f"Model: {model.name}")
+        self.logger.info(f"Masses: {model.masses}")
+        self.logger.info(f"Decay: {decay}\n")
 
         # store model and decay information
         self.model = model
