@@ -14,13 +14,13 @@ class ConfigLoader:
 
     def __init__(self,
                  config_file_name: str,
-                 config_path: str = ""):
+                 config_path: str | None = None):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # if not config path is given, use default path defined as environment variable
-        if not config_path:
+        if config_path is None:
             config_path = config_dir()
 
         self.logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}\n")
