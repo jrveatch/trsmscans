@@ -248,7 +248,7 @@ class Parse:
                         par_vals: np.ndarray,
                         n_points: int = 200,
                         density_threshold: float = 0.01,
-                        bw: str | float = 'silverman',) -> List[float]:
+                        bw: Union[str, float] = 'silverman',) -> List[float]:
         """Density-based KDE splits: one midpoint per low-density region."""
         try:
             # Normalize parameter values to [0, 1]
