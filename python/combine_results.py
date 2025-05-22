@@ -98,7 +98,7 @@ def combine_results(model: str,
                         print(f"Error reading or processing {tsv_summary_path}: {e}")
 
     except Exception as e:
-        print(f"Error writing to output file {combination_file}: {e}")
+        print(f"Error writing to output file {combination_file_name}: {e}")
 
 if __name__ == "__main__":
 
