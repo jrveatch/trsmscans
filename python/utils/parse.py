@@ -2,7 +2,7 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 # third-party libraries
 import diptest
@@ -231,7 +231,7 @@ class Parse:
                             par_vals: np.ndarray,
                             xb_vals: np.ndarray,
                             par_vals_eval: np.ndarray,
-                            bw: str | float = 'silverman',
+                            bw: Union[str, float] = 'silverman',
                             min_prominence: float = 0.1) -> List[float]:
         """Modality-based KDE splits weighted by xb."""
         try:
