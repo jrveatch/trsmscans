@@ -14,6 +14,9 @@ def get_mass_permutations(decay: str,
     Args:
         decay (str): Decay mode.
         identifier (str): Identifier to specify which set of mass points to use.
+
+    Returns:
+        List[Tuple[int, int, bool]]: A list of tuples containing mass points and resolvable status.
     """
 
     permutations_file = os.path.join(data_dir(),"mass_points",f"{decay}_{identifier}.json")
