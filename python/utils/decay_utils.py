@@ -38,6 +38,7 @@ class DecayConfigManager:
 
         Args:
             decay (str): The decay mode to check.
+
         Returns:
             bool: True if the decay mode is allowed, False otherwise.
         """
@@ -67,8 +68,10 @@ def valid_decays() -> List[str]:
 def is_valid_decay(decay_mode: str) -> bool:
     """
     Check if a decay mode is valid.
+
     Args:
         decay_mode (str): The decay mode to check.
+
     Returns:
         bool: True if the decay mode is valid, False otherwise.
     """
