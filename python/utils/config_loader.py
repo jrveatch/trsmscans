@@ -14,7 +14,7 @@ class ConfigLoader:
 
     def __init__(self,
                  config_file_name: str,
-                 config_path: str | None = None):
+                 config_path: Optional[str] = None):
         """
         Initialize the ConfigLoader with a YAML configuration file.
 
