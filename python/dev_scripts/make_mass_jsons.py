@@ -3,7 +3,7 @@
 import json
 import re
 import os
-from typing import List
+from typing import Dict, List
 
 def create_json (hepdata_path, mass_points_json):
     meta_data_values = extract_meta_data (mass_points_json)
@@ -41,7 +41,7 @@ def loop_over_json_files(directory_path):
     return all_results
 
 def extract_expected_limits(hep_data_json: str,
-                            mx: int = 0):
+                            mx: int = 0) -> List[Dict[str, any]]:
     with open(hep_data_json, 'r', encoding='utf-8') as file:
         data = json.load(file)
     
