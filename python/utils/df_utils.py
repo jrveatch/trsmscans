@@ -8,7 +8,7 @@ import pandas as pd
 # get logger
 logger = logging.getLogger(__name__)
 
-index_label = "idx"
+index_label: str = "idx"
 
 def get_df(file_name: str) -> pd.DataFrame:
     """
