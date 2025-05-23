@@ -85,8 +85,8 @@ class Scan:
 
         # get configurations from config file
         try:
-            self.num_starting_points: float = self.config_loader.get('scan', 'num_starting_points')
-            default_prescan_points: float = self.config_loader.get('scan', 'default_prescan_points')
+            self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
+            default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except KeyError as e:
             self.logger.error(e)
             raise
