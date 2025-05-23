@@ -6,6 +6,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 # local modules
+from utils.logging_utils import log_table
 from utils.model import Model
 from utils.param_range import ParamRange
 from utils.point import Point
@@ -15,7 +16,8 @@ class ParamSpace:
 
     def __init__(self,
                  model: Model,
-                 decay: str = "NoDecay"):
+                 decay: str = "NoDecay",
+                 name: str = "Default"):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -26,7 +28,20 @@ class ParamSpace:
         # Store decay name
         self.__decay = decay
 
+        self.name = name
+
     ## Class properties
+
+    @property
+    def name(self) -> str:
+        """Name of the parameter space"""
+        return self.__name
+
+    @name.setter
+    def name(self,
+             new_name: str) -> None:
+        """Set the name property"""
+        self.__name = new_name
 
     @cached_property
     def mH1(self) -> float:
@@ -228,10 +243,43 @@ class ParamSpace:
         split_params_list = []
         for i in range(len(all_bounds) - 1):
             p = copy.deepcopy(self)
+            p.name = p.name + str(i)
             p.parameter_ranges[param_name].set_low_high(all_bounds[i], all_bounds[i+1])
             split_params_list.append(p)
 
         return split_params_list
+
+    def log_bounds_table(self) -> None:
+        """Log the bounds of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Bounds"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_bounds()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
+
+    def log_range_table(self) -> None:
+        """Log the range of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Range"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_range()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
 
     ## Aliases
 
@@ -245,11 +293,6 @@ class ParamSpace:
     def vol_width(self) -> Tuple[float]:
         return self.widths()
 
-    # Alias for self.ranges()
-    @property
-    def vol_range(self) -> Tuple[Tuple[float, float]]:
-        return self.ranges()
-
     def __getitem__(self, key) -> ParamRange:
         """Return the ParamRange object corresponding to `par_name`"""
         return self.parameter_ranges[key]
@@ -260,7 +303,7 @@ class ParamSpace:
 
     def __str__(self) -> str:
         """String representation of all parameters"""
-        lines = [f"Params object for model: {self.model_name}, decay: {self.decay}"]
+        lines = [f"Params object {self.name} for model: {self.model_name}, decay: {self.decay}"]
         for name in self.parameter_names:
             param = self.parameter_ranges[name]
             lines.append(str(param))  # uses ParamRange.__str__

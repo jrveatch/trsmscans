@@ -39,7 +39,7 @@ def run_exists(out_dir: str,
     if os.path.isfile(metadata_path):
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
-            logger.info(f"Found a {optimization} run with {metadata['num_points']} points")
+            logger.info(f"Found a {optimization} run with {metadata['num_points']} points\n")
             if optimization == "zoom":
                 return num_points <= 1.5*metadata["num_points"]
             if optimization == "meanshift":

@@ -17,7 +17,7 @@ from prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging, log_table
+from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
@@ -37,11 +37,33 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
+        
+        """
+        Initialize a Scan instance for parameter space optimization.
+
+        Args:
+            model (Model): The physical model object containing parameter definitions.
+            decay (str): The decay mode to scan (must be valid per `valid_decays()`).
+            prescan_points (int, optional): Number of points to sample during the prescan phase.
+                Defaults to -1, in which case the config default is used.
+            overwrite (bool, optional): Whether to overwrite existing scan results.
+                Defaults to False.
+            config_file_name (str, optional): Path to a YAML config file. If not specified,
+                a default name based on the model is used.
+
+        Raises:
+            ValueError: If an invalid decay mode is provided.
+            KeyError: If required config keys are missing.
+            Exception: For unexpected errors during config loading.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.logger.info("Creating a new scan")
+        self.logger.info(f"Model: {model.name}")
+        self.logger.info(f"Masses: {model.masses}")
+        self.logger.info(f"Decay: {decay}\n")
 
         # store model and decay information
         self.model = model
@@ -94,9 +116,14 @@ class Scan:
         return scan_dir(model=self.model,
                         decay=self.decay)
 
-    # create output directory structure and files for scan
     def initialize_output(self,
                           optimizer: str) -> None:
+        """
+        Initialize the output directory structure and files for the scan.
+
+        Args:
+            optimizer (str): The name of the optimizer being used.
+        """
 
         # make output directory if it doesn't already exist
         os.makedirs(self.out_dir, exist_ok=True)
@@ -129,8 +156,10 @@ class Scan:
         with open(self.details_name, "w") as details:
             details.write("Scan details\n\n")
 
-    # run a prescan to constrain scan parameter ranges
     def run_prescan(self) -> None:
+        """
+        Run a prescan to constrain the scan parameter ranges.
+        """
 
         prescan_points = self.prescan_points
 
@@ -153,44 +182,12 @@ class Scan:
         self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
         self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
-        # print header about prescan ranges to the screen
+        # shrink param space based on the points contained by it
+        self.prescan_parser.shrink_param_space_bounds(self.global_param_space)
+
+        # print bounds table for new global parameter space
         self.logger.info("Found the following ranges from the prescan:")
-
-        # make list of headers for parameter bounds table and empty list of rows
-        headers = ["Parameter", "Bounds"]
-        rows = []
-
-        # loop over parameters
-        for parameter_name in self.global_param_space.parameter_names:
-
-            """
-            If the prescan ranges are more than 1% of the max range
-            away from the boundaries, change the boundaries to restrict
-            scan range and minimize scan points that are wasted
-            """
-
-            # getting 1% of min and max from the model
-            one_percent = (self.global_param_space.starting_max(parameter_name) - self.global_param_space.starting_min(parameter_name)) / 100
-
-            # get min and max from prescan
-            new_min = self.prescan_parser.get_min(parameter_name)
-            new_max = self.prescan_parser.get_max(parameter_name)
-
-            # check min value
-            if new_min - one_percent > self.global_param_space[parameter_name].min_value:
-                self.global_param_space[parameter_name].min_value = (new_min - one_percent)
-
-            # check max value
-            if new_max + one_percent < self.global_param_space[parameter_name].max_value:
-                self.global_param_space[parameter_name].max_value = (new_max + one_percent)
-
-            # add parameter name and range to rows
-            rows.append([parameter_name, self.global_param_space.parameter_ranges[parameter_name].format_bounds()])
-
-        # print table of parameter bounds
-        log_table(logger=self.logger,
-                  headers=headers,
-                  rows=rows)
+        self.global_param_space.log_bounds_table()
 
         # get scan density
         density = prescan_points / self.global_param_space.volume()
@@ -227,12 +224,14 @@ class Scan:
 
         self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
 
-        # TODO: Is this needed?
-        # scale new low and high values
-        self.global_param_space.scale_ranges(self.global_max)
-
     def run_ms_optimization(self,
                             num_optimizers: int) -> None:
+        """
+        Run a mean shift optimization.
+
+        Args:
+            num_optimizers (int): Number of optimizers to run.
+        """
 
         self.logger.info("Running mean shift optimization...\n")
 
@@ -314,10 +313,16 @@ class Scan:
         self.finalize(optimization="meanshift",
                       scan_time=scan_time)
 
-    # run the full scan
     def run_zoom_optimization(self,
                               num_points: int,
                               niter: int) -> None:
+        """
+        Run a zoom optimization.
+
+        Args:
+            num_points (int): Number of points to use in the first iteration.
+            niter (int): Number of iterations to run. Leave as -1 to run until natural ending criteria are met.
+        """
 
         self.logger.info("Running zoom optimization...\n")
 
@@ -396,8 +401,13 @@ class Scan:
                       scan_time=scan_time,
                       num_points=num_points)
 
-    # Function that creates needed zoom optimizers
-    def create_zoom_optimizers(self, num_points: int) -> List['ZoomOptimizer']:
+    def create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
+        """
+        Create list of zoom optimizers based on the parameter space.
+
+        Args:
+            num_points (int): Number of points to use in the first iteration.
+        """
 
         # Dictionary that will hold the values of the parameters
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
@@ -524,6 +534,14 @@ class Scan:
                  optimization: str,
                  scan_time: float,
                  num_points: int = -1) -> None:
+        """
+        Finalize the scan by saving metadata and cleaning up.
+
+        Args:
+            optimization (str): The optimization method used.
+            scan_time (float): The total time taken for the scan.
+            num_points (int, optional): Number of points to use in the first iteration. Defaults to -1.
+        """
 
         # print message indicating scan is done
         self.logger.info("Done!")
@@ -540,8 +558,10 @@ class Scan:
                           optimization=optimization,
                           num_points=num_points)
 
-    # delete run directory if it exists
     def delete_run_directory(self) -> None:
+        """
+        Delete the run directory if it exists.
+        """
         if os.path.exists(self.out_dir):
             self.logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)
