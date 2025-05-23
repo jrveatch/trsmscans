@@ -37,48 +37,48 @@ class PointSampler:
         self.efficiency = 1.0
 
     @property
-    def nwidth(self) -> int:
+    def n_width(self) -> int:
         """Number of points passing width check"""
-        return self.__nwidth
+        return self.__n_width
 
-    @nwidth.setter
-    def nwidth(self,
-               new_n_width: int) -> None:
+    @n_width.setter
+    def n_width(self,
+                new_n_width: int) -> None:
         """Sets number of points passing width check"""
-        self.__nwidth = new_n_width
+        self.__n_width = new_n_width
 
     @property
-    def nbounds(self) -> int:
+    def n_bounds(self) -> int:
         """Number of points passing bounds check"""
-        return self.__nbounds
+        return self.__n_bounds
 
-    @nbounds.setter
-    def nbounds(self,
-                new_n_bounds: int) -> None:
+    @n_bounds.setter
+    def n_bounds(self,
+                 new_n_bounds: int) -> None:
         """Sets number of points passing bounds check"""
-        self.__nbounds = new_n_bounds
+        self.__n_bounds = new_n_bounds
 
     @property
-    def nsignals(self) -> int:
+    def n_signals(self) -> int:
         """Number of points passing signals check"""
-        return self.__nsignals
+        return self.__n_signals
 
-    @nsignals.setter
-    def nsignals(self,
-                 new_n_signals: int) -> None:
+    @n_signals.setter
+    def n_signals(self,
+                  new_n_signals: int) -> None:
         """Sets number of points passing signals check"""
-        self.__nsignals = new_n_signals
+        self.__n_signals = new_n_signals
 
     @property
-    def npass(self) -> int:
+    def n_pass(self) -> int:
         """Number of points passing all checks"""
-        return self.__npass
+        return self.__n_pass
 
-    @npass.setter
-    def npass(self,
-              new_n_pass: int) -> None:
+    @n_pass.setter
+    def n_pass(self,
+               new_n_pass: int) -> None:
         """Sets number of points passing all checks"""
-        self.__npass = new_n_pass
+        self.__n_pass = new_n_pass
 
     @property
     def total_points_run(self) -> int:
@@ -111,10 +111,10 @@ class PointSampler:
         self.parser = Parse(param_space.model)
 
         # Initialize filter counters
-        self.nwidth = 0
-        self.nbounds = 0
-        self.nsignals = 0
-        self.npass = 0
+        self.n_width = 0
+        self.n_bounds = 0
+        self.n_signals = 0
+        self.n_pass = 0
 
         # Initialize the amount of points run
         self.curr_points_run = 0
@@ -123,17 +123,17 @@ class PointSampler:
         self.logger.info(f"{self.total_points_requested} points requested")
 
         # Run until points passed is >= points asked for
-        while self.npass < self.total_points_requested:
+        while self.n_pass < self.total_points_requested:
 
             # Guarantee that there is no division by 0
             if abs(self.efficiency - 0.0) < 1e-12:
                 self.efficiency = 1.0
 
             # Calculate number of points needed for next iteration -- round up to nearest whole number
-            num_points_requested = math.ceil((self.total_points_requested-self.npass)/self.efficiency)
+            num_points_requested = math.ceil((self.total_points_requested-self.n_pass)/self.efficiency)
 
             # Print number of points that pass so far
-            self.logger.debug(f"{self.npass} of {self.total_points_requested} requested points done")
+            self.logger.debug(f"{self.n_pass} of {self.total_points_requested} requested points done")
 
             # Print number of points requested
             self.logger.debug(f'Generating {num_points_requested} points')
@@ -158,15 +158,15 @@ class PointSampler:
             save_tsv_output(temp_tsv, tsv_name)
 
             # Update the numbers of events passing filters
-            self.nwidth += results["width"]
-            self.nbounds += results["bounds"]
-            self.nsignals += results["signals"]
-            self.npass += results["pass"]
+            self.n_width += results["width"]
+            self.n_bounds += results["bounds"]
+            self.n_signals += results["signals"]
+            self.n_pass += results["pass"]
 
             # If no points passed the filters, raise an error
-            if self.npass == 0:
+            if self.n_pass == 0:
                 self.logger.error("No points passed the filters")
-                self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
+                self.logger.debug(f'{self.curr_points_run} generated, {self.n_pass} pass filters')
                 raise NoPointsPassedError()
 
             # Break if all points are being counted
@@ -174,11 +174,11 @@ class PointSampler:
                 break
 
             # Calculate the running efficiency of the points passed based on points run so far
-            running_efficiency = self.npass / self.curr_points_run
+            running_efficiency = self.n_pass / self.curr_points_run
 
             # Print points passed and efficiency
             self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
-            self.logger.debug(f'A total of {self.npass} points have passed')
+            self.logger.debug(f'A total of {self.n_pass} points have passed')
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
@@ -190,8 +190,8 @@ class PointSampler:
                 self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.npass} points that pass filters")
-        self.logger.debug(f'{self.curr_points_run} generated, {self.npass} pass filters')
+        self.logger.info(f"Generated {self.n_pass} points that pass filters")
+        self.logger.debug(f'{self.curr_points_run} generated, {self.n_pass} pass filters')
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
@@ -240,17 +240,17 @@ class PointSampler:
         save_tsv_output(temp_tsv, tsv_name)
 
         # Update the filtered variables
-        self.nwidth = results["width"]
-        self.nbounds = results["bounds"]
-        self.nsignals = results["signals"]
-        self.npass = results["pass"]
+        self.n_width = results["width"]
+        self.n_bounds = results["bounds"]
+        self.n_signals = results["signals"]
+        self.n_pass = results["pass"]
 
         # Print points passed and efficiency
-        self.logger.debug(f'A total of {self.npass} points have passed')
+        self.logger.debug(f'A total of {self.n_pass} points have passed')
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.npass} points that pass filters")
-        self.logger.debug(f'1 point generated, {self.npass} pass filters')
+        self.logger.info(f"Generated {self.n_pass} points that pass filters")
+        self.logger.debug(f'1 point generated, {self.n_pass} pass filters')
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
