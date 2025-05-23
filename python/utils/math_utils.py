@@ -9,8 +9,8 @@ def round_sig(val: float,
     If the value is close to 0 (within a given tolerance), it returns 0 directly.
 
     Args:
-        val: The number to be rounded.
-        sig_figs: The number of significant figures to round to (default is 3).
+        val (float): The number to be rounded.
+        sig_figs (int): The number of significant figures to round to (default is 3).
 
     Returns:
         The rounded value, or 0 if the input value is close to 0.
