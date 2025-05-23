@@ -81,7 +81,7 @@ class Model:
         return os.path.join(self.model_dir, f"{self.name}_params.yml")
 
     @property
-    def input_parameters(self) -> dict[str, any]:
+    def input_parameters(self) -> Dict[str, any]:
         """Dictionary of input parameters"""
         return self.__input_params
 
@@ -113,22 +113,22 @@ class Model:
         }
 
     @property
-    def input_parameter_names(self) -> Tuple[str]:
+    def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
 
     @property
-    def output_parameter_names(self) -> Tuple[str]:
+    def output_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.output_parameters.keys())
 
     @property
-    def width_parameter_names(self) -> Tuple[str]:
+    def width_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.width_parameters.keys())
 
     @property
-    def all_parameter_names(self) -> Tuple[str]:
+    def all_parameter_names(self) -> Tuple[str, ...]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
@@ -164,7 +164,7 @@ class Model:
 
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
-            self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            self.logger.warning(f'1 SM Higgs expected, found {len(self.particles['SMHiggs'])}')
             return
 
         # store SM-like Higgs

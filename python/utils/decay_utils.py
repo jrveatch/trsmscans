@@ -46,7 +46,7 @@ class DecayConfigManager:
         return self.non_resolvable_map.get(group)
 
 @lru_cache(maxsize=None)
-def valid_decays() -> Set[str]:
+def valid_decays() -> List[str]:
 
     decay_config_manager = DecayConfigManager()
 

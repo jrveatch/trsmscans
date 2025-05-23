@@ -26,7 +26,7 @@ class ZoomOptimizer:
                  num_points: int,
                  starting_max: Point,
                  config_loader: ConfigLoader,
-                 label: str = ""):
+                 label: str):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -109,9 +109,7 @@ class ZoomOptimizer:
         self.global_max = global_max
 
         # get iteration identifier
-        iter_label = f"{iter:04d}"
-        if self.label:
-            identifier = self.label + "-Iteration-" + iter_label
+        identifier = f"{self.label}-Iteration-{iter:04d}"
         self.logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration

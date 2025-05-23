@@ -89,7 +89,7 @@ class Plot:
         for file_list in self.all_files_dict.values():
 
             grouped_vars: Dict[str, List[NDArray]] = defaultdict(list)
-            best_point: Point = None
+            best_point: Point = Point(model=self.model)
 
             for file_name in file_list:
                 parser = Parse(file_name=file_name, model=self.model)
