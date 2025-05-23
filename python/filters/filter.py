@@ -73,4 +73,6 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,model=model)
+    apply_filters(file_name=args.file_name,
+                  model=model,
+                  config_loader=ConfigLoader(config_file_name=f"{model.name}_default.yml"))
