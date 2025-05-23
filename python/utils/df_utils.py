@@ -1,6 +1,7 @@
 
 # standard libraries
 import logging
+from typing import cast, List
 
 # third-party libraries
 import pandas as pd
@@ -42,7 +43,7 @@ def get_header_string(dataframe: pd.DataFrame) -> str:
     Returns:
         str: Tab-separated string of the header including index column.
     """
-    return "\t".join([index_label] + dataframe.columns.tolist())
+    return "\t".join([index_label] + cast(List[str], dataframe.columns.tolist()))
 
 # write arrays to a new file
 def write_to_tsv(dataframe: pd.DataFrame,
