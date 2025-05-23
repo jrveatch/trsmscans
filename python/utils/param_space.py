@@ -6,6 +6,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 # local modules
+from utils.logging_utils import log_table
 from utils.model import Model
 from utils.param_range import ParamRange
 from utils.point import Point
@@ -248,6 +249,38 @@ class ParamSpace:
 
         return split_params_list
 
+    def log_bounds_table(self) -> None:
+        """Log the bounds of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Bounds"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_bounds()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
+
+    def log_range_table(self) -> None:
+        """Log the range of all parameters in a table format"""
+        # make list of headers for parameter bounds table and empty list of rows
+        headers = ["Parameter", "Range"]
+        rows = []
+
+        # loop over parameters and add to rows
+        for parameter_name in self.parameter_names:
+            # add parameter name and bounds to rows
+            rows.append([parameter_name, self.parameter_ranges[parameter_name].format_range()])
+
+        # print table of parameter bounds
+        log_table(logger=self.logger,
+                  headers=headers,
+                  rows=rows)
+
     ## Aliases
 
     # Alias for self.center_point()
@@ -259,11 +292,6 @@ class ParamSpace:
     @property
     def vol_width(self) -> Tuple[float]:
         return self.widths()
-
-    # Alias for self.ranges()
-    @property
-    def vol_range(self) -> Tuple[Tuple[float, float]]:
-        return self.ranges()
 
     def __getitem__(self, key) -> ParamRange:
         """Return the ParamRange object corresponding to `par_name`"""

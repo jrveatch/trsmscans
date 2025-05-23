@@ -2,7 +2,7 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 # third-party libraries
 import diptest
@@ -121,16 +121,6 @@ class Parse:
                      model = self.model,
                      par_vals = max_xb_par_vals)
 
-    def get_min(self,
-                par_name: str) -> float:
-        """Get the minimum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].min()
-
-    def get_max(self,
-                par_name: str) -> float:
-        """Get the maximum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].max()
-
     def is_bimodal(self,
                    param_name: str,
                    decay: str,
@@ -241,7 +231,7 @@ class Parse:
                             par_vals: np.ndarray,
                             xb_vals: np.ndarray,
                             par_vals_eval: np.ndarray,
-                            bw: str | float = 'silverman',
+                            bw: Union[str, float] = 'silverman',
                             min_prominence: float = 0.1) -> List[float]:
         """Modality-based KDE splits weighted by xb."""
         try:
@@ -258,7 +248,7 @@ class Parse:
                         par_vals: np.ndarray,
                         n_points: int = 200,
                         density_threshold: float = 0.01,
-                        bw: str | float = 'silverman',) -> List[float]:
+                        bw: Union[str, float] = 'silverman',) -> List[float]:
         """Density-based KDE splits: one midpoint per low-density region."""
         try:
             # Normalize parameter values to [0, 1]
@@ -318,9 +308,60 @@ class Parse:
         mask = self.param_space_mask(param_space)
         return xb[mask]
 
+    def shrink_param_space_bounds(self,
+                                  param_space: ParamSpace,
+                                  resolution: float = 0.01) -> None:
+        """Shrink bounds of ParamSpace based on points contained"""
+        filtered_data = self.get_filtered_data(param_space)
+        for name, par in self.model.input_parameters.items():
+            full_name: str = par['fullname']
+            new_min = filtered_data[full_name].min()
+            new_max = filtered_data[full_name].max()
+            param_space[name].set_min_max(new_min=new_min,
+                                          new_max=new_max,
+                                          resolution=resolution)
+
+    def get_filtered_data(self,
+                          param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
+        """Return a view of filtered_data that is carved out by a parameter space"""
+        mask = self.param_space_mask(param_space)
+        return self.filtered_data[mask]
+
+    def param_space_mask(self,
+                         param_space: Optional[ParamSpace] = None) -> pd.Series:
+        """Return a mask of filtered_data that is carved out by a parameter space"""
+        df = self.filtered_data
+        mask = pd.Series(True, index=df.index)
+
+        # if no param_space is provided, return the mask of all points
+        if param_space is None:
+            return mask
+
+        # loop over parameters in the parameter space and create a mask
+        for param in param_space:
+            col = param.full_name
+            mask &= (df[col] > param.low) & (df[col] <= param.high)
+
+        return mask
+
+    def write_max_xb_line(self,
+                          file_name: str
+                         ) -> None:
+        """Write line with max xb to a .tsv file"""
+
+        # get max xb row from dataframe
+        row = self.data.loc[[self.max_idx]]
+
+        # write it to the summary .tsv
+        row.to_csv(file_name,
+                   sep='\t',
+                   index=True,
+                   mode='a',
+                   header=False)
+
     def __get_xsec_prod(self) -> pd.Series:
         """Get array of production cross-sections"""
-        return self.filtered_data['x_H3_gg'] #* self.filtered_data['b_H3_H1H2']
+        return self.filtered_data['x_H3_gg']
 
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
@@ -339,6 +380,7 @@ class Parse:
         br_H_gamgam = self.filtered_data['b_'+self.HName+'_gamgam']
 
         # S SM BRs
+        br_S_tt = self.filtered_data['b_'+self.SName+'_tt']
         br_S_bb = self.filtered_data['b_'+self.SName+'_bb']
         br_S_tautau = self.filtered_data['b_'+self.SName+'_tautau']
         br_S_WW = self.filtered_data['b_'+self.SName+'_WW']
@@ -519,6 +561,16 @@ class Parse:
             br4 = br_X_HH * br_H_bb * br_H_gamgam
             br_decay = br1 + br2 + br3 + br4
 
+        # ttbb cases
+        elif decay == "SttHbb":
+            br_decay = br_X_SH * br_S_tt * br_H_bb
+        elif decay == "SSttbb":
+            br_decay = br_X_SS * br_S_tt * br_S_bb
+        elif decay == "Xttbb":
+            br1 = br_X_SH * br_S_tt * br_H_bb
+            br2 = br_X_SS * br_S_tt * br_S_bb
+            br_decay = br1 + br2
+
         # raise an exception in all other cases
         else:
             raise ValueError(
@@ -528,41 +580,3 @@ class Parse:
 
         # return the decay BR
         return br_decay
-
-    def get_filtered_data(self,
-                          param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
-        """Return a view of filtered_data that is carved out by a parameter space"""
-        mask = self.param_space_mask(param_space)
-        return self.filtered_data[mask]
-
-    def param_space_mask(self,
-                         param_space: Optional[ParamSpace] = None) -> pd.Series:
-        """Return a mask of filtered_data that is carved out by a parameter space"""
-        df = self.filtered_data
-        mask = pd.Series(True, index=df.index)
-
-        # if no param_space is provided, return the mask of all points
-        if param_space is None:
-            return mask
-
-        # loop over parameters in the parameter space and create a mask
-        for param in param_space:
-            col = param.full_name
-            mask &= (df[col] > param.low) & (df[col] <= param.high)
-
-        return mask
-
-    def write_max_xb_line(self,
-                          file_name: str
-                         ) -> None:
-        """Write line with max xb to a .tsv file"""
-
-        # get max xb row from dataframe
-        row = self.data.loc[[self.max_idx]]
-
-        # write it to the summary .tsv
-        row.to_csv(file_name,
-                   sep='\t',
-                   index=True,
-                   mode='a',
-                   header=False)
