@@ -124,7 +124,7 @@ class PlotTester:
         """
 
         # Print current status
-        self.logger.info("Loading prescan ...")
+        self.logger.info("Loading prescan...")
 
         # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
