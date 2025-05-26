@@ -137,6 +137,11 @@ class Model:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
+    @cached_property
+    def input_parameter_full_names(self) -> Tuple[str, ...]:
+        """List of input parameter full names"""
+        return tuple(item["fullname"] for item in self.input_parameters.values())
+
     @property
     def particles(self) -> Dict[str, Any]:
         """Dictionary of particles"""
