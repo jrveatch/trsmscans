@@ -142,6 +142,22 @@ class Model:
         """List of input parameter full names"""
         return tuple(item["fullname"] for item in self.input_parameters.values())
 
+    @cached_property
+    def ini_name_to_fullname_map(self) -> Dict[str, str]:
+        return {
+            item["ini_name"]: item["fullname"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
+
+    @cached_property
+    def fullname_to_ini_name_map(self) -> Dict[str, str]:
+        return {
+            item["ini_name"]: item["fullname"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
+
     @property
     def particles(self) -> Dict[str, Any]:
         """Dictionary of particles"""
