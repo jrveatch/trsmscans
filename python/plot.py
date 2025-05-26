@@ -12,7 +12,6 @@ from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 # local modules
 from utils import file_utils
@@ -83,12 +82,12 @@ class Plot:
         """
 
         self.max_point_list: List[Point] = []
-        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
+        self.var_lists: Dict[str, List[np.ndarray]] = defaultdict(list)
 
         # Loop through each group of files (e.g. Pre, 0, 1, ...)
         for file_list in self.all_files_dict.values():
 
-            grouped_vars: Dict[str, List[NDArray]] = defaultdict(list)
+            grouped_vars: Dict[str, List[np.ndarray]] = defaultdict(list)
             best_point: Point = Point(model=self.model)
 
             for file_name in file_list:
@@ -108,19 +107,22 @@ class Plot:
             for key, arrays in grouped_vars.items():
                 self.var_lists[key].append(np.concatenate(arrays))
 
-            self.concatenated_vars = {key: np.concatenate(val_list) for key, val_list in self.var_lists.items()}
-
             self.max_point_list.append(best_point)
 
-    def plot_variable_pair(self, var1_name: str, var2_name: str) -> None:
+        self.concatenated_vars = {key: np.concatenate(val_list) for key, val_list in self.var_lists.items()}
+
+    def plot_variable_pair(self,
+                           var1_name: str,
+                           var2_name: str) -> None:
         """
         Create a 2D scatter plot for a given pair of variables over all iterations.
         """
         var1 = self.var_lists[var1_name]
         var2 = self.var_lists[var2_name]
 
-        op = 0.8 / len(self.var_lists['xb'])
-        opacity = op + 0.19
+        num_iters = len(self.var_lists['xb'])
+        op = 0.6 / max(num_iters, 1)
+        opacity = 0.3
 
         fig, ax = plt.subplots()
         for i in range(len(self.var_lists['xb'])):
@@ -129,15 +131,18 @@ class Plot:
             ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
             opacity += op
 
+        if not self.max_point_list:
+            print(f"No max points found to plot for {var1_name} vs {var2_name}")
+            return
+
         maximum = max(self.max_point_list)
+        max_point_1 = maximum.get_val(var1_name)
+        max_point_2 = maximum.get_val(var2_name)
         for i, point in enumerate(self.max_point_list):
             point1 = point.get_val(var1_name)
             point2 = point.get_val(var2_name)
             if point != maximum:
                 ax.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
-            else:
-                max_point_1 = point1
-                max_point_2 = point2
 
         ax.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
         ax.set_title(f"{var1_name} vs {var2_name}")
@@ -172,10 +177,10 @@ class Plot:
         im = ax.imshow(max_xb_in_bins.T,
                        origin='lower',
                        aspect='auto',
-                       extent=[
-                           df_comb[var1_name].min(), df_comb[var1_name].max(),
-                           df_comb[var2_name].min(), df_comb[var2_name].max()
-                           ],
+                       extent=(
+                           float(df_comb[var1_name].min()), float(df_comb[var1_name].max()),
+                           float(df_comb[var2_name].min()), float(df_comb[var2_name].max())
+                           ),
                        cmap='viridis',
                        interpolation='bilinear')
         fig.colorbar(im, ax=ax, label='Maximum value of xb')
@@ -197,11 +202,11 @@ class Plot:
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float)
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float)
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-d", "--decay", required=True, type=str)
-    arg_parser.add_argument("-m", "--model", required=True, type=str)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     args = arg_parser.parse_args()
 
     # Create model object
