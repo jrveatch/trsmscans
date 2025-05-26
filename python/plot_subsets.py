@@ -16,6 +16,12 @@ from utils.model import Model
 import argparse
 import logging
 from utils.parse import Parse
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(message)s"
+)
+
 class PlotTester:
 
     def __init__(self,
@@ -55,7 +61,7 @@ class PlotTester:
         self.plot_data()
 
     def parse_ini_files(self,
-                        directory: str):
+                        directory: str) -> dict:
         # Dictionary to store ranges for each file
         ranges_dict = defaultdict(dict) 
 
@@ -110,7 +116,12 @@ class PlotTester:
         return ranges_dict
     
     # Method to Load the information of the prescan to a Pandas Data Frame
-    def load_prescan_data(self):
+    def load_prescan_data(self) -> None:
+        """
+        Load the prescan data into a pandas DataFrame using the Parse class.
+        
+        The DataFrame is filtered to keep only relevant columns defined in `param_mapping`.
+        """
 
         # Print current status
         self.logger.info("Loading prescan ...")
@@ -129,7 +140,12 @@ class PlotTester:
 
         self.logger.debug(f'Panda Data Frame:\n\t{self.df}')
 
-    def filter_data(self):
+    def filter_data(self) -> None:
+        """
+        Filter the prescan DataFrame using the parameter ranges from the parsed .ini files.
+
+        The filtered data is stored in a dictionary mapping each .ini filename to a filtered DataFrame.
+        """
 
         # Filter self.df based on parameter ranges from .ini files.
         if self.df.empty or not self.ini_ranges:
@@ -158,12 +174,19 @@ class PlotTester:
                 self.filtered_files[file] = filtered_df
 
     def plot_data(self) -> None:
+        """
+        Generate 2D scatter plots for all parameter pairs.
 
+        Each plot overlays scan points and bounding boxes corresponding to parameter regions
+        from each .ini file grouped by Zoom Optimizer. Results are saved as PNG files.
+        """
+
+        # TODO: Load this from the model
         self.pars = ['thetahS','thetahX','thetaSX','vs','vx']
         reverse_map = {v: k for k, v in self.param_mapping.items()}
 
         # Print info to screen
-        print("Making scan plots for",self.model.name,self.decay,self.model.mass_string)
+        self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
         for zoom_op in self.ini_ranges.keys():
             
@@ -200,8 +223,7 @@ class PlotTester:
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
 
                         file_ranges = self.ini_ranges[zoom_op][file]
-                        print(file_ranges)
-                        print()
+                        self.logger.debug(file_ranges)
 
                         x_ini = reverse_map.get(param1)
                         y_ini = reverse_map.get(param2)
