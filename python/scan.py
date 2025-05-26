@@ -250,7 +250,8 @@ class Scan:
         # Define helper functions (as inner functions because only for meanshift implementation)
         
         # Returns a list of initial positions for shifters
-        def initial_positions(points: int, strategy: str) -> tuple[Point]:
+        def initial_positions(points: int,
+                              strategy: str) -> Tuple[Point]:
             results = []
             
             if strategy == 'random':
