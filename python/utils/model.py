@@ -153,7 +153,7 @@ class Model:
     @cached_property
     def fullname_to_ini_name_map(self) -> Dict[str, str]:
         return {
-            item["ini_name"]: item["fullname"]
+            item["fullname"]: item["ini_name"]
             for item in self.input_parameters.values()
             if "ini_name" in item and "fullname" in item
         }
