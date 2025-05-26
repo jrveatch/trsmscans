@@ -173,7 +173,7 @@ class Parse:
                                param_space: Optional[ParamSpace] = None,
                                min_prominence=0.1,
                                density_threshold=0.01,
-                               bw='silverman',
+                               bw: Union[str, float] = 'silverman',
                                n_points=200):
         """
         Suggests 1D split points for a parameter column based on:
