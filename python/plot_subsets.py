@@ -197,9 +197,6 @@ class PlotTester:
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
-            # Set the start and end colors by random RGB values
-            start_rgb, end_rgb = self.select_colors()
-
             for i, param1 in enumerate(self.pars[:-1]):
                 for param2 in self.pars[i+1:]:
                     # Extract values for each file (filtered DataFrames)
@@ -217,7 +214,7 @@ class PlotTester:
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
-                        color = [start_rgb[c] + t * (end_rgb[c]-start_rgb[c]) for c in range(3)]
+                        color = plt.cm.viridis(t)
 
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
@@ -255,18 +252,6 @@ class PlotTester:
 
                     # Close the figure
                     plt.close()
-
-        return
-
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
 
 if __name__ == "__main__":
 
