@@ -54,7 +54,8 @@ class PlotTester:
         self.filter_data()
         self.plot_data()
 
-    def parse_ini_files(self, directory):
+    def parse_ini_files(self,
+                        directory: str):
         # Dictionary to store ranges for each file
         ranges_dict = defaultdict(dict) 
 
@@ -73,32 +74,34 @@ class PlotTester:
         # Loop through all .ini files in the directory
         for file_name in self.sorted_ini_files:
                 
-                # Create file path based on .ini file name
-                file_path = os.path.join(directory, file_name)
+            # Create file path based on .ini file name
+            file_path = os.path.join(directory, file_name)
 
-                # Find the Zoom Optimizer used in the file and group all files by Zoom Optimizer
-                match = re.search(r"(ZoomOptimizer-\d+)",file_name)
+            # Find the Zoom Optimizer used in the file and group all files by Zoom Optimizer
+            if match := re.search(r"(ZoomOptimizer-\d+)", file_name):
                 zoom_op_key = match.group(1)
+            else:
+                raise ValueError(f"Pattern not found in file_name: {file_name}")
 
-                # Create config parse to read the path
-                config = configparser.ConfigParser()
-                config.read(file_path)
+            # Create config parse to read the path
+            config = configparser.ConfigParser()
+            config.read(file_path)
 
-                # Initialize empty dictionary to store the range information
-                ranges = {}
+            # Initialize empty dictionary to store the range information
+            ranges = {}
 
-                # Iterate through each parameter
-                for param in params_of_interest:
+            # Iterate through each parameter
+            for param in params_of_interest:
 
-                    # Extract the param from the .ini file
-                    if param in config["scan"]:
+                # Extract the param from the .ini file
+                if param in config["scan"]:
 
-                        # Store min and max values for the param
-                        min_val, max_val = map(float, config["scan"][param].split())
-                        ranges[param] = (min_val, max_val)
+                    # Store min and max values for the param
+                    min_val, max_val = map(float, config["scan"][param].split())
+                    ranges[param] = (min_val, max_val)
 
-                # Store the extracted ranges with the filename and Zoom Optimier as keys
-                ranges_dict[zoom_op_key][file_name] = ranges
+            # Store the extracted ranges with the filename and Zoom Optimier as keys
+            ranges_dict[zoom_op_key][file_name] = ranges
 
         # Debugger that prints the ranges from the .ini files
         self.logger.debug(f'Ini Range Data:\n\t{ranges_dict}')
@@ -119,17 +122,17 @@ class PlotTester:
         self.parser.read_file(file_name=self.prescan_tsv)
 
         # Retrieve attribute
-        self.panda_df = self.parser.filtered_data
+        self.df = self.parser.filtered_data
 
         # Store the Pandas Data Frame by parameter keys
-        self.panda_df = self.panda_df[['thetahS','thetahX','thetaSX','vs','vx']]
+        self.df = self.df[['thetahS','thetahX','thetaSX','vs','vx']]
 
-        self.logger.debug(f'Panda Data Frame:\n\t{self.panda_df}')
+        self.logger.debug(f'Panda Data Frame:\n\t{self.df}')
 
     def filter_data(self):
 
-        # Filter self.panda_df based on parameter ranges from .ini files.
-        if self.panda_df.empty or not self.ini_ranges:
+        # Filter self.df based on parameter ranges from .ini files.
+        if self.df.empty or not self.ini_ranges:
             self.logger.warning("No data to filter.")
             return
 
@@ -143,7 +146,7 @@ class PlotTester:
             for file, ranges in data.items():
 
                 # Make a copy of the Panda Data Frame
-                filtered_df = self.panda_df.copy()
+                filtered_df = self.df.copy()
 
                 filter_condition = pd.Series(True, index=filtered_df.index)
                 for param, (min_val, max_val) in ranges.items():
@@ -177,8 +180,8 @@ class PlotTester:
             for i, param1 in enumerate(self.pars[:-1]):
                 for param2 in self.pars[i+1:]:
                     # Extract values for each file (filtered DataFrames)
-                    param1_values = [zoom_op_files[file][param1].values for file in zoom_op_files]
-                    param2_values = [zoom_op_files[file][param2].values for file in zoom_op_files]
+                    param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
+                    param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
 
                     num_files = len(param1_values)
 
