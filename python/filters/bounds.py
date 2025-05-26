@@ -45,7 +45,7 @@ def filter_bounds(dataframe: pd.DataFrame,
 
 # TODO: Make this work for other models
 def process_data(df: pd.DataFrame,
-                 model: 'Model') -> Tuple[List[int], List[int]]:
+                 model: Model) -> Tuple[List[int], List[int]]:
     """Function to process a DataFrame."""
 
     # make filter lists
@@ -89,39 +89,39 @@ def process_data(df: pd.DataFrame,
         RS_name = 'R11'
     RX_name = 'R31'
 
-    for idx, row in df.iterrows():
+    for idx, (_, row) in enumerate(df.iterrows()):
 
         # get masses
-        mH = row['m'+HName]
-        mS = row['m'+SName]
-        mX = row['m'+XName]
+        mH = float(row['m'+HName])
+        mS = float(row['m'+SName])
+        mX = float(row['m'+XName])
 
         # get widths
-        wH = row['w_'+HName]
-        wS = row['w_'+SName]
-        wX = row['w_'+XName]
+        wH = float(row['w_'+HName])
+        wS = float(row['w_'+SName])
+        wX = float(row['w_'+XName])
 
         # get rescalings
-        RH = row[RH_name]
-        RS = row[RS_name]
-        RX = row[RX_name]
+        RH = float(row[RH_name])
+        RS = float(row[RS_name])
+        RX = float(row[RX_name])
 
         logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
-            br_H_SM[decay] = row['b_'+HName+'_'+decay]
-            br_S_SM[decay] = row['b_'+SName+'_'+decay]
-            br_X_SM[decay] = row['b_'+XName+'_'+decay]
+            br_H_SM[decay] = float(row['b_'+HName+'_'+decay])
+            br_S_SM[decay] = float(row['b_'+SName+'_'+decay])
+            br_X_SM[decay] = float(row['b_'+XName+'_'+decay])
 
         # get BSM BRs
         if HName == "H2": # mH > mS
-            br_H_BSM['S','S'] = row['b_H2_H1H1']
+            br_H_BSM['S','S'] = float(row['b_H2_H1H1'])
         if SName == "H2": # mH < mS
-            br_S_BSM['H','H'] = row['b_H2_H1H1']
-        br_X_BSM['H','H'] = row['b_H3_'+HName+HName]
-        br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
-        br_X_BSM['S','H'] = row['b_H3_H1H2']
+            br_S_BSM['H','H'] = float(row['b_H2_H1H1'])
+        br_X_BSM['H','H'] = float(row['b_H3_'+HName+HName])
+        br_X_BSM['S','S'] = float(row['b_H3_'+SName+SName])
+        br_X_BSM['S','H'] = float(row['b_H3_H1H2'])
 
         # set scalar masses and widths
         H.setMass(mH)
