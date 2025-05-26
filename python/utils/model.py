@@ -262,10 +262,12 @@ class Model:
         """Get a single input parameter"""
         return self.input_parameters[par_name]
 
-    def starting_min(self,par_name) -> float:
+    def starting_min(self,
+                     par_name: str) -> float:
         """Get model parameter starting min"""
         return self.input_parameters[par_name]['min']
 
-    def starting_max(self,par_name) -> float:
+    def starting_max(self,
+                     par_name: str) -> float:
         """Get parameter starting max"""
         return self.input_parameters[par_name]['max']
