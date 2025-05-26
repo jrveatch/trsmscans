@@ -112,6 +112,7 @@ class Model:
             for particle in self.AllScalars
         }
 
+
     @cached_property
     def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
