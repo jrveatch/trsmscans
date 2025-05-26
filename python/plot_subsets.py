@@ -181,8 +181,6 @@ class PlotTester:
         from each .ini file grouped by Zoom Optimizer. Results are saved as PNG files.
         """
 
-        # TODO: Load this from the model
-        self.pars = ['thetahS','thetahX','thetaSX','vs','vx']
         reverse_map = {v: k for k, v in self.param_mapping.items()}
 
         # Print info to screen
@@ -197,8 +195,8 @@ class PlotTester:
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
-            for i, param1 in enumerate(self.pars[:-1]):
-                for param2 in self.pars[i+1:]:
+            for i, param1 in enumerate(self.model.input_parameter_full_names[:-1]):
+                for param2 in self.model.input_parameter_full_names[i+1:]:
                     # Extract values for each file (filtered DataFrames)
                     param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
                     param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
