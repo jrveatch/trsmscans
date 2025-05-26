@@ -113,24 +113,50 @@ class Model:
         }
 
     @property
+    def input_parameter_full_names(self) -> Tuple[str, ...]:
+        """List of input parameter full names"""
+        return tuple(item["fullname"] for item in self.input_parameters.values())
+
+    @cached_property
     def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
 
-    @property
+    @cached_property
     def output_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.output_parameters.keys())
 
-    @property
+    @cached_property
     def width_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.width_parameters.keys())
 
-    @property
+    @cached_property
     def all_parameter_names(self) -> Tuple[str, ...]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
+
+    @cached_property
+    def input_parameter_full_names(self) -> Tuple[str, ...]:
+        """List of input parameter full names"""
+        return tuple(item["fullname"] for item in self.input_parameters.values())
+
+    @cached_property
+    def ini_name_to_fullname_map(self) -> Dict[str, str]:
+        return {
+            item["ini_name"]: item["fullname"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
+
+    @cached_property
+    def fullname_to_ini_name_map(self) -> Dict[str, str]:
+        return {
+            item["fullname"]: item["ini_name"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
 
     @property
     def particles(self) -> Dict[str, Any]:
@@ -236,10 +262,12 @@ class Model:
         """Get a single input parameter"""
         return self.input_parameters[par_name]
 
-    def starting_min(self,par_name) -> float:
+    def starting_min(self,
+                     par_name: str) -> float:
         """Get model parameter starting min"""
         return self.input_parameters[par_name]['min']
 
-    def starting_max(self,par_name) -> float:
+    def starting_max(self,
+                     par_name: str) -> float:
         """Get parameter starting max"""
         return self.input_parameters[par_name]['max']
