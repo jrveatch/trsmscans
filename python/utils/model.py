@@ -87,7 +87,7 @@ class Model:
 
     @input_parameters.setter
     def input_parameters(self,
-                         new_input_params: dict[str, Any]) -> None:
+                         new_input_params: Dict[str, Any]) -> None:
         """Set the input parameters dictionary"""
         self.__input_params = new_input_params
 
@@ -98,12 +98,12 @@ class Model:
 
     @output_parameters.setter
     def output_parameters(self,\
-                          new_output_params: dict[str, Any]) -> None:
+                          new_output_params: Dict[str, Any]) -> None:
         """Set the output parameters dictionary"""
         self.__output_params = new_output_params
 
     @cached_property
-    def width_parameters(self) -> dict[str, dict[str, str]]:
+    def width_parameters(self) -> Dict[str, Dict[str, str]]:
         """Dictionary mapping 'w<particle>' to {'fullname': 'w_<H_i>'}."""
         return {
             "w" + particle: {
@@ -133,13 +133,13 @@ class Model:
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     @property
-    def particles(self) -> dict[str, Any]:
+    def particles(self) -> Dict[str, Any]:
         """Dictionary of particles"""
         return self.__particles
 
     @particles.setter
     def particles(self,
-                   new_particles: dict[str, Any]) -> None:
+                   new_particles: Dict[str, Any]) -> None:
         """Set the particles dictionary"""
         self.__particles = new_particles
 
