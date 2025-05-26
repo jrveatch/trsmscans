@@ -73,26 +73,24 @@ class ConfigLoader:
 
     def get(self,
             section: str,
-            key: str,
-            default: Optional[Any] = None) -> Optional[Any]:
+            key: str) -> Any:
         """
         Retrieve a configuration value from a given section and key.
 
         Args:
             section (str): The section name in the configuration file.
             key (str): The key name within the section.
-            default (Any, optional): The default value to return if the key is not found.
 
         Returns:
-            Any: The value from the configuration, or the default if not found.
+            Any: The value from the configuration.
 
         Raises:
-            KeyError: If the section or key is missing and no default is provided.
+            KeyError: If the section or key is missing.
             Exception: For unexpected access errors.
         """
 
         try:
-            value = self.config.get(section, {}).get(key, default)
+            value = self.config.get(section, {}).get(key)
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
             return value
