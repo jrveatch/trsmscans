@@ -113,6 +113,11 @@ class Model:
         }
 
     @property
+    def input_parameter_full_names(self) -> Tuple[str, ...]:
+        """List of input parameter full names"""
+        return tuple(item["fullname"] for item in self.input_parameters.values())
+
+    @property
     def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
