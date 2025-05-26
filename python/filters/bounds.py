@@ -23,6 +23,7 @@ config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
     # fraction of cpus to use when parallel processing
     frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
+    # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
 except KeyError as e:
     logger.error(e)
