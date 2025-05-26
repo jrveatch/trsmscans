@@ -38,7 +38,7 @@ class Point:
         self.xb = xb
 
     @property
-    def model(self) -> Optional[Model]:
+    def model(self) -> Model:
         """The model object"""
         return self.__model
 

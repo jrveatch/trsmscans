@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import logging
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def save_run_metadata(out_dir: str,
     """Save run metadata to a JSON file."""
     os.makedirs(os.path.join(out_dir,optimization), exist_ok=True)
 
-    metadata = {"optimization": optimization}
+    metadata: Dict[str, Any] = {"optimization": optimization}
     if num_points is not None:
         metadata["num_points"] = num_points
     if num_iterations is not None:

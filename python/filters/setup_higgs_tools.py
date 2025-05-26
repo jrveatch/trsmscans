@@ -1,6 +1,5 @@
 
 # standard libraries
-import os
 from functools import lru_cache
 
 # local modules

@@ -65,7 +65,7 @@ class ParamSpace:
                 for name in self.parameter_names}
 
     @property
-    def parameter_names(self) -> Tuple[str]:
+    def parameter_names(self) -> Tuple[str, ...]:
         """Tuple of parameter name"""
         return self.model.input_parameter_names
 
@@ -99,11 +99,11 @@ class ParamSpace:
         return Point(model=self.model,
                      par_vals={name:self.parameter_ranges[name].random_point() for name in self.parameter_names})
 
-    def ranges(self) -> Tuple[Tuple[float]]:
+    def ranges(self) -> Tuple[Tuple[float, float], ...]:
         """Get tuple of ranges for parameters"""
         return tuple([param_range.range for param_range in self.parameter_ranges.values()])
 
-    def widths(self) -> Tuple[float]:
+    def widths(self) -> Tuple[float, ...]:
         """Get tuple of widths for parameters"""
         return tuple([param_range.width for param_range in self.parameter_ranges.values()])
 
@@ -290,7 +290,7 @@ class ParamSpace:
 
     # Alias for self.widths()
     @property
-    def vol_width(self) -> Tuple[float]:
+    def vol_width(self) -> Tuple[float, ...]:
         return self.widths()
 
     def __getitem__(self, key) -> ParamRange:

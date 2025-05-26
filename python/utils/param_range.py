@@ -2,7 +2,7 @@
 # standard libraries
 import logging
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 # local modules
 from utils.math_utils import round_sig
@@ -115,7 +115,7 @@ class ParamRange:
         return (self.low + self.high) / 2
 
     @property
-    def range(self) -> tuple:
+    def range(self) -> Tuple[float, float]:
         """High and low values of the parameter range"""
         return (self.low, self.high)
 

@@ -26,7 +26,7 @@ class ZoomOptimizer:
                  num_points: int,
                  starting_max: Point,
                  config_loader: ConfigLoader,
-                 label: str = ""):
+                 label: str):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -109,9 +109,7 @@ class ZoomOptimizer:
         self.global_max = global_max
 
         # get iteration identifier
-        iter_label = f"{iter:04d}"
-        if self.label:
-            identifier = self.label + "-Iteration-" + iter_label
+        identifier = f"{self.label}-Iteration-{iter:04d}"
         self.logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
@@ -242,10 +240,10 @@ class ZoomOptimizer:
             content += "--------------------\n"
             content += f"Using {self.point_sampler.total_points_run} scan points\n"
             content += f"Scan density = {density:.3E}\n"
-            content += f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n"
-            content += f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n"
-            content += f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n"
-            content += f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n"
+            content += f"{self.point_sampler.n_width}/{self.point_sampler.total_points_run} pass width check\n"
+            content += f"{self.point_sampler.n_bounds}/{self.point_sampler.total_points_run} pass bounds check\n"
+            content += f"{self.point_sampler.n_signals}/{self.point_sampler.total_points_run} pass signals check\n"
+            content += f"{self.point_sampler.n_pass}/{self.point_sampler.total_points_run} pass all checks\n"
             content += "--------------------\n"
             content += f"New max xsec*BR = {new_max.format_xb()}\n"
             content += f"Local max xsec*BR = {self.local_max.format_xb()}\n"

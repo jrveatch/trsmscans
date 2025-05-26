@@ -3,9 +3,11 @@
 import argparse
 from itertools import combinations
 import os
+from typing import Any, cast, Sequence
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
 import numpy as np
 import pandas as pd
 
@@ -83,7 +85,7 @@ class MeanShiftPlotter:
 
         # Normalize the color scale across all values
         all_values = self.walk_data[color_by].values
-        norm = plt.Normalize(all_values.min(), all_values.max())
+        norm = Normalize(all_values.min(), all_values.max())
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
@@ -97,11 +99,14 @@ class MeanShiftPlotter:
 
             # Create line segments between each pair of points
             points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            segments_array = np.concatenate([points[:-1], points[1:]], axis=1)
+
+            # Cast to help Pyright recognize it
+            segments = cast(Sequence[Any], segments_array)
 
             # Use segment-wise color (except last point which has no next point)
             lc = LineCollection(segments, cmap=cmap, norm=norm)
-            lc.set_array(colors[:-1])  # one color per segment
+            lc.set_array(np.asarray(colors[:-1])) # one color per segment
             lc.set_linewidth(2)
             ax.add_collection(lc)
 

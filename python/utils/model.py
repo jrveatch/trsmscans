@@ -3,7 +3,7 @@
 from functools import cached_property
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 # third-party libraries
 import yaml
@@ -81,13 +81,13 @@ class Model:
         return os.path.join(self.model_dir, f"{self.name}_params.yml")
 
     @property
-    def input_parameters(self) -> dict[str, any]:
+    def input_parameters(self) -> Dict[str, Any]:
         """Dictionary of input parameters"""
         return self.__input_params
 
     @input_parameters.setter
     def input_parameters(self,
-                         new_input_params: dict[str, any]) -> None:
+                         new_input_params: Dict[str, Any]) -> None:
         """Set the input parameters dictionary"""
         self.__input_params = new_input_params
 
@@ -98,12 +98,12 @@ class Model:
 
     @output_parameters.setter
     def output_parameters(self,\
-                          new_output_params: dict[str, any]) -> None:
+                          new_output_params: Dict[str, Any]) -> None:
         """Set the output parameters dictionary"""
         self.__output_params = new_output_params
 
     @cached_property
-    def width_parameters(self) -> dict[str, dict[str, str]]:
+    def width_parameters(self) -> Dict[str, Dict[str, str]]:
         """Dictionary mapping 'w<particle>' to {'fullname': 'w_<H_i>'}."""
         return {
             "w" + particle: {
@@ -113,33 +113,33 @@ class Model:
         }
 
     @property
-    def input_parameter_names(self) -> Tuple[str]:
+    def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
 
     @property
-    def output_parameter_names(self) -> Tuple[str]:
+    def output_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.output_parameters.keys())
 
     @property
-    def width_parameter_names(self) -> Tuple[str]:
+    def width_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.width_parameters.keys())
 
     @property
-    def all_parameter_names(self) -> Tuple[str]:
+    def all_parameter_names(self) -> Tuple[str, ...]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     @property
-    def particles(self) -> dict[str, any]:
+    def particles(self) -> Dict[str, Any]:
         """Dictionary of particles"""
         return self.__particles
 
     @particles.setter
     def particles(self,
-                   new_particles: dict[str, any]) -> None:
+                   new_particles: Dict[str, Any]) -> None:
         """Set the particles dictionary"""
         self.__particles = new_particles
 
@@ -164,7 +164,7 @@ class Model:
 
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
-            self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            self.logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
             return
 
         # store SM-like Higgs
@@ -232,7 +232,7 @@ class Model:
             )
 
     def input_parameter(self,
-                        par_name: str) -> Dict[str,any]:
+                        par_name: str) -> Dict[str, Any]:
         """Get a single input parameter"""
         return self.input_parameters[par_name]
 

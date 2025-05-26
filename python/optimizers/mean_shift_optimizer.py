@@ -45,7 +45,7 @@ class MeanShiftOptimizer:
             self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
             self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-            self.num_points: int = config_loader.get('meanshift', 'num_points')
+            self.__num_points: int = config_loader.get('meanshift', 'num_points')
         except KeyError as e:
             self.logger.error(e)
             raise
@@ -170,6 +170,9 @@ class MeanShiftOptimizer:
         # Flag to indicate whether iterations should stop
         stop = False
 
+        # Default starting value for identifier
+        identifier = self.label
+
         # Loop until stop condition is met
         while not stop:
 
@@ -181,8 +184,6 @@ class MeanShiftOptimizer:
             # get iteration identifier
             identifier = self.label + f"-{iter:04d}"
             self.logger.info(f"Iteration: {identifier}")
-
-            arrays = None
 
             # Create scan_parser using the point_sampler class
             try:
@@ -196,8 +197,8 @@ class MeanShiftOptimizer:
                 self.logger.info(f"No points found. Exiting {identifier}\n")
                 return
 
-            arrays = parser.input_parameter_arrays
-            xb = parser.get_xb(self.decay)
+            arrays = {k: v.to_numpy() for k, v in parser.input_parameter_arrays.items()}
+            xb = parser.get_xb(self.decay).to_numpy()
 
             # Store previous position before calculating a new one
             self.__prev_position = self.new_position
@@ -226,10 +227,13 @@ class MeanShiftOptimizer:
             # NOTE: For debugging
             if self.logger.isEnabledFor(logging.DEBUG):
                 test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
-                position_diff = tuple(p2 - p1 for p1, p2 in zip(self.__prev_position, self.new_position))
+                position_diff = tuple(
+                    self.new_position.parameter_values[k] - self.__prev_position.parameter_values[k]
+                    for k in self.local_param_space.parameter_names
+                )
 
                 self.logger.debug(f"small steps = {self.n_small_steps}")
-                self.logger.debug(f"avg xb      = {round_sig(np.average(xb))}")
+                self.logger.debug(f"avg xb      = {round_sig(float(np.average(xb)))}")
                 self.logger.debug(f"max xb      = {round_sig(np.max(xb))}")
                 self.logger.debug(f"volume size = {self.local_param_space.vol_width}")
                 self.logger.debug(f"curr pos    = {self.local_param_space.vol_position}")
@@ -263,7 +267,7 @@ class MeanShiftOptimizer:
 
     def write_details(self,
                       identifier: str,
-                      xb: pd.Series) -> None:
+                      xb: np.ndarray) -> None:
         """Write iteration information to details file."""
         with open(self.details_name, 'a') as details_file:
             content = f"Iteration = {identifier}\n"
@@ -279,7 +283,7 @@ class MeanShiftOptimizer:
             content += f"curr_pos  = {self.new_position}\n"
             content += f"prev_pos  = {self.__prev_position}\n"
             content += f"test_pos  = {self.__test_position}\n"
-            content += f"avg_xb    = {round_sig(np.average(xb))}\n"
+            content += f"avg_xb    = {round_sig(float(np.average(xb)))}\n"
             content += f"max_xb    = {round_sig(np.max(xb))}\n"
             content += f"new_xb    = {round_sig(self.new_position.xb)}\n"
             content += "--------------------\n"
