@@ -112,27 +112,27 @@ class Model:
             for particle in self.AllScalars
         }
 
-    @property
+    @cached_property
     def input_parameter_full_names(self) -> Tuple[str, ...]:
         """List of input parameter full names"""
         return tuple(item["fullname"] for item in self.input_parameters.values())
 
-    @property
+    @cached_property
     def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
 
-    @property
+    @cached_property
     def output_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.output_parameters.keys())
 
-    @property
+    @cached_property
     def width_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.width_parameters.keys())
 
-    @property
+    @cached_property
     def all_parameter_names(self) -> Tuple[str, ...]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
