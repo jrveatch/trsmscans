@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+"""
+Filter application script for scalar model scan results.
+
+This script reads a `.tsv` file containing scan data, applies a series of
+filters (width, bounds, and signal filters) based on a scalar model and
+configuration, updates the `.tsv` file with filter results, and returns
+filtering statistics.
+"""
+
 # standard libraries
 import argparse
 import logging
@@ -22,6 +31,23 @@ def apply_filters(file_name: str,
                   model: Model,
                   config_loader: ConfigLoader
                  ) -> Dict[str,int]:
+    """
+    Applies a set of filters to a scan result TSV file.
+
+    This function loads scan results from a TSV file, applies width, bounds,
+    and signal filters based on the given model and configuration, writes the
+    updated results back to the file, and returns counts of how many entries
+    pass each filter.
+
+    Args:
+        file_name (str): Path to the `.tsv` file containing scan results.
+        model (Model): The scalar model defining relevant particle masses.
+        config_loader (ConfigLoader): Object for loading filter configuration parameters.
+
+    Returns:
+        Dict[str, int]: A dictionary with counts for each filter and the
+        combined pass count. Keys include 'width', 'bounds', 'signals', and 'pass'.
+    """
 
     # load in dataframe from .tsv file
     dataframe = get_df(file_name)
@@ -60,6 +86,8 @@ def apply_filters(file_name: str,
     return results
 
 if __name__ == "__main__":
+    # Entry point for the script. Parses command-line arguments, constructs the model,
+    # loads configuration, and applies filters to the input TSV file.
 
     # parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
