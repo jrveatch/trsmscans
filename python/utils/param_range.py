@@ -9,6 +9,53 @@ from utils.math_utils import round_sig
 
 # class to hold and update ranges for a single model parameter
 class ParamRange:
+    """
+    Represents the tunable range and bounds for a single model parameter.
+
+    This class tracks the full range (min/max bounds) and the current working range
+    (low/high) used during parameter space scans. It provides methods for
+    scaling, clamping, sampling, and formatting the range.
+
+    Typical use cases include:
+    - Managing ranges within a ParamSpace for scanning
+    - Generating random samples within the current range
+    - Adjusting bounds during adaptive scans or optimization passes
+
+    Attributes:
+        name (str): Short name of the parameter (e.g., 'x').
+        full_name (str): Full descriptive name of the parameter (e.g., 'm_H3').
+        min_value (float): Absolute minimum allowed value.
+        max_value (float): Absolute maximum allowed value.
+        low (float): Current lower bound of the scan range (clamped to min_value).
+        high (float): Current upper bound of the scan range (clamped to max_value).
+
+    Properties:
+        center (float): Midpoint between low and high.
+        range (Tuple[float, float]): Tuple of (low, high).
+        width (float): Difference between high and low.
+
+    Methods:
+        scale_width(new_val: Optional[float], range_scale: float):
+            Scales the current range width around its center.
+
+        set_low_high(new_low: float, new_high: float):
+            Sets both low and high values for the scan range.
+
+        set_min_max(new_min: float, new_max: float, resolution: float = 0.01):
+            Updates the full allowed bounds with a small buffer for safety.
+
+        random_point() -> float:
+            Samples a value uniformly within the current range.
+
+        format_bounds() -> str:
+            Returns a string representation of the min/max bounds.
+
+        format_range() -> str:
+            Returns a string representation of the current scan range.
+
+    Special Methods:
+        __str__(): Returns a formatted string summarizing the parameter and its bounds.
+    """
 
     def __init__(self,
                  name: str,
