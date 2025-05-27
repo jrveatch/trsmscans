@@ -44,15 +44,6 @@ class PlotTester:
         self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
         os.makedirs(self.output_dir, exist_ok=True)
 
-        # Define mapping between .ini file params and DataFrame columns
-        self.param_mapping = {
-            "t1": "thetahS",
-            "t2": "thetahX",
-            "t3": "thetaSX",
-            "vs": "vs",
-            "vx": "vx"
-        }
-
         # Parse ini files and store ranges
         self.ini_ranges = self.parse_ini_files(self.ini_dir)
 
@@ -166,7 +157,7 @@ class PlotTester:
 
                 filter_condition = pd.Series(True, index=filtered_df.index)
                 for param, (min_val, max_val) in ranges.items():
-                    par_name = self.param_mapping.get(param)
+                    par_name = self.model.ini_name_to_fullname_map[param]
                     filter_condition &= (filtered_df[par_name]>min_val) & (filtered_df[par_name]<max_val)
                 filtered_df = filtered_df[filter_condition]
 
@@ -180,8 +171,6 @@ class PlotTester:
         Each plot overlays scan points and bounding boxes corresponding to parameter regions
         from each .ini file grouped by Zoom Optimizer. Results are saved as PNG files.
         """
-
-        reverse_map = {v: k for k, v in self.param_mapping.items()}
 
         # Print info to screen
         self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
@@ -220,8 +209,8 @@ class PlotTester:
                         file_ranges = self.ini_ranges[zoom_op][file]
                         self.logger.debug(file_ranges)
 
-                        x_ini = reverse_map.get(param1)
-                        y_ini = reverse_map.get(param2)
+                        x_ini = self.model.fullname_to_ini_name_map[param1]
+                        y_ini = self.model.fullname_to_ini_name_map[param2]
 
                         x_min, x_max = file_ranges[x_ini]
                         y_min, y_max = file_ranges[y_ini]
