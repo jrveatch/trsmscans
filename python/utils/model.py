@@ -17,6 +17,13 @@ class Model:
     def __init__(self,
                  name: str,
                  masses: Dict[str, float]) -> None:
+        """
+        Initializes a Model object with the given name and particle masses.
+
+        Args:
+            name (str): The name of the model.
+            masses (Dict[str, float]): A dictionary mapping particle names to their masses.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -32,79 +39,75 @@ class Model:
 
     @property
     def name(self) -> str:
-        """Model name"""
+        """Returns the name of the model."""
         return self.__name
 
     @name.setter
     def name(self,
              new_name: str) -> None:
-        """Set the name property"""
+        """Sets the model name."""
         self.__name = new_name
 
     @cached_property
     def model_dir(self) -> str:
-        """Directory where model information is stored"""
-        return os.path.join(data_dir(),"models")
+        """Returns the directory path where model data files are stored."""
+        return os.path.join(data_dir(), "models")
 
     @cached_property
     def template_ini(self) -> str:
-        """Model template .ini file name"""
+        """Returns the file path of the model's template .ini file."""
         return os.path.join(self.model_dir, f"{self.name}_template.ini")
 
     @property
     def masses(self) -> Dict[str,float]:
-        """Dictionary of particle masses"""
+        """Returns the dictionary of scalar particle masses."""
         return self.__masses
 
     @masses.setter
     def masses(self,
                 new_masses: Dict[str,float]) -> None:
-        """Set the masses dictionary and build mass maps"""
+        """Sets the particle masses and rebuilds the internal scalar mass maps."""
         self.__masses = new_masses
         self.__build_mass_maps()
 
     @property
     # TODO: Make this more generalized
     def mass_string(self) -> str:
-        """
-        Returns a formatted string in the form "X<XMass>_S<SMass>".
-
-        :return: A string representation of the masses of X and S.
-        """
+        """Returns a formatted string like 'X400_S150' encoding X and S scalar masses."""
         x_mass = self.masses["X"]
         s_mass = self.masses["S"]
         return f"X{int(x_mass)}_S{int(s_mass)}"
 
     @cached_property
     def yaml_name(self) -> str:
-        """Model yaml file name"""
+        """Returns the file path to the model's YAML configuration file."""
         return os.path.join(self.model_dir, f"{self.name}_params.yml")
 
     @property
     def input_parameters(self) -> Dict[str, Any]:
-        """Dictionary of input parameters"""
+        """Returns a dictionary of input parameter definitions."""
         return self.__input_params
 
     @input_parameters.setter
     def input_parameters(self,
                          new_input_params: Dict[str, Any]) -> None:
-        """Set the input parameters dictionary"""
+        """Sets the dictionary of input parameters."""
         self.__input_params = new_input_params
 
     @property
     def output_parameters(self) -> dict:
-        """Dictionary of output parameters"""
+        """Returns a dictionary of output parameter definitions."""
         return self.__output_params
 
     @output_parameters.setter
     def output_parameters(self,\
                           new_output_params: Dict[str, Any]) -> None:
-        """Set the output parameters dictionary"""
+        """Sets the dictionary of output parameters."""
         self.__output_params = new_output_params
 
     @cached_property
     def width_parameters(self) -> Dict[str, Dict[str, str]]:
-        """Dictionary mapping 'w<particle>' to {'fullname': 'w_<H_i>'}."""
+        """Returns a dictionary mapping width parameter names (e.g. 'wH1') to metadata (e.g. fullname)."""
         return {
             "w" + particle: {
                 'fullname': f"w_{self.get_ordered_scalar_name(particle)}"
@@ -114,31 +117,32 @@ class Model:
 
     @cached_property
     def input_parameter_names(self) -> Tuple[str, ...]:
-        """List of input parameter names"""
+        """Returns a tuple of input parameter names."""
         return tuple(self.input_parameters.keys())
 
     @cached_property
     def output_parameter_names(self) -> Tuple[str, ...]:
-        """List of output parameter names"""
+        """Returns a tuple of output parameter names."""
         return tuple(self.output_parameters.keys())
 
     @cached_property
     def width_parameter_names(self) -> Tuple[str, ...]:
-        """List of output parameter names"""
+        """Returns a tuple of width parameter names."""
         return tuple(self.width_parameters.keys())
 
     @cached_property
     def all_parameter_names(self) -> Tuple[str, ...]:
-        """List of all parameter names"""
+        """Returns a tuple containing all parameter names (input, output, and width)."""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
     @cached_property
     def input_parameter_full_names(self) -> Tuple[str, ...]:
-        """List of input parameter full names"""
+        """Returns a tuple of full names for input parameters."""
         return tuple(item["fullname"] for item in self.input_parameters.values())
 
     @cached_property
     def ini_name_to_fullname_map(self) -> Dict[str, str]:
+        """Returns a mapping from .ini parameter names to full parameter names."""
         return {
             item["ini_name"]: item["fullname"]
             for item in self.input_parameters.values()
@@ -147,6 +151,7 @@ class Model:
 
     @cached_property
     def fullname_to_ini_name_map(self) -> Dict[str, str]:
+        """Returns a mapping from full parameter names to .ini names."""
         return {
             item["fullname"]: item["ini_name"]
             for item in self.input_parameters.values()
@@ -155,17 +160,22 @@ class Model:
 
     @property
     def particles(self) -> Dict[str, Any]:
-        """Dictionary of particles"""
+        """Returns the dictionary of particles grouped by role (e.g., SMHiggs, Scalars)."""
         return self.__particles
 
     @particles.setter
     def particles(self,
                    new_particles: Dict[str, Any]) -> None:
-        """Set the particles dictionary"""
+        """Sets the dictionary of particles used in the model."""
         self.__particles = new_particles
 
     def __read_yaml(self) -> None:
-        """Read the model .yml file and store the information."""
+        """
+        Loads model configuration from the associated YAML file.
+
+        Populates the model's particle content, input/output parameter definitions, and
+        derives scalar classification (SMHiggs, BSMScalars, AllScalars).
+        """
 
         # read in model yaml file
         with open(self.yaml_name,'r') as file:
@@ -203,7 +213,12 @@ class Model:
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
 
     def __build_mass_maps(self) -> None:
-        """Build dictionaries to map between original particle names and mass-ordered 'H_i' names."""
+        """
+        Constructs maps between scalar particle names and their ordered H_i names based on mass.
+
+        Raises:
+            ValueError: If the mass dictionary is missing any required scalar particles.
+        """
 
         # check that all scalar masses are provided
         if not all(k in self.masses for k in self.AllScalars):
@@ -222,12 +237,18 @@ class Model:
     def get_mass(self,
                  name: str) -> float:
         """
-        Retrieve the mass of a particle using either its original name (e.g., 'H', 'S', 'X')
-        or its mass-ordered 'H_i' name ('H1', 'H2', 'H3').
+        Returns the mass of a scalar particle by name or H_i label.
 
-        :param name: Particle name (e.g., 'H', 'S', 'X') or 'H_i' name ('H1', 'H2', 'H3').
-        :return: Corresponding mass value.
+        Args:
+            name (str): Particle name (e.g., 'X', 'S') or ordered name (e.g., 'H1').
+
+        Returns:
+            float: The mass of the particle.
+
+        Raises:
+            KeyError: If the particle name is invalid or not found.
         """
+
         if name in self.masses:
             return self.masses[name]
         elif name in self.h_map:
@@ -240,11 +261,18 @@ class Model:
     def get_ordered_scalar_name(self,
                                 particle_name: str) -> str:
         """
-        Retrieve the 'H_i' name given an original particle name (e.g., 'H', 'S', 'X').
+        Returns the mass-ordered scalar name (e.g., 'H1', 'H2') for a given particle.
 
-        :param original_name: 'H', 'S', or 'X'.
-        :return: Corresponding 'H_i' name (e.g., 'H1', 'H2', 'H3').
+        Args:
+            particle_name (str): Original name of the particle (e.g., 'S', 'X').
+
+        Returns:
+            str: Ordered name (e.g., 'H1').
+
+        Raises:
+            KeyError: If the input name is not in the scalar list.
         """
+
         if particle_name in self.name_map:
             return self.name_map[particle_name]
         else:
@@ -254,15 +282,39 @@ class Model:
 
     def input_parameter(self,
                         par_name: str) -> Dict[str, Any]:
-        """Get a single input parameter"""
+        """
+        Returns the dictionary of metadata for a specific input parameter.
+
+        Args:
+            par_name (str): Name of the input parameter.
+
+        Returns:
+            Dict[str, Any]: Metadata for the input parameter.
+        """
         return self.input_parameters[par_name]
 
     def starting_min(self,
                      par_name: str) -> float:
-        """Get model parameter starting min"""
+        """
+        Returns the starting minimum value for a model input parameter.
+
+        Args:
+            par_name (str): Parameter name.
+
+        Returns:
+            float: Minimum value from parameter definition.
+        """
         return self.input_parameters[par_name]['min']
 
     def starting_max(self,
                      par_name: str) -> float:
-        """Get parameter starting max"""
+        """
+        Returns the starting maximum value for a model input parameter.
+
+        Args:
+            par_name (str): Parameter name.
+
+        Returns:
+            float: Maximum value from parameter definition.
+        """
         return self.input_parameters[par_name]['max']

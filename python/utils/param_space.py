@@ -18,6 +18,14 @@ class ParamSpace:
                  model: Model,
                  decay: str = "NoDecay",
                  name: str = "Default"):
+        """
+        Initializes a ParamSpace representing a space defined over model input parameters.
+
+        Args:
+            model (Model): The model object providing parameter definitions.
+            decay (str): The decay mode used for scan analysis.
+            name (str): A label for the parameter space instance.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -34,93 +42,115 @@ class ParamSpace:
 
     @property
     def name(self) -> str:
-        """Name of the parameter space"""
+        """Returns the name of the parameter space."""
         return self.__name
 
     @name.setter
     def name(self,
              new_name: str) -> None:
-        """Set the name property"""
+        """Sets the name of the parameter space."""
         self.__name = new_name
 
     @cached_property
     def mH1(self) -> float:
-        """Mass of H1"""
+        """Returns the mass of the lightest scalar (H1)."""
         return self.model.get_mass("H1")
 
     @cached_property
     def mH2(self) -> float:
-        """Mass of H2"""
+        """Returns the mass of the second-lightest scalar (H2)."""
         return self.model.get_mass("H2")
 
     @cached_property
     def mH3(self) -> float:
-        """Mass of H3"""
+        """Returns the mass of the heaviest scalar (H3)."""
         return self.model.get_mass("H3")
 
     @cached_property
     def parameter_ranges(self) -> Dict[str, ParamRange]:
-        """Dictionary of parameter ranges"""
+        """Returns a dictionary mapping parameter names to ParamRange objects."""
         return {name: ParamRange(name, self.model.input_parameter(name))
                 for name in self.parameter_names}
 
     @property
     def parameter_names(self) -> Tuple[str, ...]:
-        """Tuple of parameter name"""
+        """Returns a tuple of names of all input parameters."""
         return self.model.input_parameter_names
 
     @property
     def mass_string(self) -> str:
-        """Mass string"""
+        """Returns a string encoding scalar masses (e.g., 'X400_S150')."""
         return self.model.mass_string
 
     @property
     def model_name(self) -> str:
-        """Name of model being used"""
+        """Returns the name of the associated model."""
         return self.model.name
 
     @property
     def model(self) -> Model:
-        """Model object"""
+        """Returns the Model object associated with this parameter space."""
         return self.__model
 
     @property
     def decay(self) -> str:
-        """Decay mode being used"""
+        """Returns the decay mode being used in the scan."""
         return self.__decay
 
     def center_point(self) -> Point:
-        """Get center point for parameter space"""
+        """Returns a Point object at the center of the current parameter ranges."""
         return Point(model=self.model,
                      par_vals={name:self.parameter_ranges[name].center for name in self.parameter_names})
 
     def random_point(self) -> Point:
-        """Get random point within parameter space"""
+        """Returns a randomly sampled Point within the parameter ranges."""
         return Point(model=self.model,
                      par_vals={name:self.parameter_ranges[name].random_point() for name in self.parameter_names})
 
     def ranges(self) -> Tuple[Tuple[float, float], ...]:
-        """Get tuple of ranges for parameters"""
+        """Returns a tuple of (low, high) pairs for all parameters."""
         return tuple([param_range.range for param_range in self.parameter_ranges.values()])
 
     def widths(self) -> Tuple[float, ...]:
-        """Get tuple of widths for parameters"""
+        """Returns a tuple of range widths for all parameters."""
         return tuple([param_range.width for param_range in self.parameter_ranges.values()])
 
     def starting_min(self,
                      par_name: str) -> float:
-        """Get starting min value for a parameter"""
+        """
+        Returns the model's initial minimum value for a parameter.
+
+        Args:
+            par_name (str): Parameter name.
+
+        Returns:
+            float: Initial minimum.
+        """
         return self.model.starting_min(par_name)
 
     def starting_max(self,
                      par_name: str) -> float:
-        """Get starting max value for a parameter"""
+        """
+        Returns the model's initial maximum value for a parameter.
+
+        Args:
+            par_name (str): Parameter name.
+
+        Returns:
+            float: Initial maximum.
+        """
         return self.model.starting_max(par_name)
 
     def scale_ranges(self,
                      new_point: Optional[Point] = None,
                      range_scale: float = 1.0) -> None:
-        """Set new central value, range, low and high for all parameters"""
+        """
+        Scales all parameter ranges around a new center point or the current center.
+
+        Args:
+            new_point (Optional[Point]): Optional center point to recenter ranges.
+            range_scale (float): Factor to scale the current widths.
+        """
 
         # complain and exit if there is nothing to do
         if new_point is None and range_scale == 1.0:
@@ -142,7 +172,13 @@ class ParamSpace:
                                                         range_scale=range_scale)
 
     def reposition_center(self, point: Point) -> None:
-        """Change low and high of parameter ranges around a new center point"""
+        """
+        Re-centers all parameter ranges around the values in the given Point.
+
+        Args:
+            point (Point): Point containing new center values.
+        """
+
         for name, center in point.input_parameter_values.items():
             if name in self.parameter_ranges:
                 param_range = self.parameter_ranges[name]
@@ -155,7 +191,13 @@ class ParamSpace:
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
                         high_dict: Optional[Dict[str, float]] = None) -> None:
-        """Update low and high of all parameter ranges from dictionary"""
+        """
+        Updates low/high bounds for parameters from the given dictionaries.
+
+        Args:
+            low_dict (Optional[Dict[str, float]]): New low bounds by parameter.
+            high_dict (Optional[Dict[str, float]]): New high bounds by parameter.
+        """
 
         # check to see if low_dict exists
         if low_dict is not None:
@@ -180,7 +222,12 @@ class ParamSpace:
                     self.logger.warning(f"{par_name} is not known")
 
     def volume(self) -> float:
-        """Calculate the volume of the parameter space defined"""
+        """
+        Computes the volume of the parameter space (product of widths).
+
+        Returns:
+            float: The volume of the space.
+        """
         # initialize volume to 1
         volume = 1.0
         # loop over parameters
@@ -193,7 +240,12 @@ class ParamSpace:
 
     def write_ini(self,
                   ini_name: str) -> None:
-        """Write .ini files with parameter ranges"""
+        """
+        Writes a filled .ini file using the template and current parameter ranges.
+
+        Args:
+            ini_name (str): Output file path for the .ini file.
+        """
 
         # read in template .ini file
         with open(self.model.template_ini,"r") as template:
@@ -216,7 +268,20 @@ class ParamSpace:
     def split_range(self,
                     param_name: str,
                     split_values: List[float]) -> List['ParamSpace']:
-        """Create new Params objects by splitting one parameter range at the specified values"""
+        """
+        Splits the parameter range of a single parameter into subspaces.
+
+        Args:
+            param_name (str): Parameter to split.
+            split_values (List[float]): List of split points within the range.
+
+        Returns:
+            List[ParamSpace]: A list of new ParamSpace instances with split ranges.
+
+        Raises:
+            ValueError: If split points are out of bounds or parameter name is invalid.
+        """
+
         if param_name not in self.parameter_ranges:
             raise ValueError(f"Parameter '{param_name}' not found in Params object")
 
@@ -250,7 +315,7 @@ class ParamSpace:
         return split_params_list
 
     def log_bounds_table(self) -> None:
-        """Log the bounds of all parameters in a table format"""
+        """Logs a table of parameter names and their min/max bounds."""
         # make list of headers for parameter bounds table and empty list of rows
         headers = ["Parameter", "Bounds"]
         rows = []
@@ -266,7 +331,7 @@ class ParamSpace:
                   rows=rows)
 
     def log_range_table(self) -> None:
-        """Log the range of all parameters in a table format"""
+        """Logs a table of parameter names and their current low/high range."""
         # make list of headers for parameter bounds table and empty list of rows
         headers = ["Parameter", "Range"]
         rows = []
@@ -281,28 +346,30 @@ class ParamSpace:
                   headers=headers,
                   rows=rows)
 
-    ## Aliases
-
-    # Alias for self.center_point()
-    @property
-    def vol_position(self) -> Point:
-        return self.center_point()
-
-    # Alias for self.widths()
-    @property
-    def vol_width(self) -> Tuple[float, ...]:
-        return self.widths()
-
     def __getitem__(self, key) -> ParamRange:
-        """Return the ParamRange object corresponding to `par_name`"""
+        """
+        Allows dictionary-style access to parameter ranges.
+
+        Args:
+            key (str): Parameter name.
+
+        Returns:
+            ParamRange: The corresponding parameter range.
+        """
         return self.parameter_ranges[key]
 
     def __iter__(self):
-        """Define iterator over parameter values"""
+        """Enables iteration over the ParamRange objects in the space."""
         return iter(self.parameter_ranges.values())
 
     def __str__(self) -> str:
-        """String representation of all parameters"""
+        """
+        Returns a string summary of the parameter space configuration.
+
+        Returns:
+            str: Multi-line string with name, model, decay, and parameter states.
+        """
+
         lines = [f"Params object {self.name} for model: {self.model_name}, decay: {self.decay}"]
         for name in self.parameter_names:
             param = self.parameter_ranges[name]
