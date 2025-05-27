@@ -8,7 +8,6 @@ import logging
 
 import re
 from collections import defaultdict
-from plot import Plot
 import glob
 import configparser
 from utils import file_utils
