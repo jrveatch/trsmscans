@@ -127,7 +127,7 @@ class SubsetPlotter:
         self.df = self.parser.filtered_data
 
         # Store the Pandas Data Frame by parameter keys
-        self.df = self.df[['thetahS','thetahX','thetaSX','vs','vx']]
+        self.df = self.df[list(self.model.input_parameter_full_names)]
 
         self.logger.debug(f'Panda Data Frame:\n\t{self.df}')
 
