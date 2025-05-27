@@ -346,20 +346,6 @@ class ParamSpace:
                   headers=headers,
                   rows=rows)
 
-    ## Aliases
-
-    # Alias for self.center_point()
-    @property
-    def vol_position(self) -> Point:
-        """Alias for center_point(). Returns the central point of the space."""
-        return self.center_point()
-
-    # Alias for self.widths()
-    @property
-    def vol_width(self) -> Tuple[float, ...]:
-        """Alias for widths(). Returns the widths of the parameter ranges."""
-        return self.widths()
-
     def __getitem__(self, key) -> ParamRange:
         """
         Allows dictionary-style access to parameter ranges.
