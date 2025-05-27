@@ -3,7 +3,7 @@
 from functools import cached_property
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 # third-party libraries
 import yaml
@@ -16,25 +16,30 @@ class Model:
 
     def __init__(self,
                  name: str,
-                 masses: Dict[str,float] = {}) -> None:
+                 masses: Dict[str, float]) -> None:
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
-        self.__name = name
+        self.name = name
 
         # read model yaml file
         self.__read_yaml()
 
-        # make mass maps
-        self.__masses = masses
-        self.__build_mass_maps()
+        # store masses and build mass maps
+        self.masses = masses
 
     @property
     def name(self) -> str:
         """Model name"""
         return self.__name
+
+    @name.setter
+    def name(self,
+             new_name: str) -> None:
+        """Set the name property"""
+        self.__name = new_name
 
     @cached_property
     def model_dir(self) -> str:
@@ -50,6 +55,13 @@ class Model:
     def masses(self) -> Dict[str,float]:
         """Dictionary of particle masses"""
         return self.__masses
+
+    @masses.setter
+    def masses(self,
+                new_masses: Dict[str,float]) -> None:
+        """Set the masses dictionary and build mass maps"""
+        self.__masses = new_masses
+        self.__build_mass_maps()
 
     @property
     # TODO: Make this more generalized
@@ -69,13 +81,13 @@ class Model:
         return os.path.join(self.model_dir, f"{self.name}_params.yml")
 
     @property
-    def input_parameters(self) -> dict[str, any]:
+    def input_parameters(self) -> Dict[str, Any]:
         """Dictionary of input parameters"""
         return self.__input_params
 
     @input_parameters.setter
     def input_parameters(self,
-                         new_input_params: dict[str, any]) -> None:
+                         new_input_params: Dict[str, Any]) -> None:
         """Set the input parameters dictionary"""
         self.__input_params = new_input_params
 
@@ -86,12 +98,12 @@ class Model:
 
     @output_parameters.setter
     def output_parameters(self,\
-                          new_output_params: dict[str, any]) -> None:
+                          new_output_params: Dict[str, Any]) -> None:
         """Set the output parameters dictionary"""
         self.__output_params = new_output_params
 
     @cached_property
-    def width_parameters(self) -> dict[str, dict[str, str]]:
+    def width_parameters(self) -> Dict[str, Dict[str, str]]:
         """Dictionary mapping 'w<particle>' to {'fullname': 'w_<H_i>'}."""
         return {
             "w" + particle: {
@@ -100,34 +112,55 @@ class Model:
             for particle in self.AllScalars
         }
 
-    @property
-    def input_parameter_names(self) -> Tuple[str]:
+    @cached_property
+    def input_parameter_names(self) -> Tuple[str, ...]:
         """List of input parameter names"""
         return tuple(self.input_parameters.keys())
 
-    @property
-    def output_parameter_names(self) -> Tuple[str]:
+    @cached_property
+    def output_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.output_parameters.keys())
 
-    @property
-    def width_parameter_names(self) -> Tuple[str]:
+    @cached_property
+    def width_parameter_names(self) -> Tuple[str, ...]:
         """List of output parameter names"""
         return tuple(self.width_parameters.keys())
 
-    @property
-    def all_parameter_names(self) -> Tuple[str]:
+    @cached_property
+    def all_parameter_names(self) -> Tuple[str, ...]:
         """List of all parameter names"""
         return self.input_parameter_names + self.output_parameter_names + self.width_parameter_names
 
+    @cached_property
+    def input_parameter_full_names(self) -> Tuple[str, ...]:
+        """List of input parameter full names"""
+        return tuple(item["fullname"] for item in self.input_parameters.values())
+
+    @cached_property
+    def ini_name_to_fullname_map(self) -> Dict[str, str]:
+        return {
+            item["ini_name"]: item["fullname"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
+
+    @cached_property
+    def fullname_to_ini_name_map(self) -> Dict[str, str]:
+        return {
+            item["fullname"]: item["ini_name"]
+            for item in self.input_parameters.values()
+            if "ini_name" in item and "fullname" in item
+        }
+
     @property
-    def particles(self) -> dict[str, any]:
+    def particles(self) -> Dict[str, Any]:
         """Dictionary of particles"""
         return self.__particles
 
     @particles.setter
     def particles(self,
-                   new_particles: dict[str, any]) -> None:
+                   new_particles: Dict[str, Any]) -> None:
         """Set the particles dictionary"""
         self.__particles = new_particles
 
@@ -152,7 +185,7 @@ class Model:
 
         # make sure exactly 1 SM-like Higgs is provided
         if not len(self.particles['SMHiggs']) == 1:
-            self.logger.warning('1 SM Higgs expected, found ' + len(self.particles['SMHiggs']))
+            self.logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
             return
 
         # store SM-like Higgs
@@ -220,14 +253,16 @@ class Model:
             )
 
     def input_parameter(self,
-                        par_name: str) -> Dict[str,any]:
+                        par_name: str) -> Dict[str, Any]:
         """Get a single input parameter"""
         return self.input_parameters[par_name]
 
-    def starting_min(self,par_name) -> float:
+    def starting_min(self,
+                     par_name: str) -> float:
         """Get model parameter starting min"""
         return self.input_parameters[par_name]['min']
 
-    def starting_max(self,par_name) -> float:
+    def starting_max(self,
+                     par_name: str) -> float:
         """Get parameter starting max"""
         return self.input_parameters[par_name]['max']

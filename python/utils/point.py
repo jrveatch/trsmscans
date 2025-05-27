@@ -1,6 +1,8 @@
 
 # standard libraries
-from typing import Dict
+from functools import cached_property
+import logging
+from typing import Dict, Optional
 
 # local modules
 from utils.math_utils import round_sig
@@ -12,26 +14,28 @@ class Point:
     # initialize point parameters
     def __init__(self,
                  model: Model,
-                 par_vals: Dict[str,float] = {},
+                 par_vals: Optional[Dict[str,float]] = None,
                  xb: float = 0.0):
+
+        # get logger
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # store model name
         self.__model = model
 
-        # if par_vals exists, store it
-        if par_vals:
-            self.__par_vals = par_vals
-        # otherwise create default dictionary from model
+        # initialize parameter values to 0.0 if a model is provided
+        self.__input_parameter_values = {par: 0.0 for par in model.input_parameter_names}
+        self.__output_parameter_values = {par: 0.0 for par in model.output_parameter_names}
+        self.__width_parameter_values = {par: 0.0 for par in model.width_parameter_names}
+
+        # if par_vals is provided, update the parameter values
+        if par_vals is not None:
+            self.update_parameter_values(par_vals)
         else:
-            self.__par_vals = {par: 0.0 for par in self.model.all_parameter_names}
+            self.logger.debug("No parameter values provided, using default values.")
 
         # store xb value
         self.xb = xb
-
-    @property
-    def model_name(self) -> str:
-        """Name of the model"""
-        return self.model.name
 
     @property
     def model(self) -> Model:
@@ -39,9 +43,64 @@ class Point:
         return self.__model
 
     @property
-    def par_vals(self) -> Dict[str,float]:
-        """Dictionary of parameter values"""
-        return self.__par_vals
+    def model_name(self) -> str:
+        """Name of model being used"""
+        return self.model.name
+
+    @cached_property
+    def mH1(self) -> float:
+        """Mass of H1"""
+        return self.model.get_mass("H1")
+
+    @cached_property
+    def mH2(self) -> float:
+        """Mass of H2"""
+        return self.model.get_mass("H2")
+
+    @cached_property
+    def mH3(self) -> float:
+        """Mass of H3"""
+        return self.model.get_mass("H3")
+
+    @property
+    def input_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of input parameter values"""
+        return self.__input_parameter_values
+
+    @property
+    def output_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of output parameter values"""
+        return self.__output_parameter_values
+
+    @property
+    def width_parameter_values(self) -> Dict[str,float]:
+        """Dictionary of width parameter values"""
+        return self.__width_parameter_values
+
+    # Combined view (read-only)
+    @property
+    def parameter_values(self):
+        return {
+            **self.input_parameter_values,
+            **self.output_parameter_values,
+            **self.width_parameter_values,
+        }
+
+    # Method to update existing keys only
+    def update_parameter_values(self, updates: dict):
+        for key, value in updates.items():
+            if key in self.__input_parameter_values:
+                self.__input_parameter_values[key] = value
+            elif key in self.__output_parameter_values:
+                self.__output_parameter_values[key] = value
+            elif key in self.__width_parameter_values:
+                self.__width_parameter_values[key] = value
+
+    def copy(self, new_xb: Optional[float] = None) -> 'Point':
+        """Return a copy of the point with a new xb value"""
+        if new_xb is None:
+            new_xb = self.xb
+        return Point(model=self.model, par_vals=self.parameter_values, xb=new_xb)
 
     # wrapper function to get attribute
     def get_val(self,
@@ -49,9 +108,9 @@ class Point:
         # if xb is requested, return it
         if varname == "xb":
             return self.xb
-        # otherwise return value from par_vals
+        # otherwise return value from parameter_values
         try:
-            return self.par_vals[varname]
+            return self.parameter_values[varname]
         except KeyError:
             raise KeyError(f"Parameter '{varname}' not found in this point.")
 
@@ -69,6 +128,28 @@ class Point:
         if abs_val < 1e-13:
             return 1.0
         return self.diff(other,par_name) / abs_val
+
+    def write_ini(self,
+                  ini_name: str) -> None:
+        """Write .ini files with parameter values"""
+
+        # read in template .ini file
+        with open(self.model.template_ini,"r") as template:
+            ini_data = template.read()
+
+        # create ini_data with parameters
+        ini_data = ini_data.replace("MH1",str(self.mH1))
+        ini_data = ini_data.replace("MH2",str(self.mH2))
+        ini_data = ini_data.replace("MH3",str(self.mH3))
+
+        # loop over parameters and fill low/high values
+        for name, value in self.input_parameter_values.items():
+            ini_data = ini_data.replace(name+"_LOW",str(value))
+            ini_data = ini_data.replace(name+"_HIGH",str(value))
+
+        # write to .ini file
+        with open(ini_name,"w") as outfile:
+            outfile.write(ini_data)
 
     # get formatted string of xb
     def format_xb(self) -> str:
@@ -109,10 +190,10 @@ class Point:
 
     # multiply a point's xb by a float and return a new point
     def __mul__(self,scale_factor: float):
-        return Point(model=self.model, par_vals=self.par_vals, xb=self.xb*scale_factor)
+        return Point(model=self.model, par_vals=self.parameter_values, xb=self.xb*scale_factor)
 
     def __str__(self) -> str:
-        return f"{self.xb}\n{self.par_vals}"
+        return f"{self.xb}\n{self.parameter_values}"
 
     def __repr__(self) -> str:
-        return f"{self.xb}\n{self.par_vals}"
+        return f"{self.xb}\n{self.parameter_values}"

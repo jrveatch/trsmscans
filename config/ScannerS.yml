@@ -1,5 +1,0 @@
-
-ScannerS:
-  frac_cpu: 0.9 # Fraction of available CPUs to use for parallel processing
-  min_points_per_job: 10
-  timeout: 20

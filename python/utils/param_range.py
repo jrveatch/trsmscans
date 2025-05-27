@@ -1,7 +1,8 @@
 
 # standard libraries
 import logging
-from typing import Any, Dict, Optional
+import random
+from typing import Any, Dict, Optional, Tuple
 
 # local modules
 from utils.math_utils import round_sig
@@ -22,13 +23,9 @@ class ParamRange:
         # initialize parameter full name
         self.full_name = param_info['fullname']
 
-        # initialize values from dictionary
-        self.__min_value = param_info['min']
-        self.__max_value = param_info['max']
-
-        # initialize low and high from lower and upper bounds
-        self.__low = self.min_value
-        self.__high = self.max_value
+        # initialize bounds
+        self.min_value = param_info['min']
+        self.max_value = param_info['max']
 
     @property
     def name(self) -> str:
@@ -85,11 +82,15 @@ class ParamRange:
 
     @min_value.setter
     def min_value(self,
-                    new_min_value: float) -> None:
+                  new_min_value: float) -> None:
         self.__min_value = new_min_value
-        """If current low is less than minimum value, adjust it"""
-        if self.low < self.min_value:
-            self.low = self.min_value
+        """If __low hasn't been set yet, initialize it to min_value.
+        Otherwise, ensure __low stays within bounds."""
+        if hasattr(self, '_ParamRange__low'):
+            if self.low < self.min_value:
+                self.low = self.min_value
+        else:
+            self.__low = self.__min_value
 
     @property
     def max_value(self) -> float:
@@ -98,11 +99,15 @@ class ParamRange:
 
     @max_value.setter
     def max_value(self,
-                    new_max_value: float) -> None:
+                  new_max_value: float) -> None:
         self.__max_value = new_max_value
-        """If current high is greater than minimum value, adjust it"""
-        if self.high > self.max_value:
-            self.high = self.max_value
+        """If __high hasn't been set yet, initialize it to max_value.
+        Otherwise, ensure __high stays within bounds."""
+        if hasattr(self, '_ParamRange__high'):
+            if self.high > self.max_value:
+                self.high = self.max_value
+        else:
+            self.__high = self.__max_value
 
     @property
     def center(self) -> float:
@@ -110,7 +115,7 @@ class ParamRange:
         return (self.low + self.high) / 2
 
     @property
-    def range(self) -> tuple:
+    def range(self) -> Tuple[float, float]:
         """High and low values of the parameter range"""
         return (self.low, self.high)
 
@@ -172,10 +177,25 @@ class ParamRange:
 
     def set_low_high(self,
                      new_low: float,
-                     new_high: float):
+                     new_high: float) -> None:
         """Update low and high values directly"""
         self.low = new_low
         self.high = new_high
+
+    def set_min_max(self,
+                    new_min: float,
+                    new_max: float,
+                    resolution: float = 0.01) -> None:
+        """Update min and max values with a buffer based on existing bounds"""
+        buffer = abs(self.max_value - self.min_value) * resolution
+        if new_min > self.min_value + buffer:
+            self.min_value = new_min - buffer
+        if new_max < self.max_value - buffer:
+            self.max_value = new_max + buffer
+
+    def random_point(self) -> float:
+        """Generate a random point within the parameter range"""
+        return random.uniform(self.low, self.high)
 
     def format_bounds(self) -> str:
         """Format bounds as string"""

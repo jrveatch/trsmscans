@@ -3,6 +3,7 @@
 # standard libraries
 import datetime
 import logging
+import os
 import shutil
 import time
 
@@ -13,6 +14,7 @@ import pandas as pd
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
 from utils.math_utils import round_sig
+from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
@@ -24,17 +26,16 @@ class ZoomOptimizer:
                  num_points: int,
                  starting_max: Point,
                  config_loader: ConfigLoader,
-                 label: str = ""):
+                 label: str):
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # some basic scanner information
         self.param_space = param_space
-        self.decay = param_space.decay
         self.num_points = num_points
-        self.local_max = Point(starting_max.model)
-        self.global_max = starting_max
+        self.local_max = starting_max.copy(0.0)
+        self.global_max = starting_max.copy()
         self.label = label
         self.top_percentile = {}
         self.top_percentile_xb = None
@@ -69,23 +70,33 @@ class ZoomOptimizer:
             )
 
         # set output directory
-        out_dir = scan_dir(model = param_space.model,
-                           decay = param_space.decay)
+        out_dir = scan_dir(model = self.model,
+                           decay = self.decay)
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
                                           config_loader = config_loader,
-                                          use_file_dir = True)
+                                          subdir_name = "zoom")
 
         # get output information file names
-        output_file_postfix = f"{self.param_space.model_name}_{self.decay}_{self.param_space.mass_string}"
-        self.summary_name = f"{out_dir}summary_zoom_{output_file_postfix}.tsv"
-        self.tsv_summary_name = f"{out_dir}summary_zoom_tsv_{output_file_postfix}.tsv"
-        self.prescan_details_name = f"{out_dir}files/details/prescan_details_{output_file_postfix}.txt"
-        self.details_name = f"{out_dir}files/details/scan_details_{self.label}_{output_file_postfix}.txt"
+        output_file_postfix = f"{self.model.name}_{self.decay}_{self.model.mass_string}"
+        self.summary_name = os.path.join(out_dir,f"summary_zoom_{output_file_postfix}.tsv")
+        self.tsv_summary_name = os.path.join(out_dir,f"summary_zoom_tsv_{output_file_postfix}.tsv")
+        self.prescan_details_name = os.path.join(out_dir,"zoom","details",f"prescan_details_{output_file_postfix}.txt")
+        self.details_name = os.path.join(out_dir,"zoom","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
+
+    @property
+    def model(self) -> Model:
+        """Model used in scan"""
+        return self.param_space.model
+
+    @property
+    def decay(self) -> str:
+        """Decay mode used in scan"""
+        return self.param_space.decay
 
     def run(self,
             iter: int,
@@ -98,9 +109,7 @@ class ZoomOptimizer:
         self.global_max = global_max
 
         # get iteration identifier
-        iter_label = f"{iter:04d}"
-        if self.label:
-            identifier = self.label + "-Iteration-" + iter_label
+        identifier = f"{self.label}-Iteration-{iter:04d}"
         self.logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
@@ -121,8 +130,8 @@ class ZoomOptimizer:
             self.termination_message("No output detected")
             self.termination_message("Using empty point as new max")
             new_max = Point(xb = 0.0,
-                            model = self.param_space.model,
-                            par_vals = self.local_max.par_vals)
+                            model = self.model,
+                            par_vals = self.local_max.parameter_values)
             do_zoom = False
         # otherwise get new point as the maximum from the current scan
         else:
@@ -208,19 +217,19 @@ class ZoomOptimizer:
 
         return new_max
 
-    # write max xb point summary to info file
     def write_summary(self, identifier) -> None:
+        """Write max xb point info to summary file."""
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
-            for val in self.local_max.par_vals.values():
+            for val in self.local_max.parameter_values.values():
                 content += f"\t{round_sig(val)}"
             content += f"\t{identifier}\n"
             summary.write(content)
 
-    # write to details file
     def write_details(self,
                       identifier: str,
-                      new_max: 'Point') -> None:
+                      new_max: Point) -> None:
+        """Write to details file."""
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
@@ -231,10 +240,10 @@ class ZoomOptimizer:
             content += "--------------------\n"
             content += f"Using {self.point_sampler.total_points_run} scan points\n"
             content += f"Scan density = {density:.3E}\n"
-            content += f"{self.point_sampler.nwidth}/{self.point_sampler.total_points_run} pass width check\n"
-            content += f"{self.point_sampler.nbounds}/{self.point_sampler.total_points_run} pass bounds check\n"
-            content += f"{self.point_sampler.nsignals}/{self.point_sampler.total_points_run} pass signals check\n"
-            content += f"{self.point_sampler.npass}/{self.point_sampler.total_points_run} pass all checks\n"
+            content += f"{self.point_sampler.n_width}/{self.point_sampler.total_points_run} pass width check\n"
+            content += f"{self.point_sampler.n_bounds}/{self.point_sampler.total_points_run} pass bounds check\n"
+            content += f"{self.point_sampler.n_signals}/{self.point_sampler.total_points_run} pass signals check\n"
+            content += f"{self.point_sampler.n_pass}/{self.point_sampler.total_points_run} pass all checks\n"
             content += "--------------------\n"
             content += f"New max xsec*BR = {new_max.format_xb()}\n"
             content += f"Local max xsec*BR = {self.local_max.format_xb()}\n"
@@ -259,7 +268,7 @@ class ZoomOptimizer:
 
     # check if a new global max has been found
     def is_new_global_max(self,
-                          new_max: 'Point') -> bool:
+                          new_max: Point) -> bool:
         return new_max > self.global_max
 
     # method to zoom in based on a percentile cut on xb

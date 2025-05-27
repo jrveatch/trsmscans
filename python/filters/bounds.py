@@ -1,28 +1,57 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import logging
 from collections import defaultdict
-from typing import Dict, Tuple
+import logging
+import multiprocessing as mp
+import numpy as np
+from typing import Dict, List, Tuple
 
 # third-party libraries
 import pandas as pd
 
 # local modules
 from filters.setup_higgs_tools import *
+from utils.config_loader import ConfigLoader
 from utils.model import Model
 
 # get logger
 logger = logging.getLogger(__name__)
 
+# get configurations
+config_loader = ConfigLoader(config_file_name="RunConfig.yml")
+try:
+    # fraction of cpus to use when parallel processing
+    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
+    # minimum chunk size for parallel processing
+    min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
+except KeyError as e:
+    logger.error(e)
+    raise
+except Exception as e:
+    logger.error(e)
+    raise
+
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
 
-# TODO: Make this work for other models
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
-                  model: 'Model'
+                  model: Model
                  ) -> None:
+    """Run bounds filter for the dataframe using the given model"""
+    dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
+                                                                           model=model,
+                                                                           n_workers=int(mp.cpu_count()*frac_cpu))
+
+# TODO: Make this work for other models
+def process_data(df: pd.DataFrame,
+                 model: Model) -> Tuple[List[int], List[int]]:
+    """Function to process a DataFrame."""
+
+    # make filter lists
+    filt_bounds = []
+    filt_signals = []
 
     # get bounds and signals data
     bounds = get_higgs_bounds()
@@ -53,10 +82,6 @@ def filter_bounds(dataframe: pd.DataFrame,
     br_S_BSM = defaultdict(float)
     br_X_BSM = defaultdict(float)
 
-    # get filter lists
-    filt_bounds = []
-    filt_signals = []
-
     # rescaling column names
     RH_name = 'R11'
     RS_name = 'R21'
@@ -65,39 +90,39 @@ def filter_bounds(dataframe: pd.DataFrame,
         RS_name = 'R11'
     RX_name = 'R31'
 
-    for idx, row in dataframe.iterrows():
+    for idx, (_, row) in enumerate(df.iterrows()):
 
         # get masses
-        mH = row['m'+HName]
-        mS = row['m'+SName]
-        mX = row['m'+XName]
+        mH = float(row['m'+HName])
+        mS = float(row['m'+SName])
+        mX = float(row['m'+XName])
 
         # get widths
-        wH = row['w_'+HName]
-        wS = row['w_'+SName]
-        wX = row['w_'+XName]
+        wH = float(row['w_'+HName])
+        wS = float(row['w_'+SName])
+        wX = float(row['w_'+XName])
 
         # get rescalings
-        RH = row[RH_name]
-        RS = row[RS_name]
-        RX = row[RX_name]
+        RH = float(row[RH_name])
+        RS = float(row[RS_name])
+        RX = float(row[RX_name])
 
         logger.verbose(f'Rescalings are {RH} {RS} {RX}')
 
         # get SM BRs
         for decay in SM_decays:
-            br_H_SM[decay] = row['b_'+HName+'_'+decay]
-            br_S_SM[decay] = row['b_'+SName+'_'+decay]
-            br_X_SM[decay] = row['b_'+XName+'_'+decay]
+            br_H_SM[decay] = float(row['b_'+HName+'_'+decay])
+            br_S_SM[decay] = float(row['b_'+SName+'_'+decay])
+            br_X_SM[decay] = float(row['b_'+XName+'_'+decay])
 
         # get BSM BRs
         if HName == "H2": # mH > mS
-            br_H_BSM['S','S'] = row['b_H2_H1H1']
+            br_H_BSM['S','S'] = float(row['b_H2_H1H1'])
         if SName == "H2": # mH < mS
-            br_S_BSM['H','H'] = row['b_H2_H1H1']
-        br_X_BSM['H','H'] = row['b_H3_'+HName+HName]
-        br_X_BSM['S','S'] = row['b_H3_'+SName+SName]
-        br_X_BSM['S','H'] = row['b_H3_H1H2']
+            br_S_BSM['H','H'] = float(row['b_H2_H1H1'])
+        br_X_BSM['H','H'] = float(row['b_H3_'+HName+HName])
+        br_X_BSM['S','S'] = float(row['b_H3_'+SName+SName])
+        br_X_BSM['S','H'] = float(row['b_H3_H1H2'])
 
         # set scalar masses and widths
         H.setMass(mH)
@@ -168,14 +193,13 @@ def filter_bounds(dataframe: pd.DataFrame,
         filt_bounds.append(int(bounds_result.allowed))
         filt_signals.append(int(HS_allowed))
 
-    # add filters to dataframe
-    dataframe[header_bounds] = filt_bounds
-    dataframe[header_signals] = filt_signals
+    return filt_bounds, filt_signals  # Return as separate lists
 
 def set_effective_couplings(particle,
                             mass: float,
                             rescaling: float
                            ) -> None:
+    """Set effective couplings"""
     if mass < 150:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
     else:
@@ -186,6 +210,7 @@ def set_BRs(particle,
             BRs_BSM: Dict[Tuple[str,str],float],
             adjust_ZZ: bool
            ) -> None:
+    """Set scalar branching ratios"""
     # check total width and return if it is too small
     if particle.totalWidth() < 1e-11:
         return
@@ -242,6 +267,7 @@ def print_bounds_result(bounds_result,
                         mX: float,
                         mS: float,
                         mH: float) -> None:
+    """Print results of bounds check"""
 
     logger.verbose(bounds_result)
     logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
@@ -266,3 +292,43 @@ def print_bounds_result(bounds_result,
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+
+def chunk_dataframe(df: pd.DataFrame,
+                    n_chunks: int) -> List[pd.DataFrame]:
+    """Splits a DataFrame into n_chunks approximately equal parts."""
+    chunk_size = int(np.ceil(len(df) / n_chunks))
+    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
+
+def parallel_process(df: pd.DataFrame,
+                     model: 'Model',
+                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
+    """
+    Automatically parallelizes processing based on DataFrame size.
+    Avoids parallelism if not worth the overhead.
+    """
+    df_len = len(df)
+
+    if df_len < min_chunk_size or n_workers <= 1:
+        # Too small — run serially
+        return process_data(df, model)
+
+    # Determine optimal number of chunks to balance load vs overhead
+    n_chunks = min(n_workers, max(1, df_len // min_chunk_size))
+
+    if n_chunks == 1:
+        # Not enough data to justify parallelism
+        return process_data(df, model)
+
+    chunks = chunk_dataframe(df, n_chunks)
+
+    with mp.Pool(n_chunks) as pool:
+        results = pool.starmap(process_data, [(chunk, model) for chunk in chunks])
+
+    # Unpack the results
+    filt_bounds, filt_signals = zip(*results)
+
+    # Return flattened lists
+    return (
+        [item for sublist in filt_bounds for item in sublist],
+        [item for sublist in filt_signals for item in sublist],
+    )

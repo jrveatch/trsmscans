@@ -14,22 +14,50 @@ class ConfigLoader:
 
     def __init__(self,
                  config_file_name: str,
-                 config_path: str = ""):
+                 config_path: Optional[str] = None):
+        """
+        Initialize the ConfigLoader with a YAML configuration file.
+
+        Args:
+            config_file_name (str): Name of the configuration file to load.
+            config_path (str, optional): Path to the configuration directory.
+                If not provided, a default path from the environment is used.
+
+        Raises:
+            FileNotFoundError: If the configuration file does not exist.
+            yaml.YAMLError: If there is an error parsing the YAML file.
+            Exception: For other unexpected errors during loading.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
         # if not config path is given, use default path defined as environment variable
-        if not config_path:
+        if config_path is None:
             config_path = config_dir()
 
-        self.logger.info(f"Loading configuration from {config_path + config_file_name}\n")
+        self.logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}\n")
 
-        self.config = self.load_config(config_path + config_file_name)
+        self.config = self.load_config(os.path.join(config_path,config_file_name))
 
     def load_config(self,
                     path: str) -> Dict[str, Any]:
-        # loads the YAML configuration file and returns the configuration as a dictionary.
+        
+        """
+        Load a YAML configuration file.
+
+        Args:
+            path (str): Full path to the YAML configuration file.
+
+        Returns:
+            Dict[str, Any]: The parsed configuration data.
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
+            yaml.YAMLError: If the YAML content is invalid.
+            Exception: For any other unexpected errors.
+        """
+
         try:
             with open(path, 'r') as config_file:
                 return yaml.safe_load(config_file) or {}  # Ensure it returns a dictionary, even if empty
@@ -45,19 +73,24 @@ class ConfigLoader:
 
     def get(self,
             section: str,
-            key: str,
-            default: Optional[Any] = None) -> Optional[Any]:
+            key: str) -> Any:
         """
-        Retrieve a specific setting from the config with an optional default value.
+        Retrieve a configuration value from a given section and key.
+
         Args:
-            section: The section of the configuration to retrieve.
-            key: The specific key within the section.
-            default: The default value to return if the key is not found.
+            section (str): The section name in the configuration file.
+            key (str): The key name within the section.
+
         Returns:
-            The value from the configuration if found, otherwise the default value.
+            Any: The value from the configuration.
+
+        Raises:
+            KeyError: If the section or key is missing.
+            Exception: For unexpected access errors.
         """
+
         try:
-            value = self.config.get(section, {}).get(key, default)
+            value = self.config.get(section, {}).get(key)
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
             return value

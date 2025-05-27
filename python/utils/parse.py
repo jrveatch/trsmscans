@@ -2,11 +2,14 @@
 # standard libraries
 from functools import cached_property
 import logging
-from typing import Dict
+from typing import Dict, List, Optional, Union
 
 # third-party libraries
 import diptest
+import numpy as np
 import pandas as pd
+from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -20,7 +23,7 @@ class Parse:
 
     # load new set of arrays
     def __init__(self,
-                 model: 'Model',
+                 model: Model,
                  file_name: str = ""):
 
         # get logger
@@ -29,12 +32,16 @@ class Parse:
         # initialize model
         self.__model = model
 
+        # initialize class variables
+        self.data: pd.DataFrame = pd.DataFrame()
+        self.max_idx: Optional[int] = None
+
         # get arrays from file name if it is provided
         if file_name:
             self.read_file(file_name)
 
     @property
-    def model(self) -> 'Model':
+    def model(self) -> Model:
         """Model object"""
         return self.__model
 
@@ -50,7 +57,8 @@ class Parse:
 
     @property
     def filtered_data(self) -> pd.DataFrame:
-        return self.data[self.filters]
+        """Filtered subset of the data"""
+        return self.data.loc[self.filters]
 
     @property
     def tsv_header(self) -> str:
@@ -60,17 +68,17 @@ class Parse:
     @property
     def input_parameter_arrays(self) -> Dict[str,pd.Series]:
         """Dictionary of input parameter arrays"""
-        return {name: self.filtered_data[par['fullname']] for name, par in self.model.input_parameters.items()}
+        return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.input_parameters.items()}
 
     @property
     def output_parameter_arrays(self) -> Dict[str,pd.Series]:
         """Dictionary of output parameter arrays"""
-        return {name: self.filtered_data[par['fullname']] for name, par in self.model.output_parameters.items()}
+        return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.output_parameters.items()}
 
     @property
     def width_parameter_arrays(self) -> Dict[str,pd.Series]:
         """Dictionary of width parameter arrays"""
-        return {name: self.filtered_data[par['fullname']] for name, par in self.model.width_parameters.items()}
+        return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.width_parameters.items()}
 
     @property
     def parameter_arrays(self) -> Dict[str,pd.Series]:
@@ -95,10 +103,7 @@ class Parse:
     def read_file(self,
                   file_name: str) -> None:
         """Load new arrays from a .tsv file"""
-
-        # create dataframe object if it does not exist
-        if not hasattr(self,"data"):
-            self.data = get_df(file_name)
+        self.data = get_df(file_name)
 
     def get_max_xb_point(self,
                          decay: str) -> Point:
@@ -111,33 +116,27 @@ class Parse:
         self.max_idx = xb.idxmax()
 
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals = {par: array[self.max_idx] for par, array in self.parameter_arrays.items()}
+        max_xb_par_vals: Dict[str, float] = {par: float(array[self.max_idx]) for par, array in self.parameter_arrays.items()}
 
         # return a point object holding xb and other parameters
-        return Point(xb = xb[self.max_idx],
+        return Point(xb = float(xb[self.max_idx]),
                      model = self.model,
                      par_vals = max_xb_par_vals)
 
-    def get_min(self,
-                par_name: str) -> float:
-        """Get the minimum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].min()
-
-    def get_max(self,
-                par_name: str) -> float:
-        """Get the maximum value for a parameter in the data"""
-        return self.parameter_arrays[par_name].max()
-
     def is_bimodal(self,
                    param_name: str,
-                   decay: str) -> bool:
+                   decay: str,
+                   param_space: Optional[ParamSpace] = None) -> bool:
         """Check whether xb is unimodal in a parameter"""
 
         # percentile threshold for xb
         percentile_threshold = 0.98
 
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
         # get xb
-        xb = self.get_xb(decay)
+        xb = self.get_xb(decay=decay)[mask]
 
         # number of points available
         num_points = len(xb)
@@ -157,7 +156,7 @@ class Parse:
         threshold_value = xb.quantile(percentile_threshold)
 
         # get set of parameter values with xb in selected percentile
-        param_selected = self.input_parameter_arrays[param_name][xb > threshold_value]
+        param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
         _, pval = diptest.diptest(param_selected)
@@ -168,8 +167,129 @@ class Parse:
         # if p-value is below threshold, return True, otherwise return False
         return pval < pval_threshold
 
+    def get_param_space_splits(self,
+                               param_name: str,
+                               decay: str,
+                               param_space: Optional[ParamSpace] = None,
+                               min_prominence=0.1,
+                               density_threshold=0.01,
+                               bw: Union[str, float] = 'silverman',
+                               n_points=200):
+        """
+        Suggests 1D split points for a parameter column based on:
+        - Valleys between peaks in the xb distribution
+        - Gaps in the sample density
+
+        Parameters:
+            param_col (str): Name of the parameter to analyze
+            value_col (str): Name of the function value column (default 'xb')
+            min_prominence (float): Minimum prominence for detecting peaks
+            density_threshold (float): Density threshold for detecting gaps
+            n_points (int): Resolution of the evaluation grid
+
+        Returns:
+            List of split points along the param_col axis
+        """
+
+        # get mask for param_space
+        mask = self.param_space_mask(param_space)
+
+        data = pd.DataFrame({param_name: self.input_parameter_arrays[param_name][mask],
+                     'xb': self.get_xb(decay=decay)[mask]})
+        data = data.dropna()
+        par_vals = data[param_name].to_numpy(dtype=float)
+        xb = data['xb'].to_numpy(dtype=float)
+
+        # ensure a minimum number of points
+        if len(par_vals) < 500:
+            return []
+
+        # Sort for consistency
+        idx = np.argsort(par_vals)
+        par_vals_sorted = par_vals[idx]
+        xb_sorted = xb[idx]
+
+        # Grid for KDE evaluation
+        par_vals_eval: np.ndarray = np.linspace(par_vals_sorted.min(), par_vals_sorted.max(), n_points)
+
+        # Modality-based: KDE weighted by xb
+        valley_points = self.get_modality_splits(par_vals=par_vals_sorted,
+                                                 xb_vals=xb_sorted,
+                                                 par_vals_eval=par_vals_eval,
+                                                 bw=bw,
+                                                 min_prominence=min_prominence)
+
+        # Density-based: KDE of samples only
+        low_density = self.get_density_splits(par_vals=par_vals_sorted,
+                                              n_points=n_points,
+                                              density_threshold=density_threshold,
+                                              bw=bw)
+
+        # Combine, filter duplicates, and sort
+        all_splits = np.unique(np.concatenate([valley_points, low_density]))
+        return all_splits.tolist()
+
+    def get_modality_splits(self,
+                            par_vals: np.ndarray,
+                            xb_vals: np.ndarray,
+                            par_vals_eval: np.ndarray,
+                            bw: Union[str, float] = 'silverman',
+                            min_prominence: float = 0.1) -> np.ndarray:
+        """Modality-based KDE splits weighted by xb."""
+        try:
+            kde_xb = gaussian_kde(par_vals, weights=xb_vals, bw_method=bw)
+            kde_vals = kde_xb(par_vals_eval)
+            peaks, _ = find_peaks(kde_vals, prominence=min_prominence)
+            valleys, _ = find_peaks(-kde_vals)
+            splits = par_vals_eval[valleys] if len(peaks) > 1 else np.array([], dtype=float)
+        except Exception:
+            splits = np.array([], dtype=float)
+        return splits
+
+    def get_density_splits(self,
+                        par_vals: np.ndarray,
+                        n_points: int = 200,
+                        density_threshold: float = 0.01,
+                        bw: Union[str, float] = 'silverman') -> np.ndarray:
+        """Density-based KDE splits: one midpoint per low-density region."""
+        try:
+            # Normalize parameter values to [0, 1]
+            par_min, par_max = par_vals.min(), par_vals.max()
+            par_scaled = (par_vals - par_min) / (par_max - par_min)
+
+            # Evaluate KDE
+            kde = gaussian_kde(par_scaled, bw_method=bw)
+            x_eval = np.linspace(0, 1, n_points)
+            density_vals = kde(x_eval)
+
+            # Find contiguous low-density regions
+            below = density_vals < density_threshold
+            splits = []
+            start_idx = None
+            for i, is_low in enumerate(below):
+                if is_low and start_idx is None:
+                    start_idx = i
+                elif not is_low and start_idx is not None:
+                    end_idx = i
+                    mid_idx = (start_idx + end_idx) // 2
+                    mid_x = x_eval[mid_idx]
+                    # Map back to original scale
+                    splits.append(mid_x * (par_max - par_min) + par_min)
+                    start_idx = None
+            if start_idx is not None:
+                mid_idx = (start_idx + len(x_eval)) // 2
+                mid_x = x_eval[mid_idx]
+                splits.append(mid_x * (par_max - par_min) + par_min)
+
+            return np.array(splits, dtype=float)
+
+        except Exception as e:
+            print(f"[density_splits error] {e}")
+            return np.array([], dtype=float)
+
     def get_xb(self,
-               decay: str) -> pd.Series:
+               decay: str,
+               param_space: Optional[ParamSpace] = None) -> pd.Series:
         """Get array of xb values"""
 
         # get production cross section
@@ -187,11 +307,63 @@ class Parse:
             xb = xsec_prod * br_decay
 
         # return total xsec time BR
-        return xb
+        mask = self.param_space_mask(param_space)
+        return pd.Series(xb[mask])
+
+    def shrink_param_space_bounds(self,
+                                  param_space: ParamSpace,
+                                  resolution: float = 0.01) -> None:
+        """Shrink bounds of ParamSpace based on points contained"""
+        filtered_data = self.get_filtered_data(param_space)
+        for name, par in self.model.input_parameters.items():
+            full_name: str = par['fullname']
+            new_min = float(filtered_data[full_name].min())
+            new_max = float(filtered_data[full_name].max())
+            param_space[name].set_min_max(new_min=new_min,
+                                          new_max=new_max,
+                                          resolution=resolution)
+
+    def get_filtered_data(self,
+                          param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
+        """Return a view of filtered_data that is carved out by a parameter space"""
+        mask = self.param_space_mask(param_space)
+        return self.filtered_data.loc[mask]
+
+    def param_space_mask(self,
+                         param_space: Optional[ParamSpace] = None) -> pd.Series:
+        """Return a mask of filtered_data that is carved out by a parameter space"""
+        df = self.filtered_data
+        mask = pd.Series(True, index=df.index)
+
+        # if no param_space is provided, return the mask of all points
+        if param_space is None:
+            return mask.astype(bool)
+
+        # loop over parameters in the parameter space and create a mask
+        for param in param_space:
+            col = param.full_name
+            mask &= (df[col] > param.low) & (df[col] <= param.high)
+
+        return mask.astype(bool)
+
+    def write_max_xb_line(self,
+                          file_name: str
+                         ) -> None:
+        """Write line with max xb to a .tsv file"""
+
+        # get max xb row from dataframe
+        row = self.data.loc[[self.max_idx]]
+
+        # write it to the summary .tsv
+        row.to_csv(file_name,
+                   sep='\t',
+                   index=True,
+                   mode='a',
+                   header=False)
 
     def __get_xsec_prod(self) -> pd.Series:
         """Get array of production cross-sections"""
-        return self.filtered_data['x_H3_gg'] #* self.filtered_data['b_H3_H1H2']
+        return pd.Series(self.filtered_data['x_H3_gg'])
 
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
@@ -210,6 +382,7 @@ class Parse:
         br_H_gamgam = self.filtered_data['b_'+self.HName+'_gamgam']
 
         # S SM BRs
+        br_S_tt = self.filtered_data['b_'+self.SName+'_tt']
         br_S_bb = self.filtered_data['b_'+self.SName+'_bb']
         br_S_tautau = self.filtered_data['b_'+self.SName+'_tautau']
         br_S_WW = self.filtered_data['b_'+self.SName+'_WW']
@@ -390,6 +563,16 @@ class Parse:
             br4 = br_X_HH * br_H_bb * br_H_gamgam
             br_decay = br1 + br2 + br3 + br4
 
+        # ttbb cases
+        elif decay == "SttHbb":
+            br_decay = br_X_SH * br_S_tt * br_H_bb
+        elif decay == "SSttbb":
+            br_decay = br_X_SS * br_S_tt * br_S_bb
+        elif decay == "Xttbb":
+            br1 = br_X_SH * br_S_tt * br_H_bb
+            br2 = br_X_SS * br_S_tt * br_S_bb
+            br_decay = br1 + br2
+
         # raise an exception in all other cases
         else:
             raise ValueError(
@@ -399,30 +582,3 @@ class Parse:
 
         # return the decay BR
         return br_decay
-
-    def filter_by_param_space(self,
-                              param_space: ParamSpace) -> pd.DataFrame:
-        """Return a view of filtered_data that is carved out by a parameter space"""
-        df = self.filtered_data
-        mask = pd.Series(True, index=df.index)
-
-        for param in param_space:
-            col = param.full_name
-            mask &= (df[col] > param.low) & (df[col] <= param.high)
-
-        return df[mask]
-
-    def write_max_xb_line(self,
-                          file_name: str
-                         ) -> None:
-        """Write line with max xb to a .tsv file"""
-
-        # get max xb row from dataframe
-        row = self.data.loc[[self.max_idx]]
-
-        # write it to the summary .tsv
-        row.to_csv(file_name,
-                   sep='\t',
-                   index=True,
-                   mode='a',
-                   header=False)

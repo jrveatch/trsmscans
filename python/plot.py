@@ -2,15 +2,16 @@
 
 # standard libraries
 import argparse
-import os
 from collections import defaultdict
-from typing import Dict, List
+from functools import cached_property
+from itertools import combinations
+import os
+from typing import Dict, List, Tuple
 
 # third-party libraries
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 # local modules
 from utils import file_utils
@@ -23,15 +24,14 @@ class Plot:
 
     def __init__(self,
                  decay: str,
-                 model: 'Model'):
+                 model: Model):
 
         # Save arguments as class members
         self.decay = decay
         self.model = model
 
         # Create plot output directory
-        self.output_dir = file_utils.plots_dir(model=self.model,
-                                               decay=self.decay)
+        self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"zoom")
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Get list of .tsv files
@@ -40,8 +40,20 @@ class Plot:
         # Load data from all of the .tsv files
         self.load_data()
 
-    # Function to get list of .tsv files for plotting
+    @cached_property
+    def var_names(self) -> Tuple[str, ...]:
+        """
+        Get the variable names for the model.
+        """
+        names = self.model.input_parameter_names
+        if 'xb' in names:
+            return names
+        return names + ('xb',)
+
     def get_file_names(self) -> None:
+        """
+        Get the list of .tsv files for plotting.
+        """
 
         # Empty array that will hold the files found
         self.all_files_dict: Dict[str, List[str]] = defaultdict(list)
@@ -52,8 +64,7 @@ class Plot:
             self.all_files_dict["Pre"].append(prescan)
 
         # Directory for the scan outputs
-        directory = file_utils.scan_dir(model=self.model,
-                                        decay=self.decay) + "files/tsv/"
+        directory = os.path.join(file_utils.scan_dir(model=self.model,decay=self.decay),"zoom","tsv")
 
         # Iterate through the directory
         for file_name in os.listdir(directory):
@@ -61,244 +72,144 @@ class Plot:
             # Check if the file is a .tsv file, if it is, append to the list
             if file_name.endswith(".tsv"):
                 key = file_name.rsplit("-", 1)[-1].rsplit(".", 1)[0]
-                self.all_files_dict[key].append(directory + file_name)
+                self.all_files_dict[key].append(os.path.join(directory,file_name))
 
-        # Store number of files for easy access
-        self.num_files = sum(len(lst) for lst in self.all_files_dict.values())
-
-    # Function to load data from files
     def load_data(self) -> None:
+        """
+        Load parameter arrays and max-xb Points from all .tsv files.
+        Store combined parameter arrays for each iteration in self.var_lists.
+        Store max-xb Point per iteration in self.max_point_list.
+        """
 
-        # Retrieve the variable names for the model
-        self.var_names = self.model.input_parameter_names
-
-        # Check if xb exists in the variable name list, if not append
-        if 'xb' not in self.var_names:
-            self.var_names.append('xb')
-
-        # Get number of variables for easy access
-        self.num_vars = len(self.var_names)
-
-        # Initialize list that will hold all the maximum points for each file iteration
         self.max_point_list: List[Point] = []
+        self.var_lists: Dict[str, List[np.ndarray]] = defaultdict(list)
 
-        # Initialize a dictionary to store lists of numpy arrays
-        self.var_lists: Dict[str, List[NDArray]] = defaultdict(list)
-
-        # Loop through each iteration
+        # Loop through each group of files (e.g. Pre, 0, 1, ...)
         for file_list in self.all_files_dict.values():
 
-            first_file = True
-            for file_name in file_list:
+            grouped_vars: Dict[str, List[np.ndarray]] = defaultdict(list)
+            best_point: Point = Point(model=self.model)
 
-                # Retrieve the variables from the file
-                parser = Parse(file_name=file_name,
-                               model=self.model)
+            for file_name in file_list:
+                parser = Parse(file_name=file_name, model=self.model)
                 all_params = parser.input_parameter_arrays
                 xb = parser.get_xb(self.decay)
-                max_point = parser.get_max_xb_point(self.decay)
+                this_max = parser.get_max_xb_point(self.decay)
 
-                # If this is the first file for the iteration, create numpy arrays
-                if first_file:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+                for name, array in all_params.items():
+                    grouped_vars[name].append(array)
+                grouped_vars['xb'].append(xb)
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name].append(par)
+                if best_point is None or this_max > best_point:
+                    best_point = this_max
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'].append(xb)
+            # Concatenate all arrays in this group and append to self.var_lists
+            for key, arrays in grouped_vars.items():
+                self.var_lists[key].append(np.concatenate(arrays))
 
-                    # Append the maximum point to the list
-                    self.max_point_list.append(max_point)
+            self.max_point_list.append(best_point)
 
-                # Otherwise append to the existing numpy arrays
-                else:
-                    # Iterate through the information of each parameter
-                    for name, par in all_params.items():
+        self.concatenated_vars = {key: np.concatenate(val_list) for key, val_list in self.var_lists.items()}
 
-                        # Append the variable value to the corresponding list
-                        self.var_lists[name][-1] = np.concatenate(self.var_lists[name][-1], par)
+    def plot_variable_pair(self,
+                           var1_name: str,
+                           var2_name: str) -> None:
+        """
+        Create a 2D scatter plot for a given pair of variables over all iterations.
+        """
+        var1 = self.var_lists[var1_name]
+        var2 = self.var_lists[var2_name]
 
-                    # Append xb to the corresponding list
-                    self.var_lists['xb'][-1] = np.concatenate(self.var_lists['xb'][-1], xb)
+        num_iters = len(self.var_lists['xb'])
+        op = 0.6 / max(num_iters, 1)
+        opacity = 0.3
 
-                    # Append the maximum point to the list if it is a new max
-                    if max_point > self.max_point_list[-1]:
-                        self.max_point_list[-1] = max_point
+        fig, ax = plt.subplots()
+        for i in range(len(self.var_lists['xb'])):
+            t = i / len(self.var_lists['xb'])
+            color = plt.cm.viridis(t)
+            ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
+            opacity += op
 
-        # Initialize a dictionary to hold combined arrays
-        self.comb_arrays = {}
+        if not self.max_point_list:
+            print(f"No max points found to plot for {var1_name} vs {var2_name}")
+            return
 
-        # Loop over dictionary of lists and concatenate them
-        for vname, vlist in self.var_lists.items():
-            self.comb_arrays[vname] = np.concatenate(vlist)
-
-        # Store concatenated list as a pandas DataFrame
-        self.df_comb = pd.DataFrame(self.comb_arrays)
-
-    # Plot each iteration of the scan
-    # TODO: find a way to make the process more efficient and faster !!
-    def make_scan_plots(self) -> None:
-
-        # Print info to screen
-        print("Making scan plots for",self.model.name,self.decay,self.model.mass_string)
-
-        # Find the Maximum point from the maximum points
         maximum = max(self.max_point_list)
+        max_point_1 = maximum.get_val(var1_name)
+        max_point_2 = maximum.get_val(var2_name)
+        for i, point in enumerate(self.max_point_list):
+            point1 = point.get_val(var1_name)
+            point2 = point.get_val(var2_name)
+            if point != maximum:
+                ax.scatter(point1, point2, s=25, color="orange", alpha=0.8, marker="*")
 
-        # Set the start and end colors by random RGB values
-        start_rgb, end_rgb = self.select_colors()
+        ax.scatter(max_point_1, max_point_2, s=60, color="red", alpha=0.999, marker="*")
+        ax.set_title(f"{var1_name} vs {var2_name}")
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        fig.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
+        plt.close()
 
-        # Iterate through the list of all variables to plot each variable combination from each file
-        for v in range(self.num_vars-1):
+    def make_scan_plots(self) -> None:
+        """
+        Iterate over all unique pairs of variables and plot them.
+        """
+        print("Making scan plots for", self.model.name, self.decay, self.model.mass_string)
+        for var1, var2 in combinations(self.var_names, 2):
+            self.plot_variable_pair(var1, var2)
 
-            # Get the first variable 2D-list from the all variable list
-            var1 = self.var_lists[self.var_names[v]]
+    def plot_max_xb_heatmap(self, var1_name: str, var2_name: str, num_bins: int = 100) -> None:
+        """
+        Plot a 2D heatmap showing the maximum xb in each bin of var1 vs var2.
+        """
+        df_comb = pd.DataFrame({key: self.concatenated_vars[key] for key in (var1_name, var2_name, 'xb')})
 
-            for j in range(v+1, self.num_vars):
+        # Bin the variables
+        df_comb[f'{var1_name}_bin'] = pd.cut(df_comb[var1_name], bins=num_bins, labels=False)
+        df_comb[f'{var2_name}_bin'] = pd.cut(df_comb[var2_name], bins=num_bins, labels=False)
 
-                # Get the second variable 2D-List from the all variable list
-                var2 = self.var_lists[self.var_names[j]]
+        # Group by binned values and compute max xb
+        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
 
-                # Set the opacity to be between values 0.19 and 1 depending on the number of files
-                op = (0.8 / self.num_files)
-                opacity = op + 0.19
+        # Plot the heatmap
+        fig, ax = plt.subplots(figsize=(10, 8))
+        im = ax.imshow(max_xb_in_bins.T,
+                       origin='lower',
+                       aspect='auto',
+                       extent=(
+                           float(df_comb[var1_name].min()), float(df_comb[var1_name].max()),
+                           float(df_comb[var2_name].min()), float(df_comb[var2_name].max())
+                           ),
+                       cmap='viridis',
+                       interpolation='bilinear')
+        fig.colorbar(im, ax=ax, label='Maximum value of xb')
+        ax.set_xlabel(var1_name)
+        ax.set_ylabel(var2_name)
+        ax.set_title(f'{var1_name} vs {var2_name}')
+        fig.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
+        plt.close()
 
-                # Create a new scatter figure
-                plt.figure()
-
-                # Iterate through both variable 2D-Lists to plot the info from each file
-                for i in range(len(self.var_lists['xb'])):
-
-                    # Decipher the color used for the scatter plot
-                    t = i / self.num_files
-                    color = [start_rgb[c] + t * (end_rgb[c] - start_rgb[c]) for c in range(3)]
-
-                    # Plot the variables by file
-                    plt.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
-
-                    # Adjust the opacity
-                    opacity += op
-
-                # Reset opacity for star points
-                opacity = op
-                opacity += 0.19
-
-                for q in range(len(self.var_lists['xb'])):
-
-                    # Initialize both variables to be retrieved from the Point
-                    variable1 = self.var_names[v]
-                    variable2 = self.var_names[j]
-
-                    # Get and store the max points for each variable
-                    point1 = self.max_point_list[q].get_val(variable1)
-                    point2 = self.max_point_list[q].get_val(variable2)
-
-                    # Plot the max point from the scatter plot [star]
-                    if(self.max_point_list[q] != maximum): #Make sure the point is not the maximum point
-                        plt.scatter(point1, point2, s=25, color="yellow", alpha=opacity, marker="*") #plot normally
-                    else: #If point is maximum point plot as a bigger star
-                        plt.scatter(point1, point2, s=60, color="gold", alpha=0.999, marker="*")
-
-                    # Adjust the opacity
-                    opacity += op
-
-                # Initialize scatter plot labels
-                plt.title(f"{self.var_names[v]} vs {self.var_names[j]}")
-                plt.xlabel(f"{self.var_names[v]}")
-                plt.ylabel(f"{self.var_names[j]}")
-
-                # Save the figure as a .png
-                plt.savefig(self.output_dir + f"scan_{self.var_names[v]}_vs_{self.var_names[j]}.png")
-
-                # Close the figure
-                plt.close()
-
-    # Plot the maximum xb in 2D bins for every parameter pair
     def make_max_xb_plots(self) -> None:
-
-        # Print info to screen
-        print("Making max XB plots for",self.model.name,self.decay,self.model.mass_string)
-
-        # Define number of bins to use in each dimension
-        num_bins = 100
-
-        # Loop over var names and bin the corresponding columns
-        for var in self.var_names:
-
-            # Skip xb
-            if var == 'xb':
-                continue
-
-            # Bin column
-            self.df_comb[var+'_bin'] = pd.cut(self.df_comb[var], bins = num_bins, labels = False)
-
-        # Loop over var names twice to get every pair
-        for v1 in range(self.num_vars-1):
-
-            # Get the first variable name from the all variable list
-            var1 = self.var_names[v1]
-
-            # Skip xb
-            if var1 == 'xb':
-                continue
-
-            for v2 in range(v1+1, self.num_vars):
-
-                # Get the first variable name from the all variable list
-                var2 = self.var_names[v2]
-
-                # Skip xb
-                if var2 == 'xb':
-                    continue
-
-                # Group by the bins and compute the maximum value of X in each bin
-                max_xb_in_bins = self.df_comb.groupby([var1+'_bin', var2+'_bin'])['xb'].max().unstack(fill_value=np.nan)
-
-                # Plotting
-                plt.figure(figsize=(10, 8))
-                plt.imshow(max_xb_in_bins.T,
-                           origin='lower',
-                           aspect='auto',
-                           extent=[self.comb_arrays[var1].min(),
-                                   self.comb_arrays[var1].max(),
-                                   self.comb_arrays[var2].min(),
-                                   self.comb_arrays[var2].max()],
-                           cmap='viridis',
-                           interpolation='bilinear')
-                plt.colorbar(label='Maximum value of xb')
-                plt.xlabel(var1)
-                plt.ylabel(var2)
-                plt.title(f'{var1} vs {var2}')
-
-                # Save the figure as a .png
-                plt.savefig(self.output_dir + 'maxxb_' + f'{var1}_vs_{var2}.png')
-
-                # Close the figure
-                plt.close()
-
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
+        """
+        Create a heatmap of the maximum xb for all unique variable pairs (excluding xb).
+        """
+        print("Making max XB plots for", self.model.name, self.decay, self.model.mass_string)
+        for var1, var2 in combinations(self.var_names, 2):
+            if 'xb' not in (var1, var2):
+                self.plot_max_xb_heatmap(var1, var2)
 
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-d", "--decay", required=True, type=str)
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float)
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float)
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     args = arg_parser.parse_args()
 
-    # create model object
+    # Create model object
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 

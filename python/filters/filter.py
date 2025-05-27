@@ -3,7 +3,7 @@
 # standard libraries
 import argparse
 import logging
-from typing import Tuple
+from typing import Dict
 
 # local modules
 from filters import bounds, width
@@ -19,9 +19,9 @@ header_bounds = "filt_bounds"
 header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
-                  model: 'Model',
-                  config_loader: 'ConfigLoader'
-                 ) -> Tuple[int,int,int]:
+                  model: Model,
+                  config_loader: ConfigLoader
+                 ) -> Dict[str,int]:
 
     # load in dataframe from .tsv file
     dataframe = get_df(file_name)
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     # parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-f", "--file_name", help="Name of file to apply filters to")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -73,4 +74,6 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,model=model)
+    apply_filters(file_name=args.file_name,
+                  model=model,
+                  config_loader=ConfigLoader(config_file_name=f"{model.name}_default.yml"))
