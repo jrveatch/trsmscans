@@ -1,3 +1,6 @@
+"""
+Provides access to cached Higgs sector predictions, bounds, and signals for scalar models.
+"""
 
 # standard libraries
 from functools import lru_cache
@@ -10,7 +13,21 @@ from utils.env_utils import hbdataset_dir, hsdataset_dir
 from utils.model import Model
 
 @lru_cache(maxsize=None)
-def get_higgs_predictions(model: 'Model'):
+def get_higgs_predictions(model: Model):
+    """
+    Constructs and caches HiggsBounds/HiggsSignals-compatible predictions for a model.
+
+    Builds a set of Higgs sector particle predictions based on the scalar content of the
+    provided model, including SM and BSM Higgs bosons. This is used by external tools to
+    evaluate model constraints.
+
+    Args:
+        model (Model): The scalar model containing mass and particle information.
+
+    Returns:
+        HP.Predictions: A populated Predictions object suitable for use with
+        HiggsBounds and HiggsSignals.
+    """
 
     # create the model predictions
     pred = HP.Predictions()
@@ -47,6 +64,12 @@ def get_higgs_predictions(model: 'Model'):
 
 @lru_cache(maxsize=None)
 def get_higgs_signals():
+    """
+    Loads and caches the HiggsSignals dataset.
+
+    Returns:
+        HS.Signals: An object containing the experimental Higgs signal measurements.
+    """
 
     # get HS dataset
     signals = HS.Signals(hsdataset_dir())
@@ -55,6 +78,12 @@ def get_higgs_signals():
 
 @lru_cache(maxsize=None)
 def get_higgs_bounds():
+    """
+    Loads and caches the HiggsBounds dataset.
+
+    Returns:
+        HB.Bounds: An object containing the experimental Higgs exclusion bounds.
+    """
 
     # get HB dataset
     bounds = HB.Bounds(hbdataset_dir())
