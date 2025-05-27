@@ -96,7 +96,12 @@ class PointSampler:
     @property
     def total_points_run(self) -> int:
         """Returns the total number of points generated so far."""
-        return self.curr_points_run
+        return self.__total_points_run
+
+    @total_points_run.setter
+    def total_points_run(self, value: int) -> None:
+        """Returns the total number of points generated so far."""
+        self.__total_points_run = value
 
     def sample_points(self,
                       param_space: ParamSpace,
@@ -145,7 +150,7 @@ class PointSampler:
         self.n_pass = 0
 
         # Initialize the amount of points run
-        self.curr_points_run = 0
+        self.total_points_run = 0
 
         # Print total number of points requested
         self.logger.info(f"{self.total_points_requested} points requested")
@@ -172,7 +177,7 @@ class PointSampler:
                                   model_name = param_space.model_name)
 
             # Update the total points run
-            self.curr_points_run += points
+            self.total_points_run += points
 
             # Print info about applying filters
             self.logger.debug("Applying filters...")
@@ -194,7 +199,7 @@ class PointSampler:
             # If no points passed the filters, raise an error
             if self.n_pass == 0:
                 self.logger.error("No points passed the filters")
-                self.logger.debug(f'{self.curr_points_run} generated, {self.n_pass} pass filters')
+                self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
                 raise NoPointsPassedError()
 
             # Break if all points are being counted
@@ -202,7 +207,7 @@ class PointSampler:
                 break
 
             # Calculate the running efficiency of the points passed based on points run so far
-            running_efficiency = self.n_pass / self.curr_points_run
+            running_efficiency = self.n_pass / self.total_points_run
 
             # Print points passed and efficiency
             self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
@@ -219,7 +224,7 @@ class PointSampler:
 
         # Print final number of events that pass
         self.logger.info(f"Generated {self.n_pass} points that pass filters")
-        self.logger.debug(f'{self.curr_points_run} generated, {self.n_pass} pass filters')
+        self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
