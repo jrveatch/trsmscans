@@ -9,7 +9,6 @@ import shutil
 import time
 
 import numpy as np
-import pandas as pd
 
 from utils.config_loader import ConfigLoader
 from utils.exceptions import NoPointsPassedError
