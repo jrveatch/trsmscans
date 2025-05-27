@@ -22,7 +22,7 @@ logging.basicConfig(
     format="%(levelname)s - %(message)s"
 )
 
-class PlotTester:
+class SubsetPlotter:
 
     def __init__(self,
                  decay: str,
@@ -43,15 +43,6 @@ class PlotTester:
         # Create plot output directory
         self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
         os.makedirs(self.output_dir, exist_ok=True)
-
-        # Define mapping between .ini file params and DataFrame columns
-        self.param_mapping = {
-            "t1": "thetahS",
-            "t2": "thetahX",
-            "t3": "thetaSX",
-            "vs": "vs",
-            "vx": "vx"
-        }
 
         # Parse ini files and store ranges
         self.ini_ranges = self.parse_ini_files(self.ini_dir)
@@ -124,7 +115,7 @@ class PlotTester:
         """
 
         # Print current status
-        self.logger.info("Loading prescan ...")
+        self.logger.info("Loading prescan...")
 
         # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
@@ -136,7 +127,7 @@ class PlotTester:
         self.df = self.parser.filtered_data
 
         # Store the Pandas Data Frame by parameter keys
-        self.df = self.df[['thetahS','thetahX','thetaSX','vs','vx']]
+        self.df = self.df[list(self.model.input_parameter_full_names)]
 
         self.logger.debug(f'Panda Data Frame:\n\t{self.df}')
 
@@ -166,7 +157,7 @@ class PlotTester:
 
                 filter_condition = pd.Series(True, index=filtered_df.index)
                 for param, (min_val, max_val) in ranges.items():
-                    par_name = self.param_mapping.get(param)
+                    par_name = self.model.ini_name_to_fullname_map[param]
                     filter_condition &= (filtered_df[par_name]>min_val) & (filtered_df[par_name]<max_val)
                 filtered_df = filtered_df[filter_condition]
 
@@ -181,10 +172,6 @@ class PlotTester:
         from each .ini file grouped by Zoom Optimizer. Results are saved as PNG files.
         """
 
-        # TODO: Load this from the model
-        self.pars = ['thetahS','thetahX','thetaSX','vs','vx']
-        reverse_map = {v: k for k, v in self.param_mapping.items()}
-
         # Print info to screen
         self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
@@ -197,11 +184,8 @@ class PlotTester:
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
-            # Set the start and end colors by random RGB values
-            start_rgb, end_rgb = self.select_colors()
-
-            for i, param1 in enumerate(self.pars[:-1]):
-                for param2 in self.pars[i+1:]:
+            for i, param1 in enumerate(self.model.input_parameter_full_names[:-1]):
+                for param2 in self.model.input_parameter_full_names[i+1:]:
                     # Extract values for each file (filtered DataFrames)
                     param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
                     param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
@@ -217,7 +201,7 @@ class PlotTester:
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
-                        color = [start_rgb[c] + t * (end_rgb[c]-start_rgb[c]) for c in range(3)]
+                        color = plt.cm.viridis(t)
 
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
@@ -225,8 +209,8 @@ class PlotTester:
                         file_ranges = self.ini_ranges[zoom_op][file]
                         self.logger.debug(file_ranges)
 
-                        x_ini = reverse_map.get(param1)
-                        y_ini = reverse_map.get(param2)
+                        x_ini = self.model.fullname_to_ini_name_map[param1]
+                        y_ini = self.model.fullname_to_ini_name_map[param2]
 
                         x_min, x_max = file_ranges[x_ini]
                         y_min, y_max = file_ranges[y_ini]
@@ -250,23 +234,14 @@ class PlotTester:
                     plt.xlabel(f"{param1}")
                     plt.ylabel(f"{param2}")
 
+                    # Better layout to prevent cropping
+                    plt.tight_layout()
+
                     # Save the figure as a .png
                     plt.savefig(os.path.join(group_output_dir,f"scan_{param1}__vs__{param2}.png"))
 
                     # Close the figure
                     plt.close()
-
-        return
-
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
 
 if __name__ == "__main__":
 
@@ -281,6 +256,4 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
     
-    PlotTester(decay=args.decay, model=model)
-
-    plotter = Plot(decay=args.decay, model=model)
+    SubsetPlotter(decay=args.decay, model=model)
