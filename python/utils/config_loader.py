@@ -11,6 +11,26 @@ import yaml
 from utils.env_utils import config_dir
 
 class ConfigLoader:
+    """
+    Loads and provides access to structured configuration data from a YAML file.
+
+    This class supports hierarchical configuration structures, logging of load events,
+    error handling for missing or malformed files, and value retrieval with validation.
+
+    Attributes:
+        config (Dict[str, Any]): Parsed configuration dictionary.
+
+    Methods:
+        load_config(path: str) -> Dict[str, Any]:
+            Loads the YAML file from the given path and returns the parsed dictionary.
+
+        get(section: str, key: str) -> Any:
+            Retrieves a value from a specified section and key of the configuration.
+
+    Usage:
+        loader = ConfigLoader("my_config.yml")
+        value = loader.get("general", "output_dir")
+    """
 
     def __init__(self,
                  config_file_name: str,
