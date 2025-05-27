@@ -30,7 +30,7 @@ jobs:
       run: |
         echo '{
           "pythonVersion": "${{ matrix.python-version }}",
-          "include": ["python"],  # <-- change if needed
+          "include": ["python"],
           "typeCheckingMode": "basic",
           "reportMissingImports": false,
           "reportMissingModuleSource": false,
