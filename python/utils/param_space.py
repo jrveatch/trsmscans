@@ -13,6 +13,20 @@ from utils.point import Point
 
 # class to hold and update full set of parameter ranges used in a scan
 class ParamSpace:
+    """
+    Represents a scan space defined over a model's input parameters.
+
+    ParamSpace manages a collection of ParamRange objects corresponding to each input
+    parameter defined by a given model. It supports operations such as random point
+    generation, center-point evaluation, scaling or repositioning of the space, and
+    writing .ini files for external scan tools. It also tracks the scalar masses and
+    decay mode used in the context of the scan.
+
+    Typical use cases include:
+    - Defining parameter ranges for ScannerS or optimization routines.
+    - Dynamically adjusting bounds based on scan results.
+    - Generating initial points or splitting the space for refinement.
+    """
 
     def __init__(self,
                  model: Model,

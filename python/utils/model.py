@@ -13,6 +13,18 @@ from utils.env_utils import data_dir
 
 # class that holds information about the model being used
 class Model:
+    """
+    Represents a physics model with scalar particles, parameter definitions, and mass mappings.
+
+    This class loads model configuration from a YAML file, manages scalar particle metadata,
+    input/output/width parameters, and provides methods for working with scalar mass ordering.
+
+    Key Features:
+    - Loads particle and parameter definitions from '<model_name>_params.yml'.
+    - Maps scalar names (e.g., 'S', 'X') to mass-ordered names (e.g., 'H1', 'H2').
+    - Provides access to input/output/width parameter dictionaries and their full names.
+    - Supports reading associated template .ini files and extracting scalar masses.
+    """
 
     def __init__(self,
                  name: str,
