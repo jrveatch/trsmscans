@@ -234,6 +234,9 @@ class SubsetPlotter:
                     plt.xlabel(f"{param1}")
                     plt.ylabel(f"{param2}")
 
+                    # Better layout to prevent cropping
+                    plt.tight_layout()
+
                     # Save the figure as a .png
                     plt.savefig(os.path.join(group_output_dir,f"scan_{param1}__vs__{param2}.png"))
 
