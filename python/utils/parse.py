@@ -42,72 +42,85 @@ class Parse:
 
     @property
     def model(self) -> Model:
-        """Model object"""
+        """Returns the associated Model instance used for scalar and parameter definitions."""
         return self.__model
 
     @cached_property
     def HName(self) -> str:
-        """Name of the H scalar"""
+        """Returns the name of the H scalar defined in the model."""
         return self.model.get_ordered_scalar_name('H')
 
     @cached_property
     def SName(self) -> str:
-        """Name of the S scalar"""
+        """Returns the name of the S scalar defined in the model."""
         return self.model.get_ordered_scalar_name('S')
 
     @property
     def filtered_data(self) -> pd.DataFrame:
-        """Filtered subset of the data"""
+        """Returns the subset of the data that passes all filters."""
         return self.data.loc[self.filters]
 
     @property
     def tsv_header(self) -> str:
-        """Header from .tsv file"""
+        """Returns the column header string suitable for .tsv files."""
         return get_header_string(self.data)
 
     @property
     def input_parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of input parameter arrays"""
+        """Returns a dictionary of input parameter names mapped to their corresponding data arrays."""
         return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.input_parameters.items()}
 
     @property
     def output_parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of output parameter arrays"""
+        """Returns a dictionary of output parameter names mapped to their corresponding data arrays."""
         return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.output_parameters.items()}
 
     @property
     def width_parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of width parameter arrays"""
+        """Returns a dictionary of width parameter names mapped to their corresponding data arrays."""
         return {name: pd.Series(self.filtered_data[par['fullname']]) for name, par in self.model.width_parameters.items()}
 
     @property
     def parameter_arrays(self) -> Dict[str,pd.Series]:
-        """Dictionary of parameter arrays"""
+        """Returns a combined dictionary of input, output, and width parameters."""
         return {**self.input_parameter_arrays, **self.output_parameter_arrays, **self.width_parameter_arrays}
 
     @property
     def filters(self) -> pd.Series:
-        """Filter decisions as a boolean array"""
+        """Returns a boolean Series indicating which rows pass all filtering conditions."""
         return (self.data['filt_width'] * self.data['filt_bounds'] * self.data['filt_signals']).astype(bool)
 
     @property
     def num_filtered_points(self) -> int:
-        """Number of filtered points"""
+        """Returns the number of data points that pass all filters."""
         return len(self.filtered_data)
 
     @property
     def num_unfiltered_points(self) -> int:
-        """Number of unfiltered points"""
+        """Returns the total number of data points before filtering."""
         return len(self.data)
 
     def read_file(self,
                   file_name: str) -> None:
-        """Load new arrays from a .tsv file"""
+        """
+        Loads a .tsv file into the internal data DataFrame.
+
+        Args:
+            file_name (str): Path to the .tsv file.
+        """
         self.data = get_df(file_name)
 
     def get_max_xb_point(self,
                          decay: str) -> Point:
-        """Find the point with the highest xb"""
+        """
+        Finds and returns the Point with the maximum xb value for a given decay mode.
+
+        Args:
+            decay (str): Name of the decay channel.
+
+        Returns:
+            Point: A Point object containing the maximum xb value and corresponding parameters.
+        """
 
         # get xb
         xb = self.get_xb(decay)
@@ -127,7 +140,17 @@ class Parse:
                    param_name: str,
                    decay: str,
                    param_space: Optional[ParamSpace] = None) -> bool:
-        """Check whether xb is unimodal in a parameter"""
+        """
+        Performs Hartigan's dip test to check if xb is bimodal with respect to a parameter.
+
+        Args:
+            param_name (str): The name of the input parameter.
+            decay (str): The decay channel to consider.
+            param_space (Optional[ParamSpace]): Optional subspace to restrict the analysis.
+
+        Returns:
+            bool: True if the distribution is significantly bimodal, False otherwise.
+        """
 
         # percentile threshold for xb
         percentile_threshold = 0.98
@@ -174,21 +197,23 @@ class Parse:
                                min_prominence=0.1,
                                density_threshold=0.01,
                                bw: Union[str, float] = 'silverman',
-                               n_points=200):
+                               n_points=200) -> List[float]:
         """
         Suggests 1D split points for a parameter column based on:
         - Valleys between peaks in the xb distribution
         - Gaps in the sample density
 
-        Parameters:
-            param_col (str): Name of the parameter to analyze
-            value_col (str): Name of the function value column (default 'xb')
-            min_prominence (float): Minimum prominence for detecting peaks
-            density_threshold (float): Density threshold for detecting gaps
-            n_points (int): Resolution of the evaluation grid
+        Args:
+            param_name (str): Parameter to split.
+            decay (str): Decay channel.
+            param_space (Optional[ParamSpace]): Parameter subspace to restrict analysis.
+            min_prominence (float): Minimum prominence for peak detection in modality analysis.
+            density_threshold (float): Density threshold for identifying gaps.
+            bw (str or float): Bandwidth method for KDE.
+            n_points (int): Number of evaluation points for KDE.
 
         Returns:
-            List of split points along the param_col axis
+            List[float]: Sorted list of suggested split values for the parameter.
         """
 
         # get mask for param_space
@@ -235,7 +260,20 @@ class Parse:
                             par_vals_eval: np.ndarray,
                             bw: Union[str, float] = 'silverman',
                             min_prominence: float = 0.1) -> np.ndarray:
-        """Modality-based KDE splits weighted by xb."""
+        """
+        Identifies valleys between peaks in a KDE weighted by xb to suggest splits.
+
+        Args:
+            par_vals (np.ndarray): Sorted parameter values.
+            xb_vals (np.ndarray): Corresponding xb values.
+            par_vals_eval (np.ndarray): Evaluation grid for KDE.
+            bw (str or float): KDE bandwidth method.
+            min_prominence (float): Minimum prominence of peaks to detect modes.
+
+        Returns:
+            np.ndarray: Array of suggested split points based on modality.
+        """
+
         try:
             kde_xb = gaussian_kde(par_vals, weights=xb_vals, bw_method=bw)
             kde_vals = kde_xb(par_vals_eval)
@@ -251,7 +289,19 @@ class Parse:
                         n_points: int = 200,
                         density_threshold: float = 0.01,
                         bw: Union[str, float] = 'silverman') -> np.ndarray:
-        """Density-based KDE splits: one midpoint per low-density region."""
+        """
+        Finds low-density regions in parameter distribution using KDE.
+
+        Args:
+            par_vals (np.ndarray): Array of parameter values.
+            n_points (int): Number of points in evaluation grid.
+            density_threshold (float): Threshold below which a region is considered sparse.
+            bw (str or float): KDE bandwidth.
+
+        Returns:
+            np.ndarray: Array of midpoints in low-density regions.
+        """
+
         try:
             # Normalize parameter values to [0, 1]
             par_min, par_max = par_vals.min(), par_vals.max()
@@ -290,7 +340,16 @@ class Parse:
     def get_xb(self,
                decay: str,
                param_space: Optional[ParamSpace] = None) -> pd.Series:
-        """Get array of xb values"""
+        """
+        Computes the xb = xsec * BR array for a given decay.
+
+        Args:
+            decay (str): Decay mode name (or "NoDecay").
+            param_space (Optional[ParamSpace]): Optional space to restrict the evaluation.
+
+        Returns:
+            pd.Series: xb values over the specified (or full) filtered dataset.
+        """
 
         # get production cross section
         xsec_prod = self.__get_xsec_prod()
@@ -313,7 +372,14 @@ class Parse:
     def shrink_param_space_bounds(self,
                                   param_space: ParamSpace,
                                   resolution: float = 0.01) -> None:
-        """Shrink bounds of ParamSpace based on points contained"""
+        """
+        Shrinks parameter bounds in a ParamSpace to match the extent of filtered data within it.
+
+        Args:
+            param_space (ParamSpace): Parameter space to update.
+            resolution (float): Minimum step size for new bounds.
+        """
+
         filtered_data = self.get_filtered_data(param_space)
         for name, par in self.model.input_parameters.items():
             full_name: str = par['fullname']
@@ -325,13 +391,30 @@ class Parse:
 
     def get_filtered_data(self,
                           param_space: Optional[ParamSpace] = None) -> pd.DataFrame:
-        """Return a view of filtered_data that is carved out by a parameter space"""
+        """
+        Returns filtered data limited to a given parameter space.
+
+        Args:
+            param_space (Optional[ParamSpace]): Optional restriction region.
+
+        Returns:
+            pd.DataFrame: Filtered data rows inside the parameter space.
+        """
         mask = self.param_space_mask(param_space)
         return self.filtered_data.loc[mask]
 
     def param_space_mask(self,
                          param_space: Optional[ParamSpace] = None) -> pd.Series:
-        """Return a mask of filtered_data that is carved out by a parameter space"""
+        """
+        Returns a boolean mask indicating which filtered data points lie within the given parameter space.
+
+        Args:
+            param_space (Optional[ParamSpace]): Region to evaluate inclusion.
+
+        Returns:
+            pd.Series: Boolean mask for filtered data.
+        """
+
         df = self.filtered_data
         mask = pd.Series(True, index=df.index)
 
@@ -349,7 +432,12 @@ class Parse:
     def write_max_xb_line(self,
                           file_name: str
                          ) -> None:
-        """Write line with max xb to a .tsv file"""
+        """
+        Appends the row with maximum xb to the given .tsv file.
+
+        Args:
+            file_name (str): Path to the output .tsv file.
+        """
 
         # get max xb row from dataframe
         row = self.data.loc[[self.max_idx]]
@@ -362,12 +450,36 @@ class Parse:
                    header=False)
 
     def __get_xsec_prod(self) -> pd.Series:
-        """Get array of production cross-sections"""
+        """
+        Returns the array of production cross-sections for the filtered dataset.
+
+        Specifically retrieves the production cross-section for H3 via gluon-gluon fusion,
+        identified by the column 'x_H3_gg'.
+        
+        Returns:
+            pd.Series: Production cross-section values for each filtered point.
+        """
+        # TODO: Expand this to use other production modes
         return pd.Series(self.filtered_data['x_H3_gg'])
 
     def __get_br_decay(self,
                        decay: str) -> pd.Series:
-        """Get arrays of decay branching ratios"""
+        """
+        Computes the total branching ratio (BR) for a specified decay channel.
+
+        Supports a wide range of decay modes involving intermediate particles H and S.
+        The returned BR is computed from the product of production and decay subprocesses,
+        depending on the channel.
+
+        Args:
+            decay (str): The name of the decay mode (e.g., 'SHbbbb', 'Xttbb', etc.).
+
+        Returns:
+            pd.Series: Branching ratio values for the specified decay mode.
+
+        Raises:
+            ValueError: If the provided decay mode is not recognized or supported.
+        """
 
         # BSM BRs
         br_X_SH = self.filtered_data['b_H3_H1H2']
