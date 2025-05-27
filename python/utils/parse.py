@@ -20,11 +20,25 @@ from utils.point import Point
 
 # class to parse arrays and provide details about data
 class Parse:
+    """
+    Parses and analyzes model scan output data, applying filters, computing observables,
+    and providing tools for extracting physics insights such as xb distributions,
+    unimodality tests, and optimal points.
 
-    # load new set of arrays
+    It supports integration with parameter space definitions and model metadata to allow
+    for contextual analysis of scalar production and decay behavior.
+    """
+
     def __init__(self,
                  model: Model,
                  file_name: str = ""):
+        """
+        Initializes the parser with a model and optionally loads scan data from a file.
+
+        Args:
+            model (Model): The model used to interpret parameter names and scalar definitions.
+            file_name (str, optional): Path to a .tsv file to load immediately (default is empty).
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
