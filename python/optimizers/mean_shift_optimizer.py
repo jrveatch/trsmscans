@@ -73,7 +73,7 @@ class MeanShiftOptimizer:
                                           subdir_name = "meanshift")
 
         # Initialize positions
-        init_pos = self.local_param_space.vol_position
+        init_pos = self.local_param_space.center_point()
         self.__test_position = init_pos
         self.new_position = init_pos
         self.__prev_position = init_pos
@@ -208,7 +208,7 @@ class MeanShiftOptimizer:
                        param_space = self.local_param_space)
             
             # get new position
-            self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.vol_position,
+            self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
 
@@ -226,7 +226,7 @@ class MeanShiftOptimizer:
 
             # NOTE: For debugging
             if self.logger.isEnabledFor(logging.DEBUG):
-                test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.vol_width])
+                test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.widths()])
                 position_diff = tuple(
                     self.new_position.parameter_values[k] - self.__prev_position.parameter_values[k]
                     for k in self.local_param_space.parameter_names
@@ -235,8 +235,8 @@ class MeanShiftOptimizer:
                 self.logger.debug(f"small steps = {self.n_small_steps}")
                 self.logger.debug(f"avg xb      = {round_sig(float(np.average(xb)))}")
                 self.logger.debug(f"max xb      = {round_sig(np.max(xb))}")
-                self.logger.debug(f"volume size = {self.local_param_space.vol_width}")
-                self.logger.debug(f"curr pos    = {self.local_param_space.vol_position}")
+                self.logger.debug(f"volume size = {self.local_param_space.widths()}")
+                self.logger.debug(f"curr pos    = {self.local_param_space.center_point()}")
                 self.logger.debug(f"prev pos    = {self.__prev_position}")
                 self.logger.debug(f"test pos    = {self.__test_position}")
                 self.logger.debug(f"reset diff  = {test_diff}")
