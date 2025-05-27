@@ -493,107 +493,46 @@ class Scan:
         *** Calculate proportional points from each zoom optimizer based on paramater space volume
         
         '''
-        open_dict : Dict[str, List[ Dict[str, float] ]] = {}
-        curr_param_space_list = [param_space]
-        final_param_space_list = []
 
-        # Iterate through a list of Param Spaces
-        while curr_param_space_list:
+        # Intialize Lists to hold the current param spaces and the final param spaces
+        current_param_space_list = [param_space]
+        final_param_space_list =[]
 
-            # Retrieve the first Param Space in the list and delete it from the list
-            current = curr_param_space_list.pop(0)
-            #print("current")
-            #print(param_space)
+        # Iterate through the current unchecked param spaces
+        while current_param_space_list:
 
-            #print("-----")
-            #print(current)
-            #print(curr_param_space_list)
-            #print("******************")
+            # Remove the first param space and hold on to it as the current param space
+            current = current_param_space_list.pop(0)
 
-            list_param_splits = []
-
-            is_split = False
-
-            for param_name in current.parameter_names:
-                print(param_name)
-
-                param_name_splits = self.prescan_parser.get_param_space_splits(param_name=param_name, decay=self.decay, param_space=current)
-
-                print(param_name_splits)
-
-                if param_name_splits:
-
-                    is_split = True
-                    new_param_space = current.split_range(param_name, param_name_splits)
-                    curr_param_space_list.extend(new_param_space)
-                    print(curr_param_space_list)
-
-                    
-                    '''
-                    print(f"_________NEW PARAM SPACE FOR {param_name.upper()}__________\n")
-                    for items in new_param_space:
-                        print (items)
-                    '''
-                    
-                    break
-
-            if not is_split:      
-                final_param_space_list.append(current)
-
-        for all_param_spaces in final_param_space_list:
-
-            #print('---------space')
-            print(all_param_spaces.name)
-            #list_param_splits.append(self.prescan_parser.get_param_space_splits(param_name=param_name, decay=self.decay, param_space=current))
-
-        '''for i, item in enumerate(list_param_splits):
-
-            if item:
-                print(i)
-                print(item) 
-                new_param_space = current.split_range(current.parameter_names[i], item)
-
-                print("_________NEW PARAM SPACE__________")
-                for items in new_param_space:
-                    print (items)
-                curr_param_space_list.extend(new_param_space)'''
-                
-        #print(list_param_splits)
-        print(current)
-        print(curr_param_space_list)
-
-        '''while curr_param_space_list:
-
-            current = curr_param_space_list.pop(0)
-            print(current)  
-            
+            # Iterate through the current param space
             for parameter_name in current.parameter_names:
 
-                if self.prescan_parser.is_bimodal(decay=self.decay, param_name=parameter_name, param_space=current):
+                # Check modality by evaluating where to split
+                all_splits = self.prescan_parser.get_param_space_splits(param_name=parameter_name, decay=self.decay, param_space=current)
 
-                    min_val = current[parameter_name].low
-                    max_val = current[parameter_name].high
-                    mid_val = (min_val + max_val) / 2.0
+                # Check if points to split where found
+                if all_splits:
 
-                    new_param_space = current.split_range(parameter_name, [mid_val])
-                    curr_param_space_list.extend(new_param_space)
-                else:
+                    # Retrieve new param spaces based on the split at given points
+                    new_param_spaces = current.split_range(param_name=parameter_name, split_values=all_splits)
 
-                    final_param_space_list.append(current)
-'''
-       # print(final_param_space_list)
+                    # Add the new param spaces to the recurring list of param spaces
+                    current_param_space_list.extend(new_param_spaces)
+            
+                    break
 
-        '''
-        Tools to use:
-            - split_range in param_space.py
-            - volume in param_space.py
-            - is_bimodal in parse.py
-            - 
-        '''
+            # Append the current list if no further splitting was done to current param space
+            else:
+                final_param_space_list.append(current)
+
+        # Print the names of the param spaces in final_param_space_list
+        for spaces in final_param_space_list:
+            print(spaces.name)
+
+        return
 
     def assign_zoom_points(self, list_of_params: list[ParamSpace]):
         pass
-
 
     def finalize(self,
                  optimization: str,

@@ -28,7 +28,7 @@ class ParamSpace:
         # Store decay name
         self.__decay = decay
 
-        self.name = name
+        self.__name = name
 
     ## Class properties
 
