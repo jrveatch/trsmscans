@@ -27,19 +27,6 @@ class DecayConfigManager:
     The configuration is loaded from 'decay_modes.yml' located in the data directory.
     Each decay group includes a list of all decay modes and a representative
     "non-resolvable" version (used for merging or comparison).
-
-    Attributes:
-        allowed_decay_modes (Dict[str, DecayGroup]): Mapping from group name to decay modes.
-        decay_to_group (Dict[str, str]): Maps each decay mode to its group name.
-        non_resolvable_map (Dict[str, str]): Maps group name to its non-resolvable decay mode.
-        valid_decay_modes (List[str]): Flat list of all allowed decay modes.
-
-    Methods:
-        is_decay_allowed(decay: str) -> bool:
-            Checks if a decay mode is among the allowed modes.
-
-        get_non_resolvable_decay(decay: str) -> str:
-            Returns the non-resolvable representative for a given decay mode.
     """
 
     def __init__(self):
