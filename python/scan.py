@@ -491,7 +491,6 @@ class Scan:
         6. Create zoom optimizers from param spaces
 
         *** Calculate proportional points from each zoom optimizer based on paramater space volume
-        
         '''
 
         # Intialize Lists to hold the current param spaces and the final param spaces
@@ -525,9 +524,20 @@ class Scan:
             else:
                 final_param_space_list.append(current)
 
-        # Print the names of the param spaces in final_param_space_list
-        for spaces in final_param_space_list:
-            print(spaces.name)
+        # Shrink the param spaces in final_param_space_list
+        for space in final_param_space_list:
+
+            # Print param space name
+            print(space.name)
+
+            # Print param space log bounds table before shrinking
+            space.log_bounds_table()
+
+            # Shrink the param space
+            self.prescan_parser.shrink_param_space_bounds(param_space=space)
+
+            # Print param space log bounds table after shrinking
+            space.log_bounds_table()
 
         return
 
