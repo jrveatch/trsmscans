@@ -22,7 +22,7 @@ logging.basicConfig(
     format="%(levelname)s - %(message)s"
 )
 
-class PlotTester:
+class SubsetPlotter:
 
     def __init__(self,
                  decay: str,
@@ -253,6 +253,4 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
     
-    PlotTester(decay=args.decay, model=model)
-
-    plotter = Plot(decay=args.decay, model=model)
+    SubsetPlotter(decay=args.decay, model=model)
