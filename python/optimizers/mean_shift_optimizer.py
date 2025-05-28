@@ -27,6 +27,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
+from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
 
 class MeanShiftOptimizer:
     """
@@ -40,7 +41,7 @@ class MeanShiftOptimizer:
     def __init__(
             self,
             label: str,
-            initial_pos: 'Point',
+            initial_pos: Point,
             global_param_space: ParamSpace,
             config_loader: ConfigLoader):
         """
@@ -108,13 +109,9 @@ class MeanShiftOptimizer:
         self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
         self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.label}_{output_file_postfix}.tsv")
 
-        # initialize walk file
-        with open(self.walk_file_name, "w") as walk_file:
-            content = "xb"
-            for parameter in initial_pos.parameter_values.keys():
-                content += f"\t{parameter}"
-            content += "\n"
-            walk_file.write(content)
+        # initialize walk files
+        initialize_summary_file(file_name=self.walk_file_name,
+                                model=init_pos.model)
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
@@ -275,9 +272,13 @@ class MeanShiftOptimizer:
                 self.logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
-            self.write_to_walk_file()
+            write_point_to_summary_file(file_name=self.walk_file_name,
+                                        point=self.new_position)
 
-        self.write_summary(identifier)
+        write_point_to_summary_file(file_name=self.summary_name,
+                                    point=self.new_position,
+                                    identifier=identifier)
+        # TODO: Save full tsv line from point object
 
         # get mean shift end time
         shift_end = time.time()
@@ -287,20 +288,6 @@ class MeanShiftOptimizer:
         self.logger.info(f"{self.label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
-
-    def write_summary(self, identifier) -> None:
-        """
-        Writes the final best point from the scan to the summary file.
-
-        Args:
-            identifier (str): Iteration identifier to tag the entry.
-        """
-        with open(self.summary_name,"a") as summary:
-            content = self.new_position.format_xb()
-            for val in self.new_position.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += f"\t{identifier}\n"
-            summary.write(content)
 
     def write_details(self,
                       identifier: str,
@@ -330,15 +317,6 @@ class MeanShiftOptimizer:
             content += f"new_xb    = {round_sig(self.new_position.xb)}\n"
             content += "--------------------\n"
             details_file.write(content)
-
-    def write_to_walk_file(self) -> None:
-        """Appends the current best point to the walk file for visualization or trace logging."""
-        with open(self.walk_file_name, 'a') as walk_file:
-            content = f"{round_sig(self.new_position.xb)}"
-            for val in self.new_position.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += "\n"
-            walk_file.write(content)
 
     def iteration_termination_message(self,
                                       message: str) -> None:
