@@ -226,8 +226,8 @@ class SubsetPlotter:
             for i, param1 in enumerate(self.model.input_parameter_full_names[:-1]):
                 for param2 in self.model.input_parameter_full_names[i+1:]:
                     # Extract values for each file (filtered DataFrames)
-                    param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
-                    param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
+                    param1_values = [pd.DataFrame(zoom_op_files[file])[param1].to_numpy(dtype=float) for file in zoom_op_files]
+                    param2_values = [pd.DataFrame(zoom_op_files[file])[param2].to_numpy(dtype=float) for file in zoom_op_files]
 
                     num_files = len(param1_values)
 
