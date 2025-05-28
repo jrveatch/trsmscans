@@ -19,7 +19,19 @@ def mean_shift(arrays: Dict[str,np.ndarray],
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
         param_space (ParamSpace): Object with a `reposition_center` method to update the center.
+
+    Raises:
+        ValueError: If the lengths of parameter arrays do not match the length of Z.
     """
+
+    # Make sure all inputs are the same length
+    num_samples = len(Z)
+    for key, val in arrays.items():
+        if len(val) != num_samples:
+            raise ValueError(
+                f"Length mismatch for parameter '{key}': expected {num_samples} samples (from Z), "
+                f"but got {len(val)}."
+            )
 
     # Store parameter names
     param_names = list(arrays.keys())
