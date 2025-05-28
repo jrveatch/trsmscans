@@ -128,10 +128,10 @@ def process_data(df: pd.DataFrame,
                                        HName=HName,
                                        SName=SName,
                                        XName=XName)
-        logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {widths["H"]}")
-        logger.verbose(f"  S: {widths["S"]}")
-        logger.verbose(f"  X: {widths["X"]}")
+        logger.verbose(f'Scalar widths are:')
+        logger.verbose(f'  H: {widths["H"]}')
+        logger.verbose(f'  S: {widths["S"]}')
+        logger.verbose(f'  X: {widths["X"]}')
 
         # get rescalings
         rescalings = extract_rescalings(row=row,
