@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
 
+"""
+Visualizes prescan subsets used during zoom scans.
+
+This script reads `.ini` files from zoom scans to determine the parameter space
+subsets, filters prescan data accordingly, and generates 2D scatter plots showing
+how each region contributes to the scan.
+"""
+
+import argparse
+from collections import defaultdict
+import configparser
+import glob
+import logging
 import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
-import logging
-
 import re
-from collections import defaultdict
-from plot import Plot
-import glob
-import configparser
+from typing import Dict, Tuple
+
 from utils import file_utils
 from utils.model import Model
-import argparse
-import logging
 from utils.parse import Parse
 
 logging.basicConfig(
@@ -23,10 +30,26 @@ logging.basicConfig(
 )
 
 class SubsetPlotter:
+    """
+    Plots prescan points filtered by parameter ranges defined in zoom `.ini` files.
+
+    For each optimizer and iteration, subsets of prescan data are extracted and
+    plotted alongside bounding boxes representing the scan range. This helps
+    visualize how parameter space was explored over time.
+    """
 
     def __init__(self,
                  decay: str,
-                 model: 'Model'):
+                 model: Model):
+        """
+        Initializes the SubsetPlotter with model and decay information.
+
+        This triggers loading and filtering of prescan data and automatic plot generation.
+
+        Args:
+            decay (str): Decay mode being studied.
+            model (Model): Scalar model associated with the prescan.
+        """
         
         # Save arguments as class members
         self.decay = decay
@@ -52,9 +75,23 @@ class SubsetPlotter:
         self.plot_data()
 
     def parse_ini_files(self,
-                        directory: str) -> dict:
+                        directory: str) -> Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]:
+        """
+        Parses `.ini` files to extract scan parameter ranges for each optimizer iteration.
+
+        The result is a nested dictionary mapping each optimizer ID to a dictionary
+        that maps `.ini` filenames to parameter bounds.
+
+        Args:
+            directory (str): Path to the directory containing `.ini` files.
+
+        Returns:
+            Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]: A dictionary of dictionaries containing
+            parameter bounds (min, max) for each file, grouped by optimizer.
+        """
+
         # Dictionary to store ranges for each file
-        ranges_dict = defaultdict(dict) 
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict) 
 
         # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
@@ -85,7 +122,7 @@ class SubsetPlotter:
             config.read(file_path)
 
             # Initialize empty dictionary to store the range information
-            ranges = {}
+            ranges: Dict[str, Tuple[float, float]] = {}
 
             # Iterate through each parameter
             for param in params_of_interest:
@@ -105,13 +142,13 @@ class SubsetPlotter:
 
         # Return to call
         return ranges_dict
-    
-    # Method to Load the information of the prescan to a Pandas Data Frame
+
     def load_prescan_data(self) -> None:
         """
-        Load the prescan data into a pandas DataFrame using the Parse class.
-        
-        The DataFrame is filtered to keep only relevant columns defined in `param_mapping`.
+        Loads prescan results into a pandas DataFrame.
+
+        Reads the `.tsv` file using the `Parse` class and extracts only
+        the input parameters relevant to the model.
         """
 
         # Print current status
@@ -133,9 +170,10 @@ class SubsetPlotter:
 
     def filter_data(self) -> None:
         """
-        Filter the prescan DataFrame using the parameter ranges from the parsed .ini files.
+        Filters the prescan DataFrame based on `.ini` parameter ranges.
 
-        The filtered data is stored in a dictionary mapping each .ini filename to a filtered DataFrame.
+        Stores a separate filtered DataFrame for each `.ini` file to be
+        used in plotting scan coverage and boundaries.
         """
 
         # Filter self.df based on parameter ranges from .ini files.
@@ -166,10 +204,11 @@ class SubsetPlotter:
 
     def plot_data(self) -> None:
         """
-        Generate 2D scatter plots for all parameter pairs.
+        Generates and saves 2D scatter plots showing parameter subsets.
 
-        Each plot overlays scan points and bounding boxes corresponding to parameter regions
-        from each .ini file grouped by Zoom Optimizer. Results are saved as PNG files.
+        For each pair of parameters and optimizer iteration, a plot is created
+        that overlays prescan points with bounding boxes representing the scan region.
+        Plots are grouped by optimizer and saved to PNG files.
         """
 
         # Print info to screen
@@ -178,7 +217,7 @@ class SubsetPlotter:
         for zoom_op in self.ini_ranges.keys():
             
             # Retrieve files based on the current Zoom Optimizer
-            zoom_op_files = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
+            zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
                 
             # Create a new output directory to organize output by Zoom Optimizer    
             group_output_dir = os.path.join(self.output_dir,zoom_op)
@@ -243,6 +282,9 @@ class SubsetPlotter:
                     # Close the figure
                     plt.close()
 
+# Command-line entry point for generating prescan subset plots.
+# Creates a SubsetPlotter instance and automatically loads, filters,
+# and visualizes the subset scan regions from zoom `.ini` files.
 if __name__ == "__main__":
 
     arg_parser = argparse.ArgumentParser()

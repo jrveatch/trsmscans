@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Performs an initial scan ("prescan") over the scalar model parameter space.
+
+This module generates a specified number of random scan points, evaluates them,
+and writes the results to a `.tsv` file. Existing scan results can optionally be
+extended or overwritten depending on user input.
+"""
+
 # standard libraries
 import argparse
 import datetime
@@ -26,6 +34,22 @@ def prescan(model: Model,
             config_loader: Union[ConfigLoader, None] = None,
             config_file_name: str = "",
             overwrite: bool = False) -> Parse:
+    """
+    Executes a prescan of the parameter space for a given scalar model.
+
+    If previous scan results exist, this function can either reuse, extend,
+    or overwrite them based on user input and the `overwrite` flag.
+
+    Args:
+        model (Model): The scalar model to scan.
+        num_points (int): Total number of scan points to generate.
+        config_loader (Union[ConfigLoader, None], optional): Optional configuration loader.
+        config_file_name (str, optional): Path to a config file if no loader is provided.
+        overwrite (bool): If True, removes existing scan results before scanning.
+
+    Returns:
+        Parse: A Parse object that contains and can analyze the scan results.
+    """
 
     # get scan start time
     scan_start = time.time()
@@ -135,6 +159,9 @@ def prescan(model: Model,
     # return parser after a successful run
     return parser
 
+# Command-line interface for the prescan tool.
+# Parses model parameters and scan settings from arguments, sets up logging,
+# and executes a prescan over the parameter space.
 if __name__ == "__main__":
 
     # parse command line arguments

@@ -9,6 +9,18 @@ from utils.math_utils import round_sig
 
 # class to hold and update ranges for a single model parameter
 class ParamRange:
+    """
+    Represents the tunable range and bounds for a single model parameter.
+
+    This class tracks the full range (min/max bounds) and the current working range
+    (low/high) used during parameter space scans. It provides methods for
+    scaling, clamping, sampling, and formatting the range.
+
+    Typical use cases include:
+    - Managing ranges within a ParamSpace for scanning
+    - Generating random samples within the current range
+    - Adjusting bounds during adaptive scans or optimization passes
+    """
 
     def __init__(self,
                  name: str,

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Mean-shift-based optimizer for refining scalar model scans.
+
+This module defines the MeanShiftOptimizer class, which adaptively adjusts the
+parameter space to locate local maxima of cross-section times branching ratio (xb)
+using a kernel-based mean shift approach.
+"""
+
 import copy
 import datetime
 from functools import cached_property
@@ -9,7 +17,6 @@ import shutil
 import time
 
 import numpy as np
-import pandas as pd
 
 from utils.config_loader import ConfigLoader
 from utils.exceptions import NoPointsPassedError
@@ -20,15 +27,32 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
+from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
 
 class MeanShiftOptimizer:
+    """
+    Optimizer that applies mean-shift steps to refine scalar model parameter scans.
+
+    The optimizer performs localized scans, shifting the center of the parameter space
+    based on the xb-weighted mean of sampled points. The scan stops based on movement
+    sensitivity thresholds or a maximum number of small steps.
+    """
 
     def __init__(
             self,
             label: str,
-            initial_pos: 'Point',
+            initial_pos: Point,
             global_param_space: ParamSpace,
             config_loader: ConfigLoader):
+        """
+        Initializes a MeanShiftOptimizer instance.
+
+        Args:
+            label (str): A label to identify the scan.
+            initial_pos (Point): Starting point in parameter space.
+            global_param_space (ParamSpace): The overall parameter space used in the scan.
+            config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
+        """
         
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -77,86 +101,93 @@ class MeanShiftOptimizer:
         self.__test_position = init_pos
         self.new_position = init_pos
         self.__prev_position = init_pos
+        self.max_point = init_pos
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
         self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
         self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
         self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
-        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.label}_{output_file_postfix}.tsv")
+        self.walk_pos_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_pos_{self.label}_{output_file_postfix}.tsv")
+        self.walk_max_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_max_{self.label}_{output_file_postfix}.tsv")
 
-        # initialize walk file
-        with open(self.walk_file_name, "w") as walk_file:
-            content = "xb"
-            for parameter in initial_pos.parameter_values.keys():
-                content += f"\t{parameter}"
-            content += "\n"
-            walk_file.write(content)
+        # initialize walk files
+        initialize_summary_file(file_name=self.walk_pos_file_name,
+                                model=init_pos.model)
+        initialize_summary_file(file_name=self.walk_max_file_name,
+                                model=init_pos.model)
 
         # copy prescan details file to zoom optimizer details file
         shutil.copy(self.prescan_details_name,self.details_name)
 
     @property
     def model(self) -> Model:
-        """Model used in scan"""
+        """Returns the scalar model being evaluated."""
         return self.global_param_space.model
 
     @property
     def decay(self) -> str:
-        """Decay mode used in scan"""
+        """Return the decay mode being scanned."""
         return self.global_param_space.decay
 
     @property
     def label(self) -> str:
-        """Label of the scan"""
+        """Return the scan's identifying label."""
         return self.__label
 
     @label.setter
     def label(self,
                 new_label: str) -> None:
-        """Set the label of the scan"""
+        """Sets the scan's identifying label."""
         self.__label = new_label
 
     @property
     def global_param_space(self) -> ParamSpace:
-        """Global param space"""
+        """Returns the global (full-range) parameter space."""
         return self.__global_param_space
     
     @global_param_space.setter
     def global_param_space(self,
                            new_global_param_space: ParamSpace) -> None:
-        """Set the global param space"""
+        """Sets the global (full-range) parameter space."""
         self.__global_param_space = new_global_param_space
 
     @property
     def local_param_space(self) -> ParamSpace:
-        """Local param space"""
+        """Returns the local parameter space."""
         return self.__local_param_space
     
     @local_param_space.setter
     def local_param_space(self,
                           new_local_param_space: ParamSpace) -> None:
-        """Set the local param space"""
+        """Sets the local parameter space."""
         self.__local_param_space = new_local_param_space
 
     @cached_property
     def out_dir(self) -> str:
-        """Output directory name"""
+        """Returns the path to the output directory for the model and decay."""
         return scan_dir(model=self.model,
                         decay=self.decay)
 
     @property
     def num_points(self) -> int:
-        """Number of points to sample"""
+        """Returns the number of sample points per scan."""
         return self.__num_points
 
     @num_points.setter
     def num_points(self,
                    new_num_points: int) -> None:
-        """Set the number of points to sample"""
+        """Sets the number of sample points per scan."""
         self.__num_points = new_num_points
 
     def run(self):
+        """
+        Executes the full mean-shift optimization loop.
+
+        Iteratively performs parameter scans, applies the mean-shift update rule,
+        and writes output to walk, summary, and details files. Stops based on convergence
+        or lack of significant parameter movement.
+        """
 
         # get time of mean shift start
         shift_start = time.time()
@@ -212,7 +243,17 @@ class MeanShiftOptimizer:
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
 
+            # store the highest point that has been checked
+            # this can either be from sampling or from the mean-shifted position
+            self.max_point = max(
+                self.max_point,
+                parser.get_max_xb_point(self.decay),
+                self.new_position
+            )
+
             stop = self.__stop_check()
+
+            # TODO: If stopping, take highest point that has been sampled
 
             # write scan details to details file
             self.write_details(identifier=identifier,
@@ -243,9 +284,15 @@ class MeanShiftOptimizer:
                 self.logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
-            self.write_to_walk_file()
+            write_point_to_summary_file(file_name=self.walk_pos_file_name,
+                                        point=self.new_position)
+            write_point_to_summary_file(file_name=self.walk_max_file_name,
+                                        point=self.max_point)
 
-        self.write_summary(identifier)
+        write_point_to_summary_file(file_name=self.summary_name,
+                                    point=self.max_point,
+                                    identifier=identifier)
+        # TODO: Save full tsv line from point object
 
         # get mean shift end time
         shift_end = time.time()
@@ -256,19 +303,15 @@ class MeanShiftOptimizer:
 
         return
 
-    def write_summary(self, identifier) -> None:
-        """Write final point info to summary file."""
-        with open(self.summary_name,"a") as summary:
-            content = self.new_position.format_xb()
-            for val in self.new_position.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += f"\t{identifier}\n"
-            summary.write(content)
-
     def write_details(self,
                       identifier: str,
                       xb: np.ndarray) -> None:
-        """Write iteration information to details file."""
+        """Writes parameter space and scan result details for a given iteration.
+
+        Args:
+            identifier (str): Identifier for the current iteration.
+            xb (np.ndarray): Array of xb values from the scan.
+        """
         with open(self.details_name, 'a') as details_file:
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
@@ -280,6 +323,7 @@ class MeanShiftOptimizer:
                 content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
             content += "--------------------\n"
             content += f"scan_pts  = {self.num_points}\n"
+            content += f"max_pos  = {self.max_point}\n"
             content += f"curr_pos  = {self.new_position}\n"
             content += f"prev_pos  = {self.__prev_position}\n"
             content += f"test_pos  = {self.__test_position}\n"
@@ -289,26 +333,31 @@ class MeanShiftOptimizer:
             content += "--------------------\n"
             details_file.write(content)
 
-    def write_to_walk_file(self) -> None:
-        """Write iteration results to walk file."""
-        with open(self.walk_file_name, 'a') as walk_file:
-            content = f"{round_sig(self.new_position.xb)}"
-            for val in self.new_position.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += "\n"
-            walk_file.write(content)
+    def iteration_termination_message(self,
+                                      message: str) -> None:
+        """
+        Logs and appends a message related to iteration termination.
 
-    # print and write termination message
-    def iteration_termination_message(self, message: str) -> None:
+        Args:
+            message (str): The message to log and write.
+        """
         self.logger.info(message)
         with open(self.details_name,"a") as details:
             details.write(message+"\n")
 
     def __stop_check(self) -> bool:
         """
-        If the center point is not moving significantly for a number of iterations,
-        return True to signal stopping.
+        Determines whether the mean-shift scan should stop.
+
+        Checks whether the center of the parameter space is changing less than a
+        configured sensitivity threshold for a specified number of iterations.
+
+        Returns:
+            bool: True if the scan should stop, False otherwise.
         """
+
+        # TODO: This should probably also check self.max_point
+
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 
         # Check if any parameter changed beyond the sensitivity threshold

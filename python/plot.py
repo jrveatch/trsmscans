@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+"""
+Generates 2D scatter plots and heatmaps from scan results of scalar models.
+
+This module visualizes parameter evolution and maximum xb values using data
+from prescans and zoom scans, producing both overlaid scatter plots and
+binned maximum-`xb` heatmaps.
+"""
+
 # standard libraries
 import argparse
 from collections import defaultdict
@@ -19,12 +27,27 @@ from utils.model import Model
 from utils.parse import Parse
 from utils.point import Point
 
-# Plot class
 class Plot:
+    """
+    Creates visualizations for scan results from scalar model parameter studies.
+
+    This class loads `.tsv` files from prescans and zoom scans, processes
+    parameter data, and generates a set of scatter plots and heatmaps to
+    visualize the exploration and optimization of parameter space.
+    """
 
     def __init__(self,
                  decay: str,
                  model: Model):
+        """
+        Initializes the Plot object with a model and decay mode.
+
+        This automatically loads all available scan data for plotting.
+
+        Args:
+            decay (str): Decay channel used in the scans.
+            model (Model): Scalar model associated with the scan results.
+        """
 
         # Save arguments as class members
         self.decay = decay
@@ -42,9 +65,7 @@ class Plot:
 
     @cached_property
     def var_names(self) -> Tuple[str, ...]:
-        """
-        Get the variable names for the model.
-        """
+        """Returns the input parameter names and includes 'xb' if not already present."""
         names = self.model.input_parameter_names
         if 'xb' in names:
             return names
@@ -52,7 +73,9 @@ class Plot:
 
     def get_file_names(self) -> None:
         """
-        Get the list of .tsv files for plotting.
+        Finds and organizes all `.tsv` scan result files to be used for plotting.
+
+        Categorizes files by prescan and each zoom scan iteration.
         """
 
         # Empty array that will hold the files found
@@ -76,9 +99,10 @@ class Plot:
 
     def load_data(self) -> None:
         """
-        Load parameter arrays and max-xb Points from all .tsv files.
-        Store combined parameter arrays for each iteration in self.var_lists.
-        Store max-xb Point per iteration in self.max_point_list.
+        Loads parameter arrays and maximum-xb points from all available `.tsv` files.
+
+        Populates `self.var_lists` with parameter data and `self.max_point_list`
+        with the best point from each group.
         """
 
         self.max_point_list: List[Point] = []
@@ -115,8 +139,15 @@ class Plot:
                            var1_name: str,
                            var2_name: str) -> None:
         """
-        Create a 2D scatter plot for a given pair of variables over all iterations.
+        Creates a 2D scatter plot of two variables across all iterations.
+
+        Highlights the global maximum xb point and local maxima for each iteration.
+
+        Args:
+            var1_name (str): Name of the first variable (x-axis).
+            var2_name (str): Name of the second variable (y-axis).
         """
+
         var1 = self.var_lists[var1_name]
         var2 = self.var_lists[var2_name]
 
@@ -153,16 +184,29 @@ class Plot:
 
     def make_scan_plots(self) -> None:
         """
-        Iterate over all unique pairs of variables and plot them.
+        Generates and saves 2D scatter plots for all unique parameter pairs.
+
+        Iterates over all combinations of variable pairs, including xb, and
+        plots how the sampled points evolve across iterations.
         """
+
         print("Making scan plots for", self.model.name, self.decay, self.model.mass_string)
         for var1, var2 in combinations(self.var_names, 2):
             self.plot_variable_pair(var1, var2)
 
-    def plot_max_xb_heatmap(self, var1_name: str, var2_name: str, num_bins: int = 100) -> None:
+    def plot_max_xb_heatmap(self,
+                            var1_name: str,
+                            var2_name: str,
+                            num_bins: int = 100) -> None:
         """
-        Plot a 2D heatmap showing the maximum xb in each bin of var1 vs var2.
+        Plots a 2D heatmap showing the maximum xb in each bin of two variables.
+
+        Args:
+            var1_name (str): Name of the first variable (x-axis).
+            var2_name (str): Name of the second variable (y-axis).
+            num_bins (int, optional): Number of bins along each axis. Defaults to 100.
         """
+
         df_comb = pd.DataFrame({key: self.concatenated_vars[key] for key in (var1_name, var2_name, 'xb')})
 
         # Bin the variables
@@ -192,13 +236,19 @@ class Plot:
 
     def make_max_xb_plots(self) -> None:
         """
-        Create a heatmap of the maximum xb for all unique variable pairs (excluding xb).
+        Generates 2D heatmaps of maximum xb for all variable pairs (excluding xb).
+
+        For each pair of parameters, plots the binned maximum xb values using
+        a shared color scale to highlight regions of interest.
         """
+
         print("Making max XB plots for", self.model.name, self.decay, self.model.mass_string)
         for var1, var2 in combinations(self.var_names, 2):
             if 'xb' not in (var1, var2):
                 self.plot_max_xb_heatmap(var1, var2)
 
+# Command-line interface to generate scan plots and xb heatmaps.
+# Initializes the model and Plot object, then produces the full set of 2D visualizations.
 if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
