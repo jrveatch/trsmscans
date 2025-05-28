@@ -41,7 +41,7 @@ class MeanShiftOptimizer:
     def __init__(
             self,
             label: str,
-            initial_pos: 'Point',
+            initial_pos: Point,
             global_param_space: ParamSpace,
             config_loader: ConfigLoader):
         """
