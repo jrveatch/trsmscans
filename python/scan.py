@@ -23,7 +23,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.run_metadata import run_exists, save_run_metadata
-from utils.tsv_utils import sort_tsv_file
+from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 
@@ -139,12 +139,9 @@ class Scan:
 
         # create summary file
         self.summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
-        with open(self.summary_name, "w") as summary:
-            content = "xbmax"
-            for parameter in self.model.all_parameter_names:
-                content += f"\t{parameter}"
-            content += "\titer\n"
-            summary.write(content)
+        initialize_summary_file(file_name=self.summary_name,
+                                model=self.model,
+                                id_header="iter")
 
         # create raw output file
         self.tsv_summary_name = os.path.join(self.out_dir, f"summary_{optimizer}_tsv_{self.model.name}_{self.decay}_{self.model.mass_string}.tsv")
@@ -211,12 +208,9 @@ class Scan:
             details.write(content)
 
         # write scan results to summary file
-        with open(self.summary_name, "a") as summary:
-            content = self.global_max.format_xb()
-            for val in self.global_max.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += "\tPre\n"
-            summary.write(content)
+        write_point_to_summary_file(file_name=self.summary_name,
+                                    point=self.global_max,
+                                    identifier="Pre")
 
         # write scan max xb tsv line to tsv summary file
         with open(self.tsv_summary_name, "a") as tsv_summary:
