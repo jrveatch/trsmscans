@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 
+"""
+Generates 2D plots for visualizing the paths taken by the mean-shift optimizer.
+
+This module loads walk files generated during mean-shift scans and creates plots
+that show how optimization paths evolve in parameter space, optionally colored
+by cross section times branching ratio (xb) or other metrics.
+"""
+
 import argparse
 from itertools import combinations
 import os
+from typing import Any, cast, Sequence
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
 import numpy as np
 import pandas as pd
 
@@ -14,12 +24,22 @@ from utils.model import Model
 
 class MeanShiftPlotter:
     """
-    Class to plot the results of the mean shift algorithm
+    Class to plot the results of the mean shift algorithm.
+
+    Loads scan results from walk files and generates 2D plots of parameter
+    space walks, with color indicating xb or other selected variables.
     """
 
     def __init__(self,
                  model: Model,
                  decay: str):
+        """
+        Initializes the plotter for a specific model and decay mode.
+
+        Args:
+            model (Model): The scalar model associated with the scan.
+            decay (str): The decay channel used in the scan.
+        """
 
         self.model = model
         self.decay = decay
@@ -31,12 +51,26 @@ class MeanShiftPlotter:
         self.walk_data = pd.DataFrame()
         self.load_data()
 
-    def parse_optimizer_id(self, filename: str) -> str:
-        """Extract the optimizer identifier from the filename."""
+    def parse_optimizer_id(self,
+                           filename: str) -> str:
+        """
+        Extracts the optimizer identifier from a walk file's filename.
+
+        Args:
+            filename (str): Name of the file.
+
+        Returns:
+            str: Parsed optimizer identifier.
+        """
         return filename.split('_')[1]
 
-    def load_data(self):
-        """Load walk file data into a single pandas DataFrame"""
+    def load_data(self) -> None:
+        """
+        Loads walk file data into a single pandas DataFrame.
+
+        This method scans the walk directory for `.tsv` files, loads each into a
+        DataFrame, and combines them into a single DataFrame stored in `self.walk_data`.
+        """
         data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
 
         # List of individual DataFrames from each file
@@ -63,18 +97,26 @@ class MeanShiftPlotter:
         valid_rows = [df for df in walk_data_rows if not df.empty and not df.isna().all().all()]
         self.walk_data = pd.concat(valid_rows, ignore_index=True)
 
-    def plot_paths_2d(self, x: str, y: str, color_by: str = "xb", save=False, show=True):
+    def plot_paths_2d(self,
+                      x: str,
+                      y: str,
+                      color_by: str = "xb",
+                      save=False,
+                      show=True) -> None:
         """
-        Plot 2D paths for each optimizer, coloring each path with a gradient based on a column (e.g. xb).
-        The color scale is shared across all paths.
+        Plots 2D paths in parameter space for each optimizer.
 
-        Parameters:
-            x (str): X-axis column
-            y (str): Y-axis column
-            color_by (str): Column used for coloring (default: "xb")
-            save (bool): Whether to save the plot
-            show (bool): Whether to display the plot
+        Each path is drawn as a line with a gradient color representing a metric
+        (by default, xb). Plots can be saved or displayed interactively.
+
+        Args:
+            x (str): Column name to use for the x-axis.
+            y (str): Column name to use for the y-axis.
+            color_by (str): Column to use for coloring the paths (default: "xb").
+            save (bool): Whether to save the plot to file.
+            show (bool): Whether to display the plot in a window.
         """
+
         if self.walk_data.empty:
             print("No data to plot.")
             return
@@ -83,7 +125,7 @@ class MeanShiftPlotter:
 
         # Normalize the color scale across all values
         all_values = self.walk_data[color_by].values
-        norm = plt.Normalize(all_values.min(), all_values.max())
+        norm = Normalize(all_values.min(), all_values.max())
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
@@ -97,11 +139,14 @@ class MeanShiftPlotter:
 
             # Create line segments between each pair of points
             points = np.array([x_vals, y_vals]).T.reshape(-1, 1, 2)
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            segments_array = np.concatenate([points[:-1], points[1:]], axis=1)
+
+            # Cast to help Pyright recognize it
+            segments = cast(Sequence[Any], segments_array)
 
             # Use segment-wise color (except last point which has no next point)
             lc = LineCollection(segments, cmap=cmap, norm=norm)
-            lc.set_array(colors[:-1])  # one color per segment
+            lc.set_array(np.asarray(colors[:-1])) # one color per segment
             lc.set_linewidth(2)
             ax.add_collection(lc)
 
@@ -128,12 +173,19 @@ class MeanShiftPlotter:
         else:
             plt.close()
 
-    def make_mean_shift_plots(self):
+    def make_mean_shift_plots(self) -> None:
+        """
+        Generates and saves 2D mean-shift path plots for all parameters.
+
+        Creates xb vs. parameter plots and parameter vs. parameter pairwise plots.
+        """
         for param in self.model.input_parameter_names:
             self.plot_paths_2d(x=param,y="xb",save=True,show=False)
         for pair in list(combinations(self.model.input_parameter_names,2)):
             self.plot_paths_2d(x=pair[0],y=pair[1],save=True,show=False)
 
+# Command-line interface to generate mean-shift path plots.
+# Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
 if __name__ == '__main__':
     
     # Parse command line arguments

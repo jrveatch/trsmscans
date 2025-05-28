@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 
+"""
+Filter application script for scalar model scan results.
+
+This script reads a `.tsv` file containing scan data, applies a series of
+filters (width, bounds, and signal filters) based on a scalar model and
+configuration, updates the `.tsv` file with filter results, and returns
+filtering statistics.
+"""
+
 # standard libraries
 import argparse
 import logging
-from typing import Tuple
+from typing import Dict
 
 # local modules
 from filters import bounds, width
@@ -21,7 +30,24 @@ header_signals = "filt_signals"
 def apply_filters(file_name: str,
                   model: Model,
                   config_loader: ConfigLoader
-                 ) -> Tuple[int,int,int]:
+                 ) -> Dict[str,int]:
+    """
+    Applies a set of filters to a scan result TSV file.
+
+    This function loads scan results from a TSV file, applies width, bounds,
+    and signal filters based on the given model and configuration, writes the
+    updated results back to the file, and returns counts of how many entries
+    pass each filter.
+
+    Args:
+        file_name (str): Path to the `.tsv` file containing scan results.
+        model (Model): The scalar model defining relevant particle masses.
+        config_loader (ConfigLoader): Object for loading filter configuration parameters.
+
+    Returns:
+        Dict[str, int]: A dictionary with counts for each filter and the
+        combined pass count. Keys include 'width', 'bounds', 'signals', and 'pass'.
+    """
 
     # load in dataframe from .tsv file
     dataframe = get_df(file_name)
@@ -59,11 +85,15 @@ def apply_filters(file_name: str,
     # return numbers of events passing each filter
     return results
 
+
+# Entry point for the script. Parses command-line arguments, constructs the model,
+# loads configuration, and applies filters to the input TSV file.
 if __name__ == "__main__":
 
     # parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-f", "--file_name", help="Name of file to apply filters to")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -73,4 +103,6 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,model=model)
+    apply_filters(file_name=args.file_name,
+                  model=model,
+                  config_loader=ConfigLoader(config_file_name=f"{model.name}_default.yml"))

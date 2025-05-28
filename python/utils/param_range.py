@@ -2,17 +2,36 @@
 # standard libraries
 import logging
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 # local modules
 from utils.math_utils import round_sig
 
 # class to hold and update ranges for a single model parameter
 class ParamRange:
+    """
+    Represents the tunable range and bounds for a single model parameter.
+
+    This class tracks the full range (min/max bounds) and the current working range
+    (low/high) used during parameter space scans. It provides methods for
+    scaling, clamping, sampling, and formatting the range.
+
+    Typical use cases include:
+    - Managing ranges within a ParamSpace for scanning
+    - Generating random samples within the current range
+    - Adjusting bounds during adaptive scans or optimization passes
+    """
 
     def __init__(self,
                  name: str,
                  param_info: Dict[str, Any]):
+        """
+        Initializes a ParamRange for a single parameter.
+
+        Args:
+            name (str): Short name of the parameter.
+            param_info (Dict[str, Any]): Dictionary containing 'fullname', 'min', and 'max'.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -29,63 +48,62 @@ class ParamRange:
 
     @property
     def name(self) -> str:
-        """Name of the parameter"""
+        """Returns the short name of the parameter."""
         return self.__name
 
     @name.setter
     def name(self,
              new_name: str) -> None:
-        """Set the name property"""
+        """Sets the short name of the parameter."""
         self.__name = new_name
 
     @property
     def full_name(self) -> str:
-        """Full name of the parameter"""
+        """Returns the full name of the parameter."""
         return self.__full_name
 
     @full_name.setter
     def full_name(self,
                   new_full_name: str) -> None:
-        """Set the full name property"""
+        """Sets the full name of the parameter."""
         self.__full_name = new_full_name
 
     @property
     def low(self) -> float:
-        """Low value of the parameter range"""
+        """Returns the low value of the current parameter range."""
         return self.__low
 
     @low.setter
     def low(self,
             new_low: float) -> None:
-        """Set the low value, clamped to the min bound."""
+        """Sets the low value of the parameter range, clamped to the minimum allowed value."""
         self.__low = new_low
         if new_low < self.min_value:
             self.__low = self.min_value
 
     @property
     def high(self) -> float:
-        """High value of the parameter range"""
+        """Returns the high value of the current parameter range."""
         return self.__high
 
     @high.setter
     def high(self,
              new_high: float) -> None:
-        """Set the high value, clamped to the max bound."""
+        """Sets the high value of the parameter range, clamped to the maximum allowed value."""
         self.__high = new_high
         if new_high > self.max_value:
             self.__high = self.max_value
 
     @property
     def min_value(self) -> float:
-        """Minimum bound of the parameter range"""
+        """Returns the absolute minimum value permitted for the parameter."""
         return self.__min_value
 
     @min_value.setter
     def min_value(self,
-                    new_min_value: float) -> None:
+                  new_min_value: float) -> None:
         self.__min_value = new_min_value
-        """If __low hasn't been set yet, initialize it to min_value.
-        Otherwise, ensure __low stays within bounds."""
+        """Sets the minimum allowed value for the parameter and clamps the current low value if needed."""
         if hasattr(self, '_ParamRange__low'):
             if self.low < self.min_value:
                 self.low = self.min_value
@@ -94,15 +112,14 @@ class ParamRange:
 
     @property
     def max_value(self) -> float:
-        """Maximum bound of the parameter range"""
+        """Returns the absolute maximum value permitted for the parameter."""
         return self.__max_value
 
     @max_value.setter
     def max_value(self,
-                    new_max_value: float) -> None:
+                  new_max_value: float) -> None:
         self.__max_value = new_max_value
-        """If __high hasn't been set yet, initialize it to max_value.
-        Otherwise, ensure __high stays within bounds."""
+        """Sets the maximum allowed value for the parameter and clamps the current high value if needed."""
         if hasattr(self, '_ParamRange__high'):
             if self.high > self.max_value:
                 self.high = self.max_value
@@ -111,23 +128,32 @@ class ParamRange:
 
     @property
     def center(self) -> float:
-        """Center value of the parameter range"""
+        """Returns the midpoint between the current low and high values."""
         return (self.low + self.high) / 2
 
     @property
-    def range(self) -> tuple:
-        """High and low values of the parameter range"""
+    def range(self) -> Tuple[float, float]:
+        """Returns a tuple (low, high) representing the current parameter range."""
         return (self.low, self.high)
 
     @property
     def width(self) -> float:
-        """Width of the parameter range"""
+        """Returns the width (high - low) of the current parameter range."""
         return abs(self.high - self.low)
 
     def scale_width(self,
                     new_val: Optional[float] = None,
                     range_scale: float = 1.0) -> None:
-        """Set new central value, range, low and high based on scaling"""
+        """
+        Scales the current range around the center by a given factor.
+
+        If the new range exceeds the min or max bounds, it is clamped accordingly.
+
+        Args:
+            new_val (Optional[float]): Ignored in current implementation (placeholder).
+            range_scale (float): Scaling factor for the range width.
+        """
+
         # complain and exit if there is nothing to do
         if new_val is None and range_scale == 1.0:
             self.logger.warning("Attempting to update parameter with no new information... returning...")
@@ -177,23 +203,68 @@ class ParamRange:
 
     def set_low_high(self,
                      new_low: float,
-                     new_high: float):
-        """Update low and high values directly"""
+                     new_high: float) -> None:
+        """
+        Sets both the low and high values of the parameter range.
+
+        Args:
+            new_low (float): New low value.
+            new_high (float): New high value.
+        """
         self.low = new_low
         self.high = new_high
 
+    def set_min_max(self,
+                    new_min: float,
+                    new_max: float,
+                    resolution: float = 0.01) -> None:
+        """
+        Updates min and max bounds with a small buffer relative to total width.
+
+        Args:
+            new_min (float): Proposed new minimum value.
+            new_max (float): Proposed new maximum value.
+            resolution (float): Relative buffer size as a fraction of total width.
+        """
+
+        buffer = abs(self.max_value - self.min_value) * resolution
+        if new_min > self.min_value + buffer:
+            self.min_value = new_min - buffer
+        if new_max < self.max_value - buffer:
+            self.max_value = new_max + buffer
+
     def random_point(self) -> float:
-        """Generate a random point within the parameter range"""
+        """
+        Generates a random float uniformly sampled within the current parameter range.
+
+        Returns:
+            float: A random value between low and high.
+        """
         return random.uniform(self.low, self.high)
 
     def format_bounds(self) -> str:
-        """Format bounds as string"""
+        """
+        Returns a formatted string of the min and max bounds.
+
+        Returns:
+            str: A string like "[100,200]".
+        """
         return f"[{round_sig(self.min_value)},{round_sig(self.max_value)}]"
 
     def format_range(self) -> str:
-        """Format range as string"""
+        """
+        Returns a formatted string of the current range (low to high).
+
+        Returns:
+            str: A string like "[120,180]".
+        """
         return f"[{round_sig(self.low)},{round_sig(self.high)}]"
 
     def __str__(self) -> str:
-        """String representation of the parameter range"""
+        """
+        Returns a string representation of the parameter including bounds and range.
+
+        Returns:
+            str: Descriptive string summarizing the parameter state.
+        """
         return f"Parameter '{self.name}': bounds={self.format_bounds()}, current range={self.format_range()}"

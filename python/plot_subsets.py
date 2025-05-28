@@ -1,37 +1,61 @@
 #!/usr/bin/env python3
 
+"""
+Visualizes prescan subsets used during zoom scans.
+
+This script reads `.ini` files from zoom scans to determine the parameter space
+subsets, filters prescan data accordingly, and generates 2D scatter plots showing
+how each region contributes to the scan.
+"""
+
+import argparse
+from collections import defaultdict
+import configparser
+import glob
+import logging
 import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import pandas as pd
-import logging
-
 import re
-from collections import defaultdict
-from plot import Plot
-import glob
-import configparser
+from typing import Dict, Tuple
+
 from utils import file_utils
 from utils.model import Model
-import argparse
-import logging
-from utils.param_space import ParamSpace
 from utils.parse import Parse
-class PlotTester:
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(message)s"
+)
+
+class SubsetPlotter:
+    """
+    Plots prescan points filtered by parameter ranges defined in zoom `.ini` files.
+
+    For each optimizer and iteration, subsets of prescan data are extracted and
+    plotted alongside bounding boxes representing the scan range. This helps
+    visualize how parameter space was explored over time.
+    """
 
     def __init__(self,
                  decay: str,
-                 model: 'Model'):
+                 model: Model):
+        """
+        Initializes the SubsetPlotter with model and decay information.
+
+        This triggers loading and filtering of prescan data and automatic plot generation.
+
+        Args:
+            decay (str): Decay mode being studied.
+            model (Model): Scalar model associated with the prescan.
+        """
         
         # Save arguments as class members
         self.decay = decay
         self.model = model
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
-        self.ini_dir = os.path.join(self.scan_dir,"files","ini")
-
-        # TODO: Is this used anywhere?
-        self.param_space = ParamSpace(model=self.model,
-                                      decay=decay)
+        self.ini_dir = os.path.join(self.scan_dir,"zoom","ini")
         
         # Initialize parser
         self.parser = Parse(self.model)
@@ -50,9 +74,24 @@ class PlotTester:
         self.filter_data()
         self.plot_data()
 
-    def parse_ini_files(self, directory):
+    def parse_ini_files(self,
+                        directory: str) -> Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]:
+        """
+        Parses `.ini` files to extract scan parameter ranges for each optimizer iteration.
+
+        The result is a nested dictionary mapping each optimizer ID to a dictionary
+        that maps `.ini` filenames to parameter bounds.
+
+        Args:
+            directory (str): Path to the directory containing `.ini` files.
+
+        Returns:
+            Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]: A dictionary of dictionaries containing
+            parameter bounds (min, max) for each file, grouped by optimizer.
+        """
+
         # Dictionary to store ranges for each file
-        ranges_dict = defaultdict(dict) 
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict) 
 
         # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
@@ -69,74 +108,78 @@ class PlotTester:
         # Loop through all .ini files in the directory
         for file_name in self.sorted_ini_files:
                 
-                # Create file path based on .ini file name
-                file_path = os.path.join(directory, file_name)
+            # Create file path based on .ini file name
+            file_path = os.path.join(directory, file_name)
 
-                # Find the Zoom Optimizer used in the file and group all files by Zoom Optimizer
-                match = re.search(r"(ZoomOptimizer-\d+)",file_name)
+            # Find the Zoom Optimizer used in the file and group all files by Zoom Optimizer
+            if match := re.search(r"(ZoomOptimizer-\d+)", file_name):
                 zoom_op_key = match.group(1)
+            else:
+                raise ValueError(f"Pattern not found in file_name: {file_name}")
 
-                # Create config parse to read the path
-                config = configparser.ConfigParser()
-                config.read(file_path)
+            # Create config parse to read the path
+            config = configparser.ConfigParser()
+            config.read(file_path)
 
-                # Initialize empty dictionary to store the range information
-                ranges = {}
+            # Initialize empty dictionary to store the range information
+            ranges: Dict[str, Tuple[float, float]] = {}
 
-                # Iterate through each parameter
-                for param in params_of_interest:
+            # Iterate through each parameter
+            for param in params_of_interest:
 
-                    # Extract the param from the .ini file
-                    if param in config["scan"]:
+                # Extract the param from the .ini file
+                if param in config["scan"]:
 
-                        # Store min and max values for the param
-                        min_val, max_val = map(float, config["scan"][param].split())
-                        ranges[param] = (min_val, max_val)
+                    # Store min and max values for the param
+                    min_val, max_val = map(float, config["scan"][param].split())
+                    ranges[param] = (min_val, max_val)
 
-                # Store the extracted ranges with the filename and Zoom Optimier as keys
-                ranges_dict[zoom_op_key][file_name] = ranges
+            # Store the extracted ranges with the filename and Zoom Optimier as keys
+            ranges_dict[zoom_op_key][file_name] = ranges
 
         # Debugger that prints the ranges from the .ini files
         self.logger.debug(f'Ini Range Data:\n\t{ranges_dict}')
 
         # Return to call
         return ranges_dict
-    
-    # Method to Load the information of the prescan to a Pandas Data Frame
-    def load_prescan_data(self):
+
+    def load_prescan_data(self) -> None:
+        """
+        Loads prescan results into a pandas DataFrame.
+
+        Reads the `.tsv` file using the `Parse` class and extracts only
+        the input parameters relevant to the model.
+        """
 
         # Print current status
-        self.logger.info("Loading prescan ...")
+        self.logger.info("Loading prescan...")
 
-        #Initialize the prescan directory that will be used to gather points
+        # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
         
         # Read the data from the prescan file
         self.parser.read_file(file_name=self.prescan_tsv)
 
         # Retrieve attribute
-        self.panda_df = self.parser.filtered_data
+        self.df = self.parser.filtered_data
 
         # Store the Pandas Data Frame by parameter keys
-        self.panda_df = self.panda_df[['thetahS','thetahX','thetaSX','vs','vx']]
+        self.df = self.df[list(self.model.input_parameter_full_names)]
 
-        self.logger.debug(f'Panda Data Frame:\n\t{self.panda_df}')
+        self.logger.debug(f'Panda Data Frame:\n\t{self.df}')
 
-    def filter_data(self):
+    def filter_data(self) -> None:
+        """
+        Filters the prescan DataFrame based on `.ini` parameter ranges.
 
-        # Filter self.panda_df based on parameter ranges from .ini files.
-        if self.panda_df.empty or not self.ini_ranges:
+        Stores a separate filtered DataFrame for each `.ini` file to be
+        used in plotting scan coverage and boundaries.
+        """
+
+        # Filter self.df based on parameter ranges from .ini files.
+        if self.df.empty or not self.ini_ranges:
             self.logger.warning("No data to filter.")
             return
-
-        # Define mapping between .ini file params and DataFrame columns
-        self.param_mapping = {
-            "t1": "thetahS",
-            "t2": "thetahX",
-            "t3": "thetaSX",
-            "vs": "vs",
-            "vx": "vx"
-        }
 
         # Initialize empty dictionary to store filtered files
         self.filtered_files = {}
@@ -148,45 +191,43 @@ class PlotTester:
             for file, ranges in data.items():
 
                 # Make a copy of the Panda Data Frame
-                filtered_df = self.panda_df.copy()
+                filtered_df = self.df.copy()
 
                 filter_condition = pd.Series(True, index=filtered_df.index)
                 for param, (min_val, max_val) in ranges.items():
-                    par_name = self.param_mapping.get(param)
+                    par_name = self.model.ini_name_to_fullname_map[param]
                     filter_condition &= (filtered_df[par_name]>min_val) & (filtered_df[par_name]<max_val)
                 filtered_df = filtered_df[filter_condition]
 
-               # print(f'Filter condition\n{filtered_df}')
                 # Store the filtered DataFrame under the filename key
                 self.filtered_files[file] = filtered_df
 
     def plot_data(self) -> None:
+        """
+        Generates and saves 2D scatter plots showing parameter subsets.
 
-        self.pars = ['thetahS','thetahX','thetaSX','vs','vx']
-        reverse_map = {v: k for k, v in self.param_mapping.items()}
+        For each pair of parameters and optimizer iteration, a plot is created
+        that overlays prescan points with bounding boxes representing the scan region.
+        Plots are grouped by optimizer and saved to PNG files.
+        """
 
         # Print info to screen
-        print("Making scan plots for",self.model.name,self.decay,self.model.mass_string)
+        self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
         for zoom_op in self.ini_ranges.keys():
             
-            # Retrive files based on the current Zoom Optimizer
-            zoom_op_files = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
+            # Retrieve files based on the current Zoom Optimizer
+            zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
                 
             # Create a new output directory to organize output by Zoom Optimizer    
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
-            # Set the start and end colors by random RGB values
-            start_rgb, end_rgb = self.select_colors()
-
-            #print(zoom_op_files)
-
-            for i, param1 in enumerate(self.pars[:-1]):
-                for param2 in self.pars[i+1:]:
+            for i, param1 in enumerate(self.model.input_parameter_full_names[:-1]):
+                for param2 in self.model.input_parameter_full_names[i+1:]:
                     # Extract values for each file (filtered DataFrames)
-                    param1_values = [zoom_op_files[file][param1].values for file in zoom_op_files]
-                    param2_values = [zoom_op_files[file][param2].values for file in zoom_op_files]
+                    param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
+                    param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
 
                     num_files = len(param1_values)
 
@@ -195,22 +236,20 @@ class PlotTester:
                     width=1.5
 
                     plt.figure()
-                    #ax = plt.gca()
                
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
-                        color = [start_rgb[c] + t * (end_rgb[c]-start_rgb[c]) for c in range(3)]
+                        color = plt.cm.viridis(t)
 
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
 
                         file_ranges = self.ini_ranges[zoom_op][file]
-                        print(file_ranges)
-                        print()
+                        self.logger.debug(file_ranges)
 
-                        x_ini = reverse_map.get(param1)
-                        y_ini = reverse_map.get(param2)
+                        x_ini = self.model.fullname_to_ini_name_map[param1]
+                        y_ini = self.model.fullname_to_ini_name_map[param2]
 
                         x_min, x_max = file_ranges[x_ini]
                         y_min, y_max = file_ranges[y_ini]
@@ -229,10 +268,13 @@ class PlotTester:
                         # Adjust the opacity
                         opacity += op 
 
-            # Initialize scatter plot labels
+                    # Initialize scatter plot labels
                     plt.title(f"{zoom_op}: {param1} vs {param2}")
                     plt.xlabel(f"{param1}")
                     plt.ylabel(f"{param2}")
+
+                    # Better layout to prevent cropping
+                    plt.tight_layout()
 
                     # Save the figure as a .png
                     plt.savefig(os.path.join(group_output_dir,f"scan_{param1}__vs__{param2}.png"))
@@ -240,19 +282,9 @@ class PlotTester:
                     # Close the figure
                     plt.close()
 
-        return
-
-    # Function that defines colors to plot using random RGB values
-    def select_colors(self):
-
-        # Define blue and red as the starting and stopping colors
-        color1 = (0, 0, 1)
-        color2 = (1, 0, 0)
-
-        # Return the values to call
-        return color1, color2
-    
-
+# Command-line entry point for generating prescan subset plots.
+# Creates a SubsetPlotter instance and automatically loads, filters,
+# and visualizes the subset scan regions from zoom `.ini` files.
 if __name__ == "__main__":
 
     arg_parser = argparse.ArgumentParser()
@@ -260,12 +292,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-M", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str)
     args = arg_parser.parse_args()
 
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
     
-    PlotTester(decay=args.decay, model=model)
-
-    plotter = Plot(decay=args.decay, model=model)
+    SubsetPlotter(decay=args.decay, model=model)

@@ -2,7 +2,7 @@
 # standard libraries
 import logging
 import os
-from typing import List
+from typing import Any, List
 
 # Define the numeric value for VERBOSE
 VERBOSE_LEVEL = 5  # Below DEBUG (10)
@@ -39,14 +39,13 @@ class CustomFormatter(logging.Formatter):
             return record.getMessage()
         return super().format(record)
 
-# Setup logging configuration
 def setup_logging(log_file: str,
                   level = logging.INFO,
                   log_format = None) -> None:
     """
     Set up logging to output to both a file and the console.
 
-    Parameters:
+    Args:
         log_file (str): Path to the log file.
         level (int): Logging level (e.g., logging.DEBUG, logging.INFO).
         log_format (str): Custom format for log messages. Defaults to a standard format.
@@ -80,14 +79,19 @@ def setup_logging(log_file: str,
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
-def format_table(headers: List[str], rows: List[List[any]]) -> str:
+def format_table(headers: List[str],
+                 rows: List[List[Any]]) -> str:
     """
     Format a table as a string.
 
-    :param headers: List of column headers.
-    :param rows: List of rows, where each row is a list of column values.
-    :return: Nicely formatted table as a string.
+    Args:
+        headers (List[str]): List of column headers.
+        rows (List[List[Any]]): List of rows, where each row is a list of column values.
+
+    Returns:
+        str: Nicely formatted table as a string.
     """
+
     # Calculate column widths
     column_widths = [max(len(str(item)) for item in [header] + [row[i] for row in rows]) for i, header in enumerate(headers)]
 
@@ -104,15 +108,20 @@ def format_table(headers: List[str], rows: List[List[any]]) -> str:
     table = f"{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n"
     return table
 
-def log_table(logger: logging.Logger, headers: List[str], rows: List[List[any]], level=logging.INFO) -> None:
+def log_table(logger: logging.Logger,
+              headers: List[str],
+              rows: List[List[Any]],
+              level: int = logging.INFO) -> None:
     """
     Log a nicely formatted table.
 
-    :param logger: Logger instance.
-    :param headers: List of column headers.
-    :param rows: List of rows, where each row is a list of column values.
-    :param level: Logging level (default: INFO).
+    Args:
+        logger (logging.Logger): Logger instance.
+        headers (List[str]): List of column headers.
+        rows (List[List[Any]]): List of rows, where each row is a list of column values.
+        level (int): Logging level (default: logging.INFO).
     """
+    
     table_str = format_table(headers, rows)
     extra = {"skip_level": True}
     if logger.isEnabledFor(level):
