@@ -4,6 +4,11 @@ import csv
 import logging
 import os
 import subprocess
+from typing import Optional
+
+from utils.math_utils import round_sig
+from utils.model import Model
+from utils.point import Point
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -91,7 +96,7 @@ def save_tsv_output(input_file: str,
     os.remove(input_file)
 
 def sort_tsv_file(filename: str,
-                  sort_column: str = "xbmax") -> None:
+                  sort_column: str = "xb") -> None:
     """
     Sort a .tsv file in-place based on the values in a specified column.
 
@@ -100,7 +105,7 @@ def sort_tsv_file(filename: str,
 
     Args:
         filename (str): Path to the .tsv file to sort.
-        sort_column (str, optional): The column name to sort by. Defaults to "xbmax".
+        sort_column (str, optional): The column name to sort by. Defaults to "xb".
 
     Raises:
         ValueError: If the file is empty or lacks a valid header.
@@ -131,3 +136,47 @@ def sort_tsv_file(filename: str,
         writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t')
         writer.writeheader()
         writer.writerows(rows)
+
+def initialize_summary_file(file_name: str,
+                            model: Model,
+                            id_header: Optional[str] = None) -> None:
+    """
+    Creates a summary file with a header line with columns for `xb` and the model's parameters.
+
+    If `id_header` is provided, it is appended as the final column header.
+
+    Args:
+        file_name (str): Path to the file where the point should be written.
+        model (Model): Model used to get parameter names for column headers.
+        id_header (Optional[str]): Iteration identifier to append as the final column header.
+    """
+    header = "xb" + "".join(f"\t{parameter}" for parameter in model.all_parameter_names)
+    if id_header is not None:
+        header += f"\t{id_header}"
+    header += "\n"
+    with open(file_name, 'w') as file:
+        file.write(header)
+    
+def write_point_to_summary_file(file_name: str,
+                                point: Point,
+                                identifier: Optional[str] = None) -> None:
+    """
+    Appends a formatted line representing the given point to the specified summary file.
+
+    The line includes the `xb` value followed by the point's parameter values,
+    all formatted using `round_sig`, and separated by tabs. If `identifier` is provided,
+    it is appended as the final column.
+
+    Args:
+        file_name (str): Path to the file where the point should be written.
+        point (Point): The point containing `xb` and parameter values.
+        identifier (Optional[str]): Iteration identifier to append as the final column.
+    """
+    content = f"{point.format_xb()}" + "".join(
+        f"\t{round_sig(val)}" for val in point.parameter_values.values()
+    )
+    if identifier is not None:
+        content += f"\t{identifier}"
+    content += "\n"
+    with open(file_name, 'a') as f:
+        f.write(content)
