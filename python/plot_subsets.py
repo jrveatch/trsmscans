@@ -217,7 +217,7 @@ class SubsetPlotter:
         for zoom_op in self.ini_ranges.keys():
             
             # Retrieve files based on the current Zoom Optimizer
-            zoom_op_files = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
+            zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
                 
             # Create a new output directory to organize output by Zoom Optimizer    
             group_output_dir = os.path.join(self.output_dir,zoom_op)
