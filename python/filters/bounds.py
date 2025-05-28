@@ -83,10 +83,6 @@ def process_data(df: pd.DataFrame,
                                      as binary 0/1 values per row.
     """
 
-    # make filter lists
-    filt_bounds = []
-    filt_signals = []
-
     # get bounds and signals data
     bounds = get_higgs_bounds()
     signals = get_higgs_signals()
@@ -107,15 +103,6 @@ def process_data(df: pd.DataFrame,
     SName = model.get_ordered_scalar_name('S')
     XName = model.get_ordered_scalar_name('X')
 
-    # dictionaries of branching ratios
-    br_H_SM = defaultdict(float)
-    br_S_SM = defaultdict(float)
-    br_X_SM = defaultdict(float)
-
-    br_H_BSM = defaultdict(float)
-    br_S_BSM = defaultdict(float)
-    br_X_BSM = defaultdict(float)
-
     # rescaling column names
     RH_name = 'R11'
     RS_name = 'R21'
@@ -124,82 +111,48 @@ def process_data(df: pd.DataFrame,
         RS_name = 'R11'
     RX_name = 'R31'
 
+    # make filter lists
+    filt_bounds: List[int] = []
+    filt_signals: List[int] = []
+
     for idx, (_, row) in enumerate(df.iterrows()):
 
         # get masses
-        mH = float(row['m'+HName])
-        mS = float(row['m'+SName])
-        mX = float(row['m'+XName])
+        masses = extract_scalar_masses(row=row,
+                                       HName=HName,
+                                       SName=SName,
+                                       XName=XName)
 
         # get widths
-        wH = float(row['w_'+HName])
-        wS = float(row['w_'+SName])
-        wX = float(row['w_'+XName])
+        widths = extract_scalar_widths(row=row,
+                                       HName=HName,
+                                       SName=SName,
+                                       XName=XName)
+        logger.verbose(f'Scalar widths are:')
+        logger.verbose(f'  H: {widths["H"]}')
+        logger.verbose(f'  S: {widths["S"]}')
+        logger.verbose(f'  X: {widths["X"]}')
 
         # get rescalings
-        RH = float(row[RH_name])
-        RS = float(row[RS_name])
-        RX = float(row[RX_name])
+        rescalings = extract_rescalings(row=row,
+                                        RH_name=RH_name,
+                                        RS_name=RS_name,
+                                        RX_name=RX_name)
+        logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
 
-        logger.verbose(f'Rescalings are {RH} {RS} {RX}')
-
-        # get SM BRs
-        for decay in SM_decays:
-            br_H_SM[decay] = float(row['b_'+HName+'_'+decay])
-            br_S_SM[decay] = float(row['b_'+SName+'_'+decay])
-            br_X_SM[decay] = float(row['b_'+XName+'_'+decay])
-
-        # get BSM BRs
-        if HName == "H2": # mH > mS
-            br_H_BSM['S','S'] = float(row['b_H2_H1H1'])
-        if SName == "H2": # mH < mS
-            br_S_BSM['H','H'] = float(row['b_H2_H1H1'])
-        br_X_BSM['H','H'] = float(row['b_H3_'+HName+HName])
-        br_X_BSM['S','S'] = float(row['b_H3_'+SName+SName])
-        br_X_BSM['S','H'] = float(row['b_H3_H1H2'])
-
-        # set scalar masses and widths
-        H.setMass(mH)
-        S.setMass(mS)
-        X.setMass(mX)
-
-        H.setTotalWidth(wH)
-        S.setTotalWidth(wS)
-        X.setTotalWidth(wX)
-
-        # set effective couplings for each scalar
-        set_effective_couplings(particle=H,mass=mH,rescaling=RH)
-        set_effective_couplings(particle=S,mass=mS,rescaling=RS)
-        set_effective_couplings(particle=X,mass=mX,rescaling=RX)
-
-        # RESET BRs BEFORE SETTING THEM TO AVOID ISSUES WITH BR>1
-
-        H.setTotalWidth(wH)
-        S.setTotalWidth(wS)
-        X.setTotalWidth(wX)
-
-        logger.verbose(f"Scalar widths are:")
-        logger.verbose(f"  H: {wH}")
-        logger.verbose(f"  S: {wS}")
-        logger.verbose(f"  X: {wX}")
-
-        # set BRs for H
-        set_BRs(particle=H,
-                BRs_SM=br_H_SM,
-                BRs_BSM=br_H_BSM,
-                adjust_ZZ=True)
-
-        # set BRs for S
-        set_BRs(particle=S,
-                BRs_SM=br_S_SM,
-                BRs_BSM=br_S_BSM,
-                adjust_ZZ=True)
-
-        # set BRs for X
-        set_BRs(particle=X,
-                BRs_SM=br_X_SM,
-                BRs_BSM=br_X_BSM,
-                adjust_ZZ=False)
+        # get SM and BSM BRs
+        br_SM = extract_SM_BRs(row=row,
+                               HName=HName,
+                               SName=SName,
+                               XName=XName)
+        br_BSM = extract_BSM_BRs(row=row,
+                                 HName=HName,
+                                 SName=SName)
+        
+        # configure scalars
+        configure_particle(particle=H, label="H", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
+        configure_particle(particle=S, label="S", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
+        configure_particle(particle=X, label="X", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=False)
 
         # get bounds and signals results
         bounds_result = bounds(pred)
@@ -211,15 +164,13 @@ def process_data(df: pd.DataFrame,
         #if mH3-mH1-mH2< 0:
         # bp2 and bp5 and high low
         #if mH2-2*mH1 < 0:
-        HS_allowed = signals_result - signals_result_SM < 4.00
+        HS_allowed = signals_result - signals_result_SM < 4.0
 
         # print out debug information
         if logger.isEnabledFor(logging.VERBOSE):
             print_bounds_result(bounds_result=bounds_result,
                                 idx=idx,
-                                mX=mX,
-                                mS=mS,
-                                mH=mH)
+                                masses=masses)
             logger.verbose(f"signals_result = {signals_result}")
             logger.verbose(f"HS_allowed = {HS_allowed}")
 
@@ -228,6 +179,159 @@ def process_data(df: pd.DataFrame,
         filt_signals.append(int(HS_allowed))
 
     return filt_bounds, filt_signals  # Return as separate lists
+
+def extract_scalar_masses(row: pd.Series,
+                          HName: str,
+                          SName: str,
+                          XName: str) -> Dict[str, float]:
+    """
+    Extracts the scalar particle masses from a DataFrame row.
+
+    Args:
+        row (pd.Series): A single row of scan data.
+        HName (str): Model-defined name of the H scalar (e.g., 'H1', 'H2').
+        SName (str): Model-defined name of the S scalar.
+        XName (str): Model-defined name of the X scalar.
+
+    Returns:
+        Dict[str, float]: Mapping from {'H', 'S', 'X'} to their respective masses.
+    """
+    return {
+        "H": float(row["m" + HName]),
+        "S": float(row["m" + SName]),
+        "X": float(row["m" + XName])
+    }
+
+def extract_scalar_widths(row: pd.Series,
+                          HName: str,
+                          SName: str,
+                          XName: str) -> Dict[str, float]:
+    """
+    Extracts the total widths of scalar particles from a DataFrame row.
+
+    Args:
+        row (pd.Series): A single row of scan data.
+        HName (str): Name of the H scalar.
+        SName (str): Name of the S scalar.
+        XName (str): Name of the X scalar.
+
+    Returns:
+        Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
+    """
+    return {
+        "H": float(row["w_" + HName]),
+        "S": float(row["w_" + SName]),
+        "X": float(row["w_" + XName])
+    }
+
+def extract_rescalings(row: pd.Series,
+                       RH_name: str,
+                       RS_name: str,
+                       RX_name: str) -> Dict[str, float]:
+    """
+    Extracts the rescalings of scalar particles from a DataFrame row.
+
+    Args:
+        row (pd.Series): A single row of scan data.
+        RH_name (str): Name of the H scalar rescaling.
+        RS_name (str): Name of the S scalar rescaling.
+        RX_name (str): Name of the X scalar rescaling.
+
+    Returns:
+        Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
+    """
+    return {
+        "H": float(row[RH_name]),
+        "S": float(row[RS_name]),
+        "X": float(row[RX_name])
+    }
+
+def extract_SM_BRs(row: pd.Series,
+                   HName: str,
+                   SName: str,
+                   XName: str) -> Dict[str, Dict[str, float]]:
+    """
+    Extracts SM branching ratios for each scalar from a scan row.
+
+    Args:
+        row (pd.Series): A row from the scan DataFrame.
+        HName (str): Name of the H scalar.
+        SName (str): Name of the S scalar.
+        XName (str): Name of the X scalar.
+
+    Returns:
+        Dict[str, Dict[str, float]]: A dictionary of the form:
+            {
+                'H': {decay: BR, ...},
+                'S': {decay: BR, ...},
+                'X': {decay: BR, ...}
+            }
+    """
+    br_H = {decay: float(row[f"b_{HName}_{decay}"]) for decay in SM_decays}
+    br_S = {decay: float(row[f"b_{SName}_{decay}"]) for decay in SM_decays}
+    br_X = {decay: float(row[f"b_{XName}_{decay}"]) for decay in SM_decays}
+    return {"H": br_H, "S": br_S, "X": br_X}
+
+def extract_BSM_BRs(row: pd.Series,
+                    HName: str, 
+                    SName: str,) -> Dict[str, Dict[Tuple[str, str], float]]:
+    """
+    Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
+
+    Args:
+        row (pd.Series): A row from the scan DataFrame.
+        HName (str): Name of the H scalar.
+        SName (str): Name of the S scalar.
+
+    Returns:
+        Dict[str, Dict[Tuple[str, str], float]]: A dictionary of the form:
+            {
+                'H': {('S', 'S'): BR, ...},
+                'S': {('H', 'H'): BR, ...},
+                'X': {('H', 'H'): BR, ('S', 'S'): BR, ('S', 'H'): BR, ...}
+            }
+    """
+    br_H = defaultdict(float)
+    br_S = defaultdict(float)
+    br_X = defaultdict(float)
+
+    if HName == "H2":
+        br_H[("S", "S")] = float(row["b_H2_H1H1"])
+    if SName == "H2":
+        br_S[("H", "H")] = float(row["b_H2_H1H1"])
+
+    br_X[("H", "H")] = float(row[f"b_H3_{HName}{HName}"])
+    br_X[("S", "S")] = float(row[f"b_H3_{SName}{SName}"])
+    br_X[("S", "H")] = float(row["b_H3_H1H2"])
+
+    return {"H": br_H, "S": br_S, "X": br_X}
+
+def configure_particle(particle,
+                       label: str,
+                       masses: Dict[str, float],
+                       widths: Dict[str, float],
+                       rescalings: Dict[str, float],
+                       BRs_SM: Dict[str, Dict[str, float]],
+                       BRs_BSM: Dict[str, Dict[Tuple[str, str], float]],
+                       adjust_ZZ: bool) -> None:
+    """
+    Sets mass, width, rescaling, and branching ratios for a given Higgs scalar.
+
+    Args:
+        particle: The scalar particle object (HiggsPredictions).
+        label (str): One of "H", "S", "X".
+        masses (Dict[str, float]): Dictionary of scalar masses.
+        widths (Dict[str, float]): Dictionary of scalar widths.
+        rescalings (Dict[str, float]): Rescaling factors per scalar.
+        BRs_SM (Dict[str, float]): SM-like branching ratios.
+        BRs_BSM (Dict[Tuple[str, str], float]): BSM branching ratios.
+        adjust_ZZ (bool): Whether to normalize the ZZ BR if the total exceeds 1.
+    """
+    particle.setMass(masses[label])
+    particle.setTotalWidth(widths[label])
+    set_effective_couplings(particle, mass=masses[label], rescaling=rescalings[label])
+    particle.setTotalWidth(widths[label]) # Reset BRs to avoid issues with BR > 1.0
+    set_BRs(particle, BRs_SM=BRs_SM[label], BRs_BSM=BRs_BSM[label], adjust_ZZ=adjust_ZZ)
 
 def set_effective_couplings(particle,
                             mass: float,
@@ -315,22 +419,22 @@ def set_BRs(particle,
 
 def print_bounds_result(bounds_result,
                         idx: int,
-                        mX: float,
-                        mS: float,
-                        mH: float) -> None:
+                        masses: Dict[str, float]) -> None:
     """
     Prints verbose details for bounds violations, including excluded limits.
 
     Args:
         bounds_result: Result object from HiggsBounds.
         idx (int): Row index in the scan.
-        mX (float): Mass of scalar X.
-        mS (float): Mass of scalar S.
-        mH (float): Mass of scalar H.
+        masses (Dict[str, float]): Masses of the scalars.
     """
 
     logger.verbose(bounds_result)
     logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
+
+    mH = masses["H"]
+    mS = masses["S"]
+    mX = masses["X"]
 
     if bounds_result.allowed is False:
         limits1 = [a for a in bounds_result.appliedLimits if "H" in a.contributingParticles()]
