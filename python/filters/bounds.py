@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 
+"""
+Applies experimental constraints to model scan data using HiggsBounds and HiggsSignals.
+
+This module filters parameter scan results by checking:
+- Exclusion limits from HiggsBounds
+- Compatibility with SM-like signals from HiggsSignals
+
+It supports serial and parallel processing of scan results, and rescaling of couplings
+and branching ratios based on scalar properties.
+
+Intended for use within a physics model scanning pipeline.
+"""
+
 # standard libraries
 from collections import defaultdict
 import logging
@@ -39,7 +52,15 @@ def filter_bounds(dataframe: pd.DataFrame,
                   header_signals: str,
                   model: Model
                  ) -> None:
-    """Run bounds filter for the dataframe using the given model"""
+    """
+    Runs exclusion and signal strength filters and adds results to the DataFrame.
+
+    Args:
+        dataframe (pd.DataFrame): Input scan data with masses, widths, BRs, etc.
+        header_bounds (str): Column name for the HiggsBounds result (0 or 1).
+        header_signals (str): Column name for the HiggsSignals result (0 or 1).
+        model (Model): Model object used for particle and parameter names.
+    """
     dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
                                                                            model=model,
                                                                            n_workers=int(mp.cpu_count()*frac_cpu))
@@ -47,7 +68,20 @@ def filter_bounds(dataframe: pd.DataFrame,
 # TODO: Make this work for other models
 def process_data(df: pd.DataFrame,
                  model: Model) -> Tuple[List[int], List[int]]:
-    """Function to process a DataFrame."""
+    """
+    Processes a DataFrame of scan points and applies HiggsBounds and HiggsSignals.
+
+    This function sets scalar properties, rescaling factors, and branching ratios,
+    then evaluates whether each point is allowed.
+
+    Args:
+        df (pd.DataFrame): Subset of scan data to evaluate.
+        model (Model): Model object defining scalar structure.
+
+    Returns:
+        Tuple[List[int], List[int]]: (HiggsBounds results, HiggsSignals results)
+                                     as binary 0/1 values per row.
+    """
 
     # make filter lists
     filt_bounds = []
@@ -199,7 +233,15 @@ def set_effective_couplings(particle,
                             mass: float,
                             rescaling: float
                            ) -> None:
-    """Set effective couplings"""
+    """
+    Sets effective couplings for a scalar particle using a mass-dependent prescription.
+
+    Args:
+        particle: The scalar object from HiggsPredictions.
+        mass (float): Mass of the particle.
+        rescaling (float): Rescaling factor (e.g., R11, R21, R31).
+    """
+
     if mass < 150:
         HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
     else:
@@ -210,7 +252,16 @@ def set_BRs(particle,
             BRs_BSM: Dict[Tuple[str,str],float],
             adjust_ZZ: bool
            ) -> None:
-    """Set scalar branching ratios"""
+    """
+    Sets the SM and BSM branching ratios for a scalar particle.
+
+    Args:
+        particle: The scalar object from HiggsPredictions.
+        BRs_SM (Dict[str, float]): SM branching ratios (1-body decays).
+        BRs_BSM (Dict[Tuple[str, str], float]): BSM branching ratios (2-body decays).
+        adjust_ZZ (bool): Whether to adjust ZZ BR to normalize total width to 1.
+    """
+
     # check total width and return if it is too small
     if particle.totalWidth() < 1e-11:
         return
@@ -267,7 +318,16 @@ def print_bounds_result(bounds_result,
                         mX: float,
                         mS: float,
                         mH: float) -> None:
-    """Print results of bounds check"""
+    """
+    Prints verbose details for bounds violations, including excluded limits.
+
+    Args:
+        bounds_result: Result object from HiggsBounds.
+        idx (int): Row index in the scan.
+        mX (float): Mass of scalar X.
+        mS (float): Mass of scalar S.
+        mH (float): Mass of scalar H.
+    """
 
     logger.verbose(bounds_result)
     logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
@@ -295,7 +355,16 @@ def print_bounds_result(bounds_result,
 
 def chunk_dataframe(df: pd.DataFrame,
                     n_chunks: int) -> List[pd.DataFrame]:
-    """Splits a DataFrame into n_chunks approximately equal parts."""
+    """
+    Splits a DataFrame into approximately equal-sized chunks.
+
+    Args:
+        df (pd.DataFrame): DataFrame to split.
+        n_chunks (int): Number of chunks.
+
+    Returns:
+        List[pd.DataFrame]: List of DataFrame chunks.
+    """
     chunk_size = int(np.ceil(len(df) / n_chunks))
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
 
@@ -303,9 +372,20 @@ def parallel_process(df: pd.DataFrame,
                      model: 'Model',
                      n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """
-    Automatically parallelizes processing based on DataFrame size.
-    Avoids parallelism if not worth the overhead.
+    Distributes scan filtering across multiple processes for performance.
+
+    Automatically falls back to serial processing if the data is too small
+    or only one worker is specified.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing scan points.
+        model (Model): Model object used for interpretation.
+        n_workers (int): Number of parallel workers to use.
+
+    Returns:
+        Tuple[List[int], List[int]]: (bounds results, signals results) as binary lists.
     """
+
     df_len = len(df)
 
     if df_len < min_chunk_size or n_workers <= 1:

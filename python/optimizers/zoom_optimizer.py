@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+"""
+Zoom-based optimizer for refining scalar model parameter scans.
+
+This module defines the ZoomOptimizer class, which iteratively focuses
+sampling in promising regions of parameter space based on cross-section
+times branching ratio (xb) metrics. The optimizer can operate in either
+a fixed-rate zoom mode or a percentile-based zoom mode.
+"""
+
 # standard libraries
 import datetime
 import logging
@@ -20,6 +29,14 @@ from utils.point import Point
 from utils.point_sampler import PointSampler
 
 class ZoomOptimizer:
+    """
+    Optimizer that refines a parameter space scan using local zooming strategies.
+
+    The ZoomOptimizer performs iterative scanning by concentrating sampling
+    around regions of high xb values. It supports two zooming strategies:
+    percentile-based and fixed-rate. It tracks local and global maxima, manages
+    scan density, and controls stopping conditions based on scan performance.
+    """
 
     def __init__(self,
                  param_space: ParamSpace,
@@ -27,6 +44,16 @@ class ZoomOptimizer:
                  starting_max: Point,
                  config_loader: ConfigLoader,
                  label: str):
+        """
+        Initializes a ZoomOptimizer instance with configuration and scan parameters.
+
+        Args:
+            param_space (ParamSpace): The parameter space to scan.
+            num_points (int): Initial number of scan points per iteration.
+            starting_max (Point): The initial best point found prior to zooming.
+            config_loader (ConfigLoader): Configuration loader for reading zoom settings.
+            label (str): A string label identifying the scan.
+        """
 
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -90,17 +117,30 @@ class ZoomOptimizer:
 
     @property
     def model(self) -> Model:
-        """Model used in scan"""
+        """Returns the scalar model associated with the parameter space."""
         return self.param_space.model
 
     @property
     def decay(self) -> str:
-        """Decay mode used in scan"""
+        """Returns the decay channel being evaluated (e.g., 'H->SS')."""
         return self.param_space.decay
 
     def run(self,
             iter: int,
             global_max: Point) -> Point:
+        """
+        Executes one iteration of the zoom optimization process.
+
+        This includes point sampling, updating the local maximum, applying zoom,
+        logging details, and checking termination conditions.
+
+        Args:
+            iter (int): The iteration number.
+            global_max (Point): The current global maximum point across all iterations.
+
+        Returns:
+            Point: The best point found in this iteration.
+        """
 
         # get time of iteration start
         iter_start = time.time()
@@ -218,7 +258,12 @@ class ZoomOptimizer:
         return new_max
 
     def write_summary(self, identifier) -> None:
-        """Write max xb point info to summary file."""
+        """
+        Writes the current local maximum point and its parameters to the summary file.
+
+        Args:
+            identifier (str): A unique label for the current iteration.
+        """
         with open(self.summary_name,"a") as summary:
             content = self.local_max.format_xb()
             for val in self.local_max.parameter_values.values():
@@ -229,7 +274,13 @@ class ZoomOptimizer:
     def write_details(self,
                       identifier: str,
                       new_max: Point) -> None:
-        """Write to details file."""
+        """
+        Appends detailed scan results and parameter updates to the details file.
+
+        Args:
+            identifier (str): A unique label for the current iteration.
+            new_max (Point): The new maximum point found in the current iteration.
+        """
 
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
@@ -260,19 +311,38 @@ class ZoomOptimizer:
             content += "--------------------\n"
             details.write(content)
 
-    # print and write termination message
-    def termination_message(self, message: str) -> None:
+    def termination_message(self,
+                            message: str) -> None:
+        """
+        Logs and writes a termination-related message to the details file.
+
+        Args:
+            message (str): The message to record.
+        """
         self.logger.info(message)
         with open(self.details_name,"a") as details:
             details.write(message+"\n")
 
-    # check if a new global max has been found
     def is_new_global_max(self,
                           new_max: Point) -> bool:
+        """
+        Determines whether a newly found point is a new global maximum.
+
+        Args:
+            new_max (Point): The point to evaluate.
+
+        Returns:
+            bool: True if the new point exceeds the current global max, False otherwise.
+        """
         return new_max > self.global_max
 
-    # method to zoom in based on a percentile cut on xb
     def percentile_zoom(self) -> None:
+        """
+        Updates the parameter space by zooming into the top percentile of high-xb points.
+
+        The zoom level and point selection are determined by configuration-defined
+        percentile and density growth settings.
+        """
 
         # minimum number of points required before zooming in
         min_points = 10
@@ -323,8 +393,13 @@ class ZoomOptimizer:
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
         self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate))
 
-    # method to zoom in based on a fixed rate
     def rate_zoom(self) -> None:
+        """
+        Shrinks the parameter space uniformly around the current local maximum.
+
+        The update uses a fixed scaling rate defined in the configuration and
+        adjusts point density proportionally to the new parameter space volume.
+        """
 
         # parameter scaling factor
         range_scale = 1.0 - self.parameter_zoom_rate
