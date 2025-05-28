@@ -101,16 +101,20 @@ class MeanShiftOptimizer:
         self.__test_position = init_pos
         self.new_position = init_pos
         self.__prev_position = init_pos
+        self.max_point = init_pos
         
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
         self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
         self.prescan_details_name = os.path.join(self.out_dir,"meanshift","details",f"prescan_details_{output_file_postfix}.txt")
         self.details_name = os.path.join(self.out_dir,"meanshift","details",f"scan_details_{self.label}_{output_file_postfix}.txt")
-        self.walk_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_{self.label}_{output_file_postfix}.tsv")
+        self.walk_pos_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_pos_{self.label}_{output_file_postfix}.tsv")
+        self.walk_max_file_name = os.path.join(self.out_dir,"meanshift","walk",f"walk_max_{self.label}_{output_file_postfix}.tsv")
 
         # initialize walk files
-        initialize_summary_file(file_name=self.walk_file_name,
+        initialize_summary_file(file_name=self.walk_pos_file_name,
+                                model=init_pos.model)
+        initialize_summary_file(file_name=self.walk_max_file_name,
                                 model=init_pos.model)
 
         # copy prescan details file to zoom optimizer details file
@@ -239,6 +243,14 @@ class MeanShiftOptimizer:
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
 
+            # store the highest point that has been checked
+            # this can either be from sampling or from the mean-shifted position
+            self.max_point = max(
+                self.max_point,
+                parser.get_max_xb_point(self.decay),
+                self.new_position
+            )
+
             stop = self.__stop_check()
 
             # TODO: If stopping, take highest point that has been sampled
@@ -272,11 +284,13 @@ class MeanShiftOptimizer:
                 self.logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
-            write_point_to_summary_file(file_name=self.walk_file_name,
+            write_point_to_summary_file(file_name=self.walk_pos_file_name,
                                         point=self.new_position)
+            write_point_to_summary_file(file_name=self.walk_max_file_name,
+                                        point=self.max_point)
 
         write_point_to_summary_file(file_name=self.summary_name,
-                                    point=self.new_position,
+                                    point=self.max_point,
                                     identifier=identifier)
         # TODO: Save full tsv line from point object
 
@@ -309,6 +323,7 @@ class MeanShiftOptimizer:
                 content += f"  width = {round_sig(self.local_param_space[name].width)}\n"
             content += "--------------------\n"
             content += f"scan_pts  = {self.num_points}\n"
+            content += f"max_pos  = {self.max_point}\n"
             content += f"curr_pos  = {self.new_position}\n"
             content += f"prev_pos  = {self.__prev_position}\n"
             content += f"test_pos  = {self.__test_position}\n"
@@ -340,6 +355,8 @@ class MeanShiftOptimizer:
         Returns:
             bool: True if the scan should stop, False otherwise.
         """
+
+        # TODO: This should probably also check self.max_point
 
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 
