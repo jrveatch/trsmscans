@@ -85,9 +85,10 @@ def apply_filters(file_name: str,
     # return numbers of events passing each filter
     return results
 
+
+# Entry point for the script. Parses command-line arguments, constructs the model,
+# loads configuration, and applies filters to the input TSV file.
 if __name__ == "__main__":
-    # Entry point for the script. Parses command-line arguments, constructs the model,
-    # loads configuration, and applies filters to the input TSV file.
 
     # parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
