@@ -75,7 +75,7 @@ class SubsetPlotter:
         self.plot_data()
 
     def parse_ini_files(self,
-                        directory: str) -> Dict[str, Dict[str, Tuple[float, float]]]:
+                        directory: str) -> Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]:
         """
         Parses `.ini` files to extract scan parameter ranges for each optimizer iteration.
 
@@ -86,12 +86,12 @@ class SubsetPlotter:
             directory (str): Path to the directory containing `.ini` files.
 
         Returns:
-            Dict[str, Dict[str, Tuple[float, float]]]: A dictionary of dictionaries containing
+            Dict[str, Dict[str, Dict[str, Tuple[float, float]]]]: A dictionary of dictionaries containing
             parameter bounds (min, max) for each file, grouped by optimizer.
         """
 
         # Dictionary to store ranges for each file
-        ranges_dict = defaultdict(dict) 
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict) 
 
         # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
@@ -122,7 +122,7 @@ class SubsetPlotter:
             config.read(file_path)
 
             # Initialize empty dictionary to store the range information
-            ranges = {}
+            ranges: Dict[str, Tuple[float, float]] = {}
 
             # Iterate through each parameter
             for param in params_of_interest:
@@ -226,8 +226,8 @@ class SubsetPlotter:
             for i, param1 in enumerate(self.model.input_parameter_full_names[:-1]):
                 for param2 in self.model.input_parameter_full_names[i+1:]:
                     # Extract values for each file (filtered DataFrames)
-                    param1_values = [pd.DataFrame(zoom_op_files[file])[param1].to_numpy(dtype=float) for file in zoom_op_files]
-                    param2_values = [pd.DataFrame(zoom_op_files[file])[param2].to_numpy(dtype=float) for file in zoom_op_files]
+                    param1_values = [zoom_op_files[file][param1].to_numpy(dtype=float) for file in zoom_op_files]
+                    param2_values = [zoom_op_files[file][param2].to_numpy(dtype=float) for file in zoom_op_files]
 
                     num_files = len(param1_values)
 
