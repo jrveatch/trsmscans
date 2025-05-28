@@ -73,9 +73,9 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     param_space.reposition_center(shifted_point)
 
 def compute_adaptive_z_exp(Z: np.ndarray,
-                            alpha: float = 1.5,
-                            min_exp: float = 0.9,
-                            max_exp: float = 3.0) -> float:
+                           alpha: float = 1.5,
+                           min_exp: float = 0.9,
+                           max_exp: float = 3.0) -> float:
     """Compute adaptive z_exp from coefficient of variation of Z."""
     mean_Z = np.mean(Z)
     std_Z = np.std(Z)
