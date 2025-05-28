@@ -27,6 +27,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
+from utils.tsv_utils import write_point_to_summary_file
 
 class ZoomOptimizer:
     """
@@ -187,10 +188,10 @@ class ZoomOptimizer:
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
 
-            # write max xb point summary to info file
-            self.write_summary(identifier)
+            # write max xb point summary to summary file
+            write_point_to_summary_file(file_name=self.summary_name,point=self.local_max,identifier=identifier)
 
-            # write max xb point raw .tsv line to info file
+            # write max xb point raw .tsv line to summary tsv file
             self.scan_parser.write_max_xb_line(self.tsv_summary_name)
 
         # write scan details to details file
@@ -256,20 +257,6 @@ class ZoomOptimizer:
         self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
         return new_max
-
-    def write_summary(self, identifier) -> None:
-        """
-        Writes the current local maximum point and its parameters to the summary file.
-
-        Args:
-            identifier (str): A unique label for the current iteration.
-        """
-        with open(self.summary_name,"a") as summary:
-            content = self.local_max.format_xb()
-            for val in self.local_max.parameter_values.values():
-                content += f"\t{round_sig(val)}"
-            content += f"\t{identifier}\n"
-            summary.write(content)
 
     def write_details(self,
                       identifier: str,
