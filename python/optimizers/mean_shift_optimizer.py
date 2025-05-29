@@ -236,7 +236,8 @@ class MeanShiftOptimizer:
 
             mean_shift(arrays = arrays,
                        Z = xb,
-                       param_space = self.local_param_space)
+                       param_space = self.local_param_space,
+                       config_loader=self.config_loader)
             
             # get new position
             self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),

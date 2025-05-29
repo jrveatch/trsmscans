@@ -22,7 +22,7 @@ meanshift:
   # Proportion of total volume to use for scan volume
   scan_perc: 0.1
   # Number of points to sample for each iteration
-  num_points: 25
+  num_points: 50
   # Mode to use for stop condition, 0 = test point, 1 = prev point
   stop_mode: 1
   # Threshold fractional change in any parameter to continue optimization
@@ -35,3 +35,9 @@ meanshift:
   points_gen: 'random'
   # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
   pair_points_coeff: 0.005
+  # Exponent for weighting (higher means greater pull from high xb points)
+  z_exp: 1.0
+  # Flag to control whether z_exp is adaptively modified
+  use_adaptive_z_exp: True
+  # alpha value for the coefficient variation calculation (higher means more sensitivity to bumps)
+  z_exp_alpha: 0.9
