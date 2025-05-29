@@ -83,10 +83,16 @@ class MeanShiftPlotter:
             path = os.path.join(data_dir,filename)
             try:
                 optimizer_id = self.parse_optimizer_id(filename)
-                df = pd.read_csv(path, sep="\t")
                 walk_id = os.path.splitext(filename)[0]
+                # Get walk type from file name and skip if it is unknown
+                walk_type = "pos" if "walk_pos_" in filename else "max" if "walk_max_" in filename else "unknown"
+                if walk_type == "unknown":
+                    print(f"Skipping unrecognized walk file: {filename}")
+                    continue
+                df = pd.read_csv(path, sep="\t")
                 df['optimizer_id'] = optimizer_id
                 df['walk_id'] = walk_id
+                df['walk_type'] = walk_type
                 walk_data_rows.append(df)
             except Exception as e:
                 print(f"Error loading {path}: {e}")
@@ -103,6 +109,7 @@ class MeanShiftPlotter:
                       x: str,
                       y: str,
                       color_by: str = "xb",
+                      walk_type: str = "pos",
                       save=False,
                       show=True) -> None:
         """
@@ -119,19 +126,20 @@ class MeanShiftPlotter:
             show (bool): Whether to display the plot in a window.
         """
 
-        if self.walk_data.empty:
-            print("No data to plot.")
+        data = self.walk_data[self.walk_data["walk_type"] == walk_type]
+        if data.empty:
+            print(f"No data to plot for walk type: {walk_type}")
             return
 
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Normalize the color scale across all values
-        all_values = self.walk_data[color_by].values
+        all_values = data[color_by].values
         norm = Normalize(all_values.min(), all_values.max())
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
-        for walk_id, group in self.walk_data.groupby("walk_id"):
+        for walk_id, group in data.groupby("walk_id"):
             x_vals = group[x].values
             y_vals = group[y].values
             colors = group[color_by].values
@@ -166,7 +174,7 @@ class MeanShiftPlotter:
         plt.tight_layout()
 
         if save:
-            filename = f"meanshift_path_gradient_{x}_vs_{y}.png"
+            filename = f"meanshift_{walk_type}_path_gradient_{x}_vs_{y}.png"
             filepath = os.path.join(self.out_dir, filename)
             plt.savefig(filepath, dpi=300)
 
@@ -181,10 +189,12 @@ class MeanShiftPlotter:
 
         Creates xb vs. parameter plots and parameter vs. parameter pairwise plots.
         """
-        for param in self.model.input_parameter_names:
-            self.plot_paths_2d(x=param,y="xb",save=True,show=False)
-        for pair in list(combinations(self.model.input_parameter_names,2)):
-            self.plot_paths_2d(x=pair[0],y=pair[1],save=True,show=False)
+        for walk_type in ["pos", "max"]:
+            print(f"Generating plots for walk type: {walk_type}")
+            for param in self.model.input_parameter_names:
+                self.plot_paths_2d(x=param, y="xb", walk_type=walk_type, save=True, show=False)
+            for pair in combinations(self.model.input_parameter_names, 2):
+                self.plot_paths_2d(x=pair[0], y=pair[1], walk_type=walk_type, save=True, show=False)
 
 # Command-line interface to generate mean-shift path plots.
 # Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
