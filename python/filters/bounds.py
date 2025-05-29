@@ -473,7 +473,7 @@ def chunk_dataframe(df: pd.DataFrame,
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
 
 def parallel_process(df: pd.DataFrame,
-                     model: 'Model',
+                     model: Model,
                      n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """
     Distributes scan filtering across multiple processes for performance.
