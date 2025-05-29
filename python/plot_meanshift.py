@@ -71,7 +71,7 @@ class MeanShiftPlotter:
         This method scans the walk directory for `.tsv` files, loads each into a
         DataFrame, and combines them into a single DataFrame stored in `self.walk_data`.
         """
-        data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
+        data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"meanshift","walk")
 
         # List of individual DataFrames from each file
         walk_data_rows = []
