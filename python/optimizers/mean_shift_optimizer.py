@@ -180,7 +180,7 @@ class MeanShiftOptimizer:
         """Sets the number of sample points per scan."""
         self.__num_points = new_num_points
 
-    def run(self):
+    def run(self) -> None:
         """
         Executes the full mean-shift optimization loop.
 
@@ -221,8 +221,8 @@ class MeanShiftOptimizer:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
                                                           num_points_requested = self.num_points,
-                                                          good_points_only = False
-                                                         )
+                                                          good_points_only = False,
+                                                          use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
                 self.logger.info(f"No points found. Exiting {identifier}\n")
@@ -358,6 +358,7 @@ class MeanShiftOptimizer:
         """
 
         # TODO: This should probably also check self.max_point
+        # TODO: Revisit these stopping conditions
 
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 

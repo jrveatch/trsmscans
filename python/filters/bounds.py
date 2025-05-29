@@ -50,7 +50,8 @@ SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu",
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
-                  model: Model
+                  model: Model,
+                  use_multiprocessing: bool = True
                  ) -> None:
     """
     Runs exclusion and signal strength filters and adds results to the DataFrame.
@@ -60,10 +61,15 @@ def filter_bounds(dataframe: pd.DataFrame,
         header_bounds (str): Column name for the HiggsBounds result (0 or 1).
         header_signals (str): Column name for the HiggsSignals result (0 or 1).
         model (Model): Model object used for particle and parameter names.
+        use_multiprocessing (bool): Flag to use parallel processing.
     """
-    dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
-                                                                           model=model,
-                                                                           n_workers=int(mp.cpu_count()*frac_cpu))
+
+    n_workers = 1
+    if use_multiprocessing:
+        n_workers = int(mp.cpu_count()*frac_cpu)
+    dataframe[header_bounds], dataframe[header_signals] = run_processing(df=dataframe,
+                                                                         model=model,
+                                                                         n_workers=n_workers)
 
 # TODO: Make this work for other models
 def process_data(df: pd.DataFrame,
@@ -472,9 +478,9 @@ def chunk_dataframe(df: pd.DataFrame,
     chunk_size = int(np.ceil(len(df) / n_chunks))
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
 
-def parallel_process(df: pd.DataFrame,
-                     model: 'Model',
-                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
+def run_processing(df: pd.DataFrame,
+                   model: Model,
+                   n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """
     Distributes scan filtering across multiple processes for performance.
 
