@@ -255,8 +255,6 @@ class MeanShiftOptimizer:
 
             stop = self.__stop_check()
 
-            # TODO: If stopping, take highest point that has been sampled
-
             # write scan details to details file
             self.write_details(identifier=identifier,
                                xb=xb)
