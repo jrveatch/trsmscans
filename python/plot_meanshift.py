@@ -144,7 +144,7 @@ class MeanShiftPlotter:
             # Cast to help Pyright recognize it
             segments = cast(Sequence[Any], segments_array)
 
-            # Use segment-wise color (except last point which has no next point)
+            # Use segment-wise color (last point is not used in a segment)
             lc = LineCollection(segments, cmap=cmap, norm=norm)
             lc.set_array(np.asarray(colors[:-1])) # one color per segment
             lc.set_linewidth(2)
