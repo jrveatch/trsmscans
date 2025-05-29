@@ -180,7 +180,7 @@ class MeanShiftOptimizer:
         """Sets the number of sample points per scan."""
         self.__num_points = new_num_points
 
-    def run(self):
+    def run(self) -> None:
         """
         Executes the full mean-shift optimization loop.
 
