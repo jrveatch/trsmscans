@@ -84,7 +84,9 @@ class MeanShiftPlotter:
             try:
                 optimizer_id = self.parse_optimizer_id(filename)
                 df = pd.read_csv(path, sep="\t")
+                walk_id = os.path.splitext(filename)[0]
                 df['optimizer_id'] = optimizer_id
+                df['walk_id'] = walk_id
                 walk_data_rows.append(df)
             except Exception as e:
                 print(f"Error loading {path}: {e}")
@@ -129,7 +131,7 @@ class MeanShiftPlotter:
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
-        for optimizer, group in self.walk_data.groupby("optimizer_id"):
+        for walk_id, group in self.walk_data.groupby("walk_id"):
             x_vals = group[x].values
             y_vals = group[y].values
             colors = group[color_by].values
