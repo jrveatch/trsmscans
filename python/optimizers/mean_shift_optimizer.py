@@ -221,7 +221,8 @@ class MeanShiftOptimizer:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
                                                           num_points_requested = self.num_points,
-                                                          good_points_only = False
+                                                          good_points_only = False,
+                                                          use_multiprocessing=False
                                                          )
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
