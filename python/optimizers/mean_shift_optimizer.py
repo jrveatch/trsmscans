@@ -358,6 +358,7 @@ class MeanShiftOptimizer:
         """
 
         # TODO: This should probably also check self.max_point
+        # TODO: Revisit these stopping conditions
 
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 
