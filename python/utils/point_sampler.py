@@ -107,6 +107,7 @@ class PointSampler:
                       param_space: ParamSpace,
                       num_points_requested: int,
                       identifier = "",
+                      use_multiprocessing: bool = True,
                       good_points_only: bool = False) -> Parse:
         """
         Samples multiple parameter points using ScannerS until the desired number of points
@@ -174,7 +175,8 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = param_space.model_name)
+                                  model_name = param_space.model_name,
+                                  use_multiprocessing=use_multiprocessing)
 
             # Update the total points run
             self.total_points_run += points
