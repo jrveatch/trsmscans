@@ -139,6 +139,9 @@ class Parse:
         # get xb
         xb = self.get_xb(decay)
 
+        if xb.empty:
+            return Point(model=self.model)
+
         # get index of maximum xsec times BR
         self.max_idx = xb.idxmax()
 

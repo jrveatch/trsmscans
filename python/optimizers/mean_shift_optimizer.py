@@ -180,7 +180,7 @@ class MeanShiftOptimizer:
         """Sets the number of sample points per scan."""
         self.__num_points = new_num_points
 
-    def run(self):
+    def run(self) -> None:
         """
         Executes the full mean-shift optimization loop.
 
@@ -221,8 +221,8 @@ class MeanShiftOptimizer:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
                                                           num_points_requested = self.num_points,
-                                                          good_points_only = False
-                                                         )
+                                                          good_points_only = False,
+                                                          use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
                 self.logger.info(f"No points found. Exiting {identifier}\n")
@@ -236,9 +236,11 @@ class MeanShiftOptimizer:
 
             mean_shift(arrays = arrays,
                        Z = xb,
-                       param_space = self.local_param_space)
+                       param_space = self.local_param_space,
+                       config_loader=self.config_loader)
             
             # get new position
+            self.logger.info("Calculating a point at the new position")
             self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
@@ -252,8 +254,6 @@ class MeanShiftOptimizer:
             )
 
             stop = self.__stop_check()
-
-            # TODO: If stopping, take highest point that has been sampled
 
             # write scan details to details file
             self.write_details(identifier=identifier,
@@ -357,6 +357,7 @@ class MeanShiftOptimizer:
         """
 
         # TODO: This should probably also check self.max_point
+        # TODO: Revisit these stopping conditions
 
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 

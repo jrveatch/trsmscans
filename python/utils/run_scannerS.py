@@ -144,7 +144,7 @@ def run_scannerS(ini_name: str,
 
         # combine the outputs into a single file
         concatenate_files(directories=directories,
-                        file_name=model_name+".tsv")
+                          file_name=model_name+".tsv")
 
     else:
         logger.info("Running as a single process")

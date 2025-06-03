@@ -107,6 +107,7 @@ class PointSampler:
                       param_space: ParamSpace,
                       num_points_requested: int,
                       identifier = "",
+                      use_multiprocessing: bool = True,
                       good_points_only: bool = False) -> Parse:
         """
         Samples multiple parameter points using ScannerS until the desired number of points
@@ -174,7 +175,8 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = param_space.model_name)
+                                  model_name = param_space.model_name,
+                                  use_multiprocessing=use_multiprocessing)
 
             # Update the total points run
             self.total_points_run += points
@@ -185,7 +187,8 @@ class PointSampler:
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
                                     model = param_space.model,
-                                    config_loader = self.config_loader)
+                                    config_loader = self.config_loader,
+                                    use_multiprocessing=use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
@@ -283,9 +286,6 @@ class PointSampler:
                                 model = point.model,
                                 config_loader = self.config_loader)
 
-        # Concatenate the information from temp_tsv to the tsv file
-        save_tsv_output(temp_tsv, tsv_name)
-
         # Update the filtered variables
         self.n_width = results["width"]
         self.n_bounds = results["bounds"]
@@ -300,7 +300,7 @@ class PointSampler:
         self.logger.debug(f'1 point generated, {self.n_pass} pass filters')
 
         # Create parser from output .tsv
-        self.parser.read_file(file_name=tsv_name)
+        self.parser.read_file(file_name=temp_tsv)
 
         return self.parser.get_max_xb_point(decay)
 

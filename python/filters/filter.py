@@ -29,7 +29,8 @@ header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
                   model: Model,
-                  config_loader: ConfigLoader
+                  config_loader: ConfigLoader,
+                  use_multiprocessing: bool = True
                  ) -> Dict[str,int]:
     """
     Applies a set of filters to a scan result TSV file.
@@ -62,7 +63,8 @@ def apply_filters(file_name: str,
     bounds.filter_bounds(dataframe=dataframe,
                          header_bounds=header_bounds,
                          header_signals=header_signals,
-                         model=model)
+                         model=model,
+                         use_multiprocessing=use_multiprocessing)
 
     # write updated dataframe to .tsv
     write_to_tsv(dataframe=dataframe,
@@ -84,7 +86,6 @@ def apply_filters(file_name: str,
 
     # return numbers of events passing each filter
     return results
-
 
 # Entry point for the script. Parses command-line arguments, constructs the model,
 # loads configuration, and applies filters to the input TSV file.
