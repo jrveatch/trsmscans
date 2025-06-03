@@ -54,6 +54,7 @@ class BayesianOptimizer:
                                                       identifier='x')
         except TimeoutError:
             return 0
+        print(point.xb)
         return point.xb
 
     def run(self):

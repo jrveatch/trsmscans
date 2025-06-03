@@ -478,12 +478,14 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
+        self.initialize_output("bayesian_optimizer")
+
         # if num_points isn't given, use num_starting_points
         if num_points < 0:
             num_points = self.num_starting_points
 
         # run prescan
-        self.run_prescan(num_points=num_points)
+        self.run_prescan()
 
         # move into the working directory for scans
         os.chdir(self.out_dir)
@@ -493,6 +495,14 @@ class Scan:
 
         # run scan
         bayesian_optimizer.run()
+
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(optimization="zoom",
+                      scan_time=scan_time,
+                      num_points=num_points)
 
     def finalize(self,
                  optimization: str,
