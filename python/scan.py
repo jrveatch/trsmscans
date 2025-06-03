@@ -351,7 +351,7 @@ class Scan:
         os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.new_create_zoom_optimizers(self.global_param_space)
+        all_zoom_optimizers = self.new_create_zoom_optimizers(self.global_param_space, num_points)
 
         # list of which zoom optimizers are running
         running_list = [True]
@@ -477,7 +477,7 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
     
-    def new_create_zoom_optimizers(self, param_space: 'ParamSpace'):
+    def new_create_zoom_optimizers(self, param_space: 'ParamSpace', num_points) -> List[ZoomOptimizer]:
 
         '''
         1. Start with one param space in a list
@@ -528,22 +528,56 @@ class Scan:
         for space in final_param_space_list:
 
             # Print param space name
-            print(space.name)
+            #print(space.name)
 
             # Print param space log bounds table before shrinking
-            space.log_bounds_table()
+           # space.log_bounds_table()
 
             # Shrink the param space
             self.prescan_parser.shrink_param_space_bounds(param_space=space)
 
             # Print param space log bounds table after shrinking
-            space.log_bounds_table()
+           # space.log_bounds_table()
 
-        return
+        zoom_optimizer_list = self.assign_zoom_points(final_param_space_list, num_points)
 
-    def assign_zoom_points(self, list_of_params: list[ParamSpace]):
-        pass
+        for zoom_optimizer in zoom_optimizer_list:
+            print(zoom_optimizer)
+        
+        return 
 
+    def assign_zoom_points(self, list_of_params: list[ParamSpace], num_points) -> List[ZoomOptimizer]:
+
+        list_of_param_spaces = list_of_params
+
+        # List that holds all the zoom optimizers created
+        all_zoom_optimizers: List['ZoomOptimizer'] = []
+
+        # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
+        points_per_scanner = max(num_points // len(list_of_param_spaces), 1)
+
+        for i, space in enumerate(list_of_param_spaces):
+            # Distribute points among zoom optimizers
+            num_scanner_points = points_per_scanner
+            if i == len(list_of_param_spaces) - 1:  # Ensure the last zoom optimizer gets any remaining points
+                num_scanner_points = num_points - (points_per_scanner * (len(list_of_param_spaces) - 1))
+
+            # Create the ZoomOptimizer
+            zoom_optimizer = ZoomOptimizer(
+                num_points = num_scanner_points,
+                param_space = space,
+                starting_max = self.global_max,
+                config_loader = self.config_loader,
+                label = f'ZoomOptimizer-{i}'
+            )
+            all_zoom_optimizers.append(zoom_optimizer)
+
+        # Print the number of zoom optimizers
+        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+
+        # Return list of all zoom optimizers
+        return all_zoom_optimizers
+        
     def finalize(self,
                  optimization: str,
                  scan_time: float,
