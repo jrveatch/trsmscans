@@ -272,7 +272,6 @@ class ZoomOptimizer:
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
 
-        # TODO: Add details about R11, R21, R31
         with open(self.details_name,"a") as details:
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
