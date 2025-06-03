@@ -286,9 +286,6 @@ class PointSampler:
                                 model = point.model,
                                 config_loader = self.config_loader)
 
-        # Concatenate the information from temp_tsv to the tsv file
-        save_tsv_output(temp_tsv, tsv_name)
-
         # Update the filtered variables
         self.n_width = results["width"]
         self.n_bounds = results["bounds"]
@@ -303,7 +300,7 @@ class PointSampler:
         self.logger.debug(f'1 point generated, {self.n_pass} pass filters')
 
         # Create parser from output .tsv
-        self.parser.read_file(file_name=tsv_name)
+        self.parser.read_file(file_name=temp_tsv)
 
         return self.parser.get_max_xb_point(decay)
 
