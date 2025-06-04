@@ -5,6 +5,8 @@ import argparse
 import logging
 import math
 import multiprocessing as mp
+from multiprocessing.managers import ValueProxy
+from multiprocessing.synchronize import Lock as MP_Lock
 import os
 import shutil
 import subprocess
@@ -120,8 +122,8 @@ def run_scannerS(ini_name: str,
         process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
         # create a shared counter and a lock
-        counter = mp.Manager().Value("i",0)
-        lock = mp.Manager().Lock()
+        counter: ValueProxy = mp.Manager().Value("i",0)
+        lock: MP_Lock = mp.Manager().Lock()
 
         # print empty job completion counter
         print(f"{counter.value}/{num_processes} processes finished")
@@ -192,11 +194,9 @@ def run_process(process_args: List[str],
     # change to the temporary directory
     os.chdir(directory)
 
-    # log file
-    log = open("ScannerS.log", "w")
-
     # run the process with arguments and suppress output
-    subprocess.run(process_args, stdout=log, stderr=log)
+    with open("ScannerS.log", "w") as log:
+        subprocess.run(process_args, stdout=log, stderr=log)
 
     # change back to the original directory
     os.chdir(original_dir)
@@ -213,41 +213,39 @@ def run_timed_process(process_args: List[str],
     # output file name
     outfile = model_name + ".tsv"
 
-    # log file
-    log = open("ScannerS.log", "w")
+    # launch the process with arguments and redirect output to a log file
+    with open("ScannerS.log", "w") as log:
+        process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
-    # launch process
-    process = subprocess.Popen(process_args, stdout=log, stderr=log)
+        # get start time
+        start_time = time.time()
 
-    # get start time
-    start_time = time.time()
+        # flag to check timeout
+        check_timeout = True
 
-    # flag to check timeout
-    check_timeout = True
+        # check output while the process is still running
+        while process.poll() is None:
 
-    # check output while the process is still running
-    while process.poll() is None:
+            # check timeout once if it hasn't been checked before
+            if check_timeout and time.time() - start_time >= timeout:
 
-        # check timeout once if it hasn't been checked before
-        if check_timeout and time.time() - start_time >= timeout:
+                # if output file is empty, complain, kill process and exit
+                if os.path.exists(outfile) and not os.path.getsize(outfile):
 
-            # if output file is empty, complain, kill process and exit
-            if os.path.exists(outfile) and not os.path.getsize(outfile):
+                    # kill process
+                    process.kill()
 
-                # kill process
-                process.kill()
+                    # make exception message
+                    msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
 
-                # make exception message
-                msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
+                    # raise timeout exception
+                    raise TimeoutError(msg)
 
-                # raise timeout exception
-                raise TimeoutError(msg)
+                # only need to check timeout once
+                check_timeout = False
 
-            # only need to check timeout once
-            check_timeout = False
-
-        # wait 1 second before checking again
-        time.sleep(1)
+            # wait 1 second before checking again
+            time.sleep(1)
 
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: List[str],
