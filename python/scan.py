@@ -326,7 +326,7 @@ class Scan:
                       optimization="zoom",
                       num_points=num_points) and not self.overwrite:
                 self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info(f"Use the -o option to overwrite the existing run.\n")
+                self.logger.info("Use the -o option to overwrite the existing run.\n")
                 return
 
         # initialize output directories and files
