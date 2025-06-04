@@ -38,9 +38,6 @@ except Exception as e:
     logger.error(e)
     raise
 
-# get logger
-logger = logging.getLogger(__name__)
-
 # method to run ScannerS
 def run_scannerS(ini_name: str,
                  num_points: int,
