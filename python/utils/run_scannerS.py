@@ -302,7 +302,7 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ini_name = data_dir() + "models/" + args.model + "_baseline.ini"
+    ini_name = os.path.join(data_dir(), "models", f"{args.model}_baseline.ini")
 
     # run ScannerS using baseline .ini
     run_scannerS(ini_name = ini_name,
