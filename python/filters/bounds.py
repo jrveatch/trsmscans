@@ -38,11 +38,8 @@ try:
     frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
-except KeyError as e:
-    logger.exception("Missing configuration key")
-    raise
 except Exception as e:
-    logger.exception(f"Unexpected error: {e}")
+    logger.exception(e)
     raise
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]

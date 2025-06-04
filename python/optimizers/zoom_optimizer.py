@@ -79,11 +79,8 @@ class ZoomOptimizer:
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
             self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # supported strategies

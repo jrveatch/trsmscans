@@ -86,11 +86,8 @@ class Scan:
         try:
             self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # number of prescan points to run
@@ -273,11 +270,8 @@ class Scan:
         # Load config
         try:
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)

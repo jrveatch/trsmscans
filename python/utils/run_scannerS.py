@@ -32,11 +32,8 @@ try:
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
-except KeyError as e:
-    logger.exception("Missing configuration key")
-    raise
 except Exception as e:
-    logger.exception(f"Unexpected error: {e}")
+    logger.exception(e)
     raise
 
 # method to run ScannerS

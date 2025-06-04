@@ -99,11 +99,8 @@ class ConfigLoader:
             value = self.config.get(section, {}).get(key)
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise  # Depending on your needs, you can choose to raise or handle differently
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
         else:
             return value

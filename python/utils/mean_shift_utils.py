@@ -43,11 +43,8 @@ def mean_shift(arrays: Dict[str,np.ndarray],
         z_exp: float = config_loader.get('meanshift', 'z_exp')
         use_adaptive_z_exp: bool = config_loader.get('meanshift', 'use_adaptive_z_exp')
         z_exp_alpha: float = config_loader.get('meanshift', 'z_exp_alpha')
-    except KeyError as e:
-        logger.exception("Missing configuration key")
-        raise
     except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
+        logger.exception(e)
         raise
 
     # Store parameter names
