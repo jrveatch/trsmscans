@@ -70,7 +70,7 @@ class ConfigLoader:
         except FileNotFoundError:
             self.logger.exception(f"Configuration file '{path}' not found.")
             raise  # Re-raise the exception to halt the program or handle as needed
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             self.logger.exception(f"Failed to parse YAML file '{path}'.")
             raise  # Re-raise to handle upstream
         except Exception as e:
@@ -99,11 +99,8 @@ class ConfigLoader:
             value = self.config.get(section, {}).get(key)
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise  # Depending on your needs, you can choose to raise or handle differently
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
         else:
             return value

@@ -259,7 +259,6 @@ class PointSampler:
         if identifier:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
-        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
         temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
 
         # Write new .ini file from template and parameters

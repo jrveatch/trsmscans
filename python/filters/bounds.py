@@ -24,7 +24,8 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 # local modules
-from filters.setup_higgs_tools import *
+import Higgs.predictions as HP
+from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
 from utils.model import Model
 
@@ -38,11 +39,8 @@ try:
     frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
-except KeyError as e:
-    logger.exception("Missing configuration key")
-    raise
 except Exception as e:
-    logger.exception(f"Unexpected error: {e}")
+    logger.exception(e)
     raise
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
@@ -134,7 +132,7 @@ def process_data(df: pd.DataFrame,
                                        HName=HName,
                                        SName=SName,
                                        XName=XName)
-        logger.verbose(f'Scalar widths are:')
+        logger.verbose('Scalar widths are:')
         logger.verbose(f'  H: {widths["H"]}')
         logger.verbose(f'  S: {widths["S"]}')
         logger.verbose(f'  X: {widths["X"]}')

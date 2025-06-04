@@ -62,7 +62,7 @@ def combine_results(model: str,
 
                             # Write headers to the output file if not already written
                             if not combination_headers_written:
-                                new_headers = f"XMass\tSMass\tHMass\t" + "\t".join(file_headers)
+                                new_headers = "XMass\tSMass\tHMass\t" + "\t".join(file_headers)
                                 combination_file.write(new_headers + "\n")
                                 combination_headers_written = True
 

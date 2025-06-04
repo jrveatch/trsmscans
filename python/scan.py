@@ -86,11 +86,8 @@ class Scan:
         try:
             self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # number of prescan points to run
@@ -253,7 +250,7 @@ class Scan:
             elif strategy == 'pair':
                 # TODO: Temporary block for this option until it can be fixed using Point
                 raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = random_pos()
+                initial_point = self.global_param_space.random_point()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
                 offsets = [param.width * coeff for param in self.global_param_space]
@@ -273,11 +270,8 @@ class Scan:
         # Load config
         try:
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except KeyError as e:
-            self.logger.exception("Missing configuration key")
-            raise
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
@@ -332,7 +326,7 @@ class Scan:
                       optimization="zoom",
                       num_points=num_points) and not self.overwrite:
                 self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info(f"Use the -o option to overwrite the existing run.\n")
+                self.logger.info("Use the -o option to overwrite the existing run.\n")
                 return
 
         # initialize output directories and files

@@ -26,7 +26,7 @@ def plot_combination(model:str,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
+    ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
 
     ax.set_xlabel('XMass')
     ax.set_ylabel('SMass')
