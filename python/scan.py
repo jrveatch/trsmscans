@@ -216,7 +216,7 @@ class Scan:
         with open(self.tsv_summary_name, "a") as tsv_summary:
             tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
 
-        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
+        self.global_max.write_tsv_to_file(self.tsv_summary_name)
 
     def run_ms_optimization(self,
                             num_optimizers: int) -> None:
