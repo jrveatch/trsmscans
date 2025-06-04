@@ -316,7 +316,7 @@ class ParamSpace:
                 )
 
         # Include endpoints to create full range intervals
-        all_bounds = [low] + split_points + [high]
+        all_bounds = [low, *split_points, high]
 
         # Create deep copies for each split
         split_params_list = []

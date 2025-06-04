@@ -18,7 +18,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     Updates the center value based on weighted sample pairs of X_i and Z.
 
     Args:
-        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names, 
+        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names,
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
         param_space (ParamSpace): Object with a `reposition_center` method to update the center.
@@ -44,10 +44,10 @@ def mean_shift(arrays: Dict[str,np.ndarray],
         use_adaptive_z_exp: bool = config_loader.get('meanshift', 'use_adaptive_z_exp')
         z_exp_alpha: float = config_loader.get('meanshift', 'z_exp_alpha')
     except KeyError as e:
-        logger.error(e)
+        logger.exception("Missing configuration key")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.exception(f"Unexpected error: {e}")
         raise
 
     # Store parameter names
@@ -78,7 +78,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     means = np.einsum('ij,j->i', XX, nZ)
 
     # Create shifted point
-    shifted_point = Point(model=param_space.model, par_vals={name: value for name, value in zip(param_names, means)})
+    shifted_point = Point(model=param_space.model, par_vals=dict(zip(param_names, means)))
 
     # Update center position
     param_space.reposition_center(shifted_point)

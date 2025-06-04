@@ -53,7 +53,7 @@ class MeanShiftOptimizer:
             global_param_space (ParamSpace): The overall parameter space used in the scan.
             config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
         """
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -71,10 +71,10 @@ class MeanShiftOptimizer:
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
             self.__num_points: int = config_loader.get('meanshift', 'num_points')
         except KeyError as e:
-            self.logger.error(e)
+            self.logger.exception("Missing configuration key")
             raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(f"Unexpected error: {e}")
             raise
 
         # Copy of param space so that multiple instances of ms use global param space
@@ -102,7 +102,7 @@ class MeanShiftOptimizer:
         self.new_position = init_pos
         self.__prev_position = init_pos
         self.max_point = init_pos
-        
+
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
         self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
@@ -145,7 +145,7 @@ class MeanShiftOptimizer:
     def global_param_space(self) -> ParamSpace:
         """Returns the global (full-range) parameter space."""
         return self.__global_param_space
-    
+
     @global_param_space.setter
     def global_param_space(self,
                            new_global_param_space: ParamSpace) -> None:
@@ -156,7 +156,7 @@ class MeanShiftOptimizer:
     def local_param_space(self) -> ParamSpace:
         """Returns the local parameter space."""
         return self.__local_param_space
-    
+
     @local_param_space.setter
     def local_param_space(self,
                           new_local_param_space: ParamSpace) -> None:
@@ -238,7 +238,7 @@ class MeanShiftOptimizer:
                        Z = xb,
                        param_space = self.local_param_space,
                        config_loader=self.config_loader)
-            
+
             # get new position
             self.logger.info("Calculating a point at the new position")
             self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),
@@ -262,7 +262,7 @@ class MeanShiftOptimizer:
             # get iteration end time
             iter_end = time.time()
             iter_time = iter_end - iter_start
-            
+
             self.iteration_termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # NOTE: For debugging

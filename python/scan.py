@@ -18,7 +18,6 @@ from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
-from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -37,7 +36,7 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
-        
+
         """
         Initialize a Scan instance for parameter space optimization.
 
@@ -88,10 +87,10 @@ class Scan:
             self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except KeyError as e:
-            self.logger.error(e)
+            self.logger.exception("Missing configuration key")
             raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(f"Unexpected error: {e}")
             raise
 
         # number of prescan points to run
@@ -242,12 +241,12 @@ class Scan:
         os.chdir(self.out_dir)
 
         # Define helper functions (as inner functions because only for meanshift implementation)
-        
+
         # Returns a list of initial positions for shifters
         def initial_positions(points: int,
                               strategy: str) -> Tuple[Point]:
             results = []
-            
+
             if strategy == 'random':
                 for i in range(points):
                     results.append(self.global_param_space.random_point())
@@ -275,10 +274,10 @@ class Scan:
         try:
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
         except KeyError as e:
-            self.logger.error(e)
+            self.logger.exception("Missing configuration key")
             raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(f"Unexpected error: {e}")
             raise
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
@@ -378,8 +377,7 @@ class Scan:
                                                   global_max=self.global_max)
 
                     # store max_xb
-                    if temp_max > self.global_max:
-                        self.global_max = temp_max
+                    self.global_max = max(self.global_max, temp_max)
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
@@ -535,10 +533,7 @@ if __name__ == "__main__":
                        decay=args.decay)
 
     # set up logging
-    if args.log:
-        logfile_name = args.log
-    else:
-        logfile_name = f"{args.strategy}.log"
+    logfile_name = args.log if args.log else f"{args.strategy}.log"
     setup_logging(log_file=os.path.join(out_dir, logfile_name),
                   level=LOG_LEVELS[args.log_level.lower()])
 

@@ -42,9 +42,9 @@ class Point:
         self.__model = model
 
         # initialize parameter values to 0.0 if a model is provided
-        self.__input_parameter_values = {par: 0.0 for par in model.input_parameter_names}
-        self.__output_parameter_values = {par: 0.0 for par in model.output_parameter_names}
-        self.__width_parameter_values = {par: 0.0 for par in model.width_parameter_names}
+        self.__input_parameter_values = dict.fromkeys(model.input_parameter_names, 0.0)
+        self.__output_parameter_values = dict.fromkeys(model.output_parameter_names, 0.0)
+        self.__width_parameter_values = dict.fromkeys(model.width_parameter_names, 0.0)
 
         # if par_vals is provided, update the parameter values
         if par_vals is not None:
@@ -135,7 +135,7 @@ class Point:
         Updates existing parameter values from a dictionary.
 
         Only keys already present in the input/output/width parameter dicts will be updated.
-        
+
         Args:
             updates (Dict[str,float]): Dictionary of parameter names and new values.
         """

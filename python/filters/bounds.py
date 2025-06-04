@@ -39,10 +39,10 @@ try:
     # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
 except KeyError as e:
-    logger.error(e)
+    logger.exception("Missing configuration key")
     raise
 except Exception as e:
-    logger.error(e)
+    logger.exception(f"Unexpected error: {e}")
     raise
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
@@ -154,7 +154,7 @@ def process_data(df: pd.DataFrame,
         br_BSM = extract_BSM_BRs(row=row,
                                  HName=HName,
                                  SName=SName)
-        
+
         # configure scalars
         configure_particle(particle=H, label="H", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
         configure_particle(particle=S, label="S", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
@@ -279,7 +279,7 @@ def extract_SM_BRs(row: pd.Series,
     return {"H": br_H, "S": br_S, "X": br_X}
 
 def extract_BSM_BRs(row: pd.Series,
-                    HName: str, 
+                    HName: str,
                     SName: str,) -> Dict[str, Dict[Tuple[str, str], float]]:
     """
     Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
@@ -380,7 +380,7 @@ def set_BRs(particle,
     sum_BR = 0.0
 
     # reset SM BRs to 0 to start from a clean slate
-    for decay in BRs_SM.keys():
+    for decay in BRs_SM:
         particle.setBr(decay,0)
 
     # loop over SM decay modes

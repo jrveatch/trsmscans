@@ -15,7 +15,7 @@ import glob
 import logging
 import os
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from matplotlib import patches
 import pandas as pd
 import re
 from typing import Dict, Tuple
@@ -50,13 +50,13 @@ class SubsetPlotter:
             decay (str): Decay mode being studied.
             model (Model): Scalar model associated with the prescan.
         """
-        
+
         # Save arguments as class members
         self.decay = decay
         self.model = model
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
         self.ini_dir = os.path.join(self.scan_dir,"zoom","ini")
-        
+
         # Initialize parser
         self.parser = Parse(self.model)
 
@@ -91,7 +91,7 @@ class SubsetPlotter:
         """
 
         # Dictionary to store ranges for each file
-        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict) 
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict)
 
         # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
@@ -107,7 +107,7 @@ class SubsetPlotter:
 
         # Loop through all .ini files in the directory
         for file_name in self.sorted_ini_files:
-                
+
             # Create file path based on .ini file name
             file_path = os.path.join(directory, file_name)
 
@@ -156,7 +156,7 @@ class SubsetPlotter:
 
         # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
-        
+
         # Read the data from the prescan file
         self.parser.read_file(file_name=self.prescan_tsv)
 
@@ -214,12 +214,12 @@ class SubsetPlotter:
         # Print info to screen
         self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
-        for zoom_op in self.ini_ranges.keys():
-            
+        for zoom_op in self.ini_ranges:
+
             # Retrieve files based on the current Zoom Optimizer
             zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
-                
-            # Create a new output directory to organize output by Zoom Optimizer    
+
+            # Create a new output directory to organize output by Zoom Optimizer
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
@@ -236,7 +236,7 @@ class SubsetPlotter:
                     width=1.5
 
                     plt.figure()
-               
+
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
@@ -266,7 +266,7 @@ class SubsetPlotter:
                         plt.gca().add_patch(rect)
 
                         # Adjust the opacity
-                        opacity += op 
+                        opacity += op
 
                     # Initialize scatter plot labels
                     plt.title(f"{zoom_op}: {param1} vs {param2}")
@@ -297,5 +297,5 @@ if __name__ == "__main__":
 
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-    
+
     SubsetPlotter(decay=args.decay, model=model)
