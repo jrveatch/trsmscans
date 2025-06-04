@@ -214,7 +214,7 @@ class SubsetPlotter:
         # Print info to screen
         self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
-        for zoom_op in self.ini_ranges.keys():
+        for zoom_op in self.ini_ranges:
 
             # Retrieve files based on the current Zoom Optimizer
             zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}

@@ -380,7 +380,7 @@ def set_BRs(particle,
     sum_BR = 0.0
 
     # reset SM BRs to 0 to start from a clean slate
-    for decay in BRs_SM.keys():
+    for decay in BRs_SM:
         particle.setBr(decay,0)
 
     # loop over SM decay modes
