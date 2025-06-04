@@ -113,7 +113,7 @@ def check_singlet_point(mX: float,
     ress = signals(pred)
     #print(signals(pred).appliedLimits)
     #print(ress)
-    HS_allowed = True if ress - ress_SM < 4.0 else False
+    HS_allowed = ress - ress_SM < 4.0
 
     # return HiggsBounds (True/False) for Allowed/Disallowed and the chi-squared from HiggsSignals
     return resb.allowed, HS_allowed
