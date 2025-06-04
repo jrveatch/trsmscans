@@ -202,7 +202,7 @@ class Model:
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
-            if self.particles[key] == None:
+            if self.particles[key] is None:
                 self.particles[key] = {}
 
         # make sure exactly 1 SM-like Higgs is provided
