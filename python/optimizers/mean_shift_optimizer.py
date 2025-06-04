@@ -289,10 +289,11 @@ class MeanShiftOptimizer:
             write_point_to_summary_file(file_name=self.walk_max_file_name,
                                         point=self.max_point)
 
+        # write max point information to summary files
         write_point_to_summary_file(file_name=self.summary_name,
                                     point=self.max_point,
                                     identifier=identifier)
-        # TODO: Save full tsv line from point object
+        self.max_point.write_tsv_to_file(file_name=self.tsv_summary_name)
 
         # get mean shift end time
         shift_end = time.time()
