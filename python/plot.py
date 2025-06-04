@@ -69,7 +69,7 @@ class Plot:
         names = self.model.input_parameter_names
         if 'xb' in names:
             return names
-        return names + ('xb',)
+        return (*names, 'xb')
 
     def get_file_names(self) -> None:
         """

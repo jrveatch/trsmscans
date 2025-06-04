@@ -26,7 +26,7 @@ def scan_mass_list(model: str,
             "-S", str(SMass),
             "-n", "10000"
         ]
-        result = subprocess.run(["python", "../python/prescan.py"] + arg_list, text=True)
+        result = subprocess.run(["python", "../python/prescan.py", *arg_list], text=True)
         print(result)
 
 if __name__ == "__main__":

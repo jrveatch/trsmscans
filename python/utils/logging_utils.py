@@ -102,7 +102,7 @@ def format_table(headers: List[str],
     header_row = " | ".join(f"{header:<{width}}" for header, width in zip(headers, column_widths))
 
     # Format the data rows
-    data_rows = [" | ".join(f"{str(item):<{width}}" for item, width in zip(row, column_widths)) for row in rows]
+    data_rows = [" | ".join(f"{item!s:<{width}}" for item, width in zip(row, column_widths)) for row in rows]
 
     # Combine everything into a table string
     table = f"{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n"
