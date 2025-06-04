@@ -150,7 +150,7 @@ class PointSampler:
         self.n_signals = 0
         self.n_pass = 0
 
-        # Initialize the amount of points run
+        # Initialize the number of points run
         self.total_points_run = 0
 
         # Print total number of points requested
@@ -226,8 +226,7 @@ class PointSampler:
                 self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.n_pass} points that pass filters")
-        self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
+        self.print_n_pass()
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
@@ -261,6 +260,9 @@ class PointSampler:
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
         temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
 
+        # Initialize the number of points run
+        self.total_points_run = 0
+
         # Write new .ini file from template and parameters
         point.write_ini(ini_name)
 
@@ -288,17 +290,27 @@ class PointSampler:
         self.n_signals = results["signals"]
         self.n_pass = results["pass"]
 
-        # Print points passed and efficiency
-        self.logger.debug(f'A total of {self.n_pass} points have passed')
+        # Update the total points run
+        self.total_points_run += 1
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.n_pass} points that pass filters")
-        self.logger.debug(f'1 point generated, {self.n_pass} pass filters')
+        self.print_n_pass()
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=temp_tsv)
 
         return self.parser.get_max_xb_point(decay)
+
+    def print_n_pass(self) -> None:
+        """
+        Prints the total number of points passed filters.
+        """
+        point_word = "point" + ("s" if self.total_points_run != 1 else "")
+        pass_word = "pass" if self.n_pass != 1 else "passes"
+        self.logger.info(
+            f"{self.total_points_run} {point_word} generated, "
+            f"{self.n_pass} {pass_word} filters"
+        )
 
 if __name__ == "__main__":
     pass
