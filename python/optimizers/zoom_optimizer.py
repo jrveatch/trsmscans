@@ -189,10 +189,12 @@ class ZoomOptimizer:
         if self.is_new_global_max(new_max):
 
             # write max xb point summary to summary file
-            write_point_to_summary_file(file_name=self.summary_name,point=new_max,identifier=identifier)
+            write_point_to_summary_file(file_name=self.summary_name,
+                                        point=new_max,
+                                        identifier=identifier)
 
             # write max xb point raw .tsv line to summary tsv file
-            self.scan_parser.write_max_xb_line(self.tsv_summary_name)
+            new_max.write_tsv_to_file(self.tsv_summary_name)
 
         # write scan details to details file
         self.write_details(identifier=identifier,

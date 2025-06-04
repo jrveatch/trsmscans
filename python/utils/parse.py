@@ -151,7 +151,8 @@ class Parse:
         # return a point object holding xb and other parameters
         return Point(xb = float(xb[self.max_idx]),
                      model = self.model,
-                     par_vals = max_xb_par_vals)
+                     par_vals = max_xb_par_vals,
+                     tsv_data= self.data.loc[[self.max_idx]])
 
     def is_bimodal(self,
                    param_name: str,
@@ -445,26 +446,6 @@ class Parse:
             mask &= (df[col] > param.low) & (df[col] <= param.high)
 
         return mask.astype(bool)
-
-    def write_max_xb_line(self,
-                          file_name: str
-                         ) -> None:
-        """
-        Appends the row with maximum xb to the given .tsv file.
-
-        Args:
-            file_name (str): Path to the output .tsv file.
-        """
-
-        # get max xb row from dataframe
-        row = self.data.loc[[self.max_idx]]
-
-        # write it to the summary .tsv
-        row.to_csv(file_name,
-                   sep='\t',
-                   index=True,
-                   mode='a',
-                   header=False)
 
     def __get_xsec_prod(self) -> pd.Series:
         """
