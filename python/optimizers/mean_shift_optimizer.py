@@ -222,7 +222,8 @@ class MeanShiftOptimizer:
                                                           use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
-                self.logger.info(f"No points found. Exiting {identifier}\n")
+                self.logger.info(f"No points found.\n")
+                self.logger.info(f"Exiting {identifier}\n")
                 return
 
             arrays = {k: v.to_numpy() for k, v in parser.input_parameter_arrays.items()}
