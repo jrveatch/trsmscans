@@ -6,7 +6,6 @@ import logging
 import math
 import multiprocessing as mp
 from multiprocessing.managers import ValueProxy
-from multiprocessing.synchronize import Lock as MP_Lock
 import os
 import shutil
 import subprocess
@@ -120,7 +119,7 @@ def run_scannerS(ini_name: str,
 
         # create a shared counter and a lock
         counter: ValueProxy = mp.Manager().Value("i",0)
-        lock: MP_Lock = mp.Manager().Lock()
+        lock = mp.Manager().Lock()
 
         # print empty job completion counter
         print(f"{counter.value}/{num_processes} processes finished")
