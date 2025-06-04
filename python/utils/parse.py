@@ -190,8 +190,7 @@ class Parse:
             percentile_threshold = 1.0 - min_points/num_points
 
         # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
+        percentile_threshold = max(percentile_threshold, 0.0)
 
         # get xb value that corresponds to percentile threshold
         threshold_value = xb.quantile(percentile_threshold)

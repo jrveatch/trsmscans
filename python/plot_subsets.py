@@ -15,7 +15,7 @@ import glob
 import logging
 import os
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from matplotlib import patches
 import pandas as pd
 import re
 from typing import Dict, Tuple

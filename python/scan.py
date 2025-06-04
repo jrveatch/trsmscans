@@ -377,8 +377,7 @@ class Scan:
                                                   global_max=self.global_max)
 
                     # store max_xb
-                    if temp_max > self.global_max:
-                        self.global_max = temp_max
+                    self.global_max = max(self.global_max, temp_max)
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)

@@ -181,8 +181,7 @@ class ZoomOptimizer:
         self.local_max_old = self.local_max
 
         # if new point is better than the local max point, replace it
-        if new_max > self.local_max:
-            self.local_max = new_max
+        self.local_max = max(self.local_max, new_max)
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
@@ -225,11 +224,9 @@ class ZoomOptimizer:
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
-            else:
-                # if point is less than 2nd highest point, end scan
-                if new_max < sorted_history[-2]:
-                    self.is_running = False
-                    self.termination_message("Local max is not increasing")
+            elif new_max < sorted_history[-2]:
+                self.is_running = False
+                self.termination_message("Local max is not increasing")
 
         # termination message if no longer running
         if not self.is_running:
@@ -349,8 +346,7 @@ class ZoomOptimizer:
             percentile_threshold = 1.0 - min_points / xb_array.size
 
         # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
+        percentile_threshold = max(percentile_threshold, 0.0)
 
         # create a threshold to look at the top percentile of xb points
         xb_threshold = xb_array.quantile(percentile_threshold)
