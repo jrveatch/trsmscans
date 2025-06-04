@@ -306,10 +306,9 @@ class PointSampler:
         Prints the total number of points passed filters.
         """
         point_word = "point" + ("s" if self.total_points_run != 1 else "")
-        pass_word = "pass" if self.n_pass != 1 else "passes"
         self.logger.info(
             f"{self.total_points_run} {point_word} generated, "
-            f"{self.n_pass} {pass_word} filters"
+            f"{self.n_pass} passed the filters"
         )
 
 if __name__ == "__main__":
