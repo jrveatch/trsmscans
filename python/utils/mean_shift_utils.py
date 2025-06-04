@@ -78,7 +78,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     means = np.einsum('ij,j->i', XX, nZ)
 
     # Create shifted point
-    shifted_point = Point(model=param_space.model, par_vals={name: value for name, value in zip(param_names, means)})
+    shifted_point = Point(model=param_space.model, par_vals=dict(zip(param_names, means)))
 
     # Update center position
     param_space.reposition_center(shifted_point)
