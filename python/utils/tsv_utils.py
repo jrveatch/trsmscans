@@ -117,7 +117,7 @@ def sort_tsv_file(filename: str,
         reader = csv.DictReader(f, delimiter='\t')
         rows = list(reader)
         headers = reader.fieldnames
-    
+
     if headers is None:
         raise ValueError(f"Could not read headers from {filename}")
 
@@ -156,7 +156,7 @@ def initialize_summary_file(file_name: str,
     header += "\n"
     with open(file_name, 'w') as file:
         file.write(header)
-    
+
 def write_point_to_summary_file(file_name: str,
                                 point: Point,
                                 identifier: Optional[str] = None) -> None:

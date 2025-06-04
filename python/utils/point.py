@@ -135,7 +135,7 @@ class Point:
         Updates existing parameter values from a dictionary.
 
         Only keys already present in the input/output/width parameter dicts will be updated.
-        
+
         Args:
             updates (Dict[str,float]): Dictionary of parameter names and new values.
         """
