@@ -36,7 +36,6 @@ def plot_combination(model:str,
     cbar = plt.colorbar(scatter)
     cbar.set_label('Max xb')
 
-    ax.legend
     output_directory  = f'{output_dir()}/{model}/plots/{decay}'
     output_filename  = f'{output_directory}/{decay}_{identifier}_combination.png'
     os.makedirs(output_directory, exist_ok=True)
