@@ -22,7 +22,6 @@ import pandas as pd
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
-from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
