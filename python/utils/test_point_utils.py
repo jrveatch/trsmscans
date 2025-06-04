@@ -93,8 +93,7 @@ def read_higgsBR(br_file: str):
             higgs_brs[values[0]] = br_array
 
     # sort by increasing value of HYmass
-    sorted_x = sorted(list(higgs_brs.items()), key=operator.itemgetter(0))
-    sorted_higgs_brs = OrderedDict(sorted_x)
+    sorted_higgs_brs = OrderedDict(sorted(higgs_brs.items(), key=operator.itemgetter(0)))
     return sorted_higgs_brs
 
 # minor correction to rescale all BRs to make sure that sum(BRs) = 1
@@ -228,8 +227,7 @@ def read_higgsXS_N3LO(xs_file: str):
             higgs_xss[values[0]] = xs_array
 
     # sort by increasing value of HYmass
-    sorted_x = sorted(list(higgs_xss.items()), key=operator.itemgetter(0))
-    sorted_higgs_xss = OrderedDict(sorted_x)
+    sorted_higgs_xss = OrderedDict(sorted(higgs_xss.items(), key=operator.itemgetter(0)))
     return sorted_higgs_xss
 
 # create interpolators for the XS and return a dictionary
