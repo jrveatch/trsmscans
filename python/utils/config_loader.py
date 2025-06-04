@@ -48,7 +48,7 @@ class ConfigLoader:
 
     def load_config(self,
                     path: str) -> Dict[str, Any]:
-        
+
         """
         Load a YAML configuration file.
 

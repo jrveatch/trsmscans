@@ -199,7 +199,7 @@ class MeanShiftPlotter:
 # Command-line interface to generate mean-shift path plots.
 # Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
 if __name__ == '__main__':
-    
+
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")

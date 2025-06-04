@@ -36,7 +36,7 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
-        
+
         """
         Initialize a Scan instance for parameter space optimization.
 
@@ -241,12 +241,12 @@ class Scan:
         os.chdir(self.out_dir)
 
         # Define helper functions (as inner functions because only for meanshift implementation)
-        
+
         # Returns a list of initial positions for shifters
         def initial_positions(points: int,
                               strategy: str) -> Tuple[Point]:
             results = []
-            
+
             if strategy == 'random':
                 for i in range(points):
                     results.append(self.global_param_space.random_point())

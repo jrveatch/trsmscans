@@ -453,7 +453,7 @@ class Parse:
 
         Specifically retrieves the production cross-section for H3 via gluon-gluon fusion,
         identified by the column 'x_H3_gg'.
-        
+
         Returns:
             pd.Series: Production cross-section values for each filtered point.
         """

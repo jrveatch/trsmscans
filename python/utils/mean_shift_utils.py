@@ -18,7 +18,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     Updates the center value based on weighted sample pairs of X_i and Z.
 
     Args:
-        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names, 
+        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names,
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
         param_space (ParamSpace): Object with a `reposition_center` method to update the center.

@@ -154,7 +154,7 @@ def process_data(df: pd.DataFrame,
         br_BSM = extract_BSM_BRs(row=row,
                                  HName=HName,
                                  SName=SName)
-        
+
         # configure scalars
         configure_particle(particle=H, label="H", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
         configure_particle(particle=S, label="S", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
@@ -279,7 +279,7 @@ def extract_SM_BRs(row: pd.Series,
     return {"H": br_H, "S": br_S, "X": br_X}
 
 def extract_BSM_BRs(row: pd.Series,
-                    HName: str, 
+                    HName: str,
                     SName: str,) -> Dict[str, Dict[Tuple[str, str], float]]:
     """
     Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.

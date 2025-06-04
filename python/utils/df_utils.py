@@ -13,12 +13,12 @@ index_label: str = "idx"
 
 def get_df(file_name: str) -> pd.DataFrame:
     """
-    Load a tab-separated file into a DataFrame and drop the first column 
+    Load a tab-separated file into a DataFrame and drop the first column
     to remove an unwanted index column.
-    
+
     Args:
         file_name (str): Path to the .tsv file.
-    
+
     Returns:
         pd.DataFrame: Cleaned DataFrame without the first column.
     """

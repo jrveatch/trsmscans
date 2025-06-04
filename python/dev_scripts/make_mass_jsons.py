@@ -17,7 +17,7 @@ def create_json (hepdata_path, mass_points_json):
 
 def extract_meta_data (mass_points_json):
     with open(mass_points_json, 'r', encoding=' utf-8') as file:
-        data = json.load(file)     
+        data = json.load(file)
 
     meta_data = {}
     meta_data ['collaboration'] = data['collaboration']
@@ -53,13 +53,13 @@ def extract_expected_limits(hep_data_json: str,
                             mx: int = 0) -> List[Dict[str, Any]]:
     with open(hep_data_json, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
+
     expected_limits = []
-    
+
     for entry in data.get("values", []):
         if "y" in entry and len(entry["y"]) > 0:
-            
-            new_points = {#"mX" : float(entry["x"][0]["value"]), 
+
+            new_points = {#"mX" : float(entry["x"][0]["value"]),
                           "mX" : mx,
                           "mS" : int(entry["x"][0]["value"]),
                           "expected_limit" : float(entry["y"][1]["value"]),
@@ -72,6 +72,6 @@ def extract_expected_limits(hep_data_json: str,
 
 if __name__ == "__main__":
     mass_points_json = "../data/mass_points/SbbHtautau_CMS_old.json"
-    hep_data_path = "../data/hepdata/SbbHtautau_CMS" 
+    hep_data_path = "../data/hepdata/SbbHtautau_CMS"
     #hep_data_path = "../data/hepdata/SHbbbb_CMS_boosted.json" # Replace with the actual JSON filename
     create_json (hep_data_path, mass_points_json)

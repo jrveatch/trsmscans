@@ -121,7 +121,7 @@ def log_table(logger: logging.Logger,
         rows (List[List[Any]]): List of rows, where each row is a list of column values.
         level (int): Logging level (default: logging.INFO).
     """
-    
+
     table_str = format_table(headers, rows)
     extra = {"skip_level": True}
     if logger.isEnabledFor(level):
