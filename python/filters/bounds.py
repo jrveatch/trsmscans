@@ -24,7 +24,8 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 # local modules
-from filters.setup_higgs_tools import *
+import Higgs.predictions as HP
+from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
 from utils.model import Model
 
@@ -131,7 +132,7 @@ def process_data(df: pd.DataFrame,
                                        HName=HName,
                                        SName=SName,
                                        XName=XName)
-        logger.verbose(f'Scalar widths are:')
+        logger.verbose('Scalar widths are:')
         logger.verbose(f'  H: {widths["H"]}')
         logger.verbose(f'  S: {widths["S"]}')
         logger.verbose(f'  X: {widths["X"]}')
