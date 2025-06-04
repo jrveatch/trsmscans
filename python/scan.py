@@ -534,10 +534,7 @@ if __name__ == "__main__":
                        decay=args.decay)
 
     # set up logging
-    if args.log:
-        logfile_name = args.log
-    else:
-        logfile_name = f"{args.strategy}.log"
+    logfile_name = args.log if args.log else f"{args.strategy}.log"
     setup_logging(log_file=os.path.join(out_dir, logfile_name),
                   level=LOG_LEVELS[args.log_level.lower()])
 

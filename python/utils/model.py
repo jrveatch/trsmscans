@@ -206,7 +206,7 @@ class Model:
                 self.particles[key] = {}
 
         # make sure exactly 1 SM-like Higgs is provided
-        if not len(self.particles['SMHiggs']) == 1:
+        if len(self.particles['SMHiggs']) != 1:
             self.logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
             return
 
