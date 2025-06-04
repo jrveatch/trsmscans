@@ -250,7 +250,7 @@ class Scan:
             elif strategy == 'pair':
                 # TODO: Temporary block for this option until it can be fixed using Point
                 raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = random_pos()
+                initial_point = self.global_param_space.random_point()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
                 offsets = [param.width * coeff for param in self.global_param_space]
