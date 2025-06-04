@@ -271,12 +271,9 @@ class PointSampler:
         # Print number of points requested
         self.logger.debug('Generating 1 point')
 
-        try:
-            # Run ScannerS
-            run_scannerS_single_point(ini_name = ini_name,
-                                      model_name = point.model_name)
-        except TimeoutError:
-            raise
+        # Run ScannerS
+        run_scannerS_single_point(ini_name = ini_name,
+                                  model_name = point.model_name)
 
         # Print info about applying filters
         self.logger.debug("Applying filters...")

@@ -34,10 +34,10 @@ try:
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
 except KeyError as e:
-    logger.error(e)
+    logger.exception("Missing configuration key")
     raise
 except Exception as e:
-    logger.error(e)
+    logger.exception(f"Unexpected error: {e}")
     raise
 
 # method to run ScannerS
@@ -83,11 +83,8 @@ def run_scannerS(ini_name: str,
         test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
 
         # run test process
-        try:
-            run_timed_process(process_args=test_process_args,
-                              model_name=model_name)
-        except TimeoutError:
-            raise
+        run_timed_process(process_args=test_process_args,
+                          model_name=model_name)
 
         # print out some information
         logger.debug("Test job was successful")
@@ -152,31 +149,31 @@ def run_scannerS(ini_name: str,
         process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
 
         # run test process
-        try:
-            run_timed_process(process_args=process_args,
-                              model_name=model_name)
-        except TimeoutError:
-            raise
+        run_timed_process(process_args=process_args,
+                          model_name=model_name)
 
     # return number of points that are actually used, including test job points
     return num_points
 
 def run_scannerS_single_point(ini_name: str,
                               model_name: str) -> None:
+    """Runs ScannerS for a single parameter point using the given model configuration.
+
+    Args:
+        ini_name (str): Path to the `.ini` configuration file.
+        model_name (str): Name of the model to be scanned.
+    """
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
-        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+        raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
     process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
 
     # run timed process
-    try:
-        run_timed_process(process_args=process_args,
-                          model_name=model_name)
-    except TimeoutError:
-        raise
+    run_timed_process(process_args=process_args,
+                      model_name=model_name)
 
 # run a process for multiprocessing
 def run_process(process_args: List[str],
@@ -265,7 +262,7 @@ def concatenate_files(directories: List[str],
         logger.debug(f"Successfully concatenated all files into {file_name}")
 
     except Exception as e:
-        logger.error(f"Error during file concatenation: {e}")
+        logger.exception(f"Error during file concatenation: {e}")
         return  # Do not proceed with deleting directories
 
     # If everything worked, proceed to delete directories
@@ -281,14 +278,15 @@ def remove_temp_dir(directory, retries=5, delay=1):
         try:
             shutil.rmtree(directory)
             logger.verbose(f"Successfully removed: {directory}")
-            return
         except OSError as e:
             if 'Directory not empty' in str(e):
                 logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
-    logger.error(f"Failed to remove {directory} after {retries} retries.")
+        else:
+            return
+    logger.exception(f"Failed to remove {directory} after {retries} retries.")
 
 if __name__ == "__main__":
 

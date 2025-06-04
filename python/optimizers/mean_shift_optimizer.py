@@ -71,10 +71,10 @@ class MeanShiftOptimizer:
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
             self.__num_points: int = config_loader.get('meanshift', 'num_points')
         except KeyError as e:
-            self.logger.error(e)
+            self.logger.exception("Missing configuration key")
             raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(f"Unexpected error: {e}")
             raise
 
         # Copy of param space so that multiple instances of ms use global param space

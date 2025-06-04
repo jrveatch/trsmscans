@@ -62,5 +62,5 @@ def write_to_tsv(dataframe: pd.DataFrame,
                          index=True,
                          index_label=index_label)
     except Exception as e:
-        logger.error(f"Error writing to file {file_name}: {e}")
+        logger.exception(f"Error writing to file {file_name}")
         raise
