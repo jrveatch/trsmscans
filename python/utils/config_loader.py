@@ -70,7 +70,7 @@ class ConfigLoader:
         except FileNotFoundError:
             self.logger.exception(f"Configuration file '{path}' not found.")
             raise  # Re-raise the exception to halt the program or handle as needed
-        except yaml.YAMLError as e:
+        except yaml.YAMLError:
             self.logger.exception(f"Failed to parse YAML file '{path}'.")
             raise  # Re-raise to handle upstream
         except Exception as e:
