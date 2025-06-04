@@ -100,7 +100,7 @@ def read_higgsBR(br_file: str):
 def fix_heavy_BRs(heavyBRs: List[float]) -> List[float]:
     sumBRs = 0
     heavyBRs_fixed: List[float] = []
-    for i in range(0,12):
+    for i in range(12):
         sumBRs = sumBRs + heavyBRs[i]
     logger.debug('sumBRs = {sumBRs}')
     for j in range(len(heavyBRs)-1):
