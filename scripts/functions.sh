@@ -12,6 +12,36 @@ remove_var_from_env() {
     fi
 }
 
+# Function to remove a block that modifies PATH from env.sh
+remove_path_blocks_from_env() {
+    awk -v RS= '' "$(cat <<'AWK_EOF'
+BEGIN { skip = 0 }
+/^\s*if\s+\[\[\s+":\$PATH:"\s+!=/ {
+    block = $0 "\n"
+    skip = 1
+    next
+}
+skip {
+    block = block $0 "\n"
+    if ($0 ~ /fi/) {
+        if (block ~ /export PATH=.*\$PATH/) {
+            skip = 0
+            block = ""
+            next
+        } else {
+            printf "%s", block
+            skip = 0
+            block = ""
+            next
+        }
+    }
+    next
+}
+{ print }
+AWK_EOF
+    )" env.sh > env.sh.tmp && mv env.sh.tmp env.sh
+}
+
 # Function to check if an installed version is less than the required version
 version_less_than() {
   local installed_version=$1
