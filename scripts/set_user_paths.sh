@@ -187,6 +187,9 @@ else
 fi
 
 # Append the new PATH setting to env.sh
+echo 'if [[ ":$PATH:" != *":'"${PWD}/python"':"* ]]; then' >> env.sh
+echo '    export PATH="'"${PWD}/python"':$PATH"' >> env.sh
+echo 'fi' >> env.sh
 echo 'if [[ ":$PATH:" != *":'"$scanners_bin_path"':"* ]]; then' >> env.sh
 echo '    export PATH="'"$scanners_bin_path"':$PATH"' >> env.sh
 echo 'fi' >> env.sh
