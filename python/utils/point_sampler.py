@@ -176,7 +176,7 @@ class PointSampler:
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
                                   model_name = param_space.model_name,
-                                  use_multiprocessing=use_multiprocessing)
+                                  use_multiprocessing = use_multiprocessing)
 
             # Update the total points run
             self.total_points_run += points
@@ -188,7 +188,7 @@ class PointSampler:
             results = apply_filters(file_name = temp_tsv,
                                     model = param_space.model,
                                     config_loader = self.config_loader,
-                                    use_multiprocessing=use_multiprocessing)
+                                    use_multiprocessing = use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
