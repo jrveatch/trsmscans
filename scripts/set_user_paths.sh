@@ -164,12 +164,14 @@ submodule_path HSDATASET_PATH "HSDataSet"
 # Call function to handle symlink creation for run/output
 create_output_symlink
 
-# Remove various directories and PATH from env.sh
+# Remove directory variables from env.sh
 remove_var_from_env "DATADIR"
 remove_var_from_env "EXTERNALSDIR"
 remove_var_from_env "CONFIGDIR"
 remove_var_from_env "OUTPUTDIR"
-remove_var_from_env "PATH"
+
+# Remove PATH variables from env.sh
+remove_path_blocks_from_env
 
 # Add various directories to env.sh
 echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
