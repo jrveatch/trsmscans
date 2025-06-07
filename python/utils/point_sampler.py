@@ -133,7 +133,7 @@ class PointSampler:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
         tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
-        temp_tsv = os.path.join(self.out_dir,f"{param_space.model_name}.tsv")
+        temp_tsv = f"{param_space.model_name}.tsv"
 
         # Global variable for number of points
         self.total_points_requested = num_points_requested
