@@ -258,7 +258,7 @@ class PointSampler:
         if identifier:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
-        temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
+        temp_tsv = f"{point.model_name}.tsv"
 
         # Initialize the number of points run
         self.total_points_run = 0
