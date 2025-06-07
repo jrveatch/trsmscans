@@ -113,12 +113,6 @@ def prescan(model: Model,
     # make output directory if it doesn't already exist
     os.makedirs(out_dir, exist_ok=True)
 
-    # store starting directory
-    start_dir = os.getcwd()
-
-    # move into working directory for prescan
-    os.chdir(out_dir)
-
     # print location
     logger.debug(f"Running prescan in {out_dir}")
 
@@ -149,9 +143,6 @@ def prescan(model: Model,
     # get total time taken
     scan_end = time.time()
     scan_time = (scan_end - scan_start)
-
-    # move back to the starting directory
-    os.chdir(start_dir)
 
     # print total time to the screen
     logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")

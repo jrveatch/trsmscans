@@ -181,18 +181,12 @@ def run_process(process_args: List[str],
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
 
-    # get original directory
-    original_dir = os.getcwd()
-
     # change to the temporary directory
     os.chdir(directory)
 
     # run the process with arguments and suppress output
     with open("ScannerS.log", "w") as log:
         subprocess.run(process_args, stdout=log, stderr=log)
-
-    # change back to the original directory
-    os.chdir(original_dir)
 
     # increment the counter and print out how many processes are finished
     with lock:
@@ -240,6 +234,9 @@ def run_timed_process(process_args: List[str],
             # wait 1 second before checking again
             time.sleep(1)
 
+    # clean up artifact files
+    remove_artifact_files()
+
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: List[str],
                       file_name: str) -> None:
@@ -283,6 +280,19 @@ def remove_temp_dir(directory, retries=5, delay=1):
         else:
             return
     logger.exception(f"Failed to remove {directory} after {retries} retries.")
+
+def remove_artifact_files() -> None:
+    """Remove artifact files that are not needed after the scan."""
+    artifact_files = ["HS_analyses.txt",
+                      "HS_correlations.txt",
+                      "Key.dat", "STXS_analyses.txt",
+                      "STXS_correlations.txt",]
+    for file in artifact_files:
+        if os.path.exists(file):
+            os.remove(file)
+            logger.debug(f"Removed artifact file: {file}")
+        else:
+            logger.debug(f"Artifact file {file} does not exist, skipping removal.")
 
 if __name__ == "__main__":
 

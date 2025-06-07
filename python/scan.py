@@ -234,9 +234,6 @@ class Scan:
         # run prescan
         self.run_prescan()
 
-        # move into the working directory for scans
-        os.chdir(self.out_dir)
-
         # Define helper functions (as inner functions because only for meanshift implementation)
 
         # Returns a list of initial positions for shifters
@@ -334,9 +331,6 @@ class Scan:
 
         # run prescan
         self.run_prescan()
-
-        # move into the working directory for scans
-        os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)

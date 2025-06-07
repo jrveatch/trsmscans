@@ -133,7 +133,7 @@ class PointSampler:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
         tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
-        temp_tsv = os.path.join(self.out_dir,f"{param_space.model_name}.tsv")
+        temp_tsv = f"{param_space.model_name}.tsv"
 
         # Global variable for number of points
         self.total_points_requested = num_points_requested
@@ -176,7 +176,7 @@ class PointSampler:
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
                                   model_name = param_space.model_name,
-                                  use_multiprocessing=use_multiprocessing)
+                                  use_multiprocessing = use_multiprocessing)
 
             # Update the total points run
             self.total_points_run += points
@@ -188,7 +188,7 @@ class PointSampler:
             results = apply_filters(file_name = temp_tsv,
                                     model = param_space.model,
                                     config_loader = self.config_loader,
-                                    use_multiprocessing=use_multiprocessing)
+                                    use_multiprocessing = use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
@@ -258,7 +258,7 @@ class PointSampler:
         if identifier:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
-        temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
+        temp_tsv = f"{point.model_name}.tsv"
 
         # Initialize the number of points run
         self.total_points_run = 0
