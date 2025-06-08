@@ -12,19 +12,24 @@ logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def get_n_cpus() -> int:
-    """Determine the number of CPU cores to use for parallel processing.
+    """Return the number of CPUs available for this job.
 
-    If running under an HTCondor job, returns the number of CPUs allocated
-    to the job via the `_CONDOR_NPROCS` environment variable. Otherwise,
-    computes the number of CPUs available locally, reserving some for system use
-    according to default logic or a YAML config file.
-
+    Checks for HTCondor-specific environment variables or fallback values,
+    and adapts to both HTCondor batch and local execution.
+    
     Returns:
-        int: The number of usable CPU cores (at least 1).
+        int: Number of CPUs this job should use.
     """
-    # Case 1: Running on HTCondor
-    if "_CONDOR_NPROCS" in os.environ:
-        return int(os.environ["_CONDOR_NPROCS"])
+    # Case 1: Running under HTCondor
+    for var in ("_CONDOR_NPROCS", "PYTHON_CPU_COUNT", "REQUEST_CPUS", "NUM_CPUS"):
+        val = os.environ.get(var)
+        if val:
+            try:
+                parsed = int(val)
+                logger.debug(f"Detected {parsed} CPUs from {var}.")
+                return parsed
+            except ValueError:
+                logger.warning(f"Environment variable {var} is not an integer: {val}")
 
     # Case 2: Running locally
     total = mp.cpu_count()
