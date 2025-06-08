@@ -3,6 +3,7 @@
 import csv
 import logging
 import os
+import shutil
 import subprocess
 from typing import Optional
 
@@ -70,7 +71,7 @@ def save_tsv_output(input_file: str,
 
     # if output file doesn't exist or is empty, simply rename input file
     if num_existing <= 0:
-        os.rename(input_file,output_file)
+        shutil.move(input_file,output_file)
         return
 
     # otherwise append the contents of input_file to output_file
