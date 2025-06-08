@@ -24,6 +24,8 @@ fi
 if [ -f env.sh ]; then
     source env.sh
 else
+    printf "Creating env.sh and forcing paths, dependencies and venv setup...\n"
+    rm -rf .paths_ok .deps_ok trsm_venv  # Clean up if env.sh doesn't exist
     touch env.sh  # Create env.sh if it doesn't exist
 fi
 
