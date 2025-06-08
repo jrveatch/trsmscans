@@ -12,34 +12,19 @@ remove_var_from_env() {
     fi
 }
 
-# Function to remove a block that modifies PATH from env.sh
-remove_path_blocks_from_env() {
-    awk -v RS= '' "$(cat <<'AWK_EOF'
-BEGIN { skip = 0 }
-/^\s*if\s+\[\[\s+":\$PATH:"\s+!=/ {
-    block = $0 "\n"
-    skip = 1
-    next
-}
-skip {
-    block = block $0 "\n"
-    if ($0 ~ /fi/) {
-        if (block ~ /export PATH=.*\$PATH/) {
-            skip = 0
-            block = ""
-            next
-        } else {
-            printf "%s", block
-            skip = 0
-            block = ""
-            next
-        }
-    }
-    next
-}
-{ print }
-AWK_EOF
-    )" env.sh > env.sh.tmp && mv env.sh.tmp env.sh
+# Function to remove blocks that modify PATH from env.sh
+remove_path_block_from_env() {
+    if [ "$(uname)" = "Darwin" ]; then
+        # macOS: looping version to remove all PATH blocks
+        while grep -q 'if \[\[ ":$PATH:" != \*' env.sh; do
+            sed -i '' '/if \[\[ ":$PATH:" != \*/{N;N;/export PATH=.*\$PATH/;N;/fi/d;}' env.sh
+        done
+    else
+        # Linux: looping version to remove all PATH blocks
+        while grep -q 'if \[\[ ":$PATH:" != \*' env.sh; do
+            sed -i '/if \[\[ ":$PATH:" != \*/{N;N;/export PATH=.*\$PATH/;N;/fi/d;}' env.sh
+        done
+    fi
 }
 
 # Function to check if an installed version is less than the required version
