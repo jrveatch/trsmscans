@@ -174,10 +174,10 @@ remove_var_from_env "OUTPUTDIR"
 remove_path_blocks_from_env
 
 # Add various directories to env.sh
-echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
-echo "export EXTERNALSDIR=\"${PWD}/externals/\"" >> env.sh
-echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
-echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
+echo "export DATADIR=\"${PWD}/data\"" >> env.sh
+echo "export EXTERNALSDIR=\"${PWD}/externals\"" >> env.sh
+echo "export CONFIGDIR=\"${PWD}/config\"" >> env.sh
+echo "export OUTPUTDIR=\"${PWD}/run/output\"" >> env.sh
 
 # Ensure SCANNERS_PATH is set correctly
 if [ -n "${SCANNERS_PATH:-}" ] && [ -d "$SCANNERS_PATH/build" ]; then
