@@ -2,6 +2,7 @@
 # standard libraries
 import logging
 import os
+import sys
 from typing import Any, List
 
 # Define the numeric value for VERBOSE
@@ -68,7 +69,7 @@ def setup_logging(log_file: str,
 
     # Create handlers
     file_handler = logging.FileHandler(log_file, mode='w') # File handler
-    console_handler = logging.StreamHandler() # Console handler
+    console_handler = logging.StreamHandler(sys.stdout) # Console handler
 
     # Use the custom formatter
     formatter = CustomFormatter(log_format)
