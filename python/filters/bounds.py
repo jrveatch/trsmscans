@@ -24,6 +24,7 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 # local modules
+from utils.cpu_utils import get_n_cpus
 import Higgs.predictions as HP
 from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
@@ -35,8 +36,6 @@ logger = logging.getLogger(__name__)
 # get configurations
 config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
-    # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
 except Exception as e:
@@ -64,7 +63,7 @@ def filter_bounds(dataframe: pd.DataFrame,
 
     n_workers = 1
     if use_multiprocessing:
-        n_workers = int(mp.cpu_count()*frac_cpu)
+        n_workers = get_n_cpus()
     dataframe[header_bounds], dataframe[header_signals] = run_processing(df=dataframe,
                                                                          model=model,
                                                                          n_workers=n_workers)
