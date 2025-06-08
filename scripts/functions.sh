@@ -15,28 +15,31 @@ remove_var_from_env() {
 # Function to remove blocks that modify PATH from env.sh
 remove_path_blocks_from_env() {
     awk '
-    BEGIN { skip = 0 }
-    /^\s*if\s+\[\[\s+":\$PATH:"\s+!=/ {
+    BEGIN { in_block = 0; block = "" }
+    /^if \[\[ ":[$]PATH:" != \*/ {
+        in_block = 1
         block = $0 "\n"
-        skip = 1
         next
     }
-    skip {
+    in_block {
         block = block $0 "\n"
-        if ($0 ~ /fi/) {
-            if (block ~ /export PATH=.*\$PATH/) {
-                skip = 0
+        if ($0 ~ /^fi$/) {
+            if (block ~ /export PATH=.*[$]PATH/) {
+                # skip printing the block
+                in_block = 0
                 block = ""
                 next
             } else {
+                # print the block if it did not match the export rule
                 printf "%s", block
-                skip = 0
+                in_block = 0
                 block = ""
                 next
             }
         }
         next
     }
+    # default print
     { print }
     ' env.sh > env.sh.tmp && mv env.sh.tmp env.sh
 }
