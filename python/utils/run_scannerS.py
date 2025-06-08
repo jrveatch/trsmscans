@@ -17,6 +17,7 @@ from blessings import Terminal
 
 # local modules
 from utils.config_loader import ConfigLoader
+from utils.cpu_utils import get_n_cpus
 from utils.env_utils import data_dir
 from utils.tsv_utils import save_tsv_output
 
@@ -26,8 +27,6 @@ logger = logging.getLogger(__name__)
 # get configurations
 config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
-    # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum number of points per job
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
@@ -50,7 +49,7 @@ def run_scannerS(ini_name: str,
     num_processes = 1
 
     # get number of available CPUs
-    num_cpu = mp.cpu_count()
+    num_cpu = get_n_cpus()
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
@@ -88,8 +87,8 @@ def run_scannerS(ini_name: str,
         # number of points left to run after test job
         points_to_run = num_points - min_points_per_job
 
-        # set number of processes to 80% of the available cores rounded down
-        num_processes = int(num_cpu * frac_cpu)
+        # set number of processes to the number of allowed CPUs
+        num_processes = num_cpu
 
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
