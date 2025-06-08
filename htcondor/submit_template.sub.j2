@@ -1,0 +1,8 @@
+executable           = {{ job_script }}
+output               = {{ logsdir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
+error                = {{ logsdir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
+log                  = {{ logsdir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
+transfer_input_files = ../env.sh
+request_cpus         = 16
++JobFlavor           = "espresso"
+queue
