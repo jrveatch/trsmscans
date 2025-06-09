@@ -29,7 +29,9 @@ def render_template(template_file: Path, context: dict) -> str:
 
 def make_dirs(model: str,
               decay: str) -> None:
-    logs_dir(model, decay).mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, decay) / "out").mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, decay) / "log").mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, decay) / "err").mkdir(parents=True, exist_ok=True)
     submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
 
 def scan_htcondor(model: str,
