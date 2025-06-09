@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 from jinja2 import Template
 
-from utils.env_utils.py import htcondor_dir
+from utils.env_utils import htcondor_dir
 
 TEMPLATES_DIR = Path(htcondor_dir()) / "templates"
 LOGS_DIR = Path(htcondor_dir()) / "logs"
