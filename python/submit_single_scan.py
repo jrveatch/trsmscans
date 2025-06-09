@@ -46,7 +46,7 @@ def submit_single_mass(model: str,
     # Render condor submit file
     submit_file = render_template(
         TEMPLATES_DIR / "submit_template.sub.j2",
-        {"job_script": job_script_path.name,
+        {"job_script": job_script_path,
          "logs_dir": LOGS_DIR,
          "model": model,
          "xmass": xmass,
