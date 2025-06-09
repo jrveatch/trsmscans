@@ -24,7 +24,9 @@ def submit_single_mass(model: str,
                        smass: float,
                        decay: str,
                        strategy: str,
-                       num_points: int) -> None:
+                       num_points: int,
+                       num_cpus: int,
+                       job_length: str) -> None:
     job_name = f"job_{model}_{decay}_{xmass}_{smass}"
 
     make_dirs()
@@ -51,7 +53,9 @@ def submit_single_mass(model: str,
          "model": model,
          "xmass": xmass,
          "smass": smass,
-         "decay": decay}
+         "decay": decay,
+         "num_cpus": num_cpus,
+         "job_length": job_length}
     )
     submit_file_path.write_text(submit_file)
 
@@ -59,6 +63,16 @@ def submit_single_mass(model: str,
     subprocess.run(["condor_submit", str(submit_file_path)], check=True)
 
 if __name__ == "__main__":
+
+    job_lengths = {
+        'espresso': '00:20:00',
+        'microcentury': '01:00:00',
+        'longlunch': '02:00:00',
+        'workday': '08:00:00',
+        'tomorrow': '24:00:00',
+        'testmatch': '72:00:00',
+        'nextweek': '168:00:00'
+    }
 
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -68,6 +82,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num_points", default=10000, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-c", "--num_cpus", default=8, type=int, help="Number of CPUs to request for the job")
+    arg_parser.add_argument("-l", "--job_length", default='microcentury', type=str, choices=job_lengths.keys(), help="HTConfor job length strategy")
     args = arg_parser.parse_args()
 
     submit_single_mass(model=args.model,
@@ -75,4 +91,6 @@ if __name__ == "__main__":
                        smass=args.SMass,
                        decay=args.decay,
                        strategy=args.strategy,
-                       num_points=args.num_points)
+                       num_points=args.num_points,
+                       num_cpus=args.num_cpus,
+                       job_length=args.job_length)

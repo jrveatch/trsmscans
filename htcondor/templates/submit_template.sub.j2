@@ -3,6 +3,6 @@ output               = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{
 error                = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
 log                  = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
 transfer_input_files = ../env.sh
-request_cpus         = 16
-+JobFlavor           = "espresso"
+request_cpus         = {{ num_cpus }}
++JobFlavor           = "{{ job_length }}"
 queue
