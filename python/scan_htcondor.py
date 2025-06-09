@@ -40,7 +40,8 @@ def scan_htcondor(model: str,
                   num_points: int,
                   num_cpus: int,
                   job_length: str) -> None:
-    job_name = f"job_{model}_{decay}_{xmass}_{smass}"
+
+    job_name = f"job_{model}_{decay}_X{int(xmass)}_S{int(smass)}"
 
     make_dirs(model, decay)
 
@@ -71,6 +72,8 @@ def scan_htcondor(model: str,
          "job_length": job_length}
     )
     submit_file_path.write_text(submit_file)
+
+    print(f"Submitting HTCondor job: {job_name}")
 
     # Submit the job
     subprocess.run(["condor_submit", str(submit_file_path)], check=True)
