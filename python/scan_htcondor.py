@@ -32,14 +32,14 @@ def make_dirs(model: str,
     logs_dir(model, decay).mkdir(parents=True, exist_ok=True)
     submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
 
-def submit_single_mass(model: str,
-                       xmass: float,
-                       smass: float,
-                       decay: str,
-                       strategy: str,
-                       num_points: int,
-                       num_cpus: int,
-                       job_length: str) -> None:
+def scan_htcondor(model: str,
+                  xmass: float,
+                  smass: float,
+                  decay: str,
+                  strategy: str,
+                  num_points: int,
+                  num_cpus: int,
+                  job_length: str) -> None:
     job_name = f"job_{model}_{decay}_{xmass}_{smass}"
 
     make_dirs(model, decay)
@@ -99,11 +99,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("-l", "--job_length", default='microcentury', type=str, choices=job_lengths.keys(), help="HTConfor job length strategy")
     args = arg_parser.parse_args()
 
-    submit_single_mass(model=args.model,
-                       xmass=args.XMass,
-                       smass=args.SMass,
-                       decay=args.decay,
-                       strategy=args.strategy,
-                       num_points=args.num_points,
-                       num_cpus=args.num_cpus,
-                       job_length=args.job_length)
+    scan_htcondor(model=args.model,
+                  xmass=args.XMass,
+                  smass=args.SMass,
+                  decay=args.decay,
+                  strategy=args.strategy,
+                  num_points=args.num_points,
+                  num_cpus=args.num_cpus,
+                  job_length=args.job_length)
