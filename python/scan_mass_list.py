@@ -38,7 +38,7 @@ def scan_mass_list(model: str,
             "-s", "zoom",
             "-n", "10000"
         ]
-        result = subprocess.run([command, *arg_list], text=True)
+        subprocess.run([command, *arg_list], text=True)
 
 if __name__ == "__main__":
 
