@@ -96,7 +96,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num_points", default=10000, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-c", "--num_cpus", default=16, type=int, help="Number of CPUs to request for the job")
-    arg_parser.add_argument("-l", "--job_length", default='microcentury', type=str, choices=job_lengths.keys(), help="HTConfor job length strategy")
+    arg_parser.add_argument("-l", "--job_length", default='microcentury', type=str, choices=job_lengths.keys(), help="HTCondor job length strategy")
     args = arg_parser.parse_args()
 
     scan_htcondor(model=args.model,
