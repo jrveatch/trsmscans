@@ -8,16 +8,29 @@ from jinja2 import Template
 from utils.env_utils import htcondor_dir
 
 TEMPLATES_DIR = Path(htcondor_dir()) / "templates"
-LOGS_DIR = Path(htcondor_dir()) / "logs"
-SUBMISSIONS_DIR = Path(htcondor_dir()) / "submissions"
+
+def logs_dir(model: str,
+             decay: str) -> Path:
+    """
+    Returns the directory where HTCondor logs are stored.
+    """
+    return Path(htcondor_dir()) / "logs" / model / decay
+
+def submissions_dir(model: str,
+                    decay: str) -> Path:
+    """
+    Returns the directory where HTCondor submission files are stored.
+    """
+    return Path(htcondor_dir()) / "submissions" / model / decay
 
 def render_template(template_file: Path, context: dict) -> str:
     with open(template_file) as f:
         return Template(f.read()).render(context)
 
-def make_dirs() -> None:
-    LOGS_DIR.mkdir(exist_ok=True)
-    SUBMISSIONS_DIR.mkdir(exist_ok=True)
+def make_dirs(model: str,
+              decay: str) -> None:
+    logs_dir(model, decay).mkdir(parents=True, exist_ok=True)
+    submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
 
 def submit_single_mass(model: str,
                        xmass: float,
@@ -29,11 +42,11 @@ def submit_single_mass(model: str,
                        job_length: str) -> None:
     job_name = f"job_{model}_{decay}_{xmass}_{smass}"
 
-    make_dirs()
+    make_dirs(model, decay)
 
     # Paths
-    job_script_path = SUBMISSIONS_DIR / f"{job_name}.sh"
-    submit_file_path = SUBMISSIONS_DIR / f"{job_name}.sub"
+    job_script_path = submissions_dir(model, decay) / f"{job_name}.sh"
+    submit_file_path = submissions_dir(model, decay) / f"{job_name}.sub"
 
     # Render shell script
     job_script = render_template(TEMPLATES_DIR / "job_template.sh.j2", {"xmass": xmass,
@@ -49,7 +62,7 @@ def submit_single_mass(model: str,
     submit_file = render_template(
         TEMPLATES_DIR / "submit_template.sub.j2",
         {"job_script": job_script_path,
-         "logs_dir": LOGS_DIR,
+         "logs_dir": logs_dir(model, decay),
          "model": model,
          "xmass": xmass,
          "smass": smass,
