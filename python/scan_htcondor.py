@@ -64,10 +64,7 @@ def scan_htcondor(model: str,
         TEMPLATES_DIR / "submit_template.sub.j2",
         {"job_script": job_script_path,
          "logs_dir": logs_dir(model, decay),
-         "model": model,
-         "xmass": xmass,
-         "smass": smass,
-         "decay": decay,
+         "job_name": job_name,
          "num_cpus": num_cpus,
          "job_length": job_length}
     )

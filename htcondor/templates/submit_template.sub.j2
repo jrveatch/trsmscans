@@ -1,7 +1,7 @@
 executable           = {{ job_script }}
-output               = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
-error                = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
-log                  = {{ logs_dir }}/job_{{ model }}_{{ decay }}_{{ xmass }}_{{ smass }}.out
+output               = {{ logs_dir }}/{{ job_name }}.out
+error                = {{ logs_dir }}/{{ job_name }}.err
+log                  = {{ logs_dir }}/{{ job_name }}.log
 transfer_input_files = ../env.sh
 request_cpus         = {{ num_cpus }}
 +JobFlavor           = "{{ job_length }}"
