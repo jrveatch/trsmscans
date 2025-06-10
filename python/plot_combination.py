@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
-import scipy.interpolate as spi
+from scipy.interpolate import griddata
 from typing import Tuple
 
 from utils.env_utils import output_dir
@@ -27,11 +27,8 @@ def plot_xb_max(model: str,
     # Load data from the TSV file
     x_values, y_values, z_values = load_data(input_file_name)
 
-    xi = np.linspace(min(x_values), max(x_values), 231)
-    yi = np.linspace(min(y_values), max(y_values), 100)
-    Xi, Yi = np.meshgrid(xi, yi)
-
-    Zi = spi.griddata((x_values, y_values), z_values, (Xi, Yi), method='linear')
+    # Get the interpolated grid
+    Xi, Yi, Zi = interpolate_grid(x_values, y_values, z_values, resolution=(200, 200))
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -76,6 +73,29 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     except Exception as e:
         raise RuntimeError(f"Failed to read or parse data from {file_path}: {e}")
+
+def interpolate_grid(x: np.ndarray,
+                     y: np.ndarray,
+                     z: np.ndarray, 
+                     resolution: tuple[int, int]=(200, 200)
+                    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Create interpolated 2D grid from scattered data points.
+
+    Args:
+        x (np.ndarray): 1D array of x-coordinates.
+        y (np.ndarray): 1D array of y-coordinates.
+        z (np.ndarray): 1D array of values at the (x, y) coordinates.
+        resolution (tuple[int, int]): Resolution of the output grid.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: Meshgrid arrays (Xi, Yi) and interpolated values (Zi).
+    """
+    xi = np.linspace(x.min(), x.max(), resolution[0])
+    yi = np.linspace(y.min(), y.max(), resolution[1])
+    Xi, Yi = np.meshgrid(xi, yi)
+    Zi = griddata((x, y), z, (Xi, Yi), method='linear')
+    return Xi, Yi, Zi
 
 if __name__ =="__main__":
 
