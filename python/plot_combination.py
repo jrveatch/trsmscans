@@ -4,7 +4,7 @@ import argparse
 import os
 import numpy as np
 import scipy.interpolate as spi
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 from utils.env_utils import output_dir
@@ -57,4 +57,6 @@ if __name__ =="__main__":
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
     args = arg_parser.parse_args()
 
-    plot_combination(model = args.model, decay=args.decay, identifier=args.identifier)
+    plot_combination(model = args.model,
+                     decay=args.decay,
+                     identifier=args.identifier)
