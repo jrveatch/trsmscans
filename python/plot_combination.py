@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import numpy as np
 import scipy.interpolate as spi
 import matplotlib.pyplot as plt # type: ignore
@@ -7,9 +8,15 @@ from utils.env_utils import output_dir
 import argparse
 import os
 
-def plot_combination(model:str,
-                     decay:str,
-                     identifier:str):
+def plot_combination(model :str,
+                     decay: str,
+                     identifier: str) -> None:
+
+    plot_xb_max(model=model, decay=decay, identifier=identifier)
+    
+def plot_xb_max(model: str,
+                decay: str,
+                identifier: str) -> None:
 
     filename = f'{output_dir()}/{model}/scan/{decay}/{decay}_{identifier}_combination.tsv'
     columns = np.genfromtxt(filename, delimiter='\t' , skip_header=1)
@@ -42,9 +49,11 @@ def plot_combination(model:str,
     fig.savefig(output_filename)
 
 if __name__ =="__main__":
+
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
     args = arg_parser.parse_args()
+
     plot_combination(model = args.model, decay=args.decay, identifier=args.identifier)
