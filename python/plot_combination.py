@@ -56,7 +56,7 @@ def xb_max_label() -> str:
     Returns:
         str: The label for the xb_max plot.
     """
-    return r"Max $\sigma\times BR$ [fb]"
+    return r"Max $\sigma\times BR$ [pb]"
 
 def mass_label(particle: str) -> str:
     """
