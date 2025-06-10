@@ -95,7 +95,7 @@ def write_combination_row(input_path: str,
         print(f"No data rows in {input_path}. Skipping.")
         return
 
-    write_header = not os.path.isfile(output_path) or os.stat(output_path).st_size == 0
+    write_header = not os.path.exists(output_path) or os.path.getsize(output_path) == 0
 
     with open(output_path, 'a') as output_file:
         if write_header:
