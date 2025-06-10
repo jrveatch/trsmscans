@@ -31,11 +31,10 @@ def combine_results(model: str,
         for XMass, SMass, resolvable in permutations:
 
             # Get the directory for the mass point
-            directory = os.path.join(output_dir(),model,"scan",decay,f"X{int(XMass)}_S{int(SMass)}")
+            decay_used = decay if resolvable else get_non_resolvable_decay(decay)
+            directory = os.path.join(output_dir(), model, "scan", decay_used, f"X{int(XMass)}_S{int(SMass)}")
 
-            # If mass point isn't resolvable, use the non-resolvable decay
-            if not resolvable:
-                directory = os.path.join(output_dir(),model,"scan",get_non_resolvable_decay(decay),f"X{int(XMass)}_S{int(SMass)}")
+            # Skip if the directory does not exist
             if not os.path.isdir(directory):
                 print(f"Directory {directory} does not exist. Skipping.")
                 continue
