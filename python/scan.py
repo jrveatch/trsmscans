@@ -354,6 +354,7 @@ class Scan:
 
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
+        #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
         # list of which zoom optimizers are running
         running_list = [True]
@@ -376,7 +377,7 @@ class Scan:
 
             running_list = []
 
-            '''for zoom_optimizer in all_zoom_optimizers:
+            for zoom_optimizer in all_zoom_optimizers:
 
                 if zoom_optimizer.is_running:
 
@@ -390,7 +391,7 @@ class Scan:
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
-            '''
+            
             # count iteration
             iter += 1
 
@@ -410,6 +411,8 @@ class Scan:
         Args:
             num_points (int): Number of points to use in the first iteration.
         """
+
+        self.logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
 
         # Dictionary that will hold the values of the parameters
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
@@ -536,6 +539,16 @@ class Scan:
 
     def create_zoom_optimizers(self, param_space: ParamSpace, num_points: int) -> List[ZoomOptimizer]:
 
+        """
+        Create list of zoom optimizers based on the parameter space.
+
+        Args:
+            param_space (ParamSpace): Global parameter space
+            num_points (int): Number of points to use in the first iteration.
+        """
+
+        self.logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
+
         # Retrieve the list of param spaces
         list_of_param_spaces = self.get_param_spaces(param_space)
 
@@ -543,8 +556,6 @@ class Scan:
         all_zoom_optimizers: List['ZoomOptimizer'] = []
 
         points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
-
-        print(points_per_optimizer_list)
 
         # Create zoom optimizers based on param spaces
         for i, space in enumerate(list_of_param_spaces):
@@ -565,7 +576,7 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
-    def distribute_points(self, param_space_list: List[ParamSpace], num_points: int) -> List[int]:
+    def distribute_points(self, param_space_list: List[ParamSpace], num_points: int) -> Tuple[int]:
 
         # Retrieve number of param spaces
         num_param_spaces = len(param_space_list)
@@ -576,31 +587,23 @@ class Scan:
         # Retrieve total volume of all param spaces
         total_volume = volumes.sum()
 
-        # Initialize each scanner in the list with at least one point
-        points_per_optimizer_array = np.ones(num_param_spaces, dtype=int)
-
-        # Points left to distribute after giving each param space 1 point
-        points_to_allocate = num_points - num_param_spaces
-
         # Calculate volume by points & how many points each zoom optimizer scans
-        points_per_vol_array = (volumes / total_volume) * points_to_allocate
-        points_array = np.floor(points_per_vol_array).astype(int)
+        points_per_vol_array = (volumes / total_volume) * num_points
 
-        # Update points per optimizer & calculate remaining points needed to distribute
-        points_per_optimizer_array= points_per_optimizer_array + points_array
-        remaining_points = points_to_allocate - points_array.sum()
+        # Round the number of points needed for the scan
+        points_array = np.round(points_per_vol_array, decimals=0, out=None).astype(int)
 
-        # Fraction of the spaces based on remaining point
-        fractions = points_per_vol_array - points_array
-
-        # Sort by descending size of param spaces
-        indices = np.argsort(-fractions)
+        # Assign rounded points to the points_per_optimizer_array
+        points_per_optimizer_array = points_array
 
         # Distribute remaining points to indices by param space volume size
-        for i in indices[:remaining_points]:
-            points_per_optimizer_array[i] += 1
-        
-        return points_per_optimizer_array.tolist()
+        for i in range(num_param_spaces):
+    
+            if points_array[i] < 20:
+                points_per_optimizer_array[i] = 20
+            
+        # Return to call
+        return tuple(points_per_optimizer_array.tolist())
        
     def finalize(self,
                  optimization: str,
