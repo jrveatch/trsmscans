@@ -7,7 +7,6 @@ import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
-from scipy.ndimage import gaussian_filter
 from typing import Tuple
 
 from utils.env_utils import output_dir
@@ -112,7 +111,6 @@ def interpolate_grid(x: np.ndarray,
     yi = np.linspace(y.min(), y.max(), resolution[1])
     Xi, Yi = np.meshgrid(xi, yi)
     Zi = griddata((x, y), z, (Xi, Yi), method='linear')
-    Zi = gaussian_filter(Zi, sigma=1.0)  # Smooth the interpolated data
     return Xi, Yi, Zi
 
 if __name__ =="__main__":
