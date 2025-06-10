@@ -8,6 +8,8 @@ from utils.file_utils import output_dir
 from utils.mass_permutations import get_mass_permutations
 from utils.tsv_utils import parse_tsv_file
 
+HIGGS_MASS = 125.09
+
 def combine_results(model: str,
                     decay: str,
                     identifier: str,
@@ -24,8 +26,9 @@ def combine_results(model: str,
 
     permutations = get_mass_permutations(decay=decay, identifier=identifier)
 
-    combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_combination.tsv")
-    tsv_combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_tsv_combination.tsv")
+    scan_dir = os.path.join(output_dir(), model, "scan")
+    combination_file_name = os.path.join(scan_dir, decay, f"{decay}_{identifier}_combination.tsv")
+    tsv_combination_file_name = os.path.join(scan_dir, decay, f"{decay}_{identifier}_tsv_combination.tsv")
 
     # Clear output files if they already exist
     open(combination_file_name, 'w').close()
@@ -35,22 +38,18 @@ def combine_results(model: str,
 
         # Get the directory for the mass point
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
-        directory = os.path.join(output_dir(), model, "scan", decay_used, f"X{int(XMass)}_S{int(SMass)}")
+        directory = os.path.join(scan_dir, decay_used, f"X{int(XMass)}_S{int(SMass)}")
 
         # Skip if the directory does not exist
         if not os.path.isdir(directory):
             print(f"Directory {directory} does not exist. Skipping.")
             continue
 
-        # Process summary .tsv files in the directory
-        for file in os.listdir(directory):
-
-            # Skip files that don't match the expected naming convention
-            if not (file.endswith(".tsv") and file.startswith(f"summary_{optimization}")):
-                continue
+        # Process summary .tsv files in the directory and skip if they don't match the expected naming convention
+        for file in (f for f in os.listdir(directory) if is_summary_file(f, optimization)):
 
             # Combine tsv summary files
-            if file.startswith(f'summary_{optimization}_tsv'):
+            if file.startswith(f"summary_{optimization}_tsv"):
                 write_combination_row(
                     input_path=os.path.join(directory, file),
                     output_path=tsv_combination_file_name,
@@ -63,7 +62,7 @@ def combine_results(model: str,
                     input_path=os.path.join(directory, file),
                     output_path=combination_file_name,
                     header_prefix="XMass\tSMass\tHMass\t",
-                    row_prefix=f"{float(XMass)}\t{float(SMass)}\t125.09\t",
+                    row_prefix=f"{float(XMass)}\t{float(SMass)}\t{HIGGS_MASS}\t",
                     skip_last_col=True
                 )
 
@@ -99,7 +98,10 @@ def write_combination_row(input_path: str,
         print(f"No data rows in {input_path}. Skipping.")
         return
 
-    write_header = not os.path.exists(output_path) or os.path.getsize(output_path) == 0
+    try:
+        write_header = os.path.getsize(output_path) == 0
+    except FileNotFoundError:
+        write_header = True
 
     with open(output_path, 'a') as output_file:
         if write_header:
@@ -107,6 +109,18 @@ def write_combination_row(input_path: str,
 
         last_row_values = [rows[-1].get(h, "") for h in headers]
         output_file.write(row_prefix + "\t".join(last_row_values) + "\n")
+
+def is_summary_file(file_name: str,
+                    optimization: str) -> bool:
+    """
+    Checks if a file is a summary file for the specified optimization strategy.
+    Args:
+        file_name (str): Name of the file to check.
+        optimization (str): Optimization strategy used in the scan, e.g., 'zoom' or 'meanshift'.
+    Returns:
+        bool: True if the file is a summary file for the specified optimization strategy, False otherwise.
+    """
+    return file_name.endswith(".tsv") and file_name.startswith(f"summary_{optimization}")
 
 if __name__ == "__main__":
 
