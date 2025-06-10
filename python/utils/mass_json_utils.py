@@ -21,16 +21,15 @@ def get_mass_permutations(decay: str,
 
     permutations_file = os.path.join(data_dir(),"mass_points",f"{decay}_{identifier}.json")
 
-    permutations: List[Tuple[int, int, bool]] = []
-
     # Read permutations
     try:
         with open(permutations_file, 'r') as perm_file:
             data = json.load(perm_file)
-            for mass_point in data["mass_points"]:
-                permutations.append((mass_point["mX"], mass_point["mS"], mass_point["resolvable"]))
+            permutations = [
+                (p["mX"], p["mS"], p["resolvable"]) 
+                for p in data["mass_points"]
+            ]
+        return permutations
     except Exception as e:
         print(f"Error reading permutations file {permutations_file}: {e}")
         raise
-
-    return permutations
