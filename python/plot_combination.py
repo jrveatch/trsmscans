@@ -2,11 +2,12 @@
 
 import argparse
 import os
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
 import scipy.interpolate as spi
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+from typing import Tuple
 
 from utils.env_utils import output_dir
 
@@ -20,6 +21,7 @@ def plot_xb_max(model: str,
                 decay: str,
                 identifier: str) -> None:
 
+    # Combination .tsv file name
     filename = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
 
     # Load data from the TSV file
@@ -48,7 +50,7 @@ def plot_xb_max(model: str,
     os.makedirs(output_directory, exist_ok=True)
     fig.savefig(output_filename)
 
-def load_data(file_path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Load XMass, SMass, and MaxXB from a TSV file using column names.
 
