@@ -27,45 +27,41 @@ def combine_results(model: str,
     combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_combination.tsv")
     tsv_combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_tsv_combination.tsv")
 
-    try:
-        for XMass, SMass, resolvable in permutations:
+    for XMass, SMass, resolvable in permutations:
 
-            # Get the directory for the mass point
-            decay_used = decay if resolvable else get_non_resolvable_decay(decay)
-            directory = os.path.join(output_dir(), model, "scan", decay_used, f"X{int(XMass)}_S{int(SMass)}")
+        # Get the directory for the mass point
+        decay_used = decay if resolvable else get_non_resolvable_decay(decay)
+        directory = os.path.join(output_dir(), model, "scan", decay_used, f"X{int(XMass)}_S{int(SMass)}")
 
-            # Skip if the directory does not exist
-            if not os.path.isdir(directory):
-                print(f"Directory {directory} does not exist. Skipping.")
+        # Skip if the directory does not exist
+        if not os.path.isdir(directory):
+            print(f"Directory {directory} does not exist. Skipping.")
+            continue
+
+        # Process summary .tsv files in the directory
+        for file in os.listdir(directory):
+
+            # Skip files that don't match the expected naming convention
+            if not (file.endswith(".tsv") and file.startswith(f"summary_{optimization}")):
                 continue
 
-            # Process summary .tsv files in the directory
-            for file in os.listdir(directory):
+            # Combine tsv summary files
+            if file.startswith(f'summary_{optimization}_tsv'):
+                write_combination_row(
+                    input_path=os.path.join(directory, file),
+                    output_path=tsv_combination_file_name,
+                    skip_first_col=True
+                )
 
-                # Skip files that don't match the expected naming convention
-                if not (file.endswith(".tsv") and file.startswith(f"summary_{optimization}")):
-                    continue
-
-                # Combine tsv summary files
-                if file.startswith(f'summary_{optimization}_tsv'):
-                    write_combination_row(
-                        input_path=os.path.join(directory, file),
-                        output_path=tsv_combination_file_name,
-                        skip_first_col=True
-                    )
-
-                # Combine summary files
-                else:
-                    write_combination_row(
-                        input_path=os.path.join(directory, file),
-                        output_path=combination_file_name,
-                        header_prefix="XMass\tSMass\tHMass\t",
-                        row_prefix=f"{float(XMass)}\t{float(SMass)}\t125.09\t",
-                        skip_last_col=True
-                    )
-
-    except Exception as e:
-        print(f"Error writing to output file {combination_file_name}: {e}")
+            # Combine summary files
+            else:
+                write_combination_row(
+                    input_path=os.path.join(directory, file),
+                    output_path=combination_file_name,
+                    header_prefix="XMass\tSMass\tHMass\t",
+                    row_prefix=f"{float(XMass)}\t{float(SMass)}\t125.09\t",
+                    skip_last_col=True
+                )
 
 def write_combination_row(input_path: str,
                           output_path: str,
