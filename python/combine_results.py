@@ -129,7 +129,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Set identifier")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", required=True, type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
     combine_results(model=args.model,
