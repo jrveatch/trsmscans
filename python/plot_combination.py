@@ -3,6 +3,7 @@
 import argparse
 import os
 import numpy as np
+import pandas as pd
 import scipy.interpolate as spi
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -20,11 +21,9 @@ def plot_xb_max(model: str,
                 identifier: str) -> None:
 
     filename = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
-    columns = np.genfromtxt(filename, delimiter='\t', skip_header=1)
 
-    x_values = columns[:,0]
-    y_values = columns[:,1]
-    z_values = columns[:,3]
+    # Load data from the TSV file
+    x_values, y_values, z_values = load_data(filename)
 
     xi = np.linspace(min(x_values), max(x_values), 231)
     yi = np.linspace(min(y_values), max(y_values), 100)
@@ -48,6 +47,33 @@ def plot_xb_max(model: str,
     output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
     os.makedirs(output_directory, exist_ok=True)
     fig.savefig(output_filename)
+
+def load_data(file_path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Load XMass, SMass, and MaxXB from a TSV file using column names.
+
+    Args:
+        file_path (str): Path to the TSV file.
+
+    Returns:
+        tuple: Three numpy arrays containing XMass, SMass, and MaxXB.
+
+    Raises:
+        RuntimeError: If the file cannot be read or parsed correctly.
+    """
+    try:
+        df = pd.read_csv(file_path, sep='\t')
+        required_cols = {'XMass', 'SMass', 'xbmax'}
+        if not required_cols.issubset(df.columns):
+            raise ValueError(f"TSV file must contain columns: {required_cols}")
+        
+        x = df['XMass'].to_numpy()
+        y = df['SMass'].to_numpy()
+        z = df['xbmax'].to_numpy()
+        return x, y, z
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to read or parse data from {file_path}: {e}")
 
 if __name__ =="__main__":
 
