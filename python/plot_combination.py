@@ -35,18 +35,34 @@ def plot_xb_max(model: str,
     ax = fig.add_subplot(111)
     contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
 
-    ax.set_xlabel('XMass')
-    ax.set_ylabel('SMass')
-
-    #scatter = ax.scatter(x_values, y_values, c=z_values, norm=mcolors.LogNorm(), cmap='viridis')
+    ax.set_xlabel(mass_label("X"))
+    ax.set_ylabel(mass_label("S"))
 
     cbar = plt.colorbar(contour)
-    cbar.set_label('Max xb')
+    cbar.set_label(xb_max_label())
 
     output_directory = os.path.join(output_dir(), model, "plots", decay, "combination")
     output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
     os.makedirs(output_directory, exist_ok=True)
     fig.savefig(output_filename)
+
+def xb_max_label() -> str:
+    """
+    Returns the label for the xb_max plot.
+    
+    Returns:
+        str: The label for the xb_max plot.
+    """
+    return r"Max $\sigma\times BR$ [fb]"
+
+def mass_label(particle: str) -> str:
+    """
+    Returns the label for the mass plot.
+    
+    Returns:
+        str: The label for the mass plot.
+    """
+    return fr"$m_{{{particle}}}$ [GeV]"
 
 def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
