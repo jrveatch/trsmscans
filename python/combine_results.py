@@ -40,14 +40,11 @@ def combine_results(model: str,
                 print(f"Directory {directory} does not exist. Skipping.")
                 continue
 
-            # Get list of all .tsv files
-            tsv_files = [f for f in os.listdir(directory) if f.endswith('.tsv')]
-
             # Process summary .tsv files in the directory
-            for file in tsv_files:
+            for file in os.listdir(directory):
 
-                # Skip files that don't start with the correct prefix
-                if not file.startswith(f"summary_{optimization}"):
+                # Skip files that don't match the expected naming convention
+                if not (file.endswith(".tsv") and file.startswith(f"summary_{optimization}")):
                     continue
 
                 # Combine tsv summary files
