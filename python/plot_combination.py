@@ -94,7 +94,7 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 def interpolate_grid(x: np.ndarray,
                      y: np.ndarray,
                      z: np.ndarray, 
-                     resolution: tuple[int, int]=(200, 200)
+                     resolution: Tuple[int, int]=(200, 200)
                     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Create interpolated 2D grid from scattered data points.
