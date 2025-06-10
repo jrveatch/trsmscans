@@ -181,7 +181,7 @@ def parse_tsv_file(file_name: str,
 
     except Exception as e:
         logger.error(f"Failed to parse .tsv file {file_name}: {e}")
-        return None
+        raise
 
 def initialize_summary_file(file_name: str,
                             model: Model,
