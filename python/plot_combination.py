@@ -34,18 +34,18 @@ def plot_xb_max(model: str,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
+    contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
 
     ax.set_xlabel('XMass')
     ax.set_ylabel('SMass')
 
-    scatter = ax.scatter(x_values, y_values, c=z_values,norm=mcolors.LogNorm(), cmap='viridis')
+    #scatter = ax.scatter(x_values, y_values, c=z_values, norm=mcolors.LogNorm(), cmap='viridis')
 
-    cbar = plt.colorbar(scatter)
+    cbar = plt.colorbar(contour)
     cbar.set_label('Max xb')
 
-    output_directory  = f'{output_dir()}/{model}/plots/{decay}'
-    output_filename  = f'{output_directory}/{decay}_{identifier}_combination.png'
+    output_directory = os.path.join(output_dir(), model, "plots", decay, "combination")
+    output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
     os.makedirs(output_directory, exist_ok=True)
     fig.savefig(output_filename)
 
