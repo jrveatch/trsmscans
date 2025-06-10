@@ -30,9 +30,12 @@ def plot_xb_max(model: str,
     # Get the interpolated grid
     Xi, Yi, Zi = interpolate_grid(x_values, y_values, z_values, resolution=(200, 200))
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    # Create the plot
+    fig, ax = plt.subplots()
     contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
+
+    ax.set_xlim(x_values.min(), x_values.max())
+    ax.set_ylim(y_values.min(), y_values.max())
 
     ax.set_xlabel(mass_label("X"))
     ax.set_ylabel(mass_label("S"))
@@ -43,6 +46,7 @@ def plot_xb_max(model: str,
     output_directory = os.path.join(output_dir(), model, "plots", decay, "combination")
     output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
     os.makedirs(output_directory, exist_ok=True)
+    fig.tight_layout()
     fig.savefig(output_filename)
 
 def xb_max_label() -> str:
@@ -80,7 +84,8 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         df = pd.read_csv(file_path, sep='\t')
         required_cols = {'XMass', 'SMass', 'xbmax'}
         if not required_cols.issubset(df.columns):
-            raise ValueError(f"TSV file must contain columns: {required_cols}")
+            missing = required_cols - set(df.columns)
+            raise ValueError(f"Missing required columns in TSV file: {missing}")
         
         x = df['XMass'].to_numpy()
         y = df['SMass'].to_numpy()
