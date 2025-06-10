@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
+import os
 import numpy as np
 import scipy.interpolate as spi
 import matplotlib.pyplot as plt # type: ignore
 import matplotlib.colors as mcolors
+
 from utils.env_utils import output_dir
-import argparse
-import os
 
 def plot_combination(model :str,
                      decay: str,
@@ -18,8 +19,8 @@ def plot_xb_max(model: str,
                 decay: str,
                 identifier: str) -> None:
 
-    filename = f'{output_dir()}/{model}/scan/{decay}/{decay}_{identifier}_combination.tsv'
-    columns = np.genfromtxt(filename, delimiter='\t' , skip_header=1)
+    filename = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
+    columns = np.genfromtxt(filename, delimiter='\t', skip_header=1)
 
     x_values = columns[:,0]
     y_values = columns[:,1]
