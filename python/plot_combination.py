@@ -22,10 +22,10 @@ def plot_xb_max(model: str,
                 identifier: str) -> None:
 
     # Combination .tsv file name
-    filename = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
+    input_file_name = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
 
     # Load data from the TSV file
-    x_values, y_values, z_values = load_data(filename)
+    x_values, y_values, z_values = load_data(input_file_name)
 
     xi = np.linspace(min(x_values), max(x_values), 231)
     yi = np.linspace(min(y_values), max(y_values), 100)
