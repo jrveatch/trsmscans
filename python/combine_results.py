@@ -27,6 +27,10 @@ def combine_results(model: str,
     combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_combination.tsv")
     tsv_combination_file_name = os.path.join(output_dir(),model,"scan",decay,f"{decay}_{identifier}_tsv_combination.tsv")
 
+    # Clear output files if they already exist
+    open(combination_file_name, 'w').close()
+    open(tsv_combination_file_name, 'w').close()
+
     for XMass, SMass, resolvable in permutations:
 
         # Get the directory for the mass point
