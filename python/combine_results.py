@@ -5,7 +5,7 @@ import os
 
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
-from utils.mass_permutations import get_mass_permutations
+from utils.mass_json_utils import get_mass_permutations
 from utils.tsv_utils import parse_tsv_file
 
 HIGGS_MASS = 125.09
