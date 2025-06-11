@@ -23,32 +23,24 @@ def plot_xb_max(model: str,
                 identifier: str) -> None:
 
     # Combination .tsv file name
-    input_file_name = os.path.join(output_dir(), model, "scan", decay, f"{decay}_{identifier}_combination.tsv")
+    input_file_name = os.path.join(output_dir(),
+                                   model,
+                                   "scan",
+                                   decay,
+                                   f"{decay}_{identifier}_combination.tsv")
 
-    # Load data from the TSV file
-    x_values, y_values, z_values = load_data(input_file_name)
-
-    # Get the interpolated grid
-    Xi, Yi, Zi = interpolate_grid(x_values, y_values, z_values, resolution=(200, 200))
-
-    # Create the plot
-    fig, ax = plt.subplots()
-    contour = ax.contourf(Xi, Yi, Zi, levels=30, norm=mcolors.LogNorm(), cmap='viridis')
-
-    ax.set_xlim(x_values.min(), x_values.max())
-    ax.set_ylim(y_values.min(), y_values.max())
-
-    ax.set_xlabel(mass_label("X"))
-    ax.set_ylabel(mass_label("S"))
-
-    cbar = plt.colorbar(contour)
-    cbar.set_label(xb_max_label())
-
+    # Output directory and filename for the plot
     output_directory = os.path.join(output_dir(), model, "plots", decay, "combination")
     output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
+
+    # Ensure the output directory exists
     os.makedirs(output_directory, exist_ok=True)
-    fig.tight_layout()
-    fig.savefig(output_filename)
+
+    # Load data from the TSV file
+    X_mass, S_mass, xb_max = load_data(input_file_name)
+
+    # Plot the interpolated grid
+    plot_interpolation(X_mass, S_mass, xb_max, output_filename)
 
 def plot_exclusions(model: str,
                     decay: str,
@@ -58,6 +50,35 @@ def plot_exclusions(model: str,
                                                    decay=decay,
                                                    identifier=identifier)
     pass
+
+def plot_interpolation(X_mass: np.ndarray,
+                       S_mass: np.ndarray,
+                       xb_max: np.ndarray,
+                       file_name: str) -> None:
+
+    # Get the interpolated grid
+    X_mass_i, S_mass_i, xb_max_i = interpolate_grid(X_mass, S_mass, xb_max, resolution=(200, 200))
+
+        # Create the plot
+    fig, ax = plt.subplots()
+    contour = ax.contourf(X_mass_i,
+                          S_mass_i,
+                          xb_max_i,
+                          levels=30,
+                          norm=mcolors.LogNorm(),
+                          cmap='viridis')
+
+    ax.set_xlim(X_mass.min(), X_mass.max())
+    ax.set_ylim(S_mass.min(), S_mass.max())
+
+    ax.set_xlabel(mass_label("X"))
+    ax.set_ylabel(mass_label("S"))
+
+    cbar = plt.colorbar(contour)
+    cbar.set_label(xb_max_label())
+
+    fig.tight_layout()
+    fig.savefig(file_name)
 
 def xb_max_label() -> str:
     """
