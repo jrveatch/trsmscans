@@ -26,8 +26,9 @@ def scan_mass_list(model: str,
             "-S", str(SMass),
             "-n", "10000"
         ]
-        result = subprocess.run(["python", "../python/prescan.py", *arg_list], text=True)
-        print(result)
+        subprocess.run(["prescan.py", *arg_list], text=True)
+
+        # TODO: Add htcondor submission if needed
 
 if __name__ == "__main__":
 
