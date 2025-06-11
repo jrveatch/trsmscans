@@ -1,5 +1,6 @@
 
 import json
+import numpy as np
 import os
 from typing import List, Tuple
 
@@ -33,3 +34,38 @@ def get_mass_permutations(decay: str,
     except Exception as e:
         print(f"Error reading permutations file {permutations_file}: {e}")
         raise
+
+def load_limit_data(decay: str,
+                    identifier: str) -> Tuple[np.ndarray, ...]:
+    """
+    Loads expected or observed limits from a JSON file.
+
+    Args:
+        decay (str): Decay mode
+        identifier (str): Identifier for this run
+
+    Returns:
+        Tuple[np.ndarray, ...]: Arrays of mX, mS, and limit values
+
+    Raises:
+        ValueError: If required fields are missing
+        RuntimeError: On file access or parsing errors
+    """
+
+    limit_file = os.path.join(data_dir(), "mass_points", f"{decay}_{identifier}.json")
+
+    try:
+        with open(limit_file, "r") as f:
+            data = json.load(f)
+
+        X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
+        for point in data["mass_points"]:
+            X_mass_vals.append(point["mX"])
+            S_mass_vals.append(point["mS"])
+            obs_limit_vals.append(point["observed_limit"])
+            exp_limit_vals.append(point["expected_limit"])
+
+        return (np.array(X_mass_vals), np.array(S_mass_vals), np.array(obs_limit_vals), np.array(exp_limit_vals))
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to load limits from {limit_file}: {e}")
