@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from math import exp
 import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -8,7 +9,7 @@ from matplotlib.ticker import LogLocator, LogFormatterMathtext
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 import utils.env_utils as env
 from utils.mass_json_utils import load_limit_data
@@ -46,36 +47,63 @@ def plot_combination(model :str,
     if not plot_limits:
         return
 
+    # Load the expected and observed limits
     X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
-                                                   identifier=identifier)
+                                                             identifier=identifier)
 
     # Get the interpolated grids
     X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(X_mass, S_mass, obs_limits, resolution=(XRES, SRES))
     _, _, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
-
 
     # Align limits to xb_max subset points
     obs_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, obs_limits)
     exp_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, exp_limits)
 
     # Create binary masks: where xb_max exceeds limits
-    mask_obs = xb_max > obs_matched
-    mask_exp = xb_max > exp_matched
+    mask_obs_raw = xb_max > obs_matched
+    mask_exp_raw = xb_max > exp_matched
 
     # Optional: Print summary
-    print(f"Observed mask: {np.sum(mask_obs)} / {len(mask_obs)} points exceed limits")
-    print(f"Expected mask: {np.sum(mask_exp)} / {len(mask_exp)} points exceed limits")
+    print(f"Observed mask: {np.sum(mask_obs_raw)} / {len(mask_obs_raw)} points exceed limits")
+    print(f"Expected mask: {np.sum(mask_exp_raw)} / {len(mask_exp_raw)} points exceed limits")
 
-    # TODO: Create the expected limit masks - probably use a helper function
+    # Interpolate the masks to the grid
+    mask_obs_i = griddata((X_mass_xb, S_mass_xb),
+                          mask_obs_raw.astype(float),
+                          (X_mass_i, S_mass_i),
+                          method='cubic')
+    mask_exp_i = griddata((X_mass_xb, S_mass_xb),
+                          mask_exp_raw.astype(float),
+                          (X_mass_i, S_mass_i),
+                          method='cubic')
+
+    # Make lists of exclusion masks
+    observed_exclusion_mask = [
+        {
+            "mask": mask_obs_i,  # interpolated 2D array (float)
+            "label": "TRSM",
+            "style": {"color": "red", "linestyle": "-"}
+        }
+    ]
+    expected_exclusion_mask = [
+        {
+            "mask": mask_exp_i,  # interpolated 2D array (float)
+            "label": "Median",
+            "style": {"color": "red", "linestyle": "-"}
+        }
+    ]
+
+    # TODO: Plot the exclusion masks as contours on the limits plots
 
     # Plot the interpolated grid
-    plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs)
-    plot_interpolation(X_mass_i, S_mass_i, exp_limits_i, output_filename_exp)
+    plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs, observed_exclusion_mask)
+    plot_interpolation(X_mass_i, S_mass_i, exp_limits_i, output_filename_exp, expected_exclusion_mask)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
                        xb: np.ndarray,
-                       file_name: str) -> None:
+                       file_name: str,
+                       contour_masks: Optional[List[Dict]] = None) -> None:
 
         # Create the plot
     fig, ax = plt.subplots()
@@ -99,6 +127,30 @@ def plot_interpolation(X_mass: np.ndarray,
     cbar.locator = LogLocator(base=10.0, numticks=10)
     cbar.formatter = LogFormatterMathtext(base=10.0)
     cbar.update_ticks()
+
+    # ➕ Add contour overlays for masks
+    if contour_masks:
+        for entry in contour_masks:
+            mask = entry.get("mask")
+            label = entry.get("label", None)
+            style = entry.get("style", {})
+
+            # Translate style keys for matplotlib.contour
+            style_mpl = {
+                "colors": style.get("color"),
+                "linestyles": style.get("linestyle")
+            }
+
+            # Contour at mask threshold 0.5 (float-valued mask)
+            cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+
+            # Only set label if contour is drawn
+            #if label and cs.collections:
+            #    cs.collections[0].set_label(label)
+
+    # Enable legend if any labels are present
+    #if contour_masks and any(e.get("label") for e in contour_masks):
+    #    ax.legend()
 
     fig.tight_layout()
     fig.savefig(file_name)
