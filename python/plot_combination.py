@@ -21,14 +21,6 @@ def plot_combination(model :str,
                      identifier: str,
                      plot_limits: bool) -> None:
 
-    plot_xb_max(model=model, decay=decay, identifier=identifier)
-    if plot_limits:
-        plot_exclusions(model=model, decay=decay, identifier=identifier)
-    
-def plot_xb_max(model: str,
-                decay: str,
-                identifier: str) -> None:
-
     # Combination .tsv file name
     input_file_name = os.path.join(env.output_dir(),
                                    model,
@@ -36,33 +28,29 @@ def plot_xb_max(model: str,
                                    decay,
                                    f"{decay}_{identifier}_combination.tsv")
 
-    # Output directory and filename for the plot
-    output_filename = os.path.join(output_directory(model, decay),
-                                   f"{decay}_{identifier}_xbmax.png")
-
-    # Load data from the TSV file
-    X_mass, S_mass, xb_max = load_data(input_file_name)
-
-    # Get the interpolated grid
-    X_mass_i, S_mass_i, xb_max_i = interpolate_grid(X_mass, S_mass, xb_max, resolution=(XRES, SRES))
-
-    # Plot the interpolated grid
-    plot_interpolation(X_mass_i, S_mass_i, xb_max_i, output_filename)
-
-def plot_exclusions(model: str,
-                    decay: str,
-                    identifier: str) -> None:
-
     # Output filenames for the plot
+    output_filename_xbmax = os.path.join(output_directory(model, decay), f"{decay}_{identifier}_xbmax.png")
     output_filename_obs = os.path.join(output_directory(model, decay), f"{decay}_{identifier}_observed.png")
     output_filename_exp = os.path.join(output_directory(model, decay), f"{decay}_{identifier}_expected.png")
 
+    # Load xbmax data from the TSV file
+    X_mass_xb, S_mass_xb, xb_max = load_data(input_file_name)
+
+    # Get the interpolated grid for xbmax
+    X_mass_xb_i, S_mass_xb_i, xb_max_i = interpolate_grid(X_mass_xb, S_mass_xb, xb_max, resolution=(XRES, SRES))
+
+    # Plot the xbmax interpolated grid
+    plot_interpolation(X_mass_xb_i, S_mass_xb_i, xb_max_i, output_filename_xbmax)
+
+    if not plot_limits:
+        return
+
     X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
-                                             identifier=identifier)
+                                                   identifier=identifier)
 
     # Get the interpolated grids
     X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(X_mass, S_mass, obs_limits, resolution=(XRES, SRES))
-    X_mass_i, S_mass_i, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
+    _, _, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
 
     # Plot the interpolated grid
     plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs)
