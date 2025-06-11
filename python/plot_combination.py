@@ -13,6 +13,9 @@ from typing import Tuple
 import utils.env_utils as env
 from utils.mass_json_utils import load_limit_data
 
+XRES = 200
+SRES = 200
+
 def plot_combination(model :str,
                      decay: str,
                      identifier: str,
@@ -40,8 +43,11 @@ def plot_xb_max(model: str,
     # Load data from the TSV file
     X_mass, S_mass, xb_max = load_data(input_file_name)
 
+    # Get the interpolated grid
+    X_mass_i, S_mass_i, xb_max_i = interpolate_grid(X_mass, S_mass, xb_max, resolution=(XRES, SRES))
+
     # Plot the interpolated grid
-    plot_interpolation(X_mass, S_mass, xb_max, output_filename)
+    plot_interpolation(X_mass_i, S_mass_i, xb_max_i, output_filename)
 
 def plot_exclusions(model: str,
                     decay: str,
@@ -54,24 +60,25 @@ def plot_exclusions(model: str,
     X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
                                              identifier=identifier)
 
+    # Get the interpolated grids
+    X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(X_mass, S_mass, obs_limits, resolution=(XRES, SRES))
+    X_mass_i, S_mass_i, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
+
     # Plot the interpolated grid
-    plot_interpolation(X_mass, S_mass, obs_limits, output_filename_obs)
-    plot_interpolation(X_mass, S_mass, exp_limits, output_filename_exp)
+    plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs)
+    plot_interpolation(X_mass_i, S_mass_i, exp_limits_i, output_filename_exp)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
-                       xb_max: np.ndarray,
+                       xb: np.ndarray,
                        file_name: str) -> None:
-
-    # Get the interpolated grid
-    X_mass_i, S_mass_i, xb_max_i = interpolate_grid(X_mass, S_mass, xb_max, resolution=(200, 200))
 
         # Create the plot
     fig, ax = plt.subplots()
-    contour = ax.contourf(X_mass_i,
-                          S_mass_i,
-                          xb_max_i,
-                          levels=np.logspace(np.log10(np.nanmin(xb_max_i)), np.log10(np.nanmax(xb_max_i)), 200),
+    contour = ax.contourf(X_mass,
+                          S_mass,
+                          xb,
+                          levels=np.logspace(np.log10(np.nanmin(xb)), np.log10(np.nanmax(xb)), 200),
                           norm=mcolors.LogNorm(),
                           cmap='viridis')
 
@@ -82,7 +89,7 @@ def plot_interpolation(X_mass: np.ndarray,
     ax.set_ylabel(mass_label("S"))
 
     cbar = plt.colorbar(contour)
-    cbar.set_label(xb_max_label())
+    cbar.set_label(xb_label("Max"))
 
     # Set colorbar ticks at powers of 10
     cbar.locator = LogLocator(base=10.0, numticks=10)
@@ -112,14 +119,17 @@ def output_directory(model: str,
 
     return out_dir
 
-def xb_max_label() -> str:
+def xb_label(prefix: str) -> str:
     """
-    Returns the label for the xb_max plot.
-    
+    Returns the label for the interpolated plot.
+
+    Args:
+        prefix (str): The prefix for the label, e.g., "Max".
+
     Returns:
-        str: The label for the xb_max plot.
+        str: The label for the interpolated plot.
     """
-    return r"Max $\sigma\times BR$ [fb]"
+    return fr"{prefix} $\sigma\times BR$ [fb]"
 
 def mass_label(particle: str) -> str:
     """
