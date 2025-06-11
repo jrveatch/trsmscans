@@ -107,6 +107,7 @@ class PointSampler:
                       param_space: ParamSpace,
                       num_points_requested: int,
                       identifier = "",
+                      use_multiprocessing: bool = True,
                       good_points_only: bool = False) -> Parse:
         """
         Samples multiple parameter points using ScannerS until the desired number of points
@@ -132,7 +133,7 @@ class PointSampler:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
         tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
-        temp_tsv = os.path.join(self.out_dir,f"{param_space.model_name}.tsv")
+        temp_tsv = f"{param_space.model_name}.tsv"
 
         # Global variable for number of points
         self.total_points_requested = num_points_requested
@@ -149,7 +150,7 @@ class PointSampler:
         self.n_signals = 0
         self.n_pass = 0
 
-        # Initialize the amount of points run
+        # Initialize the number of points run
         self.total_points_run = 0
 
         # Print total number of points requested
@@ -174,7 +175,8 @@ class PointSampler:
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
-                                  model_name = param_space.model_name)
+                                  model_name = param_space.model_name,
+                                  use_multiprocessing = use_multiprocessing)
 
             # Update the total points run
             self.total_points_run += points
@@ -185,7 +187,8 @@ class PointSampler:
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
                                     model = param_space.model,
-                                    config_loader = self.config_loader)
+                                    config_loader = self.config_loader,
+                                    use_multiprocessing = use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
@@ -223,8 +226,7 @@ class PointSampler:
                 self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.n_pass} points that pass filters")
-        self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
+        self.print_n_pass()
 
         # Create parser from output .tsv
         self.parser.read_file(file_name=tsv_name)
@@ -256,8 +258,10 @@ class PointSampler:
         if identifier:
             out_name += "_" + identifier
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
-        tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
-        temp_tsv = os.path.join(self.out_dir,f"{point.model_name}.tsv")
+        temp_tsv = f"{point.model_name}.tsv"
+
+        # Initialize the number of points run
+        self.total_points_run = 0
 
         # Write new .ini file from template and parameters
         point.write_ini(ini_name)
@@ -268,12 +272,9 @@ class PointSampler:
         # Print number of points requested
         self.logger.debug('Generating 1 point')
 
-        try:
-            # Run ScannerS
-            run_scannerS_single_point(ini_name = ini_name,
-                                      model_name = point.model_name)
-        except TimeoutError:
-            raise
+        # Run ScannerS
+        run_scannerS_single_point(ini_name = ini_name,
+                                  model_name = point.model_name)
 
         # Print info about applying filters
         self.logger.debug("Applying filters...")
@@ -283,26 +284,32 @@ class PointSampler:
                                 model = point.model,
                                 config_loader = self.config_loader)
 
-        # Concatenate the information from temp_tsv to the tsv file
-        save_tsv_output(temp_tsv, tsv_name)
-
         # Update the filtered variables
         self.n_width = results["width"]
         self.n_bounds = results["bounds"]
         self.n_signals = results["signals"]
         self.n_pass = results["pass"]
 
-        # Print points passed and efficiency
-        self.logger.debug(f'A total of {self.n_pass} points have passed')
+        # Update the total points run
+        self.total_points_run += 1
 
         # Print final number of events that pass
-        self.logger.info(f"Generated {self.n_pass} points that pass filters")
-        self.logger.debug(f'1 point generated, {self.n_pass} pass filters')
+        self.print_n_pass()
 
         # Create parser from output .tsv
-        self.parser.read_file(file_name=tsv_name)
+        self.parser.read_file(file_name=temp_tsv)
 
         return self.parser.get_max_xb_point(decay)
+
+    def print_n_pass(self) -> None:
+        """
+        Prints the total number of points passed filters.
+        """
+        point_word = "point" + ("s" if self.total_points_run != 1 else "")
+        self.logger.info(
+            f"{self.total_points_run} {point_word} generated, "
+            f"{self.n_pass} passed the filters"
+        )
 
 if __name__ == "__main__":
     pass

@@ -53,7 +53,7 @@ class MeanShiftOptimizer:
             global_param_space (ParamSpace): The overall parameter space used in the scan.
             config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
         """
-        
+
         # get logger
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -70,11 +70,8 @@ class MeanShiftOptimizer:
             self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
             self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
             self.__num_points: int = config_loader.get('meanshift', 'num_points')
-        except KeyError as e:
-            self.logger.error(e)
-            raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # Copy of param space so that multiple instances of ms use global param space
@@ -102,7 +99,7 @@ class MeanShiftOptimizer:
         self.new_position = init_pos
         self.__prev_position = init_pos
         self.max_point = init_pos
-        
+
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
         self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
@@ -145,7 +142,7 @@ class MeanShiftOptimizer:
     def global_param_space(self) -> ParamSpace:
         """Returns the global (full-range) parameter space."""
         return self.__global_param_space
-    
+
     @global_param_space.setter
     def global_param_space(self,
                            new_global_param_space: ParamSpace) -> None:
@@ -156,7 +153,7 @@ class MeanShiftOptimizer:
     def local_param_space(self) -> ParamSpace:
         """Returns the local parameter space."""
         return self.__local_param_space
-    
+
     @local_param_space.setter
     def local_param_space(self,
                           new_local_param_space: ParamSpace) -> None:
@@ -180,7 +177,7 @@ class MeanShiftOptimizer:
         """Sets the number of sample points per scan."""
         self.__num_points = new_num_points
 
-    def run(self):
+    def run(self) -> None:
         """
         Executes the full mean-shift optimization loop.
 
@@ -221,11 +218,12 @@ class MeanShiftOptimizer:
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
                                                           num_points_requested = self.num_points,
-                                                          good_points_only = False
-                                                         )
+                                                          good_points_only = False,
+                                                          use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
-                self.logger.info(f"No points found. Exiting {identifier}\n")
+                self.logger.info(f"No points found.\n")
+                self.logger.info(f"Exiting {identifier}\n")
                 return
 
             arrays = {k: v.to_numpy() for k, v in parser.input_parameter_arrays.items()}
@@ -236,9 +234,11 @@ class MeanShiftOptimizer:
 
             mean_shift(arrays = arrays,
                        Z = xb,
-                       param_space = self.local_param_space)
-            
+                       param_space = self.local_param_space,
+                       config_loader=self.config_loader)
+
             # get new position
+            self.logger.info("Calculating a point at the new position")
             self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
@@ -253,8 +253,6 @@ class MeanShiftOptimizer:
 
             stop = self.__stop_check()
 
-            # TODO: If stopping, take highest point that has been sampled
-
             # write scan details to details file
             self.write_details(identifier=identifier,
                                xb=xb)
@@ -262,7 +260,7 @@ class MeanShiftOptimizer:
             # get iteration end time
             iter_end = time.time()
             iter_time = iter_end - iter_start
-            
+
             self.iteration_termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # NOTE: For debugging
@@ -289,10 +287,11 @@ class MeanShiftOptimizer:
             write_point_to_summary_file(file_name=self.walk_max_file_name,
                                         point=self.max_point)
 
+        # write max point information to summary files
         write_point_to_summary_file(file_name=self.summary_name,
                                     point=self.max_point,
                                     identifier=identifier)
-        # TODO: Save full tsv line from point object
+        self.max_point.write_tsv_to_file(tsv_name=self.tsv_summary_name)
 
         # get mean shift end time
         shift_end = time.time()
@@ -357,6 +356,7 @@ class MeanShiftOptimizer:
         """
 
         # TODO: This should probably also check self.max_point
+        # TODO: Revisit these stopping conditions
 
         comp_point = self.__test_position if self.__stop_mode == 0 else self.__prev_position
 

@@ -3,8 +3,9 @@
 import csv
 import logging
 import os
+import shutil
 import subprocess
-from typing import Optional
+from typing import List, Dict, Optional, Tuple
 
 from utils.math_utils import round_sig
 from utils.model import Model
@@ -70,7 +71,7 @@ def save_tsv_output(input_file: str,
 
     # if output file doesn't exist or is empty, simply rename input file
     if num_existing <= 0:
-        os.rename(input_file,output_file)
+        shutil.move(input_file,output_file)
         return
 
     # otherwise append the contents of input_file to output_file
@@ -95,7 +96,7 @@ def save_tsv_output(input_file: str,
     # delete input .tsv file
     os.remove(input_file)
 
-def sort_tsv_file(filename: str,
+def sort_tsv_file(file_name: str,
                   sort_column: str = "xb") -> None:
     """
     Sort a .tsv file in-place based on the values in a specified column.
@@ -104,7 +105,7 @@ def sort_tsv_file(filename: str,
     Otherwise, a string-based sort is applied.
 
     Args:
-        filename (str): Path to the .tsv file to sort.
+        file_name (str): Path to the .tsv file to sort.
         sort_column (str, optional): The column name to sort by. Defaults to "xb".
 
     Raises:
@@ -112,14 +113,8 @@ def sort_tsv_file(filename: str,
         KeyError: If the specified sort column is not present in all rows.
     """
 
-    # Read the TSV file
-    with open(filename, newline='') as f:
-        reader = csv.DictReader(f, delimiter='\t')
-        rows = list(reader)
-        headers = reader.fieldnames
-    
-    if headers is None:
-        raise ValueError(f"Could not read headers from {filename}")
+    # Use the new parser to get headers and rows
+    headers, rows = parse_tsv_file(file_name)
 
     # Make sure sort column exists
     if not all(sort_column in row for row in rows):
@@ -129,13 +124,64 @@ def sort_tsv_file(filename: str,
     try:
         rows.sort(key=lambda row: float(row[sort_column]))
     except ValueError:
-        rows.sort(key=lambda row: row[sort_column])  # Fallback to string sort if not numeric
+        rows.sort(key=lambda row: row[sort_column]) # Fallback to string sort if not numeric
 
     # Write the sorted data back to the same file
-    with open(filename, 'w', newline='') as f:
+    with open(file_name, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t')
         writer.writeheader()
         writer.writerows(rows)
+
+def parse_tsv_file(file_name: str,
+                   skip_first_col: bool = False,
+                   skip_last_col: bool = False) -> Tuple[List[str], List[Dict[str, str]]]:
+    """
+    Parses a .tsv file and returns the header and data rows.
+
+    Args:
+        file_name (str): Path to the .tsv file to parse.
+        skip_first_col (bool): If True, skips the first column in the header and data.
+        skip_last_col (bool): If True, skips the last column in the header and data.
+
+    Returns:
+        Tuple[List[str], List[Dict[str, str]]]: A tuple containing the header as a list of strings
+        and the data rows as a list of dictionaries where keys are column names.
+
+    Raises:
+        ValueError: If the file is empty or headers cannot be read.
+    """
+    try:
+        with open(file_name, 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            all_lines = list(reader)
+
+        if not all_lines or not all_lines[0]:
+            raise ValueError(f"No headers found in file: {file_name}")
+
+        # Adjust headers
+        headers: List[str] = all_lines[0]
+        if skip_first_col:
+            headers = headers[1:]
+        if skip_last_col:
+            headers = headers[:-1]
+
+        if not headers:
+            raise ValueError(f"Headers are empty after column exclusion in file: {file_name}")
+
+        # Adjust rows
+        adjusted_rows: List[Dict[str, str]] = []
+        for row in all_lines[1:]:
+            if skip_first_col:
+                row = row[1:]
+            if skip_last_col:
+                row = row[:-1]
+            adjusted_rows.append(dict(zip(headers, row)))
+
+        return headers, adjusted_rows
+
+    except Exception as e:
+        logger.error(f"Failed to parse .tsv file {file_name}: {e}")
+        raise
 
 def initialize_summary_file(file_name: str,
                             model: Model,
@@ -156,7 +202,7 @@ def initialize_summary_file(file_name: str,
     header += "\n"
     with open(file_name, 'w') as file:
         file.write(header)
-    
+
 def write_point_to_summary_file(file_name: str,
                                 point: Point,
                                 identifier: Optional[str] = None) -> None:

@@ -13,12 +13,12 @@ index_label: str = "idx"
 
 def get_df(file_name: str) -> pd.DataFrame:
     """
-    Load a tab-separated file into a DataFrame and drop the first column 
+    Load a tab-separated file into a DataFrame and drop the first column
     to remove an unwanted index column.
-    
+
     Args:
         file_name (str): Path to the .tsv file.
-    
+
     Returns:
         pd.DataFrame: Cleaned DataFrame without the first column.
     """
@@ -43,7 +43,7 @@ def get_header_string(dataframe: pd.DataFrame) -> str:
     Returns:
         str: Tab-separated string of the header including index column.
     """
-    return "\t".join([index_label] + cast(List[str], dataframe.columns.tolist()))
+    return "\t".join([index_label, *cast(List[str], dataframe.columns.tolist())])
 
 # write arrays to a new file
 def write_to_tsv(dataframe: pd.DataFrame,
@@ -61,6 +61,6 @@ def write_to_tsv(dataframe: pd.DataFrame,
                          sep='\t',
                          index=True,
                          index_label=index_label)
-    except Exception as e:
-        logger.error(f"Error writing to file {file_name}: {e}")
+    except Exception:
+        logger.exception(f"Error writing to file {file_name}")
         raise

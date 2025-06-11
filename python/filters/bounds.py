@@ -24,7 +24,9 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 # local modules
-from filters.setup_higgs_tools import *
+from utils.cpu_utils import get_n_cpus
+import Higgs.predictions as HP
+from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
 from utils.model import Model
 
@@ -34,15 +36,10 @@ logger = logging.getLogger(__name__)
 # get configurations
 config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
-    # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum chunk size for parallel processing
     min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
-except KeyError as e:
-    logger.error(e)
-    raise
 except Exception as e:
-    logger.error(e)
+    logger.exception(e)
     raise
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
@@ -50,7 +47,8 @@ SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu",
 def filter_bounds(dataframe: pd.DataFrame,
                   header_bounds: str,
                   header_signals: str,
-                  model: Model
+                  model: Model,
+                  use_multiprocessing: bool = True
                  ) -> None:
     """
     Runs exclusion and signal strength filters and adds results to the DataFrame.
@@ -60,10 +58,15 @@ def filter_bounds(dataframe: pd.DataFrame,
         header_bounds (str): Column name for the HiggsBounds result (0 or 1).
         header_signals (str): Column name for the HiggsSignals result (0 or 1).
         model (Model): Model object used for particle and parameter names.
+        use_multiprocessing (bool): Flag to use parallel processing.
     """
-    dataframe[header_bounds], dataframe[header_signals] = parallel_process(df=dataframe,
-                                                                           model=model,
-                                                                           n_workers=int(mp.cpu_count()*frac_cpu))
+
+    n_workers = 1
+    if use_multiprocessing:
+        n_workers = get_n_cpus()
+    dataframe[header_bounds], dataframe[header_signals] = run_processing(df=dataframe,
+                                                                         model=model,
+                                                                         n_workers=n_workers)
 
 # TODO: Make this work for other models
 def process_data(df: pd.DataFrame,
@@ -128,7 +131,7 @@ def process_data(df: pd.DataFrame,
                                        HName=HName,
                                        SName=SName,
                                        XName=XName)
-        logger.verbose(f'Scalar widths are:')
+        logger.verbose('Scalar widths are:')
         logger.verbose(f'  H: {widths["H"]}')
         logger.verbose(f'  S: {widths["S"]}')
         logger.verbose(f'  X: {widths["X"]}')
@@ -148,7 +151,7 @@ def process_data(df: pd.DataFrame,
         br_BSM = extract_BSM_BRs(row=row,
                                  HName=HName,
                                  SName=SName)
-        
+
         # configure scalars
         configure_particle(particle=H, label="H", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
         configure_particle(particle=S, label="S", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
@@ -273,7 +276,7 @@ def extract_SM_BRs(row: pd.Series,
     return {"H": br_H, "S": br_S, "X": br_X}
 
 def extract_BSM_BRs(row: pd.Series,
-                    HName: str, 
+                    HName: str,
                     SName: str,) -> Dict[str, Dict[Tuple[str, str], float]]:
     """
     Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
@@ -374,7 +377,7 @@ def set_BRs(particle,
     sum_BR = 0.0
 
     # reset SM BRs to 0 to start from a clean slate
-    for decay in BRs_SM.keys():
+    for decay in BRs_SM:
         particle.setBr(decay,0)
 
     # loop over SM decay modes
@@ -472,9 +475,9 @@ def chunk_dataframe(df: pd.DataFrame,
     chunk_size = int(np.ceil(len(df) / n_chunks))
     return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
 
-def parallel_process(df: pd.DataFrame,
-                     model: 'Model',
-                     n_workers: int = 1) -> Tuple[List[int], List[int]]:
+def run_processing(df: pd.DataFrame,
+                   model: Model,
+                   n_workers: int = 1) -> Tuple[List[int], List[int]]:
     """
     Distributes scan filtering across multiple processes for performance.
 

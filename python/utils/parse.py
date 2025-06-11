@@ -139,6 +139,9 @@ class Parse:
         # get xb
         xb = self.get_xb(decay)
 
+        if xb.empty:
+            return Point(model=self.model)
+
         # get index of maximum xsec times BR
         self.max_idx = xb.idxmax()
 
@@ -148,7 +151,8 @@ class Parse:
         # return a point object holding xb and other parameters
         return Point(xb = float(xb[self.max_idx]),
                      model = self.model,
-                     par_vals = max_xb_par_vals)
+                     par_vals = max_xb_par_vals,
+                     tsv_data= self.data.loc[[self.max_idx]])
 
     def is_bimodal(self,
                    param_name: str,
@@ -186,8 +190,7 @@ class Parse:
             percentile_threshold = 1.0 - min_points/num_points
 
         # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
+        percentile_threshold = max(percentile_threshold, 0.0)
 
         # get xb value that corresponds to percentile threshold
         threshold_value = xb.quantile(percentile_threshold)
@@ -443,33 +446,13 @@ class Parse:
 
         return mask.astype(bool)
 
-    def write_max_xb_line(self,
-                          file_name: str
-                         ) -> None:
-        """
-        Appends the row with maximum xb to the given .tsv file.
-
-        Args:
-            file_name (str): Path to the output .tsv file.
-        """
-
-        # get max xb row from dataframe
-        row = self.data.loc[[self.max_idx]]
-
-        # write it to the summary .tsv
-        row.to_csv(file_name,
-                   sep='\t',
-                   index=True,
-                   mode='a',
-                   header=False)
-
     def __get_xsec_prod(self) -> pd.Series:
         """
         Returns the array of production cross-sections for the filtered dataset.
 
         Specifically retrieves the production cross-section for H3 via gluon-gluon fusion,
         identified by the column 'x_H3_gg'.
-        
+
         Returns:
             pd.Series: Production cross-section values for each filtered point.
         """

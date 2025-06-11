@@ -71,7 +71,7 @@ class MeanShiftPlotter:
         This method scans the walk directory for `.tsv` files, loads each into a
         DataFrame, and combines them into a single DataFrame stored in `self.walk_data`.
         """
-        data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"files","walk")
+        data_dir = os.path.join(scan_dir(model=self.model, decay=self.decay),"meanshift","walk")
 
         # List of individual DataFrames from each file
         walk_data_rows = []
@@ -83,8 +83,16 @@ class MeanShiftPlotter:
             path = os.path.join(data_dir,filename)
             try:
                 optimizer_id = self.parse_optimizer_id(filename)
+                walk_id = os.path.splitext(filename)[0]
+                # Get walk type from file name and skip if it is unknown
+                walk_type = "pos" if "walk_pos_" in filename else "max" if "walk_max_" in filename else "unknown"
+                if walk_type == "unknown":
+                    print(f"Skipping unrecognized walk file: {filename}")
+                    continue
                 df = pd.read_csv(path, sep="\t")
                 df['optimizer_id'] = optimizer_id
+                df['walk_id'] = walk_id
+                df['walk_type'] = walk_type
                 walk_data_rows.append(df)
             except Exception as e:
                 print(f"Error loading {path}: {e}")
@@ -101,6 +109,7 @@ class MeanShiftPlotter:
                       x: str,
                       y: str,
                       color_by: str = "xb",
+                      walk_type: str = "pos",
                       save=False,
                       show=True) -> None:
         """
@@ -117,19 +126,20 @@ class MeanShiftPlotter:
             show (bool): Whether to display the plot in a window.
         """
 
-        if self.walk_data.empty:
-            print("No data to plot.")
+        data = self.walk_data[self.walk_data["walk_type"] == walk_type]
+        if data.empty:
+            print(f"No data to plot for walk type: {walk_type}")
             return
 
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Normalize the color scale across all values
-        all_values = self.walk_data[color_by].values
+        all_values = data[color_by].values
         norm = Normalize(all_values.min(), all_values.max())
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
-        for optimizer, group in self.walk_data.groupby("optimizer_id"):
+        for walk_id, group in data.groupby("walk_id"):
             x_vals = group[x].values
             y_vals = group[y].values
             colors = group[color_by].values
@@ -144,7 +154,7 @@ class MeanShiftPlotter:
             # Cast to help Pyright recognize it
             segments = cast(Sequence[Any], segments_array)
 
-            # Use segment-wise color (except last point which has no next point)
+            # Use segment-wise color (last point is not used in a segment)
             lc = LineCollection(segments, cmap=cmap, norm=norm)
             lc.set_array(np.asarray(colors[:-1])) # one color per segment
             lc.set_linewidth(2)
@@ -164,7 +174,7 @@ class MeanShiftPlotter:
         plt.tight_layout()
 
         if save:
-            filename = f"meanshift_path_gradient_{x}_vs_{y}.png"
+            filename = f"meanshift_{walk_type}_path_gradient_{x}_vs_{y}.png"
             filepath = os.path.join(self.out_dir, filename)
             plt.savefig(filepath, dpi=300)
 
@@ -179,15 +189,17 @@ class MeanShiftPlotter:
 
         Creates xb vs. parameter plots and parameter vs. parameter pairwise plots.
         """
-        for param in self.model.input_parameter_names:
-            self.plot_paths_2d(x=param,y="xb",save=True,show=False)
-        for pair in list(combinations(self.model.input_parameter_names,2)):
-            self.plot_paths_2d(x=pair[0],y=pair[1],save=True,show=False)
+        for walk_type in ["pos", "max"]:
+            print(f"Generating plots for walk type: {walk_type}")
+            for param in self.model.input_parameter_names:
+                self.plot_paths_2d(x=param, y="xb", walk_type=walk_type, save=True, show=False)
+            for pair in combinations(self.model.input_parameter_names, 2):
+                self.plot_paths_2d(x=pair[0], y=pair[1], walk_type=walk_type, save=True, show=False)
 
 # Command-line interface to generate mean-shift path plots.
 # Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
 if __name__ == '__main__':
-    
+
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")

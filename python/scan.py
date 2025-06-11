@@ -18,7 +18,6 @@ from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
-from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -37,7 +36,7 @@ class Scan:
                  overwrite: bool = False,
                  config_file_name: str = ""
                  ):
-        
+
         """
         Initialize a Scan instance for parameter space optimization.
 
@@ -87,11 +86,8 @@ class Scan:
         try:
             self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-        except KeyError as e:
-            self.logger.error(e)
-            raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # number of prescan points to run
@@ -216,7 +212,7 @@ class Scan:
         with open(self.tsv_summary_name, "a") as tsv_summary:
             tsv_summary.write(f"{self.prescan_parser.tsv_header}\n")
 
-        self.prescan_parser.write_max_xb_line(self.tsv_summary_name)
+        self.global_max.write_tsv_to_file(self.tsv_summary_name)
 
     def run_ms_optimization(self,
                             num_optimizers: int) -> None:
@@ -238,23 +234,20 @@ class Scan:
         # run prescan
         self.run_prescan()
 
-        # move into the working directory for scans
-        os.chdir(self.out_dir)
-
         # Define helper functions (as inner functions because only for meanshift implementation)
-        
+
         # Returns a list of initial positions for shifters
         def initial_positions(points: int,
                               strategy: str) -> Tuple[Point]:
             results = []
-            
+
             if strategy == 'random':
                 for i in range(points):
                     results.append(self.global_param_space.random_point())
             elif strategy == 'pair':
                 # TODO: Temporary block for this option until it can be fixed using Point
                 raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = random_pos()
+                initial_point = self.global_param_space.random_point()
                 lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
                 coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
                 offsets = [param.width * coeff for param in self.global_param_space]
@@ -274,11 +267,8 @@ class Scan:
         # Load config
         try:
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except KeyError as e:
-            self.logger.error(e)
-            raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
@@ -333,7 +323,7 @@ class Scan:
                       optimization="zoom",
                       num_points=num_points) and not self.overwrite:
                 self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info(f"Use the -o option to overwrite the existing run.\n")
+                self.logger.info("Use the -o option to overwrite the existing run.\n")
                 return
 
         # initialize output directories and files
@@ -341,9 +331,6 @@ class Scan:
 
         # run prescan
         self.run_prescan()
-
-        # move into the working directory for scans
-        os.chdir(self.out_dir)
 
         # make a list of all zoom optimizers based on bimodal distribution tests
         all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
@@ -378,8 +365,7 @@ class Scan:
                                                   global_max=self.global_max)
 
                     # store max_xb
-                    if temp_max > self.global_max:
-                        self.global_max = temp_max
+                    self.global_max = max(self.global_max, temp_max)
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
@@ -535,10 +521,7 @@ if __name__ == "__main__":
                        decay=args.decay)
 
     # set up logging
-    if args.log:
-        logfile_name = args.log
-    else:
-        logfile_name = f"{args.strategy}.log"
+    logfile_name = args.log if args.log else f"{args.strategy}.log"
     setup_logging(log_file=os.path.join(out_dir, logfile_name),
                   level=LOG_LEVELS[args.log_level.lower()])
 

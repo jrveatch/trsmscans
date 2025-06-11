@@ -5,6 +5,7 @@ import argparse
 import logging
 import math
 import multiprocessing as mp
+from multiprocessing.managers import ValueProxy
 import os
 import shutil
 import subprocess
@@ -16,6 +17,7 @@ from blessings import Terminal
 
 # local modules
 from utils.config_loader import ConfigLoader
+from utils.cpu_utils import get_n_cpus
 from utils.env_utils import data_dir
 from utils.tsv_utils import save_tsv_output
 
@@ -25,21 +27,13 @@ logger = logging.getLogger(__name__)
 # get configurations
 config_loader = ConfigLoader(config_file_name="RunConfig.yml")
 try:
-    # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum number of points per job
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
-except KeyError as e:
-    logger.error(e)
-    raise
 except Exception as e:
-    logger.error(e)
+    logger.exception(e)
     raise
-
-# get logger
-logger = logging.getLogger(__name__)
 
 # method to run ScannerS
 def run_scannerS(ini_name: str,
@@ -55,7 +49,7 @@ def run_scannerS(ini_name: str,
     num_processes = 1
 
     # get number of available CPUs
-    num_cpu = mp.cpu_count()
+    num_cpu = get_n_cpus()
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
@@ -84,11 +78,8 @@ def run_scannerS(ini_name: str,
         test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
 
         # run test process
-        try:
-            run_timed_process(process_args=test_process_args,
-                              model_name=model_name)
-        except TimeoutError:
-            raise
+        run_timed_process(process_args=test_process_args,
+                          model_name=model_name)
 
         # print out some information
         logger.debug("Test job was successful")
@@ -96,8 +87,8 @@ def run_scannerS(ini_name: str,
         # number of points left to run after test job
         points_to_run = num_points - min_points_per_job
 
-        # set number of processes to 80% of the available cores rounded down
-        num_processes = int(num_cpu * frac_cpu)
+        # set number of processes to the number of allowed CPUs
+        num_processes = num_cpu
 
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
@@ -123,7 +114,7 @@ def run_scannerS(ini_name: str,
         process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
 
         # create a shared counter and a lock
-        counter = mp.Manager().Value("i",0)
+        counter: ValueProxy = mp.Manager().Value("i",0)
         lock = mp.Manager().Lock()
 
         # print empty job completion counter
@@ -144,7 +135,7 @@ def run_scannerS(ini_name: str,
 
         # combine the outputs into a single file
         concatenate_files(directories=directories,
-                        file_name=model_name+".tsv")
+                          file_name=model_name+".tsv")
 
     else:
         logger.info("Running as a single process")
@@ -153,31 +144,31 @@ def run_scannerS(ini_name: str,
         process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
 
         # run test process
-        try:
-            run_timed_process(process_args=process_args,
-                              model_name=model_name)
-        except TimeoutError:
-            raise
+        run_timed_process(process_args=process_args,
+                          model_name=model_name)
 
     # return number of points that are actually used, including test job points
     return num_points
 
 def run_scannerS_single_point(ini_name: str,
                               model_name: str) -> None:
+    """Runs ScannerS for a single parameter point using the given model configuration.
+
+    Args:
+        ini_name (str): Path to the `.ini` configuration file.
+        model_name (str): Name of the model to be scanned.
+    """
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
-        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+        raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
     process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
 
     # run timed process
-    try:
-        run_timed_process(process_args=process_args,
-                          model_name=model_name)
-    except TimeoutError:
-        raise
+    run_timed_process(process_args=process_args,
+                      model_name=model_name)
 
 # run a process for multiprocessing
 def run_process(process_args: List[str],
@@ -189,20 +180,12 @@ def run_process(process_args: List[str],
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
 
-    # get original directory
-    original_dir = os.getcwd()
-
     # change to the temporary directory
     os.chdir(directory)
 
-    # log file
-    log = open("ScannerS.log", "w")
-
     # run the process with arguments and suppress output
-    subprocess.run(process_args, stdout=log, stderr=log)
-
-    # change back to the original directory
-    os.chdir(original_dir)
+    with open("ScannerS.log", "w") as log:
+        subprocess.run(process_args, stdout=log, stderr=log)
 
     # increment the counter and print out how many processes are finished
     with lock:
@@ -216,41 +199,42 @@ def run_timed_process(process_args: List[str],
     # output file name
     outfile = model_name + ".tsv"
 
-    # log file
-    log = open("ScannerS.log", "w")
+    # launch the process with arguments and redirect output to a log file
+    with open("ScannerS.log", "w") as log:
+        process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
-    # launch process
-    process = subprocess.Popen(process_args, stdout=log, stderr=log)
+        # get start time
+        start_time = time.time()
 
-    # get start time
-    start_time = time.time()
+        # flag to check timeout
+        check_timeout = True
 
-    # flag to check timeout
-    check_timeout = True
+        # check output while the process is still running
+        while process.poll() is None:
 
-    # check output while the process is still running
-    while process.poll() is None:
+            # check timeout once if it hasn't been checked before
+            if check_timeout and time.time() - start_time >= timeout:
 
-        # check timeout once if it hasn't been checked before
-        if check_timeout and time.time() - start_time >= timeout:
+                # if output file is empty, complain, kill process and exit
+                if os.path.exists(outfile) and not os.path.getsize(outfile):
 
-            # if output file is empty, complain, kill process and exit
-            if os.path.exists(outfile) and not os.path.getsize(outfile):
+                    # kill process
+                    process.kill()
 
-                # kill process
-                process.kill()
+                    # make exception message
+                    msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
 
-                # make exception message
-                msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
+                    # raise timeout exception
+                    raise TimeoutError(msg)
 
-                # raise timeout exception
-                raise TimeoutError(msg)
+                # only need to check timeout once
+                check_timeout = False
 
-            # only need to check timeout once
-            check_timeout = False
+            # wait 1 second before checking again
+            time.sleep(1)
 
-        # wait 1 second before checking again
-        time.sleep(1)
+    # clean up artifact files
+    remove_artifact_files()
 
 # concatenate outputs from parallel processes into a single .tsv file
 def concatenate_files(directories: List[str],
@@ -270,7 +254,7 @@ def concatenate_files(directories: List[str],
         logger.debug(f"Successfully concatenated all files into {file_name}")
 
     except Exception as e:
-        logger.error(f"Error during file concatenation: {e}")
+        logger.exception(f"Error during file concatenation: {e}")
         return  # Do not proceed with deleting directories
 
     # If everything worked, proceed to delete directories
@@ -286,14 +270,28 @@ def remove_temp_dir(directory, retries=5, delay=1):
         try:
             shutil.rmtree(directory)
             logger.verbose(f"Successfully removed: {directory}")
-            return
         except OSError as e:
             if 'Directory not empty' in str(e):
                 logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
-    logger.error(f"Failed to remove {directory} after {retries} retries.")
+        else:
+            return
+    logger.exception(f"Failed to remove {directory} after {retries} retries.")
+
+def remove_artifact_files() -> None:
+    """Remove artifact files that are not needed after the scan."""
+    artifact_files = ["HS_analyses.txt",
+                      "HS_correlations.txt",
+                      "Key.dat", "STXS_analyses.txt",
+                      "STXS_correlations.txt",]
+    for file in artifact_files:
+        if os.path.exists(file):
+            os.remove(file)
+            logger.debug(f"Removed artifact file: {file}")
+        else:
+            logger.debug(f"Artifact file {file} does not exist, skipping removal.")
 
 if __name__ == "__main__":
 
@@ -305,7 +303,7 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ini_name = data_dir() + "models/" + args.model + "_baseline.ini"
+    ini_name = os.path.join(data_dir(), "models", f"{args.model}_baseline.ini")
 
     # run ScannerS using baseline .ini
     run_scannerS(ini_name = ini_name,

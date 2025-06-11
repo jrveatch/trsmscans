@@ -48,7 +48,7 @@ class ConfigLoader:
 
     def load_config(self,
                     path: str) -> Dict[str, Any]:
-        
+
         """
         Load a YAML configuration file.
 
@@ -68,13 +68,13 @@ class ConfigLoader:
             with open(path, 'r') as config_file:
                 return yaml.safe_load(config_file) or {}  # Ensure it returns a dictionary, even if empty
         except FileNotFoundError:
-            self.logger.error(f"Configuration file '{path}' not found.")
+            self.logger.exception(f"Configuration file '{path}' not found.")
             raise  # Re-raise the exception to halt the program or handle as needed
-        except yaml.YAMLError as e:
-            self.logger.error(f"Failed to parse YAML file '{path}'.\nDetails: {e}")
+        except yaml.YAMLError:
+            self.logger.exception(f"Failed to parse YAML file '{path}'.")
             raise  # Re-raise to handle upstream
         except Exception as e:
-            self.logger.error(f"Unexpected error while loading config file '{path}': {e}")
+            self.logger.exception(f"Unexpected error: {e}")
             raise
 
     def get(self,
@@ -99,10 +99,8 @@ class ConfigLoader:
             value = self.config.get(section, {}).get(key)
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
-            return value
-        except KeyError as e:
-            self.logger.error(e)
-            raise  # Depending on your needs, you can choose to raise or handle differently
         except Exception as e:
-            self.logger.error(f"Unexpected error accessing config key '{section}.{key}': {e}")
+            self.logger.exception(e)
             raise
+        else:
+            return value

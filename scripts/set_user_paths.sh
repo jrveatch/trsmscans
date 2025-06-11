@@ -164,18 +164,22 @@ submodule_path HSDATASET_PATH "HSDataSet"
 # Call function to handle symlink creation for run/output
 create_output_symlink
 
-# Remove various directories and PATH from env.sh
-remove_var_from_env "DATADIR"
-remove_var_from_env "EXTERNALSDIR"
-remove_var_from_env "CONFIGDIR"
-remove_var_from_env "OUTPUTDIR"
-remove_var_from_env "PATH"
+# Remove directory variables from env.sh
+remove_var_from_env "DATA_DIR"
+remove_var_from_env "EXTERNALS_DIR"
+remove_var_from_env "CONFIG_DIR"
+remove_var_from_env "OUTPUT_DIR"
+remove_var_from_env "HTCONDOR_DIR"
+
+# Remove PATH variables from env.sh
+remove_path_blocks_from_env
 
 # Add various directories to env.sh
-echo "export DATADIR=\"${PWD}/data/\"" >> env.sh
-echo "export EXTERNALSDIR=\"${PWD}/externals/\"" >> env.sh
-echo "export CONFIGDIR=\"${PWD}/config/\"" >> env.sh
-echo "export OUTPUTDIR=\"${PWD}/run/output/\"" >> env.sh
+echo "export DATA_DIR=\"${PWD}/data\"" >> env.sh
+echo "export EXTERNALS_DIR=\"${PWD}/externals\"" >> env.sh
+echo "export CONFIG_DIR=\"${PWD}/config\"" >> env.sh
+echo "export OUTPUT_DIR=\"${PWD}/run/output\"" >> env.sh
+echo "export HTCONDOR_DIR=\"${PWD}/htcondor\"" >> env.sh
 
 # Ensure SCANNERS_PATH is set correctly
 if [ -n "${SCANNERS_PATH:-}" ] && [ -d "$SCANNERS_PATH/build" ]; then
@@ -185,8 +189,11 @@ else
 fi
 
 # Append the new PATH setting to env.sh
+echo 'if [[ ":$PATH:" != *":'"${PWD}/python"':"* ]]; then' >> env.sh
+echo '    export PATH="'"${PWD}/python"':$PATH"' >> env.sh
+echo 'fi' >> env.sh
 echo 'if [[ ":$PATH:" != *":'"$scanners_bin_path"':"* ]]; then' >> env.sh
-echo '    export PATH='"$scanners_bin_path"':$PATH' >> env.sh
+echo '    export PATH="'"$scanners_bin_path"':$PATH"' >> env.sh
 echo 'fi' >> env.sh
 
 # Create file to indicate that all paths have been successfully set

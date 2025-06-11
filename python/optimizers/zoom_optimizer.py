@@ -22,7 +22,6 @@ import pandas as pd
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.file_utils import scan_dir
-from utils.math_utils import round_sig
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -80,11 +79,8 @@ class ZoomOptimizer:
             self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
             self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
-        except KeyError as e:
-            self.logger.error(e)
-            raise
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            self.logger.exception(e)
             raise
 
         # supported strategies
@@ -182,17 +178,18 @@ class ZoomOptimizer:
         self.local_max_old = self.local_max
 
         # if new point is better than the local max point, replace it
-        if new_max > self.local_max:
-            self.local_max = new_max
+        self.local_max = max(self.local_max, new_max)
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
 
             # write max xb point summary to summary file
-            write_point_to_summary_file(file_name=self.summary_name,point=self.local_max,identifier=identifier)
+            write_point_to_summary_file(file_name=self.summary_name,
+                                        point=new_max,
+                                        identifier=identifier)
 
             # write max xb point raw .tsv line to summary tsv file
-            self.scan_parser.write_max_xb_line(self.tsv_summary_name)
+            new_max.write_tsv_to_file(self.tsv_summary_name)
 
         # write scan details to details file
         self.write_details(identifier=identifier,
@@ -224,11 +221,9 @@ class ZoomOptimizer:
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0
-            else:
-                # if point is less than 2nd highest point, end scan
-                if new_max < sorted_history[-2]:
-                    self.is_running = False
-                    self.termination_message("Local max is not increasing")
+            elif new_max < sorted_history[-2]:
+                self.is_running = False
+                self.termination_message("Local max is not increasing")
 
         # termination message if no longer running
         if not self.is_running:
@@ -272,7 +267,6 @@ class ZoomOptimizer:
         # get point density from ranges
         density = self.num_points / self.param_space.volume()
 
-        # TODO: Add details about R11, R21, R31
         with open(self.details_name,"a") as details:
             content = f"Iteration = {identifier}\n"
             content += "--------------------\n"
@@ -349,8 +343,7 @@ class ZoomOptimizer:
             percentile_threshold = 1.0 - min_points / xb_array.size
 
         # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
+        percentile_threshold = max(percentile_threshold, 0.0)
 
         # create a threshold to look at the top percentile of xb points
         xb_threshold = xb_array.quantile(percentile_threshold)

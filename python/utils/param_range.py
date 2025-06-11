@@ -105,8 +105,7 @@ class ParamRange:
         self.__min_value = new_min_value
         """Sets the minimum allowed value for the parameter and clamps the current low value if needed."""
         if hasattr(self, '_ParamRange__low'):
-            if self.low < self.min_value:
-                self.low = self.min_value
+            self.low = max(self.low, self.min_value)
         else:
             self.__low = self.__min_value
 
@@ -121,8 +120,7 @@ class ParamRange:
         self.__max_value = new_max_value
         """Sets the maximum allowed value for the parameter and clamps the current high value if needed."""
         if hasattr(self, '_ParamRange__high'):
-            if self.high > self.max_value:
-                self.high = self.max_value
+            self.high = min(self.high, self.max_value)
         else:
             self.__high = self.__max_value
 
@@ -179,8 +177,7 @@ class ParamRange:
             self.high += overage
 
             # if new high is above upper bound, set it to max
-            if self.high > self.max_value:
-                self.high = self.max_value
+            self.high = min(self.high, self.max_value)
 
             # set low to lower bound
             self.low = self.min_value
@@ -195,8 +192,7 @@ class ParamRange:
             self.low -= overage
 
             # if new low is below lower bound, set it to lower bound
-            if self.low < self.min_value:
-                self.low = self.min_value
+            self.low = max(self.low, self.min_value)
 
             # set high to upper bound
             self.high = self.max_value

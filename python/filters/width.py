@@ -55,11 +55,8 @@ def filter_widths(dataframe: pd.DataFrame,
         max_width_H: float = config_loader.get('width', 'max_width_H')
         max_width_S: float = config_loader.get('width', 'max_width_S')
         max_width_X: float = config_loader.get('width', 'max_width_X')
-    except KeyError as e:
-        logger.error(e)
-        raise
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.exception(e)
         raise
 
     # get arrays of widths, masses and thresholds

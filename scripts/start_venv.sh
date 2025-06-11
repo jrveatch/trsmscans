@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
+# source env.sh to load existing environment variables
+if [ -f env.sh ]; then
+    source env.sh
+fi
+
 # start the python virtual environment
 printf "\nActivating venv\n"
-source trsm_venv/bin/activate
+source $TRSM_VENV_PATH/bin/activate
 
 # check whether requirements file exists
 if ! [ -f "python/requirements.txt" ]; then

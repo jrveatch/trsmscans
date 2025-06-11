@@ -1,1 +1,1 @@
-../python/plot.py -X 1001 -S 301 -m "TRSMBroken" -d SbbHtautau
+plot.py -X 1001 -S 301 -m "TRSMBroken" -d SbbHtautau

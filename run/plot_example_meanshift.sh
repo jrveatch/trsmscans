@@ -1,1 +1,1 @@
-../python/plot_meanshift.py -X 1001 -S 302 -m "TRSMBroken" -d SbbHtautau
+plot_meanshift.py -X 1001 -S 302 -m "TRSMBroken" -d SbbHtautau
