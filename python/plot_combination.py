@@ -10,6 +10,7 @@ from scipy.interpolate import griddata
 from typing import Tuple
 
 from utils.env_utils import output_dir
+from utils.mass_json_utils import load_limit_data
 
 def plot_combination(model :str,
                      decay: str,
@@ -48,6 +49,15 @@ def plot_xb_max(model: str,
     os.makedirs(output_directory, exist_ok=True)
     fig.tight_layout()
     fig.savefig(output_filename)
+
+def plot_exclusions(model: str,
+                    decay: str,
+                    identifier: str) -> None:
+
+    x_values, y_values, z_values = load_limit_data(limit_type="expected",
+                                                   decay=decay,
+                                                   identifier=identifier)
+    pass
 
 def xb_max_label() -> str:
     """
