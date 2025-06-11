@@ -35,42 +35,37 @@ def get_mass_permutations(decay: str,
         print(f"Error reading permutations file {permutations_file}: {e}")
         raise
 
-def load_limit_data(limit_type: str,
-                    decay: str,
-                    identifier: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def load_limit_data(decay: str,
+                    identifier: str) -> Tuple[np.ndarray, ...]:
     """
     Loads expected or observed limits from a JSON file.
 
     Args:
-        limit_type (str): 'expected' or 'observed'
         decay (str): Decay mode
         identifier (str): Identifier for this run
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray]: Arrays of mX, mS, and limit values
+        Tuple[np.ndarray, ...]: Arrays of mX, mS, and limit values
 
     Raises:
-        ValueError: If limit_type is not recognized or required fields are missing
+        ValueError: If required fields are missing
         RuntimeError: On file access or parsing errors
     """
-    if limit_type not in ("expected", "observed"):
-        raise ValueError("limit_type must be 'expected' or 'observed'")
 
-    limit_file = os.path.join(data_dir(), "limits", f"{decay}_{identifier}_limits.json")
+    limit_file = os.path.join(data_dir(), "mass_points", f"{decay}_{identifier}.json")
 
     try:
         with open(limit_file, "r") as f:
             data = json.load(f)
 
-        x_vals, y_vals, z_vals = [], [], []
+        X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
         for point in data["mass_points"]:
-            if limit_type + "_limit" not in point:
-                raise ValueError(f"Missing {limit_type}_limit in mass point entry")
-            x_vals.append(point["mX"])
-            y_vals.append(point["mS"])
-            z_vals.append(point[f"{limit_type}_limit"])
+            X_mass_vals.append(point["mX"])
+            S_mass_vals.append(point["mS"])
+            obs_limit_vals.append(point["observed_limit"])
+            exp_limit_vals.append(point["expected_limit"])
 
-        return np.array(x_vals), np.array(y_vals), np.array(z_vals)
+        return (np.array(X_mass_vals), np.array(S_mass_vals), np.array(obs_limit_vals), np.array(exp_limit_vals))
 
     except Exception as e:
-        raise RuntimeError(f"Failed to load {limit_type} limits from {limit_file}: {e}")
+        raise RuntimeError(f"Failed to load limits from {limit_file}: {e}")

@@ -46,16 +46,16 @@ def plot_exclusions(model: str,
                     decay: str,
                     identifier: str) -> None:
 
-    # Output directory and filename for the plot
-    output_filename = os.path.join(output_directory(model, decay),
-                                   f"{decay}_{identifier}_expected.png")
+    # Output filenames for the plot
+    output_filename_obs = os.path.join(output_directory(model, decay), f"{decay}_{identifier}_observed.png")
+    output_filename_exp = os.path.join(output_directory(model, decay), f"{decay}_{identifier}_expected.png")
 
-    X_mass, S_mass, limits = load_limit_data(limit_type="expected",
-                                             decay=decay,
+    X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
                                              identifier=identifier)
 
     # Plot the interpolated grid
-    plot_interpolation(X_mass, S_mass, limits, output_filename)
+    plot_interpolation(X_mass, S_mass, obs_limits, output_filename_obs)
+    plot_interpolation(X_mass, S_mass, exp_limits, output_filename_exp)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
