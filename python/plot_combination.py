@@ -42,6 +42,7 @@ def plot_combination(model :str,
     # Plot the xbmax interpolated grid
     plot_interpolation(X_mass_xb_i, S_mass_xb_i, xb_max_i, output_filename_xbmax)
 
+    # Stop here if we are not plotting limits
     if not plot_limits:
         return
 
@@ -51,6 +52,21 @@ def plot_combination(model :str,
     # Get the interpolated grids
     X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(X_mass, S_mass, obs_limits, resolution=(XRES, SRES))
     _, _, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
+
+
+    # Align limits to xb_max subset points
+    obs_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, obs_limits)
+    exp_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, exp_limits)
+
+    # Create binary masks: where xb_max exceeds limits
+    mask_obs = xb_max > obs_matched
+    mask_exp = xb_max > exp_matched
+
+    # Optional: Print summary
+    print(f"Observed mask: {np.sum(mask_obs)} / {len(mask_obs)} points exceed limits")
+    print(f"Expected mask: {np.sum(mask_exp)} / {len(mask_exp)} points exceed limits")
+
+    # TODO: Create the expected limit masks - probably use a helper function
 
     # Plot the interpolated grid
     plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs)
@@ -86,6 +102,29 @@ def plot_interpolation(X_mass: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
+
+def match_limit_values_to_subset(X_sub: np.ndarray,
+                                 S_sub: np.ndarray,
+                                 X_all: np.ndarray,
+                                 S_all: np.ndarray,
+                                 limit_values: np.ndarray) -> np.ndarray:
+    """
+    Given a subset of points (X_sub, S_sub) and a full limit grid (X_all, S_all),
+    return the corresponding limit values for the subset.
+
+    Args:
+        X_sub, S_sub: Points in the xb_max dataset
+        X_all, S_all: Full coordinate grid from limit dataset
+        limit_values: Limit values on the full grid
+
+    Returns:
+        np.ndarray of limit values matching the subset coordinates
+    """
+    lookup = {(x, s): val for x, s, val in zip(X_all, S_all, limit_values)}
+    try:
+        return np.array([lookup[(x, s)] for x, s in zip(X_sub, S_sub)])
+    except KeyError as e:
+        raise ValueError(f"Subset point {e} not found in limit dataset.")
 
 def output_directory(model: str,
                      decay: str) -> str:
