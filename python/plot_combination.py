@@ -14,9 +14,12 @@ from utils.mass_json_utils import load_limit_data
 
 def plot_combination(model :str,
                      decay: str,
-                     identifier: str) -> None:
+                     identifier: str,
+                     plot_limits: bool) -> None:
 
     plot_xb_max(model=model, decay=decay, identifier=identifier)
+    if plot_limits:
+        plot_exclusions(model=model, decay=decay, identifier=identifier)
     
 def plot_xb_max(model: str,
                 decay: str,
@@ -43,10 +46,16 @@ def plot_exclusions(model: str,
                     decay: str,
                     identifier: str) -> None:
 
-    X_mass, S_mass, limits_exp = load_limit_data(limit_type="expected",
-                                                 decay=decay,
-                                                 identifier=identifier)
-    pass
+    # Output directory and filename for the plot
+    output_filename = os.path.join(output_directory(model, decay),
+                                   f"{decay}_{identifier}_expected.png")
+
+    X_mass, S_mass, limits = load_limit_data(limit_type="expected",
+                                             decay=decay,
+                                             identifier=identifier)
+
+    # Plot the interpolated grid
+    plot_interpolation(X_mass, S_mass, limits, output_filename)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
@@ -104,7 +113,7 @@ def xb_max_label() -> str:
     Returns:
         str: The label for the xb_max plot.
     """
-    return r"Max $\sigma\times BR$ [pb]"
+    return r"Max $\sigma\times BR$ [fb]"
 
 def mass_label(particle: str) -> str:
     """
@@ -135,10 +144,10 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
             missing = required_cols - set(df.columns)
             raise ValueError(f"Missing required columns in TSV file: {missing}")
         
-        x = df['XMass'].to_numpy()
-        y = df['SMass'].to_numpy()
-        z = df['xbmax'].to_numpy()
-        return x, y, z
+        X_mass = df['XMass'].to_numpy()
+        S_mass = df['SMass'].to_numpy()
+        xbmax = df['xbmax'].to_numpy() * 1000 # Convert to fb
+        return X_mass, S_mass, xbmax
 
     except Exception as e:
         raise RuntimeError(f"Failed to read or parse data from {file_path}: {e}")
@@ -172,8 +181,10 @@ if __name__ =="__main__":
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
+    arg_parser.add_argument("-l", "--plot_limits", action="store_true", help="Produce exclusion limits plots")
     args = arg_parser.parse_args()
 
     plot_combination(model = args.model,
                      decay=args.decay,
-                     identifier=args.identifier)
+                     identifier=args.identifier,
+                     plot_limits=args.plot_limits)
