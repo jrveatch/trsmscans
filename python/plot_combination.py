@@ -4,6 +4,7 @@ import argparse
 import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib.ticker import LogLocator, LogFormatterMathtext
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
@@ -70,7 +71,7 @@ def plot_interpolation(X_mass: np.ndarray,
     contour = ax.contourf(X_mass_i,
                           S_mass_i,
                           xb_max_i,
-                          levels=30,
+                          levels=np.logspace(np.log10(np.nanmin(xb_max_i)), np.log10(np.nanmax(xb_max_i)), 200),
                           norm=mcolors.LogNorm(),
                           cmap='viridis')
 
@@ -82,6 +83,11 @@ def plot_interpolation(X_mass: np.ndarray,
 
     cbar = plt.colorbar(contour)
     cbar.set_label(xb_max_label())
+
+    # Set colorbar ticks at powers of 10
+    cbar.locator = LogLocator(base=10.0, numticks=10)
+    cbar.formatter = LogFormatterMathtext(base=10.0)
+    cbar.update_ticks()
 
     fig.tight_layout()
     fig.savefig(file_name)
