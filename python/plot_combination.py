@@ -9,7 +9,7 @@ import pandas as pd
 from scipy.interpolate import griddata
 from typing import Tuple
 
-from utils.env_utils import output_dir
+import utils.env_utils as env
 from utils.mass_json_utils import load_limit_data
 
 def plot_combination(model :str,
@@ -23,18 +23,15 @@ def plot_xb_max(model: str,
                 identifier: str) -> None:
 
     # Combination .tsv file name
-    input_file_name = os.path.join(output_dir(),
+    input_file_name = os.path.join(env.output_dir(),
                                    model,
                                    "scan",
                                    decay,
                                    f"{decay}_{identifier}_combination.tsv")
 
     # Output directory and filename for the plot
-    output_directory = os.path.join(output_dir(), model, "plots", decay, "combination")
-    output_filename = os.path.join(output_directory, f"{decay}_{identifier}_combination.png")
-
-    # Ensure the output directory exists
-    os.makedirs(output_directory, exist_ok=True)
+    output_filename = os.path.join(output_directory(model, decay),
+                                   f"{decay}_{identifier}_xbmax.png")
 
     # Load data from the TSV file
     X_mass, S_mass, xb_max = load_data(input_file_name)
@@ -46,9 +43,9 @@ def plot_exclusions(model: str,
                     decay: str,
                     identifier: str) -> None:
 
-    x_values, y_values, z_values = load_limit_data(limit_type="expected",
-                                                   decay=decay,
-                                                   identifier=identifier)
+    X_mass, S_mass, limits_exp = load_limit_data(limit_type="expected",
+                                                 decay=decay,
+                                                 identifier=identifier)
     pass
 
 def plot_interpolation(X_mass: np.ndarray,
@@ -79,6 +76,26 @@ def plot_interpolation(X_mass: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
+
+def output_directory(model: str,
+                     decay: str) -> str:
+    """
+    Returns the output directory for the given model and decay mode.
+    Ensures the directory exists by creating it if necessary.
+    
+    Args:
+        model (str): The name of the theoretical model.
+        decay (str): The decay mode.
+    
+    Returns:
+        str: The path to the output directory.
+    """
+    out_dir = os.path.join(env.output_dir(), model, "plots", decay, "combination")
+
+    # Ensure the output directory exists
+    os.makedirs(out_dir, exist_ok=True)
+
+    return out_dir
 
 def xb_max_label() -> str:
     """
