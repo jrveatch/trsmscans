@@ -288,6 +288,7 @@ class Scan:
         # SCAN LOGIC END HERE
 
         # sort summary file
+        # TODO: make sure to sort the tsv summary file as well
         sort_tsv_file(self.summary_name)
 
         # get total scan time
