@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def prescan(model: Model,
             num_points: int,
             config_loader: Union[ConfigLoader, None] = None,
-            config_file_name: str = "",
+            config_file_name: Union[str, None] = None,
             overwrite: bool = False) -> Parse:
     """
     Executes a prescan of the parameter space for a given scalar model.
@@ -46,7 +46,7 @@ def prescan(model: Model,
         model (Model): The scalar model to scan.
         num_points (int): Total number of scan points to generate.
         config_loader (Union[ConfigLoader, None], optional): Optional configuration loader.
-        config_file_name (str, optional): Path to a config file if no loader is provided.
+        config_file_name (Union[str, None], optional): Path to a config file if no loader is provided.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -68,31 +68,18 @@ def prescan(model: Model,
     # get number of pre-existing prescan points
     num_existing = count_tsv_points(tsv_name)
 
-    # if requested points are < 20% of existing points, request confirmation to overwrite
-    if overwrite and num_points < num_existing * 0.2:
-        logger.info(f"You are requesting {num_points} points but there are already {num_existing} points")
-        while True:
-            # get user response
-            response = input("Are you sure you want to overwrite the existing prescan? (yes/no): ").strip().lower()
-            # if yes, print message and break out of while loop
-            if response in ["yes", "y"]:
-                logger.info("Overwriting existing prescan")
-                break
-            # if no, print message and return
-            elif response in ["no", "n"]:
-                logger.info("Exiting prescan")
-                return Parse(model = model,
-                             file_name = tsv_name)
-            # complain if response is neither yes nor no
-            else:
-                logger.warning("Please enter 'yes' or 'no'.")
-
-    # remove previous directory if set to overwrite
-    if os.path.isfile(tsv_name) and overwrite:
-        # remove .tsv file
-        os.remove(tsv_name)
-        # reset num_existing to 0
-        num_existing = 0
+    # if overwrite is set to True and requested points are < 20% of existing points, confirm with user
+    if overwrite:
+        if confirm_overwrite(existing=num_existing, requested=num_points):
+            logger.info("Overwriting existing prescan")
+            # remove existing TSV file and reset num_existing to 0
+            if os.path.isfile(tsv_name):
+                os.remove(tsv_name)
+                num_existing = 0
+        else:
+            logger.info("Exiting prescan without changes")
+            return Parse(model = model,
+                         file_name = tsv_name)
 
     # if prescan exists, adjust the number of prescan points to run
     if num_existing > 0:
@@ -122,7 +109,7 @@ def prescan(model: Model,
     if not config_loader:
 
         # use default config file name if none is provided
-        if not config_file_name:
+        if config_file_name is None:
             config_file_name = model.name + "_default.yml"
 
         # load config file
@@ -151,6 +138,29 @@ def prescan(model: Model,
 
     # return parser after a successful run
     return parser
+
+def confirm_overwrite(existing: int,
+                      requested: int) -> bool:
+    """
+    Prompts the user to confirm overwriting existing scan results if the requested
+    number of scan points is significantly smaller than the existing number.
+
+    Args:
+        existing (int): The number of existing prescan points.
+        requested (int): The number of new points requested by the user.
+
+    Returns:
+        bool: True if the overwrite is confirmed or not needed; False if the
+        user declines to proceed with overwriting.
+    """
+    if requested < existing * 0.2:
+        print(f"Only {requested} points requested, but {existing} already exist.")
+        while True:
+            resp = input("Overwrite existing prescan? (yes/no): ").strip().lower()
+            if resp in {"yes", "y"}: return True
+            if resp in {"no", "n"}: return False
+            print("Please enter 'yes' or 'no'.")
+    return True
 
 # Command-line interface for the prescan tool.
 # Parses model parameters and scan settings from arguments, sets up logging,
