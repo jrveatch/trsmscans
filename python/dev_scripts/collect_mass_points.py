@@ -25,7 +25,7 @@ def collect_mass_points(output_filename):
 
     # Convert set to sorted list of dicts
     sorted_points = sorted(all_points, key=lambda x: (x[0], x[1]))
-    output = {"mass_points": [{"mX": mX, "mS": mS} for mX, mS in sorted_points]}
+    output = {"mass_points": [{"mX": mX, "mS": mS, "resolvable": True} for mX, mS in sorted_points]}
 
     # Write to output JSON
     with open(output_path, 'w') as out_f:
