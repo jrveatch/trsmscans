@@ -5,6 +5,8 @@ import re
 import os
 from typing import Any, Dict, List
 
+from sigfig import round
+
 def create_json (hepdata_path, mass_points_json):
     meta_data_values = extract_meta_data (mass_points_json)
     expected_values = loop_over_json_files (hepdata_path)
@@ -59,11 +61,15 @@ def extract_expected_limits(hep_data_json: str,
     for entry in data.get("values", []):
         if "y" in entry and len(entry["y"]) > 0:
 
-            new_points = {#"mX" : float(entry["x"][0]["value"]),
+            new_points = {#"mX" : int(float(entry["x"][0]["value"])),
                           "mX" : mx,
-                          "mS" : int(entry["x"][0]["value"]),
-                          "expected_limit" : float(entry["y"][1]["value"]),
-                          "observed_limit" : float(entry["y"][0]["value"]),
+                          "mS" : int(float(entry["x"][0]["value"])),
+                          "observed_limit" : round(float(entry["y"][0]["value"]),5),
+                          "expected_limit" : round(float(entry["y"][1]["value"]),5),
+                          "expected_limit_m1" : round(float(entry["y"][1]["value"]) + float(entry["y"][1]["errors"][0]["asymerror"]["minus"]),5),
+                          "expected_limit_p1" : round(float(entry["y"][1]["value"]) + float(entry["y"][1]["errors"][0]["asymerror"]["plus"]),5),
+                          "expected_limit_m2" : round(float(entry["y"][1]["value"]) + float(entry["y"][1]["errors"][1]["asymerror"]["minus"]),5),
+                          "expected_limit_p2" : round(float(entry["y"][1]["value"]) + float(entry["y"][1]["errors"][1]["asymerror"]["plus"]),5),
                           "resolvable" : True }
 
             expected_limits.append(new_points)
@@ -73,5 +79,5 @@ def extract_expected_limits(hep_data_json: str,
 if __name__ == "__main__":
     mass_points_json = "../data/mass_points/SbbHtautau_CMS_old.json"
     hep_data_path = "../data/hepdata/SbbHtautau_CMS"
-    #hep_data_path = "../data/hepdata/SHbbbb_CMS_boosted.json" # Replace with the actual JSON filename
+    #hep_data_path = "../data/hepdata/SbbHgamgam_ATLAS.json" # Replace with the actual JSON filename
     create_json (hep_data_path, mass_points_json)
