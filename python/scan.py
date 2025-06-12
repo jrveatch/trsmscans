@@ -484,20 +484,6 @@ class Scan:
     
     def get_param_spaces(self, param_space: 'ParamSpace') -> List[ParamSpace]:
 
-        '''
-        1. Start with one param space in a list
-        2. For each param space in list:
-        3. Loop over paramerer names
-            4. If param space is bimodal (on either test) based on parameter:
-                a. Split param space & put new param spaces in list
-                b. Remove original param space from list
-                c. Go back to step 2
-        5. Shrink parameter space ***
-        6. Create zoom optimizers from param spaces
-
-        *** Calculate proportional points from each zoom optimizer based on paramater space volume
-        '''
-
         # Intialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
         final_param_space_list =[]
@@ -567,6 +553,8 @@ class Scan:
                 label = f'ZoomOptimizer-{i}'
             )
 
+            self.logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
+
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
 
@@ -596,11 +584,15 @@ class Scan:
         # Assign rounded points to the points_per_optimizer_array
         points_per_optimizer_array = points_array
 
+        # Minimum points assigment
+        min_points = min(num_points/10,20)
+        self.logger.debug(f"Minimum points per zoom optimizer: {min_points}")
+
         # Distribute remaining points to indices by param space volume size
         for i in range(num_param_spaces):
     
-            if points_array[i] < 20:
-                points_per_optimizer_array[i] = 20
+            if points_array[i] < min_points:
+                points_per_optimizer_array[i] = min_points
             
         # Return to call
         return tuple(points_per_optimizer_array.tolist())
