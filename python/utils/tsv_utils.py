@@ -4,7 +4,6 @@ import csv
 import logging
 import os
 import shutil
-import subprocess
 from typing import List, Dict, Optional, Tuple
 
 from utils.math_utils import round_sig
@@ -18,30 +17,17 @@ def count_tsv_points(file_name: str) -> int:
     """
     Count the number of data rows (excluding header) in a .tsv file.
 
-    This function uses `wc -l` to count the number of lines in the file and subtracts one for the header.
-
     Args:
         file_name (str): Path to the .tsv file.
 
     Returns:
-        int: The number of data rows. Returns 0 if the file doesn't exist or if an error occurs.
+        int: Number of data rows (0 if file missing or empty).
     """
-
-    # if file doesn't exist, return -1
-    if not os.path.exists(file_name):
+    try:
+        with open(file_name, 'r') as f:
+            return max(0, sum(1 for _ in f) - 1)
+    except Exception:
         return 0
-
-    # run wc -l to get the number of lines
-    result = subprocess.run(["wc", "-l", file_name], capture_output=True, text=True)
-
-    # get output from wc -l
-    output = result.stdout.strip()
-
-    # get the number of previously scanned points
-    num_points = int(output.split()[0]) - 1
-
-    # return number of points
-    return num_points
 
 def save_tsv_output(input_file: str,
                     output_file: str) -> None:
