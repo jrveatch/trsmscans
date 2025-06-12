@@ -8,6 +8,8 @@ and writes the results to a `.tsv` file. Existing scan results can optionally be
 extended or overwritten depending on user input.
 """
 
+# TODO: Add prescan.log
+
 # standard libraries
 import argparse
 import datetime
