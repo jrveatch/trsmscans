@@ -11,6 +11,8 @@ import os
 import shutil
 import time
 from typing import Dict, List, Tuple
+import math
+import numpy as np
 
 # local modules
 from prescan import prescan
@@ -334,7 +336,8 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(num_points=num_points)
+        all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
+        #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
         # list of which zoom optimizers are running
         running_list = [True]
@@ -370,7 +373,7 @@ class Scan:
 
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
-
+            
             # count iteration
             iter += 1
 
@@ -383,13 +386,15 @@ class Scan:
                       scan_time=scan_time,
                       num_points=num_points)
 
-    def create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
+    def prev_create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
         """
         Create list of zoom optimizers based on the parameter space.
 
         Args:
             num_points (int): Number of points to use in the first iteration.
         """
+
+        self.logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
 
         # Dictionary that will hold the values of the parameters
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
@@ -458,7 +463,122 @@ class Scan:
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
+    
+    def get_param_spaces(self, param_space: 'ParamSpace') -> List[ParamSpace]:
 
+        # Intialize Lists to hold the current param spaces and the final param spaces
+        current_param_space_list = [param_space]
+        final_param_space_list =[]
+
+        # Iterate through the current unchecked param spaces
+        while current_param_space_list:
+
+            # Remove the first param space and hold on to it as the current param space
+            current = current_param_space_list.pop(0)
+
+            # Iterate through the current param space
+            for parameter_name in current.parameter_names:
+
+                # Check modality by evaluating where to split
+                all_splits = self.prescan_parser.get_param_space_splits(param_name=parameter_name, decay=self.decay, param_space=current)
+
+                # Check if points to split where found
+                if all_splits:
+
+                    # Retrieve new param spaces based on the split at given points
+                    new_param_spaces = current.split_range(param_name=parameter_name, split_values=all_splits)
+
+                    # Add the new param spaces to the recurring list of param spaces
+                    current_param_space_list.extend(new_param_spaces)
+            
+                    break
+
+            # Append the current list if no further splitting was done to current param space
+            else:
+                final_param_space_list.append(current)
+
+        # Shrink the param spaces in final_param_space_list
+        for space in final_param_space_list:
+
+            # Shrink the param space
+            self.prescan_parser.shrink_param_space_bounds(param_space=space)
+        
+        return final_param_space_list
+
+    def create_zoom_optimizers(self, param_space: ParamSpace, num_points: int) -> List[ZoomOptimizer]:
+
+        """
+        Create list of zoom optimizers based on the parameter space.
+
+        Args:
+            param_space (ParamSpace): Global parameter space
+            num_points (int): Number of points to use in the first iteration.
+        """
+
+        self.logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
+
+        # Retrieve the list of param spaces
+        list_of_param_spaces = self.get_param_spaces(param_space)
+
+        # List that holds all the zoom optimizers created
+        all_zoom_optimizers: List['ZoomOptimizer'] = []
+
+        points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
+
+        # Create zoom optimizers based on param spaces
+        for i, space in enumerate(list_of_param_spaces):
+            zoom_optimizer = ZoomOptimizer(
+                num_points = points_per_optimizer_list[i],
+                param_space = space,
+                starting_max = self.global_max,
+                config_loader = self.config_loader,
+                label = f'ZoomOptimizer-{i}'
+            )
+
+            self.logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
+
+            # Append zoom optimizers to all_zoom_optimizers list
+            all_zoom_optimizers.append(zoom_optimizer)
+
+        # Print the number of zoom optimizers
+        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+        
+        # Return list of all zoom optimizers
+        return all_zoom_optimizers
+
+    def distribute_points(self, param_space_list: List[ParamSpace], num_points: int) -> Tuple[int]:
+
+        # Retrieve number of param spaces
+        num_param_spaces = len(param_space_list)
+
+        # Initialize list of param space volumes
+        volumes = np.array([space.volume() for space in param_space_list])
+
+        # Retrieve total volume of all param spaces
+        total_volume = volumes.sum()
+
+        # Calculate volume by points & how many points each zoom optimizer scans
+        points_per_vol_array = (volumes / total_volume) * num_points
+
+        # Round the number of points needed for the scan
+        points_array = np.round(points_per_vol_array, decimals=0, out=None).astype(int)
+
+        # Assign rounded points to the points_per_optimizer_array
+        points_per_optimizer_array = points_array
+
+        # Minimum points assigment
+        min_points = min(num_points/10,20)
+        self.logger.debug(f"Minimum points per zoom optimizer: {min_points}")
+
+        # Distribute remaining points to indices by param space volume size
+        for i in range(num_param_spaces):
+    
+            if points_array[i] < min_points:
+                points_per_optimizer_array[i] = min_points
+            
+        # Return to call
+        return tuple(points_per_optimizer_array.tolist())
+       
     def finalize(self,
                  optimization: str,
                  scan_time: float,
