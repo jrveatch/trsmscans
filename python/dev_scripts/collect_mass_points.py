@@ -30,7 +30,7 @@ def collect_mass_points(output_filename):
     # Write to output JSON
     with open(output_path, 'w') as out_f:
         json.dump(output, out_f, indent=2)
-    print(f"Collected {len(output["mass_points"])} unique mass points into {output_filename}")
+    print(f'Collected {len(output["mass_points"])} unique mass points into {output_filename}')
 
 # Example usage
 collect_mass_points("prescan_global.json")
