@@ -168,6 +168,10 @@ def compute_remaining_prescan_points(num_existing: int,
         int: Number of additional scan points to generate (could be zero).
     """
 
+    if num_existing == 0:
+        logger.info("No existing prescan points found, generating requested points")
+        return requested
+
     if num_existing >= requested:
         logger.info(f"Found a prescan that already has {num_existing} points")
         logger.info(f"{requested} points requested, skipping since no more are needed")
