@@ -112,6 +112,8 @@ def prescan(model: Model,
         if config_file_name is None:
             config_file_name = model.name + "_default.yml"
 
+        logger.debug(f"Loading config file {config_file_name}")
+
         # load config file
         config_loader = ConfigLoader(config_file_name = config_file_name)
 
@@ -154,11 +156,15 @@ def confirm_overwrite(existing: int,
         user declines to proceed with overwriting.
     """
     if requested < existing * 0.2:
-        print(f"Only {requested} points requested, but {existing} already exist.")
+        logger.info(f"{requested} points requested, but {existing} already exist.")
         while True:
             resp = input("Overwrite existing prescan? (yes/no): ").strip().lower()
-            if resp in {"yes", "y"}: return True
-            if resp in {"no", "n"}: return False
+            if resp in {"yes", "y"}:
+                logger.info("User confirmed to overwrite existing prescan.")
+                return True
+            if resp in {"no", "n"}:
+                logger.info("User declined to overwrite existing prescan.")
+                return False
             print("Please enter 'yes' or 'no'.")
     return True
 
