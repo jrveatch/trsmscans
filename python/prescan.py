@@ -87,7 +87,8 @@ def prescan(model: Model,
     
     # return early if nothing more to run
     if num_points_to_run <= 0:
-        return Parse(model=model, file_name=tsv_name)
+        return Parse(model = model,
+                     file_name = tsv_name)
 
     # make output directory if it doesn't already exist
     os.makedirs(out_dir, exist_ok=True)
@@ -107,6 +108,13 @@ def prescan(model: Model,
         # load config file
         config_loader = ConfigLoader(config_file_name = config_file_name)
 
+    # get configurations from config file
+    try:
+        chunk_size: int = config_loader.get('prescan', 'chunk_size')
+    except Exception as e:
+        logger.exception(e)
+        raise
+
     # make instance of param space with default model parameters
     param_space = ParamSpace(model)
 
@@ -114,11 +122,27 @@ def prescan(model: Model,
     point_sampler = PointSampler(out_dir = out_dir,
                                  config_loader = config_loader)
 
-    # sample points
-    parser = point_sampler.sample_points(param_space = param_space,
-                                         num_points_requested = num_points_to_run,
-                                         identifier = "prescan",
-                                         good_points_only = False)
+
+    # run prescan in chunks until we reach the requested number of points
+    parser = None
+    while num_points_to_run > 0:
+        num_current = count_tsv_points(tsv_name)
+        remaining = num_points - num_current
+
+        if remaining <= 0:
+            logger.info(f"Reached {num_current} points, target met.")
+            break
+
+        this_batch = min(chunk_size, remaining)
+        logger.info(f"Sampling batch of {this_batch} points")
+
+        # Keep the parser from the latest run
+        parser = point_sampler.sample_points(
+            param_space = param_space,
+            num_points_requested = this_batch,
+            identifier = "prescan",
+            good_points_only = False
+        )
 
     # get total time taken
     scan_end = time.time()
@@ -128,7 +152,7 @@ def prescan(model: Model,
     logger.info(f"Prescan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)")
 
     # return parser after a successful run
-    return parser
+    return parser or Parse(model=model, file_name=tsv_name)
 
 def compute_remaining_prescan_points(num_existing: int,
                                      requested: int) -> int:
@@ -143,6 +167,10 @@ def compute_remaining_prescan_points(num_existing: int,
     Returns:
         int: Number of additional scan points to generate (could be zero).
     """
+
+    if num_existing == 0:
+        logger.info("No existing prescan points found, generating requested points")
+        return requested
 
     if num_existing >= requested:
         logger.info(f"Found a prescan that already has {num_existing} points")
