@@ -81,23 +81,13 @@ def prescan(model: Model,
             return Parse(model = model,
                          file_name = tsv_name)
 
-    # if prescan exists, adjust the number of prescan points to run
-    if num_existing > 0:
-
-        # if enough points already exist, parse and return
-        if num_existing >= num_points:
-            logger.info(f"Found a prescan that already has {num_existing} points")
-            logger.info(f"{num_points} points requested, skipping since no more are needed")
-            logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
-            return Parse(model = model,
-                         file_name = tsv_name)
-
-        # otherwise reduce the number of points to run with
-        num_points_old = num_points
-        num_points -= num_existing
-        logger.info(f"{num_points_old} prescan points requested and found existing prescan with {num_existing} points")
-        logger.info(f"Running with the additional {num_points} points")
-        logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
+    # calculate how many points we need to run
+    num_points_to_run = compute_remaining_prescan_points(num_existing=num_existing,
+                                                         requested=num_points)
+    
+    # return early if nothing more to run
+    if num_points_to_run <= 0:
+        return Parse(model=model, file_name=tsv_name)
 
     # make output directory if it doesn't already exist
     os.makedirs(out_dir, exist_ok=True)
@@ -117,8 +107,7 @@ def prescan(model: Model,
         # load config file
         config_loader = ConfigLoader(config_file_name = config_file_name)
 
-    # make instance of param space
-    # this automatically initializes the parameters
+    # make instance of param space with default model parameters
     param_space = ParamSpace(model)
 
     # create PointSampler object
@@ -127,7 +116,7 @@ def prescan(model: Model,
 
     # sample points
     parser = point_sampler.sample_points(param_space = param_space,
-                                         num_points_requested = num_points,
+                                         num_points_requested = num_points_to_run,
                                          identifier = "prescan",
                                          good_points_only = False)
 
@@ -140,6 +129,32 @@ def prescan(model: Model,
 
     # return parser after a successful run
     return parser
+
+def compute_remaining_prescan_points(num_existing: int,
+                                     requested: int) -> int:
+    """
+    Computes how many additional prescan points need to be generated,
+    given the number of existing points already written.
+
+    Args:
+        num_existing (int): The number of existing prescan points.
+        requested (int): Number of scan points the user wants.
+
+    Returns:
+        int: Number of additional scan points to generate (could be zero).
+    """
+
+    if num_existing >= requested:
+        logger.info(f"Found a prescan that already has {num_existing} points")
+        logger.info(f"{requested} points requested, skipping since no more are needed")
+        logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
+        return 0
+
+    logger.info(f"{requested} prescan points requested and found existing prescan with {num_existing} points")
+    logger.info(f"Running with the additional {requested - num_existing} points")
+    logger.info("If you want to overwrite the existing prescan, run with the -o option\n")
+
+    return requested - num_existing
 
 def confirm_overwrite(existing: int,
                       requested: int) -> bool:
