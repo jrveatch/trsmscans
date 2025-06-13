@@ -3,7 +3,7 @@
 import argparse
 import subprocess
 
-from utils.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import get_mass_permutations
 
 def scan_mass_list(model: str,
                    decay: str,

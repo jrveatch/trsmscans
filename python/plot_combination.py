@@ -12,7 +12,7 @@ from scipy.interpolate import griddata
 from typing import Dict, List, Optional, Tuple
 
 import utils.env_utils as env
-from utils.mass_json_utils import load_limit_data
+from mass_grid.mass_json_utils import load_limit_data
 
 XRES = 200
 SRES = 200
