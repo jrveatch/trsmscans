@@ -11,7 +11,6 @@ import os
 import shutil
 import time
 from typing import Dict, List, Tuple
-import math
 import numpy as np
 
 # local modules
