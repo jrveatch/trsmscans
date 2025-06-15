@@ -36,10 +36,12 @@ def run_scan(model: Model,
              log_level: int) -> None:
 
     setup_logging(log_file=os.path.join(scan_dir(model=model,
-                                                 decay=decay),f"{strategy}.log"),
+                                                 decay=decay),
+                                        f"{strategy}.log"),
                   level=log_level)
 
     scan = Scan(model=model, decay=decay, prescan_points=prescan_points, overwrite=overwrite)
+
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
     elif strategy == "meanshift":
