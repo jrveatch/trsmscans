@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 from jinja2 import Template
 
-from utils.env_utils import htcondor_dir
+from utils.env_utils import htcondor_dir, env_sh
 
 TEMPLATES_DIR = Path(htcondor_dir()) / "templates"
 
@@ -61,12 +61,16 @@ def scan_htcondor(model: str,
     job_script_path.write_text(job_script)
     job_script_path.chmod(0o755)
 
+    # Make list of input files needed for the job
+    input_files = [env_sh()]
+
     # Render condor submit file
     submit_file = render_template(
         TEMPLATES_DIR / "submit_template.sub.j2",
         {"job_script": job_script_path,
          "logs_dir": logs_dir(model, decay),
          "job_name": job_name,
+         "input_files": input_files,
          "num_cpus": num_cpus,
          "job_length": job_length}
     )
