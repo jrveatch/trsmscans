@@ -18,6 +18,18 @@ def run_prescan(model: Model,
                 num_points: int,
                 overwrite: bool,
                 log_level: int) -> Parse:
+    """
+    Run a prescan for a single mass point.
+
+    Args:
+        model (Model): The scalar model to scan.
+        num_points (int): Number of points to sample.
+        overwrite (bool): Whether to overwrite existing results.
+        log_level (int): Logging level (e.g., logging.INFO).
+
+    Returns:
+        Parse: Object containing prescan results.
+    """
 
     log_file = os.path.join(prescan_dir(model), "prescan.log")
 
@@ -36,6 +48,22 @@ def run_scan(model: Model,
              overwrite: bool,
              iterations: int,
              log_level: int) -> None:
+    """
+    Run a scan (zoom or meanshift) for a single mass point.
+
+    Args:
+        model (Model): The scalar model to scan.
+        decay (str): The decay mode (e.g., 'SAA').
+        strategy (str): Optimization strategy ('zoom' or 'meanshift').
+        num_points (int): Number of points to start the scan.
+        prescan_points (int): Number of prescan points to use.
+        overwrite (bool): Whether to overwrite previous runs.
+        iterations (int): Max number of scan iterations or shifters.
+        log_level (int): Logging verbosity level.
+
+    Raises:
+        ValueError: If the strategy is invalid.
+    """
 
     log_file = os.path.join(scan_dir(model=model, decay=decay), f"{strategy}.log")
     setup_logging(log_file=log_file,
@@ -63,6 +91,29 @@ def submit_htcondor(mode: str,
                     iterations: int = -1,
                     overwrite: bool = False,
                     dry_run: bool = False) -> None:
+    """
+    Generate and optionally submit an HTCondor job for prescan or scan.
+
+    Args:
+        mode (str): Either 'prescan' or 'scan'.
+        model (Model): The scalar model being scanned.
+        num_points (int): Number of starting points for scan or prescan.
+        num_cpus (int): Number of CPUs to request.
+        job_length (str): Job runtime class (e.g., 'microcentury').
+        decay (str): Decay mode (required for scan).
+        strategy (str): Optimization strategy (required for scan).
+        xmass (float): X scalar mass in GeV.
+        smass (float): S scalar mass in GeV.
+        prescan_points (int): Number of prescan points to use for scan.
+        iterations (int): Iteration count for optimizer.
+        overwrite (bool): Whether to overwrite previous runs.
+        dry_run (bool): If True, write scripts but do not submit job.
+
+    Side Effects:
+        - Writes `.sh` and `.sub` files to submission directories.
+        - Optionally submits job via `condor_submit`.
+        - Creates log and submission directories if needed.
+    """
 
     job_name = f"{mode}_{model.name}_{decay}_X{int(xmass)}_S{int(smass)}"
 
@@ -132,6 +183,21 @@ def submit_htcondor(mode: str,
         print(f"[DRY-RUN] Would submit: condor_submit {sub_file}")
 
 def main():
+    """
+    Entry point for the CLI interface. Parses command-line arguments and dispatches
+    to either local execution or HTCondor submission based on flags.
+
+    Supported modes:
+        - prescan (interactive or batch)
+        - scan (zoom or meanshift; interactive or batch)
+    
+    Mass points may be specified via:
+        - Single point: --XMass and --SMass
+        - Mass list: --use-mass-list and --identifier
+
+    Raises:
+        ValueError: If required arguments are missing or invalid combinations are used.
+    """
 
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("--mode", type=str, choices=["scan", "prescan"], required=True, help="Mode of operation: 'scan' or 'prescan'")
