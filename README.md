@@ -88,14 +88,12 @@ that fail either are removed.
 
 ## Prescan
 
-It is possible to run a prescan as a starting point for more detailed
-scans. A prescan is meant to be a single scan with a large number of
-points that is saved and used as the baseline for multiple different
-scans for any decay mode. An example of how to run a prescan is available
-in `run/prescan_example.sh`. Running a prescan creates an output `.tsv`
-file in the appropriate subdirectory within `output/prescan/`. You can
-auto-run prescans for a large number of mass points using `python/autoprescan.py`.
-This reads the list of mass points from `data/masspoints.txt` and runs
-a prescan for each one. If a prescan already exists, the prescan process
-only runs as many points as necessary to meet the specified `npoints` and
-appends the new points to the existing ones.
+A prescan is run as the starting point for full scans. This is a single
+scan over the full model parameter range and is independent of any decay
+mode. It is used to constrain the parameter ranges used in the full scan.
+An example of how to run a prescan is available in `run/prescan_example.sh`.
+Running a prescan creates an output `.tsv` file in the appropriate
+subdirectory within `output/prescan/`. If a prescan already exists, the
+prescan process only runs as many points as necessary to meet the specified
+`npoints` and appends the new points to the existing ones. Prescans are
+processed in chunks in order to save progress in case the job is interrupted.
