@@ -74,6 +74,7 @@ def main():
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
         mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
+        print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
     elif args.XMass and args.SMass:
         mass_points = [(args.XMass, args.SMass, args.HMass)]
     else:
