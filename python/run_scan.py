@@ -64,6 +64,8 @@ def main():
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
     args = arg_parser.parse_args()
 
+    log_level = LOG_LEVELS[args.log_level.lower()]
+
     # Load mass points
     if args.use_mass_list:
         if not args.decay:
@@ -87,7 +89,7 @@ def main():
                 run_prescan(model=model,
                             num_points=args.num_points,
                             overwrite=args.overwrite,
-                            log_level=args.log_level)
+                            log_level=log_level)
             else:
                 if not args.decay or not args.strategy:
                     raise ValueError("Scan mode requires --decay and --strategy")
@@ -97,7 +99,7 @@ def main():
                          num_points=args.num_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
-                         log_level=args.log_level)
+                         log_level=log_level)
 
 if __name__ == "__main__":
     main()
