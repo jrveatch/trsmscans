@@ -40,10 +40,6 @@ def make_dirs(model: str,
     (logs_dir(model, decay) / "err").mkdir(parents=True, exist_ok=True)
     submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
 
-def render_template(template_file: Path, context: dict) -> str:
-    with open(template_file) as f:
-        return Template(f.read()).render(context)
-
 job_lengths = {
     'espresso': '00:20:00',
     'microcentury': '01:00:00',
