@@ -131,7 +131,7 @@ def submit_htcondor(mode: str,
     sub_template = htcondor_utils.templates_dir() / "submit_template.sub.j2"
 
     sh_lines = [
-        "python run_process.py \\",
+        "run_process.py \\",
         f"    --mode {mode} \\",
         f"    -X {xmass} -S {smass} -H {model.masses['H']} \\",
         f"    -m {model.name} -n {num_points} \\",
