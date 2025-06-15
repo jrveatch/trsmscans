@@ -175,6 +175,7 @@ remove_var_from_env "HTCONDOR_DIR"
 remove_path_blocks_from_env
 
 # Add various directories to env.sh
+echo "export ENV_SH=\"${PWD}/env.sh\"" >> env.sh
 echo "export DATA_DIR=\"${PWD}/data\"" >> env.sh
 echo "export EXTERNALS_DIR=\"${PWD}/externals\"" >> env.sh
 echo "export CONFIG_DIR=\"${PWD}/config\"" >> env.sh
