@@ -122,6 +122,9 @@ def submit_htcondor(mode: str,
     # Ensure directories exist
     htcondor_utils.make_dirs(model.name, decay)
 
+    # Delete old log files if it exists
+    htcondor_utils.delete_log_file(model.name, decay, job_name)
+
     # Shell script path and content
     sh_file = submissions_dir / f"{job_name}.sh"
     sub_file = submissions_dir / f"{job_name}.sub"

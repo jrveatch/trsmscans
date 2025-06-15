@@ -76,6 +76,23 @@ def make_dirs(model: str,
     (logs_dir(model, decay) / "err").mkdir(parents=True, exist_ok=True)
     submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
 
+def delete_log_file(model: str,
+                    decay: str,
+                    job_name: str) -> None:
+    """
+    Delete the log file for a given job.
+
+    Args:
+        model (str): Name of the model.
+        decay (str): Decay mode.
+        job_name (str): Name of the job whose logs are to be deleted.
+
+    Side Effects:
+        Deletes the log file for the job.
+    """
+    log_file = logs_dir(model, decay) / "log" / f"{job_name}.log"
+    log_file.unlink(missing_ok=True)
+
 #: Dictionary mapping HTCondor job flavors to their wall-time limits.
 job_lengths = {
     'espresso': '00:20:00',       # Short jobs (under 20 minutes)
