@@ -69,15 +69,15 @@ def main():
     # Load mass points
     if args.use_mass_list:
         if not args.decay:
-            raise ValueError("Decay mode is required to run over a mass list")
+            raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
         if not args.identifier:
-            raise ValueError("Identifier is required to run over a mass list")
+            raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
         mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
     elif args.XMass and args.SMass:
         mass_points = [(args.XMass, args.SMass, args.HMass)]
     else:
-        raise ValueError("Must specify either --use-mass-list or provide --XMass and --SMass")
+        raise ValueError("Please specify either --use-mass-list or provide --XMass and --SMass")
 
     for xmass, smass, hmass in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
