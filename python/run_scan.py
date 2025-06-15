@@ -3,18 +3,35 @@
 # TODO: Make sure to pip yes to overwrite existing scans
 
 import argparse
-from utils.logging_utils import LOG_LEVELS
+import os
+
+from utils.file_utils import prescan_dir
+from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model
+from utils.parse import Parse
 from mass_grid.mass_json_utils import get_mass_permutations
 
-def run_prescan(xmass, smass, hmass, model_name, num_points, overwrite, log_level):
-    model = Model(name=model_name, masses={"H": hmass, "S": smass, "X": xmass})
-    return prescan(model=model, num_points=num_points, overwrite=overwrite)
+def run_prescan(model: Model,
+                num_points: int,
+                overwrite: bool,
+                log_level: int) -> Parse:
 
-def run_scan(xmass, smass, hmass, model_name, decay, strategy, num_points, overwrite, iterations, log_level):
-    model = Model(name=model_name, masses={"H": hmass, "S": smass, "X": xmass})
+    setup_logging(log_file=os.path.join(prescan_dir(model),"prescan.log"),
+                  level=log_level)
+
+    return prescan(model=model,
+                   num_points=num_points,
+                   overwrite=overwrite)
+
+def run_scan(model: Model,
+             decay: str,
+             strategy: str,
+             num_points: int,
+             overwrite: bool,
+             iterations: int,
+             log_level: int) -> None:
     scan = Scan(model=model, decay=decay, prescan_points=num_points, overwrite=overwrite)
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
@@ -56,17 +73,26 @@ def main():
         raise ValueError("Must specify either --use-mass-list or provide --XMass and --SMass")
 
     for xmass, smass, hmass in mass_points:
+        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
         if args.batch:
             pass
             #submit_htcondor(args.mode, xmass, smass, args.model, args.decay, args.strategy, args.num_points)
         else:
             if args.mode == "prescan":
-                run_prescan(xmass, smass, hmass, args.model, args.num_points, args.overwrite, args.log_level)
+                run_prescan(model=model,
+                            num_points=args.num_points,
+                            overwrite=args.overwrite,
+                            log_level=args.log_level)
             else:
                 if not args.decay or not args.strategy:
                     raise ValueError("Scan mode requires --decay and --strategy")
-                run_scan(xmass, smass, hmass, args.model, args.decay, args.strategy,
-                         args.num_points, args.overwrite, args.iterations, args.log_level)
+                run_scan(model=model,
+                         decay=args.decay,
+                         strategy=args.strategy,
+                         num_points=args.num_points,
+                         overwrite=args.overwrite,
+                         iterations=args.iterations,
+                         log_level=args.log_level)
 
 if __name__ == "__main__":
     main()
