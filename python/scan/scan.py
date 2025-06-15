@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 
 # standard libraries
-import argparse
 from copy import deepcopy
 import datetime
 from functools import cached_property
@@ -14,11 +12,10 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 # local modules
-from prescan import prescan
+from prescan.prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -613,49 +610,3 @@ class Scan:
         if os.path.exists(self.out_dir):
             self.logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)
-
-if __name__ == "__main__":
-
-    # Parse command line arguments
-    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
-    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
-    arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points")
-    arg_parser.add_argument("-n", "--num_points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-i", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
-    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
-    arg_parser.add_argument("-l", "--log", default="", help="Log file name")
-    args = arg_parser.parse_args()
-
-    # create model object
-    model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-
-    # directory where we want the output to go
-    out_dir = scan_dir(model=model,
-                       decay=args.decay)
-
-    # set up logging
-    logfile_name = args.log if args.log else f"{args.strategy}.log"
-    setup_logging(log_file=os.path.join(out_dir, logfile_name),
-                  level=LOG_LEVELS[args.log_level.lower()])
-
-    # create scan object
-    myScan = Scan(model = model,
-                  decay = args.decay,
-                  prescan_points = args.prescan_points,
-                  overwrite=args.overwrite
-                 )
-
-    if args.strategy == "zoom":
-        myScan.run_zoom_optimization(num_points = args.num_points,
-                                     niter = args.iterations)
-    elif args.strategy == "meanshift":
-        myScan.run_ms_optimization(num_optimizers=args.iterations)
-    else:
-        raise ValueError(f"Selected strategy {args.strategy} is not valid. Exiting...")
