@@ -5,7 +5,7 @@
 import argparse
 import os
 
-from utils.file_utils import prescan_dir
+from utils.file_utils import prescan_dir, scan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
@@ -32,6 +32,11 @@ def run_scan(model: Model,
              overwrite: bool,
              iterations: int,
              log_level: int) -> None:
+
+    setup_logging(log_file=os.path.join(scan_dir(model=model,
+                                                 decay=decay),f"{strategy}.log"),
+                  level=log_level)
+
     scan = Scan(model=model, decay=decay, prescan_points=num_points, overwrite=overwrite)
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
