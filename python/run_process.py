@@ -284,9 +284,9 @@ def main():
             job_count += 1
 
     if args.use_mass_list and job_count > 0:
-        print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for identifier '{args.identifier}'\n")
+        print(f"Successfully submitted {job_count} job{'s' if job_count > 1 else ''} for identifier '{args.identifier}'\n")
     elif job_count == 1:
-        print(f"\nSuccessfully processed 1 job for X={args.XMass}, S={args.SMass}\n")
+        print(f"Successfully processed 1 job for X={args.XMass}, S={args.SMass}\n")
 
 if __name__ == "__main__":
     main()
