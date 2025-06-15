@@ -21,6 +21,7 @@ import pandas as pd
 
 # local modules
 from utils.config_loader import ConfigLoader
+from utils.exceptions import NoPointsPassedError
 from utils.file_utils import scan_dir
 from utils.model import Model
 from utils.param_space import ParamSpace
@@ -170,6 +171,14 @@ class ZoomOptimizer:
                             model = self.model,
                             par_vals = self.local_max.parameter_values)
             do_zoom = False
+        # if no points pass the filters, make a dummy new_max and end the optimizer
+        except NoPointsPassedError:
+            self.termination_message("No points passed the filters")
+            new_max = Point(xb = 0.0,
+                            model = self.model,
+                            par_vals = self.local_max.parameter_values)
+            do_zoom = False
+            self.is_running = False
         # otherwise get new point as the maximum from the current scan
         else:
             new_max = self.scan_parser.get_max_xb_point(self.decay)

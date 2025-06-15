@@ -201,9 +201,8 @@ class PointSampler:
 
             # If no points passed the filters, raise an error
             if self.n_pass == 0:
-                self.logger.error("No points passed the filters")
                 self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
-                raise NoPointsPassedError()
+                raise NoPointsPassedError(logger=self.logger)
 
             # Break if all points are being counted
             if not good_points_only:
