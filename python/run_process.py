@@ -58,7 +58,8 @@ def submit_htcondor(mode: str,
                     smass: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
-                    overwrite: bool = False) -> None:
+                    overwrite: bool = False,
+                    dry_run: bool = False) -> None:
 
     job_name = f"{mode}_{model.name}_{decay}_X{int(xmass)}_S{int(smass)}"
 
@@ -75,14 +76,11 @@ def submit_htcondor(mode: str,
     sh_template = htcondor_utils.templates_dir() / "process_template.sh.j2"
     sub_template = htcondor_utils.templates_dir() / "submit_template.sub.j2"
 
-    overwrite_flag = "-o" if overwrite else ""
-
     sh_lines = [
         "python run_process.py \\",
         f"    --mode {mode} \\",
         f"    -X {xmass} -S {smass} -H {model.masses['H']} \\",
         f"    -m {model.name} -n {num_points} \\",
-        f"    -t {iterations} {overwrite_flag} \\"
     ]
 
     # Add scan-specific options
@@ -90,6 +88,10 @@ def submit_htcondor(mode: str,
         sh_lines.append(f"    -d {decay} \\")
         sh_lines.append(f"    -s {strategy} \\")
         sh_lines.append(f"    -p {prescan_points} \\")
+        if strategy == "meanshift":
+            sh_lines.append(f"    -t {iterations} \\")
+    if overwrite:
+        sh_lines.append("    --overwrite \\")
     
     # Remove trailing backslash from the last line
     sh_lines[-1] = sh_lines[-1].rstrip(" \\")
@@ -120,8 +122,11 @@ def submit_htcondor(mode: str,
     sub_file.write_text(submit_file)
 
     # Submit the job
-    print(f"[HTCONDOR] Submitting {sub_file}")
-    #subprocess.run(["condor_submit", str(sub_file)], check=True)
+    if not dry_run:
+        print(f"[HTCONDOR] Submitting {sub_file}")
+        subprocess.run(["condor_submit", str(sub_file)], check=True)
+    else:
+        print(f"[DRY-RUN] Would submit: condor_submit {sub_file}")
 
 def main():
 
@@ -143,9 +148,19 @@ def main():
     arg_parser.add_argument("-c", "--num_cpus", default=8, type=int, help="Number of CPUs to request for the job")
     arg_parser.add_argument("-j", "--job_length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
+    arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
     args = arg_parser.parse_args()
 
     log_level = LOG_LEVELS[args.log_level.lower()]
+
+    # Validate arguments
+    if args.mode == "scan":
+        if not args.decay:
+            raise ValueError("Scan mode requires -d/--decay")
+        if not args.strategy:
+            raise ValueError("Scan mode requires -s/--strategy")
+        if args.strategy == "meanshift" and args.iterations <= 0:
+            raise ValueError("Meanshift strategy requires -t/--iterations to be greater than 0")
 
     # Load mass points
     if args.use_mass_list:
@@ -175,7 +190,8 @@ def main():
                             smass=smass,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
-                            overwrite=args.overwrite)
+                            overwrite=args.overwrite,
+                            dry_run=args.dry_run)
         else:
             if args.mode == "prescan":
                 run_prescan(model=model,
