@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """
 Performs an initial scan ("prescan") over the scalar model parameter space.
@@ -11,7 +10,6 @@ extended or overwritten depending on user input.
 # TODO: Add prescan.log
 
 # standard libraries
-import argparse
 import datetime
 import logging
 import os
@@ -21,7 +19,6 @@ from typing import Union
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.file_utils import prescan_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.parse import Parse
@@ -221,35 +218,3 @@ def confirm_overwrite(existing: int,
                 return False
             print("Please enter 'yes' or 'no'.")
     return True
-
-# Command-line interface for the prescan tool.
-# Parses model parameters and scan settings from arguments, sets up logging,
-# and executes a prescan over the parameter space.
-if __name__ == "__main__":
-
-    # parse command line arguments
-    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-n", "--num_points", required=True, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous prescan")
-    arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
-    arg_parser.add_argument("-l", "--log", default="prescan.log", help="Log file name")
-    args = arg_parser.parse_args()
-
-    # create model object
-    model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-
-    # directory where we want the output to go
-    out_dir = prescan_dir(model)
-
-    # set up logging
-    setup_logging(log_file=os.path.join(out_dir, args.log),
-                  level=LOG_LEVELS[args.log_level.lower()])
-
-    prescan(model = model,
-            num_points = args.num_points,
-            overwrite = args.overwrite)
