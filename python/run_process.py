@@ -2,13 +2,16 @@
 
 import argparse
 import os
+import subprocess
 
+from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model
 from utils.parse import Parse
+import utils.htcondor_utils as htcondor_utils
 from mass_grid.mass_json_utils import get_mass_permutations
 
 def run_prescan(model: Model,
@@ -44,6 +47,82 @@ def run_scan(model: Model,
     else:
         raise ValueError(f"Invalid strategy: {strategy}")
 
+def submit_htcondor(mode: str,
+                    model: Model,
+                    num_points: int,
+                    num_cpus: int,
+                    job_length: str,
+                    decay: str = "N/A",
+                    strategy: str = "N/A",
+                    xmass: float = -1.0,
+                    smass: float = -1.0,
+                    prescan_points: int = -1,
+                    iterations: int = -1,
+                    overwrite: bool = False) -> None:
+
+    job_name = f"{mode}_{model.name}_{decay}_X{int(xmass)}_S{int(smass)}"
+
+    submissions_dir = htcondor_utils.submissions_dir(model.name, decay)
+
+    # Ensure directories exist
+    htcondor_utils.make_dirs(model.name, decay)
+
+    # Shell script path and content
+    sh_file = submissions_dir / f"{job_name}.sh"
+    sub_file = submissions_dir / f"{job_name}.sub"
+
+    # Get htcondor templates
+    sh_template = htcondor_utils.templates_dir() / "process_template.sh.j2"
+    sub_template = htcondor_utils.templates_dir() / "submit_template.sub.j2"
+
+    overwrite_flag = "-o" if overwrite else ""
+
+    sh_lines = [
+        "python run_process.py \\",
+        f"    --mode {mode} \\",
+        f"    -X {xmass} -S {smass} -H {model.masses['H']} \\",
+        f"    -m {model.name} -n {num_points} \\",
+        f"    -t {iterations} {overwrite_flag} \\"
+    ]
+
+    # Add scan-specific options
+    if mode == "scan":
+        sh_lines.append(f"    -d {decay} \\")
+        sh_lines.append(f"    -s {strategy} \\")
+        sh_lines.append(f"    -p {prescan_points} \\")
+    
+    # Remove trailing backslash from the last line
+    sh_lines[-1] = sh_lines[-1].rstrip(" \\")
+
+    # Render shell script
+    job_script = htcondor_utils.render_template(
+        sh_template,
+        {"command": sh_lines}
+    )
+    
+    # Write the shell script to file
+    sh_file.write_text(job_script)
+    sh_file.chmod(0o755)
+
+    # Make list of input files needed for the job
+    input_files = [env_sh()]
+
+    # Render condor submit file
+    submit_file = htcondor_utils.render_template(
+        sub_template,
+        {"job_script": str(sh_file),
+         "logs_dir": htcondor_utils.logs_dir(model.name, decay),
+         "job_name": job_name,
+         "input_files": input_files,
+         "num_cpus": num_cpus,
+         "job_length": job_length}
+    )
+    sub_file.write_text(submit_file)
+
+    # Submit the job
+    print(f"[HTCONDOR] Submitting {sub_file}")
+    #subprocess.run(["condor_submit", str(sub_file)], check=True)
+
 def main():
 
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -61,6 +140,8 @@ def main():
     arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
+    arg_parser.add_argument("-c", "--num_cpus", default=8, type=int, help="Number of CPUs to request for the job")
+    arg_parser.add_argument("-j", "--job_length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
     args = arg_parser.parse_args()
 
@@ -83,8 +164,18 @@ def main():
     for xmass, smass, hmass in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
         if args.batch:
-            pass
-            #submit_htcondor(args.mode, xmass, smass, args.model, args.decay, args.strategy, args.num_points)
+            submit_htcondor(mode=args.mode,
+                            model=model,
+                            num_points=args.num_points,
+                            num_cpus=args.num_cpus,
+                            job_length=args.job_length,
+                            decay=args.decay,
+                            strategy=args.strategy,
+                            xmass=xmass,
+                            smass=smass,
+                            prescan_points=args.prescan_points,
+                            iterations=args.iterations,
+                            overwrite=args.overwrite)
         else:
             if args.mode == "prescan":
                 run_prescan(model=model,
