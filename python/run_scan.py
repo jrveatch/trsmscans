@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
+# TODO: Make sure to pip yes to overwrite existing scans
+
 import argparse
+from utils.logging_utils import LOG_LEVELS
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model
