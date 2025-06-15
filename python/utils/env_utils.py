@@ -20,6 +20,12 @@ def data_dir() -> str:
     """
     return os.environ['DATA_DIR']
 
+def env_sh() -> str:
+    """
+    Get path to env.sh file.
+    """
+    return os.environ['ENV_SH']
+
 def htcondor_dir() -> str:
     """
     Get path to htcondor directory.
