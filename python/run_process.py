@@ -29,6 +29,7 @@ def run_scan(model: Model,
              decay: str,
              strategy: str,
              num_points: int,
+             prescan_points: int,
              overwrite: bool,
              iterations: int,
              log_level: int) -> None:
@@ -37,7 +38,7 @@ def run_scan(model: Model,
                                                  decay=decay),f"{strategy}.log"),
                   level=log_level)
 
-    scan = Scan(model=model, decay=decay, prescan_points=num_points, overwrite=overwrite)
+    scan = Scan(model=model, decay=decay, prescan_points=prescan_points, overwrite=overwrite)
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
     elif strategy == "meanshift":
@@ -58,7 +59,8 @@ def main():
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
-    arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num-points", required=True, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("--log-level", default="info", choices=LOG_LEVELS.keys(), help="Set the logging level")
@@ -97,6 +99,7 @@ def main():
                          decay=args.decay,
                          strategy=args.strategy,
                          num_points=args.num_points,
+                         prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
                          log_level=log_level)
