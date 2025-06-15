@@ -141,7 +141,7 @@ def prescan(model: Model,
             break
 
         this_batch = min(chunk_size, remaining)
-        logger.info(f"Sampling {this_batch} points — progress: {num_current} / {num_points}")
+        logger.info(f"Sampling batch of {this_batch} points")
 
         # Keep the parser from the latest run
         parser = point_sampler.sample_points(
@@ -150,6 +150,7 @@ def prescan(model: Model,
             identifier = "prescan",
             good_points_only = False
         )
+        logger.info(f"{num_current} / {num_points} points sampled so far")
 
     # get total time taken
     scan_end = time.time()
