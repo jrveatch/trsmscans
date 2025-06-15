@@ -243,7 +243,7 @@ def main():
     elif args.XMass and args.SMass:
         mass_points = [(args.XMass, args.SMass, args.HMass)]
     else:
-        raise ValueError("Please specify either --use-mass-list or provide --XMass and --SMass")
+        raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     for xmass, smass, hmass in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
