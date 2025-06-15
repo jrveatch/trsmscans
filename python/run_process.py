@@ -19,7 +19,9 @@ def run_prescan(model: Model,
                 overwrite: bool,
                 log_level: int) -> Parse:
 
-    setup_logging(log_file=os.path.join(prescan_dir(model),"prescan.log"),
+    log_file = os.path.join(prescan_dir(model), "prescan.log")
+
+    setup_logging(log_file=log_file,
                   level=log_level)
 
     return prescan(model=model,
@@ -35,9 +37,8 @@ def run_scan(model: Model,
              iterations: int,
              log_level: int) -> None:
 
-    setup_logging(log_file=os.path.join(scan_dir(model=model,
-                                                 decay=decay),
-                                        f"{strategy}.log"),
+    log_file = os.path.join(scan_dir(model=model, decay=decay), f"{strategy}.log")
+    setup_logging(log_file=log_file,
                   level=log_level)
 
     scan = Scan(model=model, decay=decay, prescan_points=prescan_points, overwrite=overwrite)
