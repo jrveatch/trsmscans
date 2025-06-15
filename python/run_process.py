@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# TODO: Make sure to pip yes to overwrite existing scans
-
 import argparse
 import os
 
