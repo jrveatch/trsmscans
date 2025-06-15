@@ -245,6 +245,8 @@ def main():
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
+    job_count = 0
+
     for xmass, smass, hmass in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
         if args.batch:
@@ -261,6 +263,7 @@ def main():
                             iterations=args.iterations,
                             overwrite=args.overwrite,
                             dry_run=args.dry_run)
+            job_count += 1
         else:
             if args.mode == "prescan":
                 run_prescan(model=model,
@@ -278,6 +281,12 @@ def main():
                          overwrite=args.overwrite,
                          iterations=args.iterations,
                          log_level=log_level)
+            job_count += 1
+
+    if args.use_mass_list and job_count > 0:
+        print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for identifier '{args.identifier}'\n")
+    elif job_count == 1:
+        print(f"\nSuccessfully processed 1 job for X={args.XMass}, S={args.SMass}\n")
 
 if __name__ == "__main__":
     main()
