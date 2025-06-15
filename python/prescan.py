@@ -42,6 +42,9 @@ def prescan(model: Model,
     If previous scan results exist, this function can either reuse, extend,
     or overwrite them based on user input and the `overwrite` flag.
 
+    This method processes scan points in chunks (as defined by chunk_size)
+    to allow for safe resumption and incremental progress tracking.
+
     Args:
         model (Model): The scalar model to scan.
         num_points (int): Total number of scan points to generate.
@@ -114,6 +117,10 @@ def prescan(model: Model,
     except Exception as e:
         logger.exception(e)
         raise
+
+    # make sure chunk_size is a positive integer
+    if chunk_size <= 0:
+        raise ValueError("Chunk size must be a positive integer.")
 
     # make sure chunk_size is not larger than the number of points to run
     chunk_size = min(chunk_size, num_points_to_run)
