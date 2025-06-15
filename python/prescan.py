@@ -115,6 +115,9 @@ def prescan(model: Model,
         logger.exception(e)
         raise
 
+    # make sure chunk_size is not larger than the number of points to run
+    chunk_size = min(chunk_size, num_points_to_run)
+
     # make instance of param space with default model parameters
     param_space = ParamSpace(model)
 
