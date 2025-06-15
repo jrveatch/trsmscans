@@ -1,13 +1,8 @@
 
-import os
 from pathlib import Path
 from jinja2 import Template
 
-def htcondor_dir() -> str:
-    """
-    Get path to htcondor directory.
-    """
-    return os.environ['HTCONDOR_DIR']
+from utils.env_utils import htcondor_dir
 
 def templates_dir() -> Path:
     """
