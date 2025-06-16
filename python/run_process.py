@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
 
+"""
+run_process.py
+
+Unified entry point for running prescan or scan jobs on the TRSM model,
+either locally or via HTCondor. Supports grid scanning, logging, and dry-run mode.
+
+Usage examples:
+    python run_process.py --mode scan -X 600 -S 300 -m TRSMBroken -d SHbbbb -s zoom -n 1000
+    python run_process.py --mode scan --batch -l -i lowmass -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
+"""
+
 import argparse
 import os
 import subprocess
+from typing import Optional
 
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
@@ -83,8 +95,8 @@ def submit_htcondor(mode: str,
                     num_points: int,
                     num_cpus: int,
                     job_length: str,
-                    decay: str = "N/A",
-                    strategy: str = "N/A",
+                    decay: Optional[str] = None,
+                    strategy: Optional[str] = None,
                     xmass: float = -1.0,
                     smass: float = -1.0,
                     prescan_points: int = -1,
@@ -100,8 +112,8 @@ def submit_htcondor(mode: str,
         num_points (int): Number of starting points for scan or prescan.
         num_cpus (int): Number of CPUs to request.
         job_length (str): Job runtime class (e.g., 'microcentury').
-        decay (str): Decay mode (required for scan).
-        strategy (str): Optimization strategy (required for scan).
+        decay (Optional[str]): Decay mode (required for scan).
+        strategy (Optional[str]): Optimization strategy (required for scan).
         xmass (float): X scalar mass in GeV.
         smass (float): S scalar mass in GeV.
         prescan_points (int): Number of prescan points to use for scan.
@@ -115,15 +127,18 @@ def submit_htcondor(mode: str,
         - Creates log and submission directories if needed.
     """
 
-    job_name = f"{mode}_{model.name}_{decay}_X{int(xmass)}_S{int(smass)}"
+    job_name = f"{mode}_{model.name}_{decay if mode == 'scan' else mode}_X{int(xmass)}_S{int(smass)}"
 
-    submissions_dir = htcondor_utils.submissions_dir(model.name, decay)
+    submissions_dir = htcondor_utils.submissions_dir(model.name, mode, decay)
 
     # Ensure directories exist
-    htcondor_utils.make_dirs(model.name, decay)
+    htcondor_utils.make_dirs(model.name, mode, decay)
 
     # Delete old log files if it exists
-    htcondor_utils.delete_log_file(model.name, decay, job_name)
+    htcondor_utils.delete_log_file(model=model.name,
+                                   job_name=job_name,
+                                   mode=mode,
+                                   decay=decay)
 
     # Shell script path and content
     sh_file = submissions_dir / f"{job_name}.sh"
@@ -170,7 +185,7 @@ def submit_htcondor(mode: str,
     submit_file = htcondor_utils.render_template(
         sub_template,
         {"job_script": str(sh_file),
-         "logs_dir": htcondor_utils.logs_dir(model.name, decay),
+         "logs_dir": htcondor_utils.logs_dir(model.name, mode, decay),
          "job_name": job_name,
          "input_files": input_files,
          "num_cpus": num_cpus,
@@ -286,10 +301,11 @@ def main():
                          log_level=log_level)
             job_count += 1
 
-    if args.use_mass_list and job_count > 0:
-        print(f"Successfully submitted {job_count} job{'s' if job_count > 1 else ''} for identifier '{args.identifier}'\n")
-    elif job_count == 1:
-        print(f"Successfully processed 1 job for X={args.XMass}, S={args.SMass}\n")
+    if job_count > 0:
+        if args.use_mass_list:
+            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{args.decay}' '{args.identifier}'")
+        else:
+            print(f"\nSuccessfully processed job for X={args.XMass}, S={args.SMass}")
 
 if __name__ == "__main__":
     main()
