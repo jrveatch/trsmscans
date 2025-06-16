@@ -10,12 +10,12 @@ from mass_grid.mass_json_utils import get_mass_permutations
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
 
-def check_mass_list_completion(model: str,
-                                decay: str,
-                                identifier: str,
-                                threshold: int,
-                                mode: str,
-                                strategy: Optional[str] = None) -> None:
+def check_mass_list(model: str,
+                    decay: str,
+                    identifier: str,
+                    threshold: int,
+                    mode: str,
+                    strategy: Optional[str] = None) -> None:
     """
     Checks prescan or scan point counts for all mass point permutations.
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    check_mass_list_completion(
+    check_mass_list(
         model=args.model,
         decay=args.decay,
         identifier=args.identifier,
