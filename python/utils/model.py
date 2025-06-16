@@ -83,6 +83,14 @@ class Model:
         self.__build_mass_maps()
 
     @property
+    def is_calculable(self) -> bool:
+        """
+        Returns True if the model is calculable, meaning cross-sections have been calculated for the masses.
+        """
+        # TODO: Make this more generalized and read from a config file
+        return self.masses["X"] < 3000.0
+
+    @property
     # TODO: Make this more generalized
     def mass_string(self) -> str:
         """Returns a formatted string like 'X400_S150' encoding X and S scalar masses."""

@@ -267,6 +267,9 @@ def main():
 
     for xmass, smass, hmass in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
+        if not model.is_calculable:
+            print(f"{model.name} with X={xmass}, S={smass} is not calculable. Skipping.")
+            continue
         if args.batch:
             submit_htcondor(mode=args.mode,
                             model=model,

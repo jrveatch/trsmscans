@@ -9,8 +9,9 @@ from utils.tsv_utils import count_tsv_points
 from mass_grid.mass_json_utils import get_mass_permutations
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
+from utils.model import Model
 
-def check_mass_list(model: str,
+def check_mass_list(model_name: str,
                     decay: str,
                     identifier: str,
                     threshold: int,
@@ -32,9 +33,10 @@ def check_mass_list(model: str,
     }
 
     for XMass, SMass, resolvable in permutations:
-        subdir = f"X{int(XMass)}_S{int(SMass)}"
+        model = Model(name=model_name, masses={"X": XMass, "S": SMass, "H": 125.09})
+        subdir = model.mass_string
 
-        if XMass >= 3000:
+        if not model.is_calculable:
             rows.append((subdir, "non_calculable", ""))
             counts["non_calculable"] += 1
             continue
@@ -42,7 +44,7 @@ def check_mass_list(model: str,
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
 
         if mode == "prescan":
-            filepath = os.path.join(output_dir(), model, "prescan", subdir, f"{model}_prescan.tsv")
+            filepath = os.path.join(output_dir(), model.name, "prescan", subdir, f"{model.name}_prescan.tsv")
             if not os.path.isfile(filepath):
                 rows.append((subdir, "missing", ""))
                 counts["missing"] += 1
@@ -61,7 +63,7 @@ def check_mass_list(model: str,
         elif mode == "scan":
             if strategy is None:
                 raise ValueError("Scan mode requires --strategy.")
-            filepath = os.path.join(output_dir(), model, "scan", decay_used, subdir, strategy, f"run_metadata_{strategy}.json")
+            filepath = os.path.join(output_dir(), model.name, "scan", decay_used, subdir, strategy, f"run_metadata_{strategy}.json")
             if not os.path.isfile(filepath):
                 rows.append((subdir, "missing", ""))
                 counts["missing"] += 1
@@ -94,7 +96,7 @@ def check_mass_list(model: str,
     with open(out_filename, "w") as out:
         out.write("# Mass List Completion Report\n\n")
         out.write(f"# Mode: {mode}\n")
-        out.write(f"# Model:: {model}\n")
+        out.write(f"# Model:: {model_name}\n")
         out.write(f"# Decay: {decay}\n")
         out.write(f"# Identifier: {identifier}\n\n")
         out.write(f"Total mass points checked:   {total}\n")
@@ -127,7 +129,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     check_mass_list(
-        model=args.model,
+        model_name=args.model,
         decay=args.decay,
         identifier=args.identifier,
         threshold=args.threshold,
