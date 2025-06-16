@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+"""
+run_process.py
+
+Unified entry point for running prescan or scan jobs on the TRSM model,
+either locally or via HTCondor. Supports grid scanning, logging, and dry-run mode.
+
+Usage examples:
+    python run_process.py --mode scan -X 600 -S 300 -m TRSMBroken -d SHbbbb -s zoom -n 1000
+    python run_process.py --mode scan --batch -l -i lowmass -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
+"""
+
 import argparse
 import os
 import subprocess
