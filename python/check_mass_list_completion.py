@@ -3,7 +3,6 @@
 import os
 import argparse
 import json
-import pandas as pd
 from typing import Optional
 
 from utils.tsv_utils import count_tsv_points
@@ -20,73 +19,101 @@ def check_mass_list_completion(model: str,
     """
     Checks prescan or scan point counts for all mass point permutations.
 
-    Args:
-        model (str): Theoretical model.
-        decay (str): Decay mode.
-        identifier (str): Set identifier.
-        threshold (int): Minimum acceptable number of points.
-        mode (str): Either "prescan" or "scan".
-        strategy (Optional[str]): Required if mode is "scan".
+    Writes results to a temporary TSV file and prints a summary to the screen.
     """
-    permutations = get_mass_permutations(decay=decay,
-                                         identifier=identifier)
+    permutations = get_mass_permutations(decay=decay, identifier=identifier)
 
-    results = []
-    missing = []
+    rows = []
+    counts = {
+        "ok": 0,
+        "below_threshold": 0,
+        "missing": 0,
+        "non_calculable": 0
+    }
 
     for XMass, SMass, resolvable in permutations:
-        decay_used = decay if resolvable else get_non_resolvable_decay(decay)
         subdir = f"X{int(XMass)}_S{int(SMass)}"
+
+        if XMass >= 3000:
+            rows.append((subdir, "non_calculable", ""))
+            counts["non_calculable"] += 1
+            continue
+
+        decay_used = decay if resolvable else get_non_resolvable_decay(decay)
 
         if mode == "prescan":
             filepath = os.path.join(output_dir(), model, "prescan", subdir, f"{model}_prescan.tsv")
             if not os.path.isfile(filepath):
-                missing.append(filepath)
+                rows.append((subdir, "missing", ""))
+                counts["missing"] += 1
                 continue
             try:
                 count = count_tsv_points(filepath)
-                results.append((subdir, count))
+                if count < threshold:
+                    rows.append((subdir, "below_threshold", count))
+                    counts["below_threshold"] += 1
+                else:
+                    rows.append((subdir, "ok", count))
+                    counts["ok"] += 1
             except Exception as e:
-                print(f"[error] Failed to read TSV: {filepath}: {e}")
+                rows.append((subdir, "error", str(e)))
 
         elif mode == "scan":
             if strategy is None:
                 raise ValueError("Scan mode requires --strategy.")
-            filepath = os.path.join(output_dir(), model, "scan", decay_used, subdir, "summary_{}.json".format(strategy))
+            filepath = os.path.join(output_dir(), model, "scan", decay_used, subdir, f"summary_{strategy}.json")
             if not os.path.isfile(filepath):
-                missing.append(filepath)
+                rows.append((subdir, "missing", ""))
+                counts["missing"] += 1
                 continue
             try:
-                with open(filepath) as f:
+                with open(filepath, "r") as f:
                     data = json.load(f)
                 count = len(data.get("points", []))
-                results.append((subdir, count))
+                if count < threshold:
+                    rows.append((subdir, "below_threshold", count))
+                    counts["below_threshold"] += 1
+                else:
+                    rows.append((subdir, "ok", count))
+                    counts["ok"] += 1
             except Exception as e:
-                print("[error] Failed to read JSON: {}: {}".format(filepath, e))
+                rows.append((subdir, "error", str(e)))
 
-    if not results:
-        print("No valid files found.")
-        return
+    total = sum(counts.values())
 
-    df = pd.DataFrame(results, columns=["Permutation", "PointCount"])
-    df.sort_values("PointCount", ascending=False, inplace=True)
-    below = df[df["PointCount"] < threshold]
+    # Print screen summary
+    print("\n=== Mass List Completion Summary ===")
+    print(f"Total mass points checked:   {total}")
+    print(f"  Pass threshold:            {counts['ok']}")
+    print(f"  Below threshold:           {counts['below_threshold']}")
+    print(f"  Missing file:              {counts['missing']}")
+    print(f"  Non-calculable (excluded): {counts['non_calculable']}")
 
-    print("\n=== Summary ===")
-    for _, row in df.iterrows():
-        flag = " <-- BELOW THRESHOLD" if row["PointCount"] < threshold else ""
-        print("{}: {}{}".format(row["Permutation"], row["PointCount"], flag))
+    # Write human-readable block summary to file
+    out_filename = os.path.join(output_dir(), "mass_list_counts.txt")
+    with open(out_filename, "w") as out:
+        out.write("# Mass List Completion Report\n\n")
+        out.write(f"# Mode: {mode}\n")
+        out.write(f"# Model:: {model}\n")
+        out.write(f"# Decay: {decay}\n")
+        out.write(f"# Identifier: {identifier}\n\n")
+        out.write(f"Total mass points checked:   {total}\n")
+        out.write(f"  Pass threshold:            {counts['ok']}\n")
+        out.write(f"  Below threshold:           {counts['below_threshold']}\n")
+        out.write(f"  Missing file:              {counts['missing']}\n")
+        out.write(f"  Non-calculable (excluded): {counts['non_calculable']}\n\n")
 
-    print(f"\n==> {len(below)} permutations are below the threshold of {threshold}.")
-    if not below.empty:
-        print("Below-threshold permutations:")
-        for name in below["Permutation"]:
-            print(f"  - {name}")
+        for category in ["ok", "below_threshold", "missing", "non_calculable"]:
+            group = [r for r in rows if r[1] == category]
+            out.write(f"--- {category} ({len(group)}) ---\n")
+            for name, _, count in group:
+                if category in ["ok", "below_threshold"]:
+                    out.write(f"{name}: {count}\n")
+                else:
+                    out.write(f"{name}\n")
+            out.write("\n")
 
-    if missing:
-        print(f"\n==> {len(missing)} files missing:")
-        for path in missing:
-            print(f"  - {path}")
+    print(f"\nDetailed results written to: {out_filename}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
