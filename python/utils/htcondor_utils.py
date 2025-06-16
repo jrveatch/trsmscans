@@ -1,6 +1,7 @@
 
-from pathlib import Path
 from jinja2 import Template
+from pathlib import Path
+from typing import Optional
 
 from utils.env_utils import htcondor_dir
 
@@ -14,34 +15,42 @@ def templates_dir() -> Path:
     return Path(htcondor_dir()) / "templates"
 
 def logs_dir(model: str,
-             decay: str) -> Path:
+             mode: str,
+             decay: Optional[str] = None) -> Path:
     """
-    Construct the directory path where HTCondor log files will be stored.
+    Construct the path to the HTCondor logs directory for a given model and job mode.
+
+    For scan jobs, logs are stored under logs/{model}/{decay}/.
+    For prescan jobs, logs are stored under logs/{model}/prescan/.
 
     Args:
-        model (str): Name of the model.
-        decay (str): Decay mode.
+        model (str): Name of the physics model (e.g., "TRSMBroken").
+        mode (str): Job mode, either "scan" or "prescan".
+        decay (Optional[str]): Decay channel (e.g., "SAA"). Required if mode is "scan".
 
     Returns:
-        Path: Path object pointing to the logs directory for the given model and decay.
+        Path: Path to the log directory corresponding to the model and mode.
     """
-    return Path(htcondor_dir()) / "logs" / model / decay
+    return Path(htcondor_dir()) / "logs" / model / str(decay if mode == "scan" else mode)
 
 def submissions_dir(model: str,
-                    decay: str) -> Path:
+                    mode: str,
+                    decay: Optional[str] = None) -> Path:
     """
     Construct the directory path for storing HTCondor submission files (.sh and .sub).
 
     Args:
-        model (str): Name of the model.
-        decay (str): Decay mode.
+        model (str): Name of the physics model (e.g., "TRSMBroken").
+        mode (str): Job mode, either "scan" or "prescan".
+        decay (Optional[str]): Decay channel (e.g., "SAA"). Required if mode is "scan".
 
     Returns:
         Path: Path object pointing to the submissions directory for the given model and decay.
     """
-    return Path(htcondor_dir()) / "submissions" / model / decay
+    return Path(htcondor_dir()) / "submissions" / model / str(decay if mode == "scan" else mode)
 
-def render_template(template_file: Path, context: dict) -> str:
+def render_template(template_file: Path,
+                    context: dict) -> str:
     """
     Render a Jinja2 template file with the given context.
 
@@ -56,13 +65,15 @@ def render_template(template_file: Path, context: dict) -> str:
         return Template(f.read()).render(context)
 
 def make_dirs(model: str,
-              decay: str) -> None:
+              mode: str,
+              decay: Optional[str] = None) -> None:
     """
     Create the directory structure required for HTCondor job submissions, including logs and submissions.
 
     Args:
-        model (str): Name of the model.
-        decay (str): Decay mode.
+        model (str): Name of the physics model (e.g., "TRSMBroken").
+        mode (str): Job mode, either "scan" or "prescan".
+        decay (Optional[str]): Decay channel (e.g., "SAA"). Required if mode is "scan".
 
     Side Effects:
         Creates the following directories if they do not exist:
@@ -71,26 +82,28 @@ def make_dirs(model: str,
         - logs/{model}/{decay}/log
         - submissions/{model}/{decay}
     """
-    (logs_dir(model, decay) / "out").mkdir(parents=True, exist_ok=True)
-    (logs_dir(model, decay) / "log").mkdir(parents=True, exist_ok=True)
-    (logs_dir(model, decay) / "err").mkdir(parents=True, exist_ok=True)
-    submissions_dir(model, decay).mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, mode, decay) / "out").mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, mode, decay) / "log").mkdir(parents=True, exist_ok=True)
+    (logs_dir(model, mode, decay) / "err").mkdir(parents=True, exist_ok=True)
+    submissions_dir(model, mode, decay).mkdir(parents=True, exist_ok=True)
 
 def delete_log_file(model: str,
-                    decay: str,
-                    job_name: str) -> None:
+                    job_name: str,
+                    mode: str,
+                    decay: Optional[str] = None) -> None:
     """
     Delete the log file for a given job.
 
     Args:
-        model (str): Name of the model.
-        decay (str): Decay mode.
+        model (str): Name of the physics model (e.g., "TRSMBroken").
         job_name (str): Name of the job whose logs are to be deleted.
+        mode (str): Job mode, either "scan" or "prescan".
+        decay (Optional[str]): Decay channel (e.g., "SAA"). Required if mode is "scan".
 
     Side Effects:
         Deletes the log file for the job.
     """
-    log_file = logs_dir(model, decay) / "log" / f"{job_name}.log"
+    log_file = logs_dir(model, mode, decay) / "log" / f"{job_name}.log"
     log_file.unlink(missing_ok=True)
 
 #: Dictionary mapping HTCondor job flavors to their wall-time limits.
