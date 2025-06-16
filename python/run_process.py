@@ -290,10 +290,11 @@ def main():
                          log_level=log_level)
             job_count += 1
 
-    if args.use_mass_list and job_count > 0:
-        print(f"Successfully submitted {job_count} job{'s' if job_count > 1 else ''} for identifier '{args.identifier}'\n")
-    elif job_count == 1:
-        print(f"Successfully processed 1 job for X={args.XMass}, S={args.SMass}\n")
+    if job_count > 0:
+        if args.use_mass_list:
+            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{args.decay}' '{args.identifier}'")
+        else:
+            print(f"\nSuccessfully processed job for X={args.XMass}, S={args.SMass}")
 
 if __name__ == "__main__":
     main()
