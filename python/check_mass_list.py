@@ -61,7 +61,7 @@ def check_mass_list(model: str,
         elif mode == "scan":
             if strategy is None:
                 raise ValueError("Scan mode requires --strategy.")
-            filepath = os.path.join(output_dir(), model, "scan", decay_used, subdir, f"summary_{strategy}.json")
+            filepath = os.path.join(output_dir(), model, "scan", decay_used, subdir, strategy, f"run_metadata_{strategy}.json")
             if not os.path.isfile(filepath):
                 rows.append((subdir, "missing", ""))
                 counts["missing"] += 1
@@ -69,7 +69,7 @@ def check_mass_list(model: str,
             try:
                 with open(filepath, "r") as f:
                     data = json.load(f)
-                count = len(data.get("points", []))
+                count = data.get("num_points")
                 if count < threshold:
                     rows.append((subdir, "below_threshold", count))
                     counts["below_threshold"] += 1
