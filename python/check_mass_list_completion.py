@@ -108,9 +108,9 @@ def check_mass_list_completion(model: str,
             out.write(f"--- {category} ({len(group)}) ---\n")
             for name, _, count in group:
                 if category in ["ok", "below_threshold"]:
-                    out.write(f"{name}: {count}\n")
+                    out.write(f"  {name}: {count}\n")
                 else:
-                    out.write(f"{name}\n")
+                    out.write(f"  {name}\n")
             out.write("\n")
 
     print(f"\nDetailed results written to: {out_filename}")
