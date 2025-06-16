@@ -142,3 +142,8 @@ prescan process only runs as many points as necessary to meet the specified
 `npoints` and appends the new points to the existing ones. Prescans are
 processed in chunks in order to save progress in case the job is interrupted.
 A prescan can be run standalone or as part of a scan.
+
+## Decay modes
+
+To run a full scan or to specify a mass list, a decay mode (`-d`) needs to
+be specified. The full list of supported decay modes is available in `data/decay_modes.yml`.
