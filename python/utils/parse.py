@@ -48,7 +48,6 @@ class Parse:
 
         # initialize class variables
         self.data: pd.DataFrame = pd.DataFrame()
-        self.max_idx: Optional[int] = None
 
         # get arrays from file name if it is provided
         if file_name:
@@ -143,16 +142,16 @@ class Parse:
             return Point(model=self.model)
 
         # get index of maximum xsec times BR
-        self.max_idx = xb.idxmax()
+        max_idx = xb.idxmax()
 
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals: Dict[str, float] = {par: float(array[self.max_idx]) for par, array in self.parameter_arrays.items()}
+        max_xb_par_vals: Dict[str, float] = {par: float(array[max_idx]) for par, array in self.parameter_arrays.items()}
 
         # return a point object holding xb and other parameters
-        return Point(xb = float(xb[self.max_idx]),
+        return Point(xb = float(xb[max_idx]),
                      model = self.model,
                      par_vals = max_xb_par_vals,
-                     tsv_data= self.data.loc[[self.max_idx]])
+                     tsv_data= self.data.loc[[max_idx]])
 
     def is_bimodal(self,
                    param_name: str,
@@ -199,7 +198,8 @@ class Parse:
         param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
-        _, pval = diptest.diptest(param_selected)
+        result = diptest.diptest(param_selected)
+        pval: float = result[1]  # assuming second item is always p-value
 
         # p-value threshold for multimodality
         pval_threshold = 0.05
@@ -210,7 +210,7 @@ class Parse:
     def get_param_space_splits(self,
                                param_name: str,
                                decay: str,
-                               param_space: Optional[ParamSpace] = None,
+                               param_space: ParamSpace,
                                min_prominence=0.1,
                                density_threshold=0.01,
                                bw: Union[str, float] = 'silverman',
@@ -223,7 +223,7 @@ class Parse:
         Args:
             param_name (str): Parameter to split.
             decay (str): Decay channel.
-            param_space (Optional[ParamSpace]): Parameter subspace to restrict analysis.
+            param_space (ParamSpace): Parameter subspace to restrict analysis.
             min_prominence (float): Minimum prominence for peak detection in modality analysis.
             density_threshold (float): Density threshold for identifying gaps.
             bw (str or float): Bandwidth method for KDE.
@@ -302,10 +302,10 @@ class Parse:
         return splits
 
     def get_density_splits(self,
-                        par_vals: np.ndarray,
-                        n_points: int = 200,
-                        density_threshold: float = 0.01,
-                        bw: Union[str, float] = 'silverman') -> np.ndarray:
+                           par_vals: np.ndarray,
+                           n_points: int = 200,
+                           density_threshold: float = 0.01,
+                           bw: Union[str, float] = 'silverman') -> np.ndarray:
         """
         Finds low-density regions in parameter distribution using KDE.
 
