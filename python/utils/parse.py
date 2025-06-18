@@ -402,7 +402,6 @@ class Parse:
             full_name: str = par['fullname']
             new_min = float(filtered_data[full_name].min())
             new_max = float(filtered_data[full_name].max())
-            print(f"{name}: {new_min} - {new_max}")
             param_space[name].set_min_max(new_min=new_min,
                                           new_max=new_max,
                                           resolution=resolution)
