@@ -198,7 +198,8 @@ class Parse:
         param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
-        _, pval = diptest.diptest(param_selected)
+        result = diptest.diptest(param_selected)
+        pval: float = result[1]  # assuming second item is always p-value
 
         # p-value threshold for multimodality
         pval_threshold = 0.05
