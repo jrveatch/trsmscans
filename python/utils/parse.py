@@ -210,7 +210,7 @@ class Parse:
     def get_param_space_splits(self,
                                param_name: str,
                                decay: str,
-                               param_space: Optional[ParamSpace] = None,
+                               param_space: ParamSpace,
                                min_prominence=0.1,
                                density_threshold=0.01,
                                bw: Union[str, float] = 'silverman',
@@ -223,7 +223,7 @@ class Parse:
         Args:
             param_name (str): Parameter to split.
             decay (str): Decay channel.
-            param_space (Optional[ParamSpace]): Parameter subspace to restrict analysis.
+            param_space (ParamSpace): Parameter subspace to restrict analysis.
             min_prominence (float): Minimum prominence for peak detection in modality analysis.
             density_threshold (float): Density threshold for identifying gaps.
             bw (str or float): Bandwidth method for KDE.
