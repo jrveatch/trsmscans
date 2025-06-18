@@ -302,10 +302,10 @@ class Parse:
         return splits
 
     def get_density_splits(self,
-                        par_vals: np.ndarray,
-                        n_points: int = 200,
-                        density_threshold: float = 0.01,
-                        bw: Union[str, float] = 'silverman') -> np.ndarray:
+                           par_vals: np.ndarray,
+                           n_points: int = 200,
+                           density_threshold: float = 0.01,
+                           bw: Union[str, float] = 'silverman') -> np.ndarray:
         """
         Finds low-density regions in parameter distribution using KDE.
 
@@ -402,6 +402,7 @@ class Parse:
             full_name: str = par['fullname']
             new_min = float(filtered_data[full_name].min())
             new_max = float(filtered_data[full_name].max())
+            print(f"{name}: {new_min} - {new_max}")
             param_space[name].set_min_max(new_min=new_min,
                                           new_max=new_max,
                                           resolution=resolution)
