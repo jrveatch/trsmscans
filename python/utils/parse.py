@@ -48,7 +48,6 @@ class Parse:
 
         # initialize class variables
         self.data: pd.DataFrame = pd.DataFrame()
-        self.max_idx: Optional[int] = None
 
         # get arrays from file name if it is provided
         if file_name:
@@ -143,16 +142,16 @@ class Parse:
             return Point(model=self.model)
 
         # get index of maximum xsec times BR
-        self.max_idx = xb.idxmax()
+        max_idx = xb.idxmax()
 
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals: Dict[str, float] = {par: float(array[self.max_idx]) for par, array in self.parameter_arrays.items()}
+        max_xb_par_vals: Dict[str, float] = {par: float(array[max_idx]) for par, array in self.parameter_arrays.items()}
 
         # return a point object holding xb and other parameters
-        return Point(xb = float(xb[self.max_idx]),
+        return Point(xb = float(xb[max_idx]),
                      model = self.model,
                      par_vals = max_xb_par_vals,
-                     tsv_data= self.data.loc[[self.max_idx]])
+                     tsv_data= self.data.loc[[max_idx]])
 
     def is_bimodal(self,
                    param_name: str,
