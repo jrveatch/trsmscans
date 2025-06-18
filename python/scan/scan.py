@@ -548,7 +548,7 @@ class Scan:
         num_param_spaces = len(param_space_list)
 
         # Initialize list of param space volumes
-        volumes = np.array([space.volume() for space in param_space_list])
+        volumes = np.array([self.prescan_parser.compute_effective_volume(space) for space in param_space_list])
 
         # Retrieve total volume of all param spaces
         total_volume = volumes.sum()
