@@ -462,7 +462,7 @@ class Scan:
     
     def get_param_spaces(self, param_space: 'ParamSpace') -> List[ParamSpace]:
 
-        # Intialize Lists to hold the current param spaces and the final param spaces
+        # Initialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
         final_param_space_list =[]
 
@@ -562,7 +562,7 @@ class Scan:
         # Assign rounded points to the points_per_optimizer_array
         points_per_optimizer_array = points_array
 
-        # Minimum points assigment
+        # Minimum points assignment
         min_points = min(num_points/10,20)
         self.logger.debug(f"Minimum points per zoom optimizer: {min_points}")
 
