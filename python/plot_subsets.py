@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 import pandas as pd
 import re
+import shutil
 from typing import Dict, Tuple
 
 from utils import file_utils
@@ -65,6 +66,13 @@ class SubsetPlotter:
 
         # Create plot output directory
         self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
+        if os.path.exists(self.output_dir):
+            for entry in os.listdir(self.output_dir):
+                entry_path = os.path.join(self.output_dir, entry)
+                if os.path.isdir(entry_path):
+                    shutil.rmtree(entry_path)
+                else:
+                    os.remove(entry_path)
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Parse ini files and store ranges
