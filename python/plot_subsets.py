@@ -15,7 +15,7 @@ import glob
 import logging
 import os
 import matplotlib.pyplot as plt
-from matplotlib import patches
+from matplotlib import cm, patches
 import pandas as pd
 import re
 import shutil
@@ -263,7 +263,8 @@ class SubsetPlotter:
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
-                        color = plt.cm.viridis(t)
+                        cmap = cm.get_cmap("viridis")
+                        color = cmap(t)
 
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
