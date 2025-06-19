@@ -105,9 +105,18 @@ class SubsetPlotter:
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
 
         # Sort the files by Zoom Optimizer and Iterations
+        def extract_sort_key(filename: str) -> Tuple[int, int]:
+            match = re.search(r"ZoomOptimizer-(\d+)-Iteration-(\d+)", filename)
+            if not match:
+                return (9999, 9999)
+            return int(match.group(1)), int(match.group(2))
+
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict)
+
+        ini_files = glob.glob(os.path.join(directory, "*.ini"))
         self.sorted_ini_files = sorted(
             [os.path.basename(f) for f in ini_files],
-            key=lambda f: tuple(map(int, re.search(r"ZoomOptimizer-(\d+)-Iteration-(\d+)", f).groups()))
+            key=extract_sort_key
         )
 
         # Store params we need in list
