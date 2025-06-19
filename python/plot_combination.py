@@ -105,7 +105,7 @@ def plot_interpolation(X_mass: np.ndarray,
                        file_name: str,
                        contour_masks: Optional[List[Dict]] = None) -> None:
 
-        # Create the plot
+    # Create the plot
     fig, ax = plt.subplots()
     contour = ax.contourf(X_mass,
                           S_mass,
