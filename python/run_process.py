@@ -55,8 +55,6 @@ def run_prescan(model: Model,
             num_points=num_points,
             overwrite=overwrite)
 
-    return
-
 def run_scan(model: Model,
              decay: str,
              strategy: str,
