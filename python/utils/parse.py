@@ -449,6 +449,21 @@ class Parse:
 
         return mask.astype(bool)
 
+    def estimate_effective_volume_by_count(self,
+                                           param_space: ParamSpace) -> float:
+        """
+        Estimates the effective volume of a param_space based on point count,
+        assuming uniform random sampling.
+
+        Args:
+            param_space (ParamSpace): Region to evaluate.
+
+        Returns:
+            float: Proportional effective volume (not normalized unless full volume is known).
+        """
+        mask = self.param_space_mask(param_space)
+        return float(mask.sum())
+
     def compute_effective_volume(self,
                                  param_space: ParamSpace,
                                  eps: float = 0.05,
