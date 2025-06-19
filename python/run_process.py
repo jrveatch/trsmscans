@@ -23,14 +23,14 @@ from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model
-from utils.parse import Parse
 import utils.htcondor_utils as htcondor_utils
 from mass_grid.mass_json_utils import get_mass_permutations
 
 def run_prescan(model: Model,
                 num_points: int,
                 overwrite: bool,
-                log_level: int) -> Parse:
+                log_level: int,
+                dry_run: bool = False) -> None:
     """
     Run a prescan for a single mass point.
 
@@ -39,19 +39,23 @@ def run_prescan(model: Model,
         num_points (int): Number of points to sample.
         overwrite (bool): Whether to overwrite existing results.
         log_level (int): Logging level (e.g., logging.INFO).
-
-    Returns:
-        Parse: Object containing prescan results.
+        dry_run (bool): If True, print message but do not run job.
     """
+
+    if dry_run:
+        print(f"[DRY-RUN] Would run: prescan for {model.mass_string}")
+        return None
 
     log_file = os.path.join(prescan_dir(model), "prescan.log")
 
     setup_logging(log_file=log_file,
                   level=log_level)
 
-    return prescan(model=model,
-                   num_points=num_points,
-                   overwrite=overwrite)
+    prescan(model=model,
+            num_points=num_points,
+            overwrite=overwrite)
+
+    return
 
 def run_scan(model: Model,
              decay: str,
@@ -60,7 +64,8 @@ def run_scan(model: Model,
              prescan_points: int,
              overwrite: bool,
              iterations: int,
-             log_level: int) -> None:
+             log_level: int,
+             dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
 
@@ -73,10 +78,15 @@ def run_scan(model: Model,
         overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
         log_level (int): Logging verbosity level.
+        dry_run (bool): If True, print message but do not run job.
 
     Raises:
         ValueError: If the strategy is invalid.
     """
+
+    if dry_run:
+        print(f"[DRY-RUN] Would run: scan for {model.mass_string} using {strategy}")
+        return None
 
     log_file = os.path.join(scan_dir(model=model, decay=decay), f"{strategy}.log")
     setup_logging(log_file=log_file,
@@ -306,7 +316,8 @@ def main():
                 run_prescan(model=model,
                             num_points=args.num_points,
                             overwrite=args.overwrite,
-                            log_level=log_level)
+                            log_level=log_level,
+                            dry_run=args.dry_run)
             else:
                 if not args.decay or not args.strategy:
                     raise ValueError("Scan mode requires --decay and --strategy")
@@ -317,7 +328,8 @@ def main():
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
-                         log_level=log_level)
+                         log_level=log_level,
+                         dry_run=args.dry_run)
             job_count += 1
 
     if job_count > 0:
