@@ -97,7 +97,10 @@ class SubsetPlotter:
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
 
         # Sort the files by Zoom Optimizer and Iterations
-        self.sorted_ini_files = sorted(ini_files)
+        self.sorted_ini_files = sorted(
+            [os.path.basename(f) for f in ini_files],
+            key=lambda f: tuple(map(int, re.search(r"ZoomOptimizer-(\d+)-Iteration-(\d+)", f).groups()))
+        )
 
         # Store params we need in list
         params_of_interest = ["t1", "t2", "t3", "vs", "vx"]
@@ -134,8 +137,8 @@ class SubsetPlotter:
                     min_val, max_val = map(float, config["scan"][param].split())
                     ranges[param] = (min_val, max_val)
 
-            # Store the extracted ranges with the filename and Zoom Optimier as keys
-            ranges_dict[zoom_op_key][file_name] = ranges
+            # Store the extracted ranges with the filename and Zoom Optimizer as keys
+            ranges_dict[zoom_op_key][os.path.basename(file_name)] = ranges
 
         # Debugger that prints the ranges from the .ini files
         self.logger.debug(f'Ini Range Data:\n\t{ranges_dict}')
@@ -217,7 +220,10 @@ class SubsetPlotter:
         for zoom_op in self.ini_ranges:
 
             # Retrieve files based on the current Zoom Optimizer
-            zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
+            zoom_op_files: Dict[str, pd.DataFrame] = {
+                file: df for file, df in self.filtered_files.items()
+                if f"{zoom_op}-" in os.path.basename(file)
+            }
 
             # Create a new output directory to organize output by Zoom Optimizer
             group_output_dir = os.path.join(self.output_dir,zoom_op)
@@ -245,7 +251,8 @@ class SubsetPlotter:
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
 
-                        file_ranges = self.ini_ranges[zoom_op][file]
+
+                        file_ranges = self.ini_ranges[zoom_op][os.path.basename(file)]
                         self.logger.debug(file_ranges)
 
                         x_ini = self.model.fullname_to_ini_name_map[param1]
