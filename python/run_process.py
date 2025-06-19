@@ -16,6 +16,7 @@ import os
 import subprocess
 from typing import Optional
 
+from check_mass_list import get_mass_point_status
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
@@ -266,10 +267,25 @@ def main():
     job_count = 0
 
     for xmass, smass, hmass in mass_points:
+        if not args.overwrite:
+            try:
+                status, _ = get_mass_point_status(
+                    model_name=args.model,
+                    decay=args.decay,
+                    xmass=xmass,
+                    smass=smass,
+                    threshold=args.threshold,
+                    mode=args.mode,
+                    strategy=args.strategy
+                )
+            except Exception as e:
+                print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
+                continue
+            if status not in {"missing", "below_threshold"}:
+                print(f"Skipping X={xmass}, S={smass}: status = {status}")
+                continue
+
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
-        if not model.is_calculable:
-            print(f"{model.name} with X={xmass}, S={smass} is not calculable. Skipping.")
-            continue
         if args.batch:
             submit_htcondor(mode=args.mode,
                             model=model,
