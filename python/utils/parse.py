@@ -362,10 +362,10 @@ class Parse:
                             param_y: str,
                             decay: str,
                             param_space: ParamSpace,
-                            n_slices: int = 10,
+                            n_slices: int = 20,
                             min_points_per_slice: int = 100,
                             valley_prominence_threshold: float = 0.2,
-                            min_valley_persistence: int = 4,
+                            min_valley_persistence: int = 5,
                             min_valley_width_frac: float = 0.4,
                             n_kde_points: int = 200) -> Dict[str, List[float]]:
         """
