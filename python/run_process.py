@@ -282,7 +282,7 @@ def main():
                     decay=args.decay,
                     xmass=xmass,
                     smass=smass,
-                    threshold=args.threshold,
+                    threshold=args.num_points,
                     mode=args.mode,
                     strategy=args.strategy
                 )
