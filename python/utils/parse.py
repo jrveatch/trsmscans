@@ -351,7 +351,11 @@ class Parse:
                 mid_x = x_eval[mid_idx]
                 splits.append(mid_x * (par_max - par_min) + par_min)
 
-            return np.array(splits, dtype=float)
+            # Only keep values strictly within range
+            eps = 1e-8
+            valid_splits = [v for v in splits if (par_min + eps) < v < (par_max - eps)]
+
+            return np.array(valid_splits, dtype=float)
 
         except Exception as e:
             print(f"[density_splits error] {e}")
