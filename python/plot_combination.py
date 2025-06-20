@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple
 
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
+from utils.plot_utils import interpolate_grid, mass_label, xb_label
 
 XRES = 200
 SRES = 200
@@ -41,7 +42,11 @@ def plot_combination(model :str,
     X_mass_xb_i, S_mass_xb_i, xb_max_i = interpolate_grid(X_mass_xb, S_mass_xb, xb_max, resolution=(XRES, SRES))
 
     # Plot the xbmax interpolated grid
-    plot_interpolation(X_mass_xb_i, S_mass_xb_i, xb_max_i, output_filename_xbmax)
+    plot_interpolation(X_mass=X_mass_xb_i,
+                       S_mass=S_mass_xb_i,
+                       xb=xb_max_i,
+                       file_name=output_filename_xbmax,
+                       limit_type="max")
 
     # Stop here if we are not plotting limits
     if not plot_limits:
@@ -96,16 +101,27 @@ def plot_combination(model :str,
     # TODO: Plot the exclusion masks as contours on the limits plots
 
     # Plot the interpolated grid
-    plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs, observed_exclusion_mask)
-    plot_interpolation(X_mass_i, S_mass_i, exp_limits_i, output_filename_exp, expected_exclusion_mask)
+    plot_interpolation(X_mass=X_mass_i,
+                       S_mass=S_mass_i,
+                       xb=obs_limits_i,
+                       file_name=output_filename_obs,
+                       limit_type="observed",
+                       contour_masks=observed_exclusion_mask)
+    plot_interpolation(X_mass=X_mass_i,
+                       S_mass=S_mass_i,
+                       xb=exp_limits_i,
+                       file_name=output_filename_exp,
+                       limit_type="expected",
+                       contour_masks=expected_exclusion_mask)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
                        xb: np.ndarray,
                        file_name: str,
+                       limit_type: str,
                        contour_masks: Optional[List[Dict]] = None) -> None:
 
-        # Create the plot
+    # Create the plot
     fig, ax = plt.subplots()
     contour = ax.contourf(X_mass,
                           S_mass,
@@ -121,7 +137,7 @@ def plot_interpolation(X_mass: np.ndarray,
     ax.set_ylabel(mass_label("S"))
 
     cbar = plt.colorbar(contour)
-    cbar.set_label(xb_label("Max"))
+    cbar.set_label(xb_label(limit_type))
 
     # Set colorbar ticks at powers of 10
     cbar.locator = LogLocator(base=10.0, numticks=10)
@@ -198,27 +214,6 @@ def output_directory(model: str,
 
     return out_dir
 
-def xb_label(prefix: str) -> str:
-    """
-    Returns the label for the interpolated plot.
-
-    Args:
-        prefix (str): The prefix for the label, e.g., "Max".
-
-    Returns:
-        str: The label for the interpolated plot.
-    """
-    return fr"{prefix} $\sigma\times BR$ [fb]"
-
-def mass_label(particle: str) -> str:
-    """
-    Returns the label for the mass plot.
-    
-    Returns:
-        str: The label for the mass plot.
-    """
-    return fr"$m_{{{particle}}}$ [GeV]"
-
 def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Load XMass, SMass, and MaxXB from a TSV file using column names.
@@ -246,29 +241,6 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     except Exception as e:
         raise RuntimeError(f"Failed to read or parse data from {file_path}: {e}")
-
-def interpolate_grid(x: np.ndarray,
-                     y: np.ndarray,
-                     z: np.ndarray, 
-                     resolution: Tuple[int, int]=(200, 200)
-                    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Create interpolated 2D grid from scattered data points.
-
-    Args:
-        x (np.ndarray): 1D array of x-coordinates.
-        y (np.ndarray): 1D array of y-coordinates.
-        z (np.ndarray): 1D array of values at the (x, y) coordinates.
-        resolution (tuple[int, int]): Resolution of the output grid.
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray, np.ndarray]: Meshgrid arrays (Xi, Yi) and interpolated values (Zi).
-    """
-    xi = np.linspace(x.min(), x.max(), resolution[0])
-    yi = np.linspace(y.min(), y.max(), resolution[1])
-    Xi, Yi = np.meshgrid(xi, yi)
-    Zi = griddata((x, y), z, (Xi, Yi), method='linear')
-    return Xi, Yi, Zi
 
 if __name__ =="__main__":
 
