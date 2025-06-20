@@ -460,7 +460,8 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
     
-    def get_param_spaces(self, param_space: 'ParamSpace') -> List[ParamSpace]:
+    def get_param_spaces(self,
+                         param_space: ParamSpace) -> List[ParamSpace]:
 
         # Initialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
@@ -471,26 +472,45 @@ class Scan:
 
             # Remove the first param space and hold on to it as the current param space
             current = current_param_space_list.pop(0)
+            param_names = current.parameter_names
 
-            # Iterate through the current param space
-            for parameter_name in current.parameter_names:
-
-                # Check modality by evaluating where to split
-                all_splits = self.prescan_parser.get_param_space_splits(param_name=parameter_name, decay=self.decay, param_space=current)
-
-                # Check if points to split where found
+            # --- Step 1: 1D Splitting Pass ---
+            did_split = False
+            for parameter_name in param_names:
+                all_splits = self.prescan_parser.get_param_space_splits(
+                    param_name=parameter_name,
+                    decay=self.decay,
+                    param_space=current
+                )
                 if all_splits:
-
-                    # Retrieve new param spaces based on the split at given points
-                    new_param_spaces = current.split_range(param_name=parameter_name, split_values=all_splits)
-
-                    # Add the new param spaces to the recurring list of param spaces
+                    new_param_spaces = current.split_range(
+                        param_name=parameter_name, split_values=all_splits
+                    )
                     current_param_space_list.extend(new_param_spaces)
-            
-                    break
+                    did_split = True
+                    break  # Exit 1D splitting loop
 
-            # Append the current list if no further splitting was done to current param space
-            else:
+            if did_split:
+                continue  # Skip 2D pass if 1D split occurred
+
+            # --- Step 2: 2D Splitting Pass ---
+            for i in range(len(param_names)):
+                for j in range(i + 1, len(param_names)):
+                    param_x, param_y = param_names[i], param_names[j]
+                    split_dict = self.prescan_parser.get_2d_density_splits(
+                        param_x, param_y, decay=self.decay, param_space=current
+                    )
+                    if split_dict:
+                        subspaces = [current]
+                        for pname, split_vals in split_dict.items():
+                            subspaces = [s for ps in subspaces for s in ps.split_range(pname, split_vals)]
+                        current_param_space_list.extend(subspaces)
+                        did_split = True
+                        break  # Exit inner 2D loop
+                if did_split:
+                    break  # Exit outer 2D loop
+
+            if not did_split:
                 final_param_space_list.append(current)
 
         # Shrink the param spaces in final_param_space_list

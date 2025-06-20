@@ -351,11 +351,123 @@ class Parse:
                 mid_x = x_eval[mid_idx]
                 splits.append(mid_x * (par_max - par_min) + par_min)
 
-            return np.array(splits, dtype=float)
+            # Only keep values strictly within range
+            eps = 1e-8
+            valid_splits = [v for v in splits if (par_min + eps) < v < (par_max - eps)]
+
+            return np.array(valid_splits, dtype=float)
 
         except Exception as e:
             print(f"[density_splits error] {e}")
             return np.array([], dtype=float)
+
+    def get_2d_density_splits(self,
+                            param_x: str,
+                            param_y: str,
+                            decay: str,
+                            param_space: ParamSpace,
+                            n_slices: int = 20,
+                            min_points_per_slice: int = 100,
+                            valley_prominence_threshold: float = 0.2,
+                            min_valley_persistence: int = 5,
+                            min_valley_width_frac: float = 0.4,
+                            n_kde_points: int = 200) -> Dict[str, List[float]]:
+        """
+        Detects valley-based gaps in a 2D projection by slicing along each axis
+        and checking for valleys in the conditional KDE of the other axis.
+
+        Args:
+            param_x (str): First parameter.
+            param_y (str): Second parameter.
+            decay (str): Decay channel to extract xb.
+            param_space (ParamSpace): Parameter subspace for restriction.
+            n_slices (int): Number of slices to scan along the axis.
+            min_points_per_slice (int): Minimum points required to evaluate slice.
+            valley_prominence_threshold (float): Relative depth required to consider a dip a valley.
+            min_valley_persistence (int): Minimum number of consecutive slices a valley must persist to count.
+            n_kde_points (int): Resolution of KDE evaluation.
+
+        Returns:
+            Dict[str, List[float]]: Mapping of axis name to list of split locations.
+        """
+        from scipy.stats import gaussian_kde
+        from scipy.signal import argrelextrema
+        import numpy as np
+
+        mask = self.param_space_mask(param_space)
+        x = self.input_parameter_arrays[param_x][mask]
+        y = self.input_parameter_arrays[param_y][mask]
+        xb = self.get_xb(decay=decay)[mask]
+
+        data = pd.DataFrame({param_x: x, param_y: y, 'xb': xb}).dropna()
+        if len(data) < 500:
+            return {}
+
+        def find_valley_transitions(param1_vals, param2_vals) -> List[float]:
+            param1_min, param1_max = param1_vals.min(), param1_vals.max()
+            bin_edges = np.linspace(param1_min, param1_max, n_slices + 1)
+            bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+            valley_flags = []
+
+            for i in range(n_slices):
+                p1_lo, p1_hi = bin_edges[i], bin_edges[i + 1]
+                mask = (param1_vals >= p1_lo) & (param1_vals < p1_hi)
+                p2_slice = param2_vals[mask]
+
+                if len(p2_slice) < min_points_per_slice:
+                    valley_flags.append(False)
+                    continue
+
+                kde = gaussian_kde(p2_slice)
+                x_eval = np.linspace(p2_slice.min(), p2_slice.max(), n_kde_points)
+                y_eval = kde(x_eval)
+                valleys = argrelextrema(y_eval, np.less)[0]
+
+                if len(valleys) == 0:
+                    valley_flags.append(False)
+                    continue
+
+                if (y_eval.max() - y_eval[valleys].min()) > valley_prominence_threshold * y_eval.max():
+                    valley_flags.append(True)
+                else:
+                    valley_flags.append(False)
+
+            # Group persistent valley regions with minimum width
+            split_candidates = []
+            i = 0
+            while i < len(valley_flags):
+                if valley_flags[i]:
+                    start = i
+                    while i < len(valley_flags) and valley_flags[i]:
+                        i += 1
+                    end = i
+                    n_bins = end - start
+                    region_width = bin_edges[end] - bin_edges[start]
+                    total_width = param1_max - param1_min
+                    if n_bins >= min_valley_persistence and region_width >= min_valley_width_frac * total_width:
+                        split_center = 0.5 * (bin_centers[start] + bin_centers[end - 1])
+                        split_candidates.append(split_center)
+                else:
+                    i += 1
+
+            return sorted(set(split_candidates))
+
+        x_splits = find_valley_transitions(data[param_x].to_numpy(), data[param_y].to_numpy())
+        y_splits = find_valley_transitions(data[param_y].to_numpy(), data[param_x].to_numpy())
+
+        # Prefer the axis with fewer splits (but not 0 vs 1), or first non-empty
+        split_dict = {}
+        if x_splits and not y_splits:
+            split_dict[param_x] = x_splits
+        elif y_splits and not x_splits:
+            split_dict[param_y] = y_splits
+        elif x_splits and y_splits:
+            if len(x_splits) <= len(y_splits):
+                split_dict[param_x] = x_splits
+            else:
+                split_dict[param_y] = y_splits
+
+        return split_dict
 
     def get_xb(self,
                decay: str,
