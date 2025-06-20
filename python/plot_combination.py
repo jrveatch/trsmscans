@@ -98,8 +98,6 @@ def plot_combination(model :str,
         }
     ]
 
-    # TODO: Plot the exclusion masks as contours on the limits plots
-
     # Plot the interpolated grid
     plot_interpolation(X_mass=X_mass_i,
                        S_mass=S_mass_i,
@@ -151,22 +149,26 @@ def plot_interpolation(X_mass: np.ndarray,
             label = entry.get("label", None)
             style = entry.get("style", {})
 
-            # Translate style keys for matplotlib.contour
             style_mpl = {
                 "colors": style.get("color"),
                 "linestyles": style.get("linestyle")
             }
 
-            # Contour at mask threshold 0.5 (float-valued mask)
-            cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+            try:
+                cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+            except Exception as e:
+                print(f"Failed to draw contour for label '{label}': {e}")
 
-            # Only set label if contour is drawn
-            #if label and cs.collections:
-            #    cs.collections[0].set_label(label)
+            # Always create a proxy for the legend
+            if label:
+                ax.plot([], [], label=label,
+                        color=style.get("color", "black"),
+                        linestyle=style.get("linestyle", "-"))
 
-    # Enable legend if any labels are present
-    #if contour_masks and any(e.get("label") for e in contour_masks):
-    #    ax.legend()
+    # Enable legend if any labels are set
+    handles, labels = ax.get_legend_handles_labels()
+    if labels:
+        ax.legend()
 
     fig.tight_layout()
     fig.savefig(file_name)
