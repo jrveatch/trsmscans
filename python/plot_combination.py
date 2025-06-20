@@ -21,7 +21,8 @@ SRES = 200
 def plot_combination(model :str,
                      decay: str,
                      identifier: str,
-                     plot_limits: bool) -> None:
+                     plot_limits: bool,
+                     include_sigma_bands: bool = True) -> None:
 
     # Combination .tsv file name
     input_file_name = os.path.join(env.output_dir(),
@@ -53,52 +54,148 @@ def plot_combination(model :str,
         return
 
     # Load the expected and observed limits
-    X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
-                                                             identifier=identifier)
+    #X_mass, S_mass, obs_limits, exp_limits = load_limit_data(decay=decay,
+    #                                                         identifier=identifier)
+    limit_data = load_limit_data(decay=decay,
+                                 identifier=identifier)
 
     # Get the interpolated grids
-    X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(X_mass, S_mass, obs_limits, resolution=(XRES, SRES))
-    _, _, exp_limits_i = interpolate_grid(X_mass, S_mass, exp_limits, resolution=(XRES, SRES))
+    X_mass_i, S_mass_i, obs_limits_i = interpolate_grid(limit_data.X_mass,
+                                                        limit_data.S_mass,
+                                                        limit_data.observed,
+                                                        resolution=(XRES, SRES))
+
+    _, _, exp_limits_i = interpolate_grid(limit_data.X_mass,
+                                          limit_data.S_mass,
+                                          limit_data.expected,
+                                          resolution=(XRES, SRES))
 
     # Align limits to xb_max subset points
-    obs_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, obs_limits)
-    exp_matched = match_limit_values_to_subset(X_mass_xb, S_mass_xb, X_mass, S_mass, exp_limits)
+    obs_matched = match_limit_values_to_subset(X_mass_xb,
+                                               S_mass_xb,
+                                               limit_data.X_mass,
+                                               limit_data.S_mass,
+                                               limit_data.observed)
+
+    exp_matched = match_limit_values_to_subset(X_mass_xb,
+                                               S_mass_xb,
+                                               limit_data.X_mass,
+                                               limit_data.S_mass,
+                                               limit_data.expected)
+
+    exp_m1_matched = match_limit_values_to_subset(X_mass_xb,
+                                                  S_mass_xb,
+                                                  limit_data.X_mass,
+                                                  limit_data.S_mass,
+                                                  limit_data.expected_m1)
+
+    exp_p1_matched = match_limit_values_to_subset(X_mass_xb,
+                                                  S_mass_xb,
+                                                  limit_data.X_mass,
+                                                  limit_data.S_mass,
+                                                  limit_data.expected_p1)
+
+    exp_m2_matched = match_limit_values_to_subset(X_mass_xb,
+                                                  S_mass_xb,
+                                                  limit_data.X_mass,
+                                                  limit_data.S_mass,
+                                                  limit_data.expected_m2)
+
+    exp_p2_matched = match_limit_values_to_subset(X_mass_xb,
+                                                  S_mass_xb,
+                                                  limit_data.X_mass,
+                                                  limit_data.S_mass,
+                                                  limit_data.expected_p2)
 
     # Create binary masks: where xb_max exceeds limits
     mask_obs_raw = xb_max > obs_matched
     mask_exp_raw = xb_max > exp_matched
+    mask_exp_m1_raw = xb_max > exp_m1_matched
+    mask_exp_p1_raw = xb_max > exp_p1_matched
+    mask_exp_m2_raw = xb_max > exp_m2_matched
+    mask_exp_p2_raw = xb_max > exp_p2_matched
 
     # Optional: Print summary
-    print(f"Observed mask: {np.sum(mask_obs_raw)} / {len(mask_obs_raw)} points exceed limits")
-    print(f"Expected mask: {np.sum(mask_exp_raw)} / {len(mask_exp_raw)} points exceed limits")
+    print(f"Observed: {np.sum(mask_obs_raw)} / {len(mask_obs_raw)} points exceed limits")
+    if include_sigma_bands:
+        print(f"Expected -2σ: {np.sum(mask_exp_m2_raw)} / {len(mask_exp_m2_raw)} points exceed limits")
+        print(f"Expected -1σ: {np.sum(mask_exp_m1_raw)} / {len(mask_exp_m1_raw)} points exceed limits")
+    print(f"Expected med: {np.sum(mask_exp_raw)} / {len(mask_exp_raw)} points exceed limits")
+    if include_sigma_bands:
+        print(f"Expected +1σ: {np.sum(mask_exp_p1_raw)} / {len(mask_exp_p1_raw)} points exceed limits")
+        print(f"Expected +2σ: {np.sum(mask_exp_p2_raw)} / {len(mask_exp_p2_raw)} points exceed limits")
 
     # Interpolate the masks to the grid
+    limit_interpolation_method: str = 'cubic'
     mask_obs_i = griddata((X_mass_xb, S_mass_xb),
                           mask_obs_raw.astype(float),
                           (X_mass_i, S_mass_i),
-                          method='cubic')
+                          method=limit_interpolation_method)
+
     mask_exp_i = griddata((X_mass_xb, S_mass_xb),
                           mask_exp_raw.astype(float),
                           (X_mass_i, S_mass_i),
-                          method='cubic')
+                          method=limit_interpolation_method)
+
+    mask_exp_m1_i = griddata((X_mass_xb, S_mass_xb),
+                             mask_exp_m1_raw.astype(float),
+                             (X_mass_i, S_mass_i),
+                             method=limit_interpolation_method)
+
+    mask_exp_p1_i = griddata((X_mass_xb, S_mass_xb),
+                             mask_exp_p1_raw.astype(float),
+                             (X_mass_i, S_mass_i),
+                             method=limit_interpolation_method)
+
+    mask_exp_m2_i = griddata((X_mass_xb, S_mass_xb),
+                             mask_exp_m2_raw.astype(float),
+                             (X_mass_i, S_mass_i),
+                             method=limit_interpolation_method)
+
+    mask_exp_p2_i = griddata((X_mass_xb, S_mass_xb),
+                             mask_exp_p2_raw.astype(float),
+                             (X_mass_i, S_mass_i),
+                             method=limit_interpolation_method)
 
     # Make lists of exclusion masks
-    observed_exclusion_mask = [
+    observed_exclusion_masks = [
         {
             "mask": mask_obs_i,  # interpolated 2D array (float)
             "label": "TRSM",
             "style": {"color": "red", "linestyle": "-"}
         }
     ]
-    expected_exclusion_mask = [
+    expected_exclusion_masks = [
+        {
+            "mask": mask_exp_m2_i,  # interpolated 2D array (float)
+            "label": r"$-2\sigma$",
+            "style": {"color": "purple", "linestyle": ":"}
+        },
+        {
+            "mask": mask_exp_m1_i,  # interpolated 2D array (float)
+            "label": r"$-1\sigma$",
+            "style": {"color": "purple", "linestyle": "-."}
+        },
         {
             "mask": mask_exp_i,  # interpolated 2D array (float)
             "label": "Median",
             "style": {"color": "red", "linestyle": "-"}
+        },
+        {
+            "mask": mask_exp_p1_i,  # interpolated 2D array (float)
+            "label": r"$+1\sigma$",
+            "style": {"color": "orange", "linestyle": "-."}
+        },
+        {
+            "mask": mask_exp_p2_i,  # interpolated 2D array (float)
+            "label": r"$+2\sigma$",
+            "style": {"color": "orange", "linestyle": ":"}
         }
     ]
 
-    # TODO: Plot the exclusion masks as contours on the limits plots
+    if not include_sigma_bands:
+        # Keep only the median entry (index 2)
+        expected_exclusion_masks = [expected_exclusion_masks[2]]
 
     # Plot the interpolated grid
     plot_interpolation(X_mass=X_mass_i,
@@ -106,13 +203,14 @@ def plot_combination(model :str,
                        xb=obs_limits_i,
                        file_name=output_filename_obs,
                        limit_type="observed",
-                       contour_masks=observed_exclusion_mask)
+                       contour_masks=observed_exclusion_masks)
+
     plot_interpolation(X_mass=X_mass_i,
                        S_mass=S_mass_i,
                        xb=exp_limits_i,
                        file_name=output_filename_exp,
                        limit_type="expected",
-                       contour_masks=expected_exclusion_mask)
+                       contour_masks=expected_exclusion_masks)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
@@ -151,22 +249,26 @@ def plot_interpolation(X_mass: np.ndarray,
             label = entry.get("label", None)
             style = entry.get("style", {})
 
-            # Translate style keys for matplotlib.contour
             style_mpl = {
                 "colors": style.get("color"),
                 "linestyles": style.get("linestyle")
             }
 
-            # Contour at mask threshold 0.5 (float-valued mask)
-            cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+            try:
+                cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+            except Exception as e:
+                print(f"Failed to draw contour for label '{label}': {e}")
 
-            # Only set label if contour is drawn
-            #if label and cs.collections:
-            #    cs.collections[0].set_label(label)
+            # Always create a proxy for the legend
+            if label:
+                ax.plot([], [], label=label,
+                        color=style.get("color", "black"),
+                        linestyle=style.get("linestyle", "-"))
 
-    # Enable legend if any labels are present
-    #if contour_masks and any(e.get("label") for e in contour_masks):
-    #    ax.legend()
+    # Enable legend if any labels are set
+    handles, labels = ax.get_legend_handles_labels()
+    if labels:
+        ax.legend()
 
     fig.tight_layout()
     fig.savefig(file_name)
@@ -248,10 +350,12 @@ if __name__ =="__main__":
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
-    arg_parser.add_argument("-l", "--plot_limits", action="store_true", help="Produce exclusion limits plots")
+    arg_parser.add_argument("-l", "--plot-limits", action="store_true", help="Produce exclusion limits plots")
+    arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
     args = arg_parser.parse_args()
 
     plot_combination(model = args.model,
                      decay=args.decay,
                      identifier=args.identifier,
-                     plot_limits=args.plot_limits)
+                     plot_limits=args.plot_limits,
+                     include_sigma_bands=not args.no_sigma_bands)
