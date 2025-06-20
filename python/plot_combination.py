@@ -21,7 +21,8 @@ SRES = 200
 def plot_combination(model :str,
                      decay: str,
                      identifier: str,
-                     plot_limits: bool) -> None:
+                     plot_limits: bool,
+                     include_sigma_bands: bool = True) -> None:
 
     # Combination .tsv file name
     input_file_name = os.path.join(env.output_dir(),
@@ -116,11 +117,13 @@ def plot_combination(model :str,
 
     # Optional: Print summary
     print(f"Observed: {np.sum(mask_obs_raw)} / {len(mask_obs_raw)} points exceed limits")
-    print(f"Expected -2σ: {np.sum(mask_exp_m2_raw)} / {len(mask_exp_m2_raw)} points exceed limits")
-    print(f"Expected -1σ: {np.sum(mask_exp_m1_raw)} / {len(mask_exp_m1_raw)} points exceed limits")
+    if include_sigma_bands:
+        print(f"Expected -2σ: {np.sum(mask_exp_m2_raw)} / {len(mask_exp_m2_raw)} points exceed limits")
+        print(f"Expected -1σ: {np.sum(mask_exp_m1_raw)} / {len(mask_exp_m1_raw)} points exceed limits")
     print(f"Expected med: {np.sum(mask_exp_raw)} / {len(mask_exp_raw)} points exceed limits")
-    print(f"Expected +1σ: {np.sum(mask_exp_p1_raw)} / {len(mask_exp_p1_raw)} points exceed limits")
-    print(f"Expected +2σ: {np.sum(mask_exp_p2_raw)} / {len(mask_exp_p2_raw)} points exceed limits")
+    if include_sigma_bands:
+        print(f"Expected +1σ: {np.sum(mask_exp_p1_raw)} / {len(mask_exp_p1_raw)} points exceed limits")
+        print(f"Expected +2σ: {np.sum(mask_exp_p2_raw)} / {len(mask_exp_p2_raw)} points exceed limits")
 
     # Interpolate the masks to the grid
     limit_interpolation_method: str = 'cubic'
@@ -189,6 +192,10 @@ def plot_combination(model :str,
             "style": {"color": "orange", "linestyle": ":"}
         }
     ]
+
+    if not include_sigma_bands:
+        # Keep only the median entry (index 2)
+        expected_exclusion_masks = [expected_exclusion_masks[2]]
 
     # Plot the interpolated grid
     plot_interpolation(X_mass=X_mass_i,
@@ -343,10 +350,12 @@ if __name__ =="__main__":
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
-    arg_parser.add_argument("-l", "--plot_limits", action="store_true", help="Produce exclusion limits plots")
+    arg_parser.add_argument("-l", "--plot-limits", action="store_true", help="Produce exclusion limits plots")
+    arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
     args = arg_parser.parse_args()
 
     plot_combination(model = args.model,
                      decay=args.decay,
                      identifier=args.identifier,
-                     plot_limits=args.plot_limits)
+                     plot_limits=args.plot_limits,
+                     include_sigma_bands=not args.no_sigma_bands)
