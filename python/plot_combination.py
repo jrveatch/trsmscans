@@ -42,7 +42,11 @@ def plot_combination(model :str,
     X_mass_xb_i, S_mass_xb_i, xb_max_i = interpolate_grid(X_mass_xb, S_mass_xb, xb_max, resolution=(XRES, SRES))
 
     # Plot the xbmax interpolated grid
-    plot_interpolation(X_mass_xb_i, S_mass_xb_i, xb_max_i, output_filename_xbmax)
+    plot_interpolation(X_mass=X_mass_xb_i,
+                       S_mass=S_mass_xb_i,
+                       xb=xb_max_i,
+                       file_name=output_filename_xbmax,
+                       limit_type="max")
 
     # Stop here if we are not plotting limits
     if not plot_limits:
@@ -97,13 +101,24 @@ def plot_combination(model :str,
     # TODO: Plot the exclusion masks as contours on the limits plots
 
     # Plot the interpolated grid
-    plot_interpolation(X_mass_i, S_mass_i, obs_limits_i, output_filename_obs, observed_exclusion_mask)
-    plot_interpolation(X_mass_i, S_mass_i, exp_limits_i, output_filename_exp, expected_exclusion_mask)
+    plot_interpolation(X_mass=X_mass_i,
+                       S_mass=S_mass_i,
+                       xb=obs_limits_i,
+                       file_name=output_filename_obs,
+                       limit_type="observed",
+                       contour_masks=observed_exclusion_mask)
+    plot_interpolation(X_mass=X_mass_i,
+                       S_mass=S_mass_i,
+                       xb=exp_limits_i,
+                       file_name=output_filename_exp,
+                       limit_type="expected",
+                       contour_masks=expected_exclusion_mask)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
                        xb: np.ndarray,
                        file_name: str,
+                       limit_type: str,
                        contour_masks: Optional[List[Dict]] = None) -> None:
 
     # Create the plot
@@ -122,7 +137,7 @@ def plot_interpolation(X_mass: np.ndarray,
     ax.set_ylabel(mass_label("S"))
 
     cbar = plt.colorbar(contour)
-    cbar.set_label(xb_label("Max"))
+    cbar.set_label(xb_label(limit_type))
 
     # Set colorbar ticks at powers of 10
     cbar.locator = LogLocator(base=10.0, numticks=10)

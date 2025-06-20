@@ -1,18 +1,31 @@
 
+from multiprocessing import Value
 import numpy as np
 from scipy.interpolate import griddata
 from typing import Tuple
 
-def xb_label(prefix: str) -> str:
+def xb_label(limit_type: str) -> str:
     """
-    Returns the label for the interpolated plot.
+    Returns the label for the interpolated plot based on the type of limit.
 
     Args:
-        prefix (str): The prefix for the label, e.g., "Max".
+        limit_type (str): The type of limit. Must be one of "max", "expected", or "observed".
 
     Returns:
-        str: The label for the interpolated plot.
+        str: A LaTeX-formatted label for the interpolated plot.
+
+    Raises:
+        ValueError: If the limit_type is not recognized.
     """
+    if limit_type == "max":
+        prefix = "Max allowed"
+    elif limit_type == "expected":
+        prefix = "Expected limit on"
+    elif limit_type == "observed":
+        prefix = "Observed limit on"
+    else:
+        raise ValueError(f"Unrecognized limit_type: {limit_type}")
+    
     return fr"{prefix} $\sigma\times BR$ [fb]"
 
 def mass_label(particle: str) -> str:
