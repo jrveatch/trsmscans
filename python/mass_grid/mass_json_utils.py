@@ -2,7 +2,7 @@
 import json
 import numpy as np
 import os
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple
 
 # local modules
 from utils.env_utils import data_dir
@@ -35,21 +35,41 @@ def get_mass_permutations(decay: str,
         print(f"Error reading permutations file {permutations_file}: {e}")
         raise
 
+class LimitData(NamedTuple):
+    X_mass: np.ndarray
+    S_mass: np.ndarray
+    observed: np.ndarray
+    expected: np.ndarray
+    expected_m1: np.ndarray
+    expected_p1: np.ndarray
+    expected_m2: np.ndarray
+    expected_p2: np.ndarray
+
 def load_limit_data(decay: str,
-                    identifier: str) -> Tuple[np.ndarray, ...]:
+                    identifier: str) -> LimitData:
     """
-    Loads expected or observed limits from a JSON file.
+    Loads mass point limit data from a JSON file for a given decay mode and identifier.
+
+    This includes the observed limit, expected limit, and ±1σ/±2σ expected variations
+    for each (mX, mS) mass point.
 
     Args:
-        decay (str): Decay mode
-        identifier (str): Identifier for this run
+        decay (str): The decay mode (e.g., "SHbbbb").
+        identifier (str): The identifier for the dataset (e.g., "CMS_boosted").
 
     Returns:
-        Tuple[np.ndarray, ...]: Arrays of mX, mS, and limit values
+        LimitData: A named tuple containing:
+            - X_mass (np.ndarray): X mass values.
+            - S_mass (np.ndarray): S mass values.
+            - observed (np.ndarray): Observed limits.
+            - expected (np.ndarray): Expected median limits.
+            - expected_m1 (np.ndarray): Expected -1σ limits.
+            - expected_p1 (np.ndarray): Expected +1σ limits.
+            - expected_m2 (np.ndarray): Expected -2σ limits.
+            - expected_p2 (np.ndarray): Expected +2σ limits.
 
     Raises:
-        ValueError: If required fields are missing
-        RuntimeError: On file access or parsing errors
+        RuntimeError: If the JSON file is missing, malformed, or contains unexpected data.
     """
 
     limit_file = os.path.join(data_dir(), "mass_points", f"{decay}_{identifier}.json")
@@ -59,13 +79,27 @@ def load_limit_data(decay: str,
             data = json.load(f)
 
         X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
+        exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
         for point in data["mass_points"]:
             X_mass_vals.append(point["mX"])
             S_mass_vals.append(point["mS"])
             obs_limit_vals.append(point["observed_limit"])
             exp_limit_vals.append(point["expected_limit"])
+            exp_m1_limit_vals.append(point["expected_limit_m1"])
+            exp_p1_limit_vals.append(point["expected_limit_p1"])
+            exp_m2_limit_vals.append(point["expected_limit_m2"])
+            exp_p2_limit_vals.append(point["expected_limit_p2"])
 
-        return (np.array(X_mass_vals), np.array(S_mass_vals), np.array(obs_limit_vals), np.array(exp_limit_vals))
+        return LimitData(
+            X_mass=np.array(X_mass_vals),
+            S_mass=np.array(S_mass_vals),
+            observed=np.array(obs_limit_vals),
+            expected=np.array(exp_limit_vals),
+            expected_m1=np.array(exp_m1_limit_vals),
+            expected_p1=np.array(exp_p1_limit_vals),
+            expected_m2=np.array(exp_m2_limit_vals),
+            expected_p2=np.array(exp_p2_limit_vals)
+        )
 
     except Exception as e:
         raise RuntimeError(f"Failed to load limits from {limit_file}: {e}")
