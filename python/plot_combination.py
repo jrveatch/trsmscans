@@ -331,14 +331,14 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     try:
         df = pd.read_csv(file_path, sep='\t')
-        required_cols = {'XMass', 'SMass', 'xbmax'}
+        required_cols = {'XMass', 'SMass', 'xb'}
         if not required_cols.issubset(df.columns):
             missing = required_cols - set(df.columns)
             raise ValueError(f"Missing required columns in TSV file: {missing}")
         
         X_mass = df['XMass'].to_numpy()
         S_mass = df['SMass'].to_numpy()
-        xbmax = df['xbmax'].to_numpy() * 1000 # Convert to fb
+        xbmax = df['xb'].to_numpy() * 1000 # Convert to fb
         return X_mass, S_mass, xbmax
 
     except Exception as e:
