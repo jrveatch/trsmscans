@@ -27,7 +27,7 @@ from utils.model import Model
 from utils.parse import Parse
 from utils.point import Point
 
-class Plot:
+class ZoomPlotter:
     """
     Creates visualizations for scan results from scalar model parameter studies.
 
@@ -263,6 +263,6 @@ if __name__ == '__main__':
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    plotter = Plot(decay=args.decay, model=model)
+    plotter = ZoomPlotter(decay=args.decay, model=model)
     plotter.make_scan_plots()
     plotter.make_max_xb_plots()
