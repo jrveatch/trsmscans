@@ -18,6 +18,7 @@ from typing import Dict, List, Tuple
 
 # third-party libraries
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy as np
 import pandas as pd
 
@@ -158,7 +159,8 @@ class ZoomPlotter:
         fig, ax = plt.subplots()
         for i in range(len(self.var_lists['xb'])):
             t = i / len(self.var_lists['xb'])
-            color = plt.cm.viridis(t)
+            cmap = cm.get_cmap("viridis")
+            color = cmap(t)
             ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
             opacity += op
 
