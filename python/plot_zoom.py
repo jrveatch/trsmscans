@@ -112,7 +112,7 @@ class ZoomPlotter:
         # Loop through each group of files (e.g. Pre, 0, 1, ...)
         for file_list in self.all_files_dict.values():
 
-            grouped_vars: Dict[str, List[np.ndarray]] = defaultdict(list)
+            grouped_vars: Dict[str, List[pd.Series]] = defaultdict(list)
             best_point: Point = Point(model=self.model)
 
             for file_name in file_list:
