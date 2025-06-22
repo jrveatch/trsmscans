@@ -216,7 +216,7 @@ class ZoomPlotter:
         df_comb[f'{var2_name}_bin'] = pd.cut(df_comb[var2_name], bins=num_bins, labels=False)
 
         # Group by binned values and compute max xb
-        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
+        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack()
 
         # Plot the heatmap
         fig, ax = plt.subplots(figsize=(10, 8))
