@@ -18,6 +18,7 @@ from typing import Dict, List, Tuple
 
 # third-party libraries
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy as np
 import pandas as pd
 
@@ -27,7 +28,7 @@ from utils.model import Model
 from utils.parse import Parse
 from utils.point import Point
 
-class Plot:
+class ZoomPlotter:
     """
     Creates visualizations for scan results from scalar model parameter studies.
 
@@ -111,7 +112,7 @@ class Plot:
         # Loop through each group of files (e.g. Pre, 0, 1, ...)
         for file_list in self.all_files_dict.values():
 
-            grouped_vars: Dict[str, List[np.ndarray]] = defaultdict(list)
+            grouped_vars: Dict[str, List[pd.Series]] = defaultdict(list)
             best_point: Point = Point(model=self.model)
 
             for file_name in file_list:
@@ -158,7 +159,8 @@ class Plot:
         fig, ax = plt.subplots()
         for i in range(len(self.var_lists['xb'])):
             t = i / len(self.var_lists['xb'])
-            color = plt.cm.viridis(t)
+            cmap = cm.get_cmap("viridis")
+            color = cmap(t)
             ax.scatter(var1[i], var2[i], s=15, color=color, alpha=opacity)
             opacity += op
 
@@ -214,7 +216,7 @@ class Plot:
         df_comb[f'{var2_name}_bin'] = pd.cut(df_comb[var2_name], bins=num_bins, labels=False)
 
         # Group by binned values and compute max xb
-        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack(fill_value=np.nan)
+        max_xb_in_bins = df_comb.groupby([f'{var1_name}_bin', f'{var2_name}_bin'])['xb'].max().unstack()
 
         # Plot the heatmap
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -263,6 +265,6 @@ if __name__ == '__main__':
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    plotter = Plot(decay=args.decay, model=model)
+    plotter = ZoomPlotter(decay=args.decay, model=model)
     plotter.make_scan_plots()
     plotter.make_max_xb_plots()

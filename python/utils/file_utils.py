@@ -59,7 +59,7 @@ def plots_dir(model: Model,
     Returns:
         str: The path to the plots directory.
     """
-    return os.path.join(output_dir(),model.name,"plots",decay,model.mass_string)
+    return os.path.join(output_dir(),model.name,"plots",decay,"mass_points",model.mass_string)
 
 def recreate_dir(path: str,
                  subdirs: Optional[List[str]] = None) -> None:
