@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """
 Generates 2D plots for visualizing the paths taken by the mean-shift optimizer.
@@ -195,25 +194,3 @@ class MeanShiftPlotter:
                 self.plot_paths_2d(x=param, y="xb", walk_type=walk_type, save=True, show=False)
             for pair in combinations(self.model.input_parameter_names, 2):
                 self.plot_paths_2d(x=pair[0], y=pair[1], walk_type=walk_type, save=True, show=False)
-
-# Command-line interface to generate mean-shift path plots.
-# Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
-if __name__ == '__main__':
-
-    # Parse command line arguments
-    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    args = arg_parser.parse_args()
-
-    # create model object
-    model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-
-    plotter = MeanShiftPlotter(model=model,
-                               decay=args.decay)
-
-    plotter.make_mean_shift_plots()

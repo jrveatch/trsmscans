@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import argparse
+
+from mass_grid.mass_json_utils import get_mass_permutations
+from utils.model import Model
+from plot.plot_meanshift import MeanShiftPlotter
+from plot.plot_zoom import ZoomPlotter
+
+def main():
+
+    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    arg_parser.add_argument("-l", "--use-mass-list", action="store_true", help="Run over a mass list instead of a single mass point")
+    arg_parser.add_argument("-X", "--XMass", type=float, help="Mass of heavy scalar X in GeV")
+    arg_parser.add_argument("-S", "--SMass", type=float, help="Mass of scalar S in GeV")
+    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
+    arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
+    arg_parser.add_argument("-s", "--strategy", required=True, type=str, choices=['zoom','meanshift'], help="Scan strategy")
+    args = arg_parser.parse_args()
+
+    # Load mass points
+    if args.use_mass_list:
+        if not args.decay:
+            raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
+        if not args.identifier:
+            raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
+        permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
+        mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
+        print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+    elif args.XMass and args.SMass:
+        mass_points = [(args.XMass, args.SMass, args.HMass)]
+    else:
+        raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
+
+    for xmass, smass, hmass in mass_points:
+        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
+        if args.strategy == "zoom":
+                plotter = ZoomPlotter(decay=args.decay,
+                                      model=model)
+                plotter.make_scan_plots()
+                plotter.make_max_xb_plots()
+        elif args.strategy == "meanshift":
+                plotter = MeanShiftPlotter(model=model,
+                                           decay=args.decay)
+                plotter.make_mean_shift_plots()
+
+if __name__ == "__main__":
+    main()

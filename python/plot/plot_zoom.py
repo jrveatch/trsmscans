@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """
 Generates 2D scatter plots and heatmaps from scan results of scalar models.
@@ -248,23 +247,3 @@ class ZoomPlotter:
         for var1, var2 in combinations(self.var_names, 2):
             if 'xb' not in (var1, var2):
                 self.plot_max_xb_heatmap(var1, var2)
-
-# Command-line interface to generate scan plots and xb heatmaps.
-# Initializes the model and Plot object, then produces the full set of 2D visualizations.
-if __name__ == '__main__':
-
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    args = arg_parser.parse_args()
-
-    # Create model object
-    model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-
-    plotter = ZoomPlotter(decay=args.decay, model=model)
-    plotter.make_scan_plots()
-    plotter.make_max_xb_plots()
