@@ -22,7 +22,9 @@ def plot_combination(model :str,
                      decay: str,
                      identifier: str,
                      plot_limits: bool,
-                     include_sigma_bands: bool = True) -> None:
+                     include_sigma_bands: bool = True,
+                     log_x: bool = False,
+                     log_y: bool = False) -> None:
 
     # Combination .tsv file name
     input_file_name = os.path.join(env.output_dir(),
@@ -47,7 +49,9 @@ def plot_combination(model :str,
                        S_mass=S_mass_xb_i,
                        xb=xb_max_i,
                        file_name=output_filename_xbmax,
-                       limit_type="max")
+                       limit_type="max",
+                       log_x=log_x,
+                       log_y=log_y)
 
     # Stop here if we are not plotting limits
     if not plot_limits:
@@ -203,21 +207,27 @@ def plot_combination(model :str,
                        xb=obs_limits_i,
                        file_name=output_filename_obs,
                        limit_type="observed",
-                       contour_masks=observed_exclusion_masks)
+                       contour_masks=observed_exclusion_masks,
+                       log_x=log_x,
+                       log_y=log_y)
 
     plot_interpolation(X_mass=X_mass_i,
                        S_mass=S_mass_i,
                        xb=exp_limits_i,
                        file_name=output_filename_exp,
                        limit_type="expected",
-                       contour_masks=expected_exclusion_masks)
+                       contour_masks=expected_exclusion_masks,
+                       log_x=log_x,
+                       log_y=log_y)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
                        xb: np.ndarray,
                        file_name: str,
                        limit_type: str,
-                       contour_masks: Optional[List[Dict]] = None) -> None:
+                       contour_masks: Optional[List[Dict]] = None,
+                       log_x: bool = False,
+                       log_y: bool = False) -> None:
 
     # Create the plot
     fig, ax = plt.subplots()
@@ -255,7 +265,7 @@ def plot_interpolation(X_mass: np.ndarray,
             }
 
             try:
-                cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+                ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
             except Exception as e:
                 print(f"Failed to draw contour for label '{label}': {e}")
 
@@ -265,8 +275,16 @@ def plot_interpolation(X_mass: np.ndarray,
                         color=style.get("color", "black"),
                         linestyle=style.get("linestyle", "-"))
 
+    ax.set_xlim(X_mass.min(), X_mass.max())
+    ax.set_ylim(S_mass.min(), S_mass.max())
+
+    if log_x:
+        ax.set_xscale("log")
+    if log_y:
+        ax.set_yscale("log")
+
     # Enable legend if any labels are set
-    handles, labels = ax.get_legend_handles_labels()
+    _, labels = ax.get_legend_handles_labels()
     if labels:
         ax.legend()
 
@@ -352,10 +370,19 @@ if __name__ =="__main__":
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
     arg_parser.add_argument("-l", "--plot-limits", action="store_true", help="Produce exclusion limits plots")
     arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
+    arg_parser.add_argument("--log-x", action="store_true", help="Use logarithmic scale for the X mass axis")
+    arg_parser.add_argument("--log-y", action="store_true", help="Use logarithmic scale for the S mass axis")
+    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both axes (equivalent to --log_x --log_y)")
     args = arg_parser.parse_args()
+
+    # If --log_axes is used, override both log_x and log_y
+    log_x = args.log_x or args.log_axes
+    log_y = args.log_y or args.log_axes
 
     plot_combination(model = args.model,
                      decay=args.decay,
                      identifier=args.identifier,
                      plot_limits=args.plot_limits,
-                     include_sigma_bands=not args.no_sigma_bands)
+                     include_sigma_bands=not args.no_sigma_bands,
+                     log_x=log_x,
+                     log_y=log_y)
