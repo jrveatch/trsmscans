@@ -133,8 +133,8 @@ class MeanShiftPlotter:
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Normalize the color scale across all values
-        all_values = data[color_by].values
-        norm = Normalize(all_values.min(), all_values.max())
+        all_values = data[color_by].to_numpy(dtype=float)
+        norm = Normalize(np.min(all_values), np.max(all_values))
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
