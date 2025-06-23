@@ -29,8 +29,7 @@ def plot_combination(model :str,
     # Combination .tsv file name
     input_file_name = os.path.join(env.output_dir(),
                                    model,
-                                   "scan",
-                                   decay,
+                                   "combination",
                                    f"{decay}_{identifier}_combination.tsv")
 
     # Output filenames for the plot
