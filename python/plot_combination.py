@@ -265,7 +265,7 @@ def plot_interpolation(X_mass: np.ndarray,
             }
 
             try:
-                cs = ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
+                ax.contour(X_mass, S_mass, mask, levels=[0.5], **style_mpl)
             except Exception as e:
                 print(f"Failed to draw contour for label '{label}': {e}")
 
@@ -284,7 +284,7 @@ def plot_interpolation(X_mass: np.ndarray,
         ax.set_yscale("log")
 
     # Enable legend if any labels are set
-    handles, labels = ax.get_legend_handles_labels()
+    _, labels = ax.get_legend_handles_labels()
     if labels:
         ax.legend()
 
