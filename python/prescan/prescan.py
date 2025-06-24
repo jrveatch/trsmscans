@@ -30,8 +30,6 @@ logger = logging.getLogger(__name__)
 
 def prescan(model: Model,
             num_points: int,
-            config_loader: Union[ConfigLoader, None] = None,
-            config_file_name: Union[str, None] = None,
             overwrite: bool = False) -> Parse:
     """
     Executes a prescan of the parameter space for a given scalar model.
@@ -45,8 +43,6 @@ def prescan(model: Model,
     Args:
         model (Model): The scalar model to scan.
         num_points (int): Total number of scan points to generate.
-        config_loader (Union[ConfigLoader, None], optional): Optional run configuration loader.
-        config_file_name (Union[str, None], optional): Path to a run config file if no loader is provided.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -96,19 +92,8 @@ def prescan(model: Model,
     # print location
     logger.debug(f"Running prescan in {out_dir}")
 
-    # if config loader is not provided, create one
-    if not config_loader:
-
-        # use default run config file name if none is provided
-        if config_file_name is None:
-            config_file_name = "RunConfig.yml"
-
-        logger.debug(f"Loading config file {config_file_name}")
-
-        # load config file
-        config_loader = ConfigLoader(config_file_name = config_file_name)
-
     # get configurations from config file
+    config_loader = ConfigLoader("RunConfig.yml")
     try:
         chunk_size: int = config_loader.get('prescan', 'chunk_size')
     except Exception as e:
@@ -126,7 +111,8 @@ def prescan(model: Model,
     param_space = ParamSpace(model)
 
     # create PointSampler object
-    point_sampler = PointSampler(out_dir = out_dir)
+    point_sampler = PointSampler(model = model,
+                                 out_dir = out_dir)
 
     # run prescan in chunks until we reach the requested number of points
     parser = None

@@ -157,8 +157,7 @@ class Scan:
         try:
             # call prescan
             self.prescan_parser = prescan(num_points = prescan_points,
-                                          model = self.model,
-                                          config_loader = self.config_loader)
+                                          model = self.model)
 
         # if prescan fails, remove directory and raise an error
         except TimeoutError:
