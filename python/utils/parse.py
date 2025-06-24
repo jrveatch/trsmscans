@@ -8,11 +8,11 @@ from typing import Dict, List, Optional, Union
 import diptest
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, argrelextrema
 from scipy.stats import gaussian_kde
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import StandardScaler
+from typing import cast
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -74,7 +74,7 @@ class Parse:
     @property
     def filtered_data(self) -> pd.DataFrame:
         """Returns the subset of the data that passes all filters."""
-        return self.data.loc[self.filters]
+        return cast(pd.DataFrame, self.data.loc[self.filters])
 
     @property
     def tsv_header(self) -> str:
@@ -390,9 +390,6 @@ class Parse:
         Returns:
             Dict[str, List[float]]: Mapping of axis name to list of split locations.
         """
-        from scipy.stats import gaussian_kde
-        from scipy.signal import argrelextrema
-        import numpy as np
 
         mask = self.param_space_mask(param_space)
         x = self.input_parameter_arrays[param_x][mask]

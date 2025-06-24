@@ -28,8 +28,8 @@ def get_df(file_name: str) -> pd.DataFrame:
                             sep='\t',
                             header=0)
 
-    # drop first column to avoid compounding indices
-    dataframe = dataframe.iloc[:, 1:]
+    # drop the first column by position
+    dataframe = dataframe.drop(dataframe.columns[0], axis=1)
 
     return dataframe
 
