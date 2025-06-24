@@ -43,6 +43,7 @@ class MeanShiftOptimizer:
             label: str,
             initial_pos: Point,
             global_param_space: ParamSpace,
+            point_sampler: PointSampler,
             config_loader: ConfigLoader):
         """
         Initializes a MeanShiftOptimizer instance.
@@ -89,8 +90,7 @@ class MeanShiftOptimizer:
         self.local_param_space.reposition_center(initial_pos)
 
         # Init point sampler
-        self.point_sampler = PointSampler(out_dir = self.out_dir,
-                                          subdir_name = "meanshift")
+        self.point_sampler = point_sampler
 
         # Initialize positions
         init_pos = self.local_param_space.center_point()
