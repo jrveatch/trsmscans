@@ -16,7 +16,6 @@ from typing import Dict
 
 # local modules
 from filters import bounds, width
-from utils.config_loader import ConfigLoader
 from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
 
@@ -29,7 +28,6 @@ header_signals = "filt_signals"
 
 def apply_filters(file_name: str,
                   model: Model,
-                  config_loader: ConfigLoader,
                   use_multiprocessing: bool = True
                  ) -> Dict[str,int]:
     """
@@ -43,7 +41,6 @@ def apply_filters(file_name: str,
     Args:
         file_name (str): Path to the `.tsv` file containing scan results.
         model (Model): The scalar model defining relevant particle masses.
-        config_loader (ConfigLoader): Object for loading filter configuration parameters.
 
     Returns:
         Dict[str, int]: A dictionary with counts for each filter and the
@@ -56,8 +53,7 @@ def apply_filters(file_name: str,
     # apply width filter
     width.filter_widths(dataframe=dataframe,
                         header_width=header_width,
-                        model=model,
-                        config_loader=config_loader)
+                        model=model)
 
     # apply bounds and signals filters
     bounds.filter_bounds(dataframe=dataframe,
@@ -105,5 +101,4 @@ if __name__ == "__main__":
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
     apply_filters(file_name=args.file_name,
-                  model=model,
-                  config_loader=ConfigLoader(config_file_name=f"{model.name}_default.yml"))
+                  model=model)

@@ -90,7 +90,6 @@ class MeanShiftOptimizer:
 
         # Init point sampler
         self.point_sampler = PointSampler(out_dir = self.out_dir,
-                                          config_loader = config_loader,
                                           subdir_name = "meanshift")
 
         # Initialize positions

@@ -100,7 +100,6 @@ class ZoomOptimizer:
 
         # create PointSampler object
         self.point_sampler = PointSampler(out_dir = out_dir,
-                                          config_loader = config_loader,
                                           subdir_name = "zoom")
 
         # get output information file names

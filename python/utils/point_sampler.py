@@ -6,7 +6,6 @@ import math
 import os
 
 # local modules
-from utils.config_loader import ConfigLoader
 from filters.filter import apply_filters
 from utils.exceptions import NoPointsPassedError
 from utils.param_space import ParamSpace
@@ -25,14 +24,12 @@ class PointSampler:
 
     def __init__(self,
                  out_dir: str,
-                 config_loader: ConfigLoader,
                  subdir_name: str = "") -> None:
         """
         Initializes a PointSampler with output directory and configuration.
 
         Args:
             out_dir (str): Base directory for outputs (ini, tsv).
-            config_loader (ConfigLoader): Loader object for filter and scan config.
             subdir_name (str): Optional subdirectory for organizing ini/tsv outputs.
         """
 
@@ -46,7 +43,6 @@ class PointSampler:
         if subdir_name:
             self.ini_dir = os.path.join(self.ini_dir,subdir_name,"ini")
             self.tsv_dir = os.path.join(self.tsv_dir,subdir_name,"tsv")
-        self.config_loader = config_loader
         self.efficiency = 1.0
 
     @property
@@ -187,7 +183,6 @@ class PointSampler:
             # Apply filters
             results = apply_filters(file_name = temp_tsv,
                                     model = param_space.model,
-                                    config_loader = self.config_loader,
                                     use_multiprocessing = use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
@@ -280,8 +275,7 @@ class PointSampler:
 
         # Apply filters
         results = apply_filters(file_name = temp_tsv,
-                                model = point.model,
-                                config_loader = self.config_loader)
+                                model = point.model)
 
         # Update the filtered variables
         self.n_width = results["width"]

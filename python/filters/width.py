@@ -24,9 +24,7 @@ logger = logging.getLogger(__name__)
 
 def filter_widths(dataframe: pd.DataFrame,
                   header_width: str,
-                  model: Model,
-                  config_loader: ConfigLoader
-                 ) -> None:
+                  model: Model) -> None:
     """
     Adds a binary filter column to the DataFrame indicating whether all scalar
     widths are below their allowed thresholds.
@@ -38,7 +36,6 @@ def filter_widths(dataframe: pd.DataFrame,
         dataframe (pd.DataFrame): The scan data containing width and mass columns.
         header_width (str): The name of the column to add (e.g., 'filt_width').
         model (Model): Model object providing scalar name mappings.
-        config_loader (ConfigLoader): Loader object for reading threshold values.
 
     Raises:
         KeyError: If any required configuration keys are missing.
@@ -50,6 +47,8 @@ def filter_widths(dataframe: pd.DataFrame,
     SName = model.get_ordered_scalar_name('S')
     XName = model.get_ordered_scalar_name('X')
 
+    # get configurations
+    config_loader = ConfigLoader(config_file_name=f"{model.name}_default.yml")
     # get max_width from config file
     try:
         max_width_H: float = config_loader.get('width', 'max_width_H')
