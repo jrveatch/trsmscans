@@ -17,7 +17,6 @@ Intended for use within a physics model scanning pipeline.
 from collections import defaultdict
 import logging
 import multiprocessing as mp
-import numpy as np
 from typing import Dict, List, Tuple
 
 # third-party libraries
