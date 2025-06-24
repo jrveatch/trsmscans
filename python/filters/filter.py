@@ -20,18 +20,47 @@ from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
 
 class FilterPipeline:
+    """
+    Coordinates application of width, bounds, and signal filters to scalar model scan data.
+
+    This pipeline loads scan results from a TSV file, applies a width-based filter
+    using a configuration-defined threshold, and evaluates HiggsBounds and HiggsSignals
+    criteria using external tools. Results are written back to the file, and basic
+    filtering statistics are returned.
+    """
+
     header_width = "filt_width"
     header_bounds = "filt_bounds"
     header_signals = "filt_signals"
 
     def __init__(self,
                  model: Model):
+        """
+        Initializes the filtering pipeline with the given scalar model.
+
+        Args:
+            model (Model): The scalar model providing scalar names and config context.
+        """
         self.model = model # TODO: remove this when it is no longer needed
         self.width_filter = WidthFilter(model)
 
     def apply_filters(self,
                       file_name: str,
                       use_multiprocessing: bool = True) -> Dict[str, int]:
+        """
+        Applies width, bounds, and signal filters to a scan result file.
+
+        Reads a TSV file into a DataFrame, applies filters in sequence,
+        writes updated results back to disk, and returns filter pass counts.
+
+        Args:
+            file_name (str): Path to the `.tsv` file containing scan results.
+            use_multiprocessing (bool): Whether to enable parallel processing for bounds filtering.
+
+        Returns:
+            Dict[str, int]: A dictionary with counts of rows passing each individual filter
+                            and all filters combined. Keys include 'width', 'bounds', 'signals', and 'pass'.
+        """
 
         dataframe = get_df(file_name)
 
