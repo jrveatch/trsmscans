@@ -126,9 +126,7 @@ def prescan(model: Model,
     param_space = ParamSpace(model)
 
     # create PointSampler object
-    point_sampler = PointSampler(out_dir = out_dir,
-                                 config_loader = config_loader)
-
+    point_sampler = PointSampler(out_dir = out_dir)
 
     # run prescan in chunks until we reach the requested number of points
     parser = None
