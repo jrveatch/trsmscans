@@ -237,7 +237,7 @@ def main():
     arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
-    arg_parser.add_argument("-n", "--num-points", required=True, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
@@ -255,6 +255,8 @@ def main():
             raise ValueError("Scan mode requires -d/--decay")
         if not args.strategy:
             raise ValueError("Scan mode requires -s/--strategy")
+        if args.strategy == "zoom" and args.num_points <= 0:
+            raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
         if args.strategy == "meanshift" and args.iterations <= 0:
             raise ValueError("Meanshift strategy requires -t/--iterations to be greater than 0")
 
