@@ -12,7 +12,7 @@ prescan:
 
 scan:
   default_prescan_points: 10000
-  num_starting_points: 100000
+  default_starting_points: 10000
 
 zoom:
   strategy: "percentile" # "percentile" or "rate"

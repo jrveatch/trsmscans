@@ -82,7 +82,7 @@ class Scan:
 
         # get configurations from config file
         try:
-            self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
+            self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except Exception as e:
             self.logger.exception(e)
@@ -313,9 +313,9 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        # if num_points isn't given, use num_starting_points
+        # if num_points isn't given, use default_starting_points
         if num_points < 0:
-            num_points = self.num_starting_points
+            num_points = self.default_starting_points
 
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
