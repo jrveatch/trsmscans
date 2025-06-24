@@ -19,9 +19,6 @@ from filters import bounds, width
 from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
 
-# get logger
-logger = logging.getLogger(__name__)
-
 header_width = "filt_width"
 header_bounds = "filt_bounds"
 header_signals = "filt_signals"
