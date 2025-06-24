@@ -45,8 +45,8 @@ def prescan(model: Model,
     Args:
         model (Model): The scalar model to scan.
         num_points (int): Total number of scan points to generate.
-        config_loader (Union[ConfigLoader, None], optional): Optional configuration loader.
-        config_file_name (Union[str, None], optional): Path to a config file if no loader is provided.
+        config_loader (Union[ConfigLoader, None], optional): Optional run configuration loader.
+        config_file_name (Union[str, None], optional): Path to a run config file if no loader is provided.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -99,9 +99,9 @@ def prescan(model: Model,
     # if config loader is not provided, create one
     if not config_loader:
 
-        # use default config file name if none is provided
+        # use default run config file name if none is provided
         if config_file_name is None:
-            config_file_name = model.name + "_default.yml"
+            config_file_name = "RunConfig.yml"
 
         logger.debug(f"Loading config file {config_file_name}")
 
