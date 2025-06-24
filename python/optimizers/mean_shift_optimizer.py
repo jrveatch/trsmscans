@@ -52,6 +52,7 @@ class MeanShiftOptimizer:
             label (str): A label to identify the scan.
             initial_pos (Point): Starting point in parameter space.
             global_param_space (ParamSpace): The overall parameter space used in the scan.
+            point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
         """
 

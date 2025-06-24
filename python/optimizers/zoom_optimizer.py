@@ -53,6 +53,7 @@ class ZoomOptimizer:
             param_space (ParamSpace): The parameter space to scan.
             num_points (int): Initial number of scan points per iteration.
             starting_max (Point): The initial best point found prior to zooming.
+            point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
         """
