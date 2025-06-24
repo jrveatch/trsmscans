@@ -4,6 +4,7 @@ import logging
 from typing import cast, List
 
 # third-party libraries
+import numpy as np
 import pandas as pd
 
 # get logger
@@ -64,3 +65,18 @@ def write_to_tsv(dataframe: pd.DataFrame,
     except Exception:
         logger.exception(f"Error writing to file {file_name}")
         raise
+
+def chunk_dataframe(df: pd.DataFrame,
+                    n_chunks: int) -> List[pd.DataFrame]:
+    """
+    Splits a DataFrame into approximately equal-sized chunks.
+
+    Args:
+        df (pd.DataFrame): DataFrame to split.
+        n_chunks (int): Number of chunks.
+
+    Returns:
+        List[pd.DataFrame]: List of DataFrame chunks.
+    """
+    chunk_size = int(np.ceil(len(df) / n_chunks))
+    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]

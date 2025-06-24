@@ -25,6 +25,7 @@ import pandas as pd
 
 # local modules
 from utils.cpu_utils import get_n_cpus
+from utils.df_utils import chunk_dataframe
 import Higgs.predictions as HP
 from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
@@ -459,21 +460,6 @@ def print_bounds_result(bounds_result,
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
-
-def chunk_dataframe(df: pd.DataFrame,
-                    n_chunks: int) -> List[pd.DataFrame]:
-    """
-    Splits a DataFrame into approximately equal-sized chunks.
-
-    Args:
-        df (pd.DataFrame): DataFrame to split.
-        n_chunks (int): Number of chunks.
-
-    Returns:
-        List[pd.DataFrame]: List of DataFrame chunks.
-    """
-    chunk_size = int(np.ceil(len(df) / n_chunks))
-    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
 
 def run_processing(df: pd.DataFrame,
                    model: Model,
