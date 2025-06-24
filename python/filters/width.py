@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Applies width-based filtering to scalar particles in a model scan.
+WidthFilter class for applying scalar particle width constraints in model scans.
 
-This module defines a filter that flags parameter points where the particle widths
-are within an allowed fraction of their corresponding masses. The width thresholds
-are read from a configuration file.
+Uses thresholds from a config file to flag parameter points where widths exceed
+allowed fractions of the scalar masses.
 """
 
 # standard libraries
@@ -19,52 +18,76 @@ import pandas as pd
 from utils.config_loader import ConfigLoader
 from utils.model import Model
 
-# get logger
-logger = logging.getLogger(__name__)
-
-def filter_widths(dataframe: pd.DataFrame,
-                  header_width: str,
-                  model: Model) -> None:
+class WidthFilter:
     """
-    Adds a binary filter column to the DataFrame indicating whether all scalar
-    widths are below their allowed thresholds.
+    Applies width-based filtering to scalar particles in a model scan.
 
-    Thresholds are defined as a fraction of the mass for each scalar particle
-    and are configured externally via the ConfigLoader.
-
-    Args:
-        dataframe (pd.DataFrame): The scan data containing width and mass columns.
-        header_width (str): The name of the column to add (e.g., 'filt_width').
-        model (Model): Model object providing scalar name mappings.
-
-    Raises:
-        KeyError: If any required configuration keys are missing.
-        Exception: For any unexpected errors during processing.
+    This class loads width thresholds from a model-specific config file and uses them
+    to flag parameter points in a scan DataFrame where any scalar particle width
+    exceeds an allowed fraction of its mass.
     """
+    def __init__(self,
+                 model: Model):
+        """
+        Initializes the WidthFilter with model-specific scalar names and width thresholds.
 
-    # get strings for 3 bosons
-    HName = model.get_ordered_scalar_name('H')
-    SName = model.get_ordered_scalar_name('S')
-    XName = model.get_ordered_scalar_name('X')
+        Args:
+            model (Model): The scalar model object providing naming conventions and config key.
+            
+        Raises:
+            KeyError: If required threshold keys are missing from the config.
+            Exception: For unexpected errors during config loading.
+        """
+        self.logger = logging.getLogger(self.__class__.__name__)
+    
+        self.model = model
 
-    # get configurations
-    config_loader = ConfigLoader(config_file_name=f"{model.name}_default.yml")
-    # get max_width from config file
-    try:
-        max_width_H: float = config_loader.get('width', 'max_width_H')
-        max_width_S: float = config_loader.get('width', 'max_width_S')
-        max_width_X: float = config_loader.get('width', 'max_width_X')
-    except Exception as e:
-        logger.exception(e)
-        raise
+        # Scalar name mappings (e.g., H1, H2, H3)
+        self.HName = model.get_ordered_scalar_name('H')
+        self.SName = model.get_ordered_scalar_name('S')
+        self.XName = model.get_ordered_scalar_name('X')
 
-    # get arrays of widths, masses and thresholds
-    arr_widths = dataframe[['w_' + HName, 'w_' + SName, 'w_' + XName]].to_numpy()
-    arr_masses = dataframe[['m' + HName, 'm' + SName, 'm' + XName]].to_numpy()
-    arr_thresholds = np.array([max_width_H, max_width_S, max_width_X])
+        # Load configuration thresholds
+        config_loader = ConfigLoader(config_file_name=f"{model.name}_default.yml")
+        try:
+            self.thresholds: np.ndarray = np.array([
+                config_loader.get('width', 'max_width_H'),
+                config_loader.get('width', 'max_width_S'),
+                config_loader.get('width', 'max_width_X'),
+            ])
+        except Exception as e:
+            self.logger.exception("Failed to load width thresholds from config.")
+            raise
 
-    # create filter as a mask that checks each width is below the max width
-    filt_width = np.all(arr_widths < arr_masses * arr_thresholds, axis=1)
+    def apply(self,
+              dataframe: pd.DataFrame,
+              header: str) -> None:
+        """
+        Applies width constraints to the dataframe in-place.
 
-    # add filter to dataframe
-    dataframe[header_width] = filt_width.astype(int)
+        Adds a binary column indicating if widths are below configured thresholds.
+
+        Args:
+            dataframe (pd.DataFrame): Scan data with mass and width columns.
+            header (str): Column name to add (e.g., 'filt_width').
+
+        Raises:
+            KeyError: If any required configuration keys are missing.
+            Exception: For any unexpected errors during processing.
+        """
+        try:
+            # Extract data arrays
+            arr_widths: np.ndarray = dataframe[[f"w_{self.HName}", f"w_{self.SName}", f"w_{self.XName}"]].to_numpy()
+            arr_masses: np.ndarray = dataframe[[f"m{self.HName}", f"m{self.SName}", f"m{self.XName}"]].to_numpy()
+
+            # Apply mask: width < mass * threshold
+            filt_width: np.ndarray = np.all(arr_widths < arr_masses * self.thresholds, axis=1)
+
+            # Update dataframe
+            dataframe[header] = filt_width.astype(int)
+        except KeyError as e:
+            self.logger.error(f"Missing required mass/width columns in DataFrame: {e}")
+            raise
+        except Exception as e:
+            self.logger.exception("Error occurred while applying width filter.")
+            raise

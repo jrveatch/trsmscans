@@ -6,8 +6,9 @@ import math
 import os
 
 # local modules
-from filters.filter import apply_filters
+from filters.filter import FilterPipeline
 from utils.exceptions import NoPointsPassedError
+from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.parse import Parse
 from utils.point import Point
@@ -23,12 +24,14 @@ class PointSampler:
     """
 
     def __init__(self,
+                 model: Model,
                  out_dir: str,
                  subdir_name: str = "") -> None:
         """
         Initializes a PointSampler with output directory and configuration.
 
         Args:
+            model (Model): Model used to sample points
             out_dir (str): Base directory for outputs (ini, tsv).
             subdir_name (str): Optional subdirectory for organizing ini/tsv outputs.
         """
@@ -44,6 +47,9 @@ class PointSampler:
             self.ini_dir = os.path.join(self.ini_dir,subdir_name,"ini")
             self.tsv_dir = os.path.join(self.tsv_dir,subdir_name,"tsv")
         self.efficiency = 1.0
+
+        # Get filter pipeline object
+        self.filter_pipeline = FilterPipeline(model)
 
     @property
     def n_width(self) -> int:
@@ -181,9 +187,8 @@ class PointSampler:
             self.logger.debug("Applying filters...")
 
             # Apply filters
-            results = apply_filters(file_name = temp_tsv,
-                                    model = param_space.model,
-                                    use_multiprocessing = use_multiprocessing)
+            results = self.filter_pipeline.apply_filters(file_name = temp_tsv,
+                                                         use_multiprocessing = use_multiprocessing)
 
             # Concatenate the information from temp_tsv to the tsv file
             save_tsv_output(temp_tsv, tsv_name)
@@ -274,8 +279,7 @@ class PointSampler:
         self.logger.debug("Applying filters...")
 
         # Apply filters
-        results = apply_filters(file_name = temp_tsv,
-                                model = point.model)
+        results = self.filter_pipeline.apply_filters(temp_tsv)
 
         # Update the filtered variables
         self.n_width = results["width"]

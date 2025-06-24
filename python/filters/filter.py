@@ -14,70 +14,52 @@ import argparse
 from typing import Dict
 
 # local modules
-from filters import bounds, width
+from filters import bounds
+from filters.width import WidthFilter
 from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
 
-header_width = "filt_width"
-header_bounds = "filt_bounds"
-header_signals = "filt_signals"
+class FilterPipeline:
+    header_width = "filt_width"
+    header_bounds = "filt_bounds"
+    header_signals = "filt_signals"
 
-def apply_filters(file_name: str,
-                  model: Model,
-                  use_multiprocessing: bool = True
-                 ) -> Dict[str,int]:
-    """
-    Applies a set of filters to a scan result TSV file.
+    def __init__(self,
+                 model: Model):
+        self.model = model # TODO: remove this when it is no longer needed
+        self.width_filter = WidthFilter(model)
 
-    This function loads scan results from a TSV file, applies width, bounds,
-    and signal filters based on the given model and configuration, writes the
-    updated results back to the file, and returns counts of how many entries
-    pass each filter.
+    def apply_filters(self,
+                      file_name: str,
+                      use_multiprocessing: bool = True) -> Dict[str, int]:
 
-    Args:
-        file_name (str): Path to the `.tsv` file containing scan results.
-        model (Model): The scalar model defining relevant particle masses.
+        dataframe = get_df(file_name)
 
-    Returns:
-        Dict[str, int]: A dictionary with counts for each filter and the
-        combined pass count. Keys include 'width', 'bounds', 'signals', and 'pass'.
-    """
+        # Apply filters
+        self.width_filter.apply(dataframe=dataframe,
+                                header=self.header_width)
 
-    # load in dataframe from .tsv file
-    dataframe = get_df(file_name)
+        # apply bounds and signals filters
+        bounds.filter_bounds(dataframe=dataframe,
+                            header_bounds=self.header_bounds,
+                            header_signals=self.header_signals,
+                            model=self.model,
+                            use_multiprocessing=use_multiprocessing)
 
-    # apply width filter
-    width.filter_widths(dataframe=dataframe,
-                        header_width=header_width,
-                        model=model)
+        # Write updated dataframe
+        write_to_tsv(dataframe, file_name)
 
-    # apply bounds and signals filters
-    bounds.filter_bounds(dataframe=dataframe,
-                         header_bounds=header_bounds,
-                         header_signals=header_signals,
-                         model=model,
-                         use_multiprocessing=use_multiprocessing)
+        # Compute stats
+        f_width = dataframe[self.header_width].astype(bool)
+        f_bounds = dataframe[self.header_bounds].astype(bool)
+        f_signals = dataframe[self.header_signals].astype(bool)
 
-    # write updated dataframe to .tsv
-    write_to_tsv(dataframe=dataframe,
-                 file_name=file_name)
-
-    # get results of each filter for counting
-    filt_width = dataframe[header_width].astype(bool)
-    filt_bounds = dataframe[header_bounds].astype(bool)
-    filt_signals = dataframe[header_signals].astype(bool)
-
-    # create dictionary to store results
-    results: dict[str, int] = {}
-
-    # find how many points pass all filters
-    results["width"] = filt_width.sum()
-    results["bounds"] = filt_bounds.sum()
-    results["signals"] = filt_signals.sum()
-    results["pass"] = (filt_width & filt_bounds & filt_signals).sum()
-
-    # return numbers of events passing each filter
-    return results
+        return {
+            "width": f_width.sum(),
+            "bounds": f_bounds.sum(),
+            "signals": f_signals.sum(),
+            "pass": (f_width & f_bounds & f_signals).sum(),
+        }
 
 # Entry point for the script. Parses command-line arguments, constructs the model,
 # loads configuration, and applies filters to the input TSV file.
@@ -96,5 +78,6 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,
-                  model=model)
+    filter_pipeline = FilterPipeline(model)
+
+    filter_pipeline.apply_filters(file_name=args.file_name)
