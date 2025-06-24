@@ -71,9 +71,9 @@ def apply_filters(file_name: str,
                  file_name=file_name)
 
     # get results of each filter for counting
-    filt_width = dataframe[header_width]
-    filt_bounds = dataframe[header_bounds]
-    filt_signals = dataframe[header_signals]
+    filt_width = dataframe[header_width].astype(bool)
+    filt_bounds = dataframe[header_bounds].astype(bool)
+    filt_signals = dataframe[header_signals].astype(bool)
 
     # create dictionary to store results
     results: dict[str, int] = {}
@@ -82,7 +82,7 @@ def apply_filters(file_name: str,
     results["width"] = filt_width.sum()
     results["bounds"] = filt_bounds.sum()
     results["signals"] = filt_signals.sum()
-    results["pass"] = (filt_width * filt_bounds * filt_signals).sum()
+    results["pass"] = (filt_width & filt_bounds & filt_signals).sum()
 
     # return numbers of events passing each filter
     return results
