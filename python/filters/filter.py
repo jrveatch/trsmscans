@@ -11,7 +11,6 @@ filtering statistics.
 
 # standard libraries
 import argparse
-import logging
 from typing import Dict
 
 # local modules
