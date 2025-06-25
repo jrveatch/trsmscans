@@ -19,6 +19,7 @@ from utils.file_utils import scan_dir, recreate_dir
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
+from utils.point_sampler import PointSampler
 from utils.run_metadata import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
@@ -82,7 +83,7 @@ class Scan:
 
         # get configurations from config file
         try:
-            self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
+            self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except Exception as e:
             self.logger.exception(e)
@@ -157,8 +158,7 @@ class Scan:
         try:
             # call prescan
             self.prescan_parser = prescan(num_points = prescan_points,
-                                          model = self.model,
-                                          config_loader = self.config_loader)
+                                          model = self.model)
 
         # if prescan fails, remove directory and raise an error
         except TimeoutError:
@@ -271,6 +271,11 @@ class Scan:
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
 
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "meanshift")
+
         self.logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
         for i, initial_pos in enumerate(initial_pos_set):
@@ -280,6 +285,7 @@ class Scan:
                 label=label,
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
+                point_sampler=point_sampler,
                 config_loader=self.config_loader
             ).run()
 
@@ -313,9 +319,9 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        # if num_points isn't given, use num_starting_points
+        # if num_points isn't given, use default_starting_points
         if num_points < 0:
-            num_points = self.num_starting_points
+            num_points = self.default_starting_points
 
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
@@ -436,6 +442,11 @@ class Scan:
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(num_points // len(all_param_combinations), 1)
 
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "zoom")
+
         # Initialize zoom optimizers for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
 
@@ -449,6 +460,7 @@ class Scan:
                 num_points = num_scanner_points,
                 param_space = params_copy,
                 starting_max = self.global_max,
+                point_sampler = point_sampler,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
@@ -521,7 +533,9 @@ class Scan:
         
         return final_param_space_list
 
-    def create_zoom_optimizers(self, param_space: ParamSpace, num_points: int) -> List[ZoomOptimizer]:
+    def create_zoom_optimizers(self,
+                               param_space: ParamSpace,
+                               num_points: int) -> List[ZoomOptimizer]:
 
         """
         Create list of zoom optimizers based on the parameter space.
@@ -539,7 +553,13 @@ class Scan:
         # List that holds all the zoom optimizers created
         all_zoom_optimizers: List['ZoomOptimizer'] = []
 
+        # Get list of points for optimizers
         points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
+
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "zoom")
 
         # Create zoom optimizers based on param spaces
         for i, space in enumerate(list_of_param_spaces):
@@ -547,6 +567,7 @@ class Scan:
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
                 starting_max = self.global_max,
+                point_sampler = point_sampler,
                 config_loader = self.config_loader,
                 label = f'ZoomOptimizer-{i}'
             )

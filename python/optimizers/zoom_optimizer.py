@@ -43,6 +43,7 @@ class ZoomOptimizer:
                  param_space: ParamSpace,
                  num_points: int,
                  starting_max: Point,
+                 point_sampler: PointSampler,
                  config_loader: ConfigLoader,
                  label: str):
         """
@@ -52,6 +53,7 @@ class ZoomOptimizer:
             param_space (ParamSpace): The parameter space to scan.
             num_points (int): Initial number of scan points per iteration.
             starting_max (Point): The initial best point found prior to zooming.
+            point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
         """
@@ -71,6 +73,7 @@ class ZoomOptimizer:
         self.local_xb_fail = 0
         self.is_running = True
         self.local_history = []
+        self.point_sampler = point_sampler
 
         # get zoom configuration from config file
         self.config_loader = config_loader
@@ -97,11 +100,6 @@ class ZoomOptimizer:
         # set output directory
         out_dir = scan_dir(model = self.model,
                            decay = self.decay)
-
-        # create PointSampler object
-        self.point_sampler = PointSampler(out_dir = out_dir,
-                                          config_loader = config_loader,
-                                          subdir_name = "zoom")
 
         # get output information file names
         output_file_postfix = f"{self.model.name}_{self.decay}_{self.model.mass_string}"

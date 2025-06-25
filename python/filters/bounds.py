@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
 
 """
-Applies experimental constraints to model scan data using HiggsBounds and HiggsSignals.
+BoundsFilter class for applying HiggsBounds and HiggsSignals filters to scan data.
 
-This module filters parameter scan results by checking:
-- Exclusion limits from HiggsBounds
-- Compatibility with SM-like signals from HiggsSignals
-
-It supports serial and parallel processing of scan results, and rescaling of couplings
-and branching ratios based on scalar properties.
-
-Intended for use within a physics model scanning pipeline.
+This module evaluates whether parameter scan points are allowed by experimental
+constraints and SM-like signal strength criteria. It supports serial and parallel
+execution and avoids multiprocessing pitfalls by creating unpicklable tool objects
+inside each worker.
 """
 
 # standard libraries
 from collections import defaultdict
 import logging
 import multiprocessing as mp
-import numpy as np
 from typing import Dict, List, Tuple
 
 # third-party libraries
@@ -25,6 +20,7 @@ import pandas as pd
 
 # local modules
 from utils.cpu_utils import get_n_cpus
+from utils.df_utils import chunk_dataframe
 import Higgs.predictions as HP
 from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
 from utils.config_loader import ConfigLoader
@@ -33,281 +29,258 @@ from utils.model import Model
 # get logger
 logger = logging.getLogger(__name__)
 
-# get configurations
-config_loader = ConfigLoader(config_file_name="RunConfig.yml")
-try:
-    # minimum chunk size for parallel processing
-    min_chunk_size: int = config_loader.get('bounds', 'min_chunk_size')
-except Exception as e:
-    logger.exception(e)
-    raise
-
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
 
-def filter_bounds(dataframe: pd.DataFrame,
-                  header_bounds: str,
-                  header_signals: str,
-                  model: Model,
-                  use_multiprocessing: bool = True
-                 ) -> None:
+class BoundsFilter:
     """
-    Runs exclusion and signal strength filters and adds results to the DataFrame.
+    Applies HiggsBounds and HiggsSignals filters to scalar model scan data.
 
-    Args:
-        dataframe (pd.DataFrame): Input scan data with masses, widths, BRs, etc.
-        header_bounds (str): Column name for the HiggsBounds result (0 or 1).
-        header_signals (str): Column name for the HiggsSignals result (0 or 1).
-        model (Model): Model object used for particle and parameter names.
-        use_multiprocessing (bool): Flag to use parallel processing.
+    This class coordinates the evaluation of parameter points using external
+    tools, managing serial or parallel execution as needed.
     """
 
-    n_workers = 1
-    if use_multiprocessing:
-        n_workers = get_n_cpus()
-    dataframe[header_bounds], dataframe[header_signals] = run_processing(df=dataframe,
-                                                                         model=model,
-                                                                         n_workers=n_workers)
+    def __init__(self, model: Model):
+        """
+        Initializes the BoundsFilter with a model and configures processing thresholds.
 
-# TODO: Make this work for other models
-def process_data(df: pd.DataFrame,
-                 model: Model) -> Tuple[List[int], List[int]]:
-    """
-    Processes a DataFrame of scan points and applies HiggsBounds and HiggsSignals.
+        Args:
+            model (Model): The scalar model to evaluate.
 
-    This function sets scalar properties, rescaling factors, and branching ratios,
-    then evaluates whether each point is allowed.
+        Raises:
+            KeyError: If configuration keys are missing.
+            Exception: For other unexpected config loading failures.
+        """
+        self.model = model
 
-    Args:
-        df (pd.DataFrame): Subset of scan data to evaluate.
-        model (Model): Model object defining scalar structure.
+        self.HName = model.get_ordered_scalar_name("H")
+        self.SName = model.get_ordered_scalar_name("S")
+        self.XName = model.get_ordered_scalar_name("X")
 
-    Returns:
-        Tuple[List[int], List[int]]: (HiggsBounds results, HiggsSignals results)
-                                     as binary 0/1 values per row.
-    """
+        self.RH_name = "R11" if self.HName != "H2" else "R21"
+        self.RS_name = "R21" if self.HName != "H2" else "R11"
+        self.RX_name = "R31"
 
-    # get bounds and signals data
-    bounds = get_higgs_bounds()
-    signals = get_higgs_signals()
+        try:
+            config = ConfigLoader("RunConfig.yml")
+            self.min_chunk_size: int = config.get("bounds", "min_chunk_size")
+        except Exception as e:
+            logger.exception("Failed to load bounds filtering configuration.")
+            raise
 
-    # get Higgs predictions
-    pred = get_higgs_predictions(model)
+    def apply(self,
+              dataframe: pd.DataFrame,
+              header_bounds: str,
+              header_signals: str,
+              use_multiprocessing: bool = True) -> None:
+        """
+        Applies bounds and signal filters to a scan DataFrame.
 
-    # get HiggsSignals Chi^2 for SM
-    signals_result_SM = signals(pred)
+        Adds two columns indicating pass/fail status for HiggsBounds and HiggsSignals.
 
-    # get particles
-    H = pred.particle('H')
-    S = pred.particle('S')
-    X = pred.particle('X')
+        Args:
+            dataframe (pd.DataFrame): The scan data.
+            header_bounds (str): Column name for HiggsBounds result.
+            header_signals (str): Column name for HiggsSignals result.
+            use_multiprocessing (bool): If True, enables parallel filtering.
+        """
+        n_workers = get_n_cpus() if use_multiprocessing else 1
+        filt_bounds, filt_signals = self._run_processing(dataframe, n_workers)
+        dataframe[header_bounds] = filt_bounds
+        dataframe[header_signals] = filt_signals
 
-    # get strings for 3 bosons
-    HName = model.get_ordered_scalar_name('H')
-    SName = model.get_ordered_scalar_name('S')
-    XName = model.get_ordered_scalar_name('X')
+    def _run_processing(self,
+                        df: pd.DataFrame,
+                        n_workers: int) -> Tuple[List[int], List[int]]:
+        """
+        Internal method to handle serial or parallel filtering.
 
-    # rescaling column names
-    RH_name = 'R11'
-    RS_name = 'R21'
-    if HName == "H2":
-        RH_name = 'R21'
-        RS_name = 'R11'
-    RX_name = 'R31'
+        Args:
+            df (pd.DataFrame): The scan data.
+            n_workers (int): Number of workers to use.
 
-    # make filter lists
-    filt_bounds: List[int] = []
-    filt_signals: List[int] = []
+        Returns:
+            Tuple[List[int], List[int]]: Filter pass/fail results for bounds and signals.
+        """
+        if len(df) < self.min_chunk_size or n_workers <= 1:
+            return self.process_data(df)
 
-    for idx, (_, row) in enumerate(df.iterrows()):
+        n_chunks = min(n_workers, max(1, len(df) // self.min_chunk_size))
+        chunks = chunk_dataframe(df, n_chunks)
 
-        # get masses
-        masses = extract_scalar_masses(row=row,
-                                       HName=HName,
-                                       SName=SName,
-                                       XName=XName)
+        print(f"Bounds: running with {n_chunks} chunks")
 
-        # get widths
-        widths = extract_scalar_widths(row=row,
-                                       HName=HName,
-                                       SName=SName,
-                                       XName=XName)
-        logger.verbose('Scalar widths are:')
-        logger.verbose(f'  H: {widths["H"]}')
-        logger.verbose(f'  S: {widths["S"]}')
-        logger.verbose(f'  X: {widths["X"]}')
+        with mp.Pool(n_chunks) as pool:
+            results = pool.starmap(BoundsFilter._process_chunk, [(self, chunk) for chunk in chunks])
 
-        # get rescalings
-        rescalings = extract_rescalings(row=row,
-                                        RH_name=RH_name,
-                                        RS_name=RS_name,
-                                        RX_name=RX_name)
-        logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
+        filt_bounds, filt_signals = zip(*results)
+        return ([x for sublist in filt_bounds for x in sublist],
+                [x for sublist in filt_signals for x in sublist])
 
-        # get SM and BSM BRs
-        br_SM = extract_SM_BRs(row=row,
-                               HName=HName,
-                               SName=SName,
-                               XName=XName)
-        br_BSM = extract_BSM_BRs(row=row,
-                                 HName=HName,
-                                 SName=SName)
+    def process_data(self,
+                     df: pd.DataFrame) -> Tuple[List[int], List[int]]:
+        """
+        Static method to evaluate scan points using Higgs tools.
 
-        # configure scalars
-        configure_particle(particle=H, label="H", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
-        configure_particle(particle=S, label="S", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=True)
-        configure_particle(particle=X, label="X", masses=masses, widths=widths, rescalings=rescalings, BRs_SM=br_SM, BRs_BSM=br_BSM, adjust_ZZ=False)
+        Tool objects are created inside the method to avoid pickling issues
+        when used with multiprocessing.
 
-        # get bounds and signals results
-        bounds_result = bounds(pred)
-        signals_result = signals(pred)
+        Args:
+            df (pd.DataFrame): Chunk of the scan data.
+            model (Model): Scalar model to use for evaluation.
 
-        # get HiggsSignals result using model and SM
-        # this is now specific for bp1
-        # bp1 and bp4 and low low
-        #if mH3-mH1-mH2< 0:
-        # bp2 and bp5 and high low
-        #if mH2-2*mH1 < 0:
-        HS_allowed = signals_result - signals_result_SM < 4.0
+        Returns:
+            Tuple[List[int], List[int]]: Binary results for HiggsBounds and HiggsSignals.
+        """
+        bounds = get_higgs_bounds()
+        signals = get_higgs_signals()
+        pred = get_higgs_predictions(self.model)
+        signals_result_SM = signals(pred)
 
-        # print out debug information
-        if logger.isEnabledFor(logging.VERBOSE):
-            print_bounds_result(bounds_result=bounds_result,
-                                idx=idx,
-                                masses=masses)
-            logger.verbose(f"signals_result = {signals_result}")
-            logger.verbose(f"HS_allowed = {HS_allowed}")
+        H = pred.particle("H")
+        S = pred.particle("S")
+        X = pred.particle("X")
 
-        # save whether requirements are passed
-        filt_bounds.append(int(bounds_result.allowed))
-        filt_signals.append(int(HS_allowed))
+        filt_bounds: List[int] = []
+        filt_signals: List[int] = []
 
-    return filt_bounds, filt_signals  # Return as separate lists
+        for idx, (_, row) in enumerate(df.iterrows()):
+            masses = self._extract_scalar_masses(row)
+            widths = self._extract_scalar_widths(row)
+            rescalings = self._extract_rescalings(row)
+            br_SM = self._extract_SM_BRs(row)
+            br_BSM = self._extract_BSM_BRs(row)
 
-def extract_scalar_masses(row: pd.Series,
-                          HName: str,
-                          SName: str,
-                          XName: str) -> Dict[str, float]:
-    """
-    Extracts the scalar particle masses from a DataFrame row.
+            logger.verbose('Scalar widths are:')
+            logger.verbose(f'  H: {widths["H"]}')
+            logger.verbose(f'  S: {widths["S"]}')
+            logger.verbose(f'  X: {widths["X"]}')
 
-    Args:
-        row (pd.Series): A single row of scan data.
-        HName (str): Model-defined name of the H scalar (e.g., 'H1', 'H2').
-        SName (str): Model-defined name of the S scalar.
-        XName (str): Model-defined name of the X scalar.
+            logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
 
-    Returns:
-        Dict[str, float]: Mapping from {'H', 'S', 'X'} to their respective masses.
-    """
-    return {
-        "H": float(row["m" + HName]),
-        "S": float(row["m" + SName]),
-        "X": float(row["m" + XName])
-    }
+            configure_particle(H, "H", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
+            configure_particle(S, "S", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
+            configure_particle(X, "X", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=False)
 
-def extract_scalar_widths(row: pd.Series,
-                          HName: str,
-                          SName: str,
-                          XName: str) -> Dict[str, float]:
-    """
-    Extracts the total widths of scalar particles from a DataFrame row.
+            bounds_result = bounds(pred)
+            signals_result = signals(pred)
+            HS_allowed = signals_result - signals_result_SM < 4.0
 
-    Args:
-        row (pd.Series): A single row of scan data.
-        HName (str): Name of the H scalar.
-        SName (str): Name of the S scalar.
-        XName (str): Name of the X scalar.
+            if logging.getLogger().isEnabledFor(logging.VERBOSE):
+                print_bounds_result(bounds_result, idx, masses)
+                logger.verbose(f"signals_result = {signals_result}")
+                logger.verbose(f"HS_allowed = {HS_allowed}")
 
-    Returns:
-        Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
-    """
-    return {
-        "H": float(row["w_" + HName]),
-        "S": float(row["w_" + SName]),
-        "X": float(row["w_" + XName])
-    }
+            filt_bounds.append(int(bounds_result.allowed))
+            filt_signals.append(int(HS_allowed))
 
-def extract_rescalings(row: pd.Series,
-                       RH_name: str,
-                       RS_name: str,
-                       RX_name: str) -> Dict[str, float]:
-    """
-    Extracts the rescalings of scalar particles from a DataFrame row.
+        return filt_bounds, filt_signals
+    
+    def _extract_scalar_masses(self,
+                               row: pd.Series) -> Dict[str, float]:
+        """
+        Extracts the scalar particle masses from a DataFrame row.
 
-    Args:
-        row (pd.Series): A single row of scan data.
-        RH_name (str): Name of the H scalar rescaling.
-        RS_name (str): Name of the S scalar rescaling.
-        RX_name (str): Name of the X scalar rescaling.
+        Args:
+            row (pd.Series): A single row of scan data.
 
-    Returns:
-        Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
-    """
-    return {
-        "H": float(row[RH_name]),
-        "S": float(row[RS_name]),
-        "X": float(row[RX_name])
-    }
+        Returns:
+            Dict[str, float]: Mapping from {'H', 'S', 'X'} to their respective masses.
+        """
+        return {
+            "H": float(row["m" + self.HName]),
+            "S": float(row["m" + self.SName]),
+            "X": float(row["m" + self.XName])
+        }
 
-def extract_SM_BRs(row: pd.Series,
-                   HName: str,
-                   SName: str,
-                   XName: str) -> Dict[str, Dict[str, float]]:
-    """
-    Extracts SM branching ratios for each scalar from a scan row.
+    def _extract_scalar_widths(self,
+                               row: pd.Series) -> Dict[str, float]:
+        """
+        Extracts the total widths of scalar particles from a DataFrame row.
 
-    Args:
-        row (pd.Series): A row from the scan DataFrame.
-        HName (str): Name of the H scalar.
-        SName (str): Name of the S scalar.
-        XName (str): Name of the X scalar.
+        Args:
+            row (pd.Series): A single row of scan data.
 
-    Returns:
-        Dict[str, Dict[str, float]]: A dictionary of the form:
-            {
-                'H': {decay: BR, ...},
-                'S': {decay: BR, ...},
-                'X': {decay: BR, ...}
-            }
-    """
-    br_H = {decay: float(row[f"b_{HName}_{decay}"]) for decay in SM_decays}
-    br_S = {decay: float(row[f"b_{SName}_{decay}"]) for decay in SM_decays}
-    br_X = {decay: float(row[f"b_{XName}_{decay}"]) for decay in SM_decays}
-    return {"H": br_H, "S": br_S, "X": br_X}
+        Returns:
+            Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
+        """
+        return {
+            "H": float(row["w_" + self.HName]),
+            "S": float(row["w_" + self.SName]),
+            "X": float(row["w_" + self.XName])
+        }
 
-def extract_BSM_BRs(row: pd.Series,
-                    HName: str,
-                    SName: str,) -> Dict[str, Dict[Tuple[str, str], float]]:
-    """
-    Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
+    def _extract_rescalings(self,
+                            row: pd.Series) -> Dict[str, float]:
+        """
+        Extracts the rescalings of scalar particles from a DataFrame row.
 
-    Args:
-        row (pd.Series): A row from the scan DataFrame.
-        HName (str): Name of the H scalar.
-        SName (str): Name of the S scalar.
+        Args:
+            row (pd.Series): A single row of scan data.
 
-    Returns:
-        Dict[str, Dict[Tuple[str, str], float]]: A dictionary of the form:
-            {
-                'H': {('S', 'S'): BR, ...},
-                'S': {('H', 'H'): BR, ...},
-                'X': {('H', 'H'): BR, ('S', 'S'): BR, ('S', 'H'): BR, ...}
-            }
-    """
-    br_H = defaultdict(float)
-    br_S = defaultdict(float)
-    br_X = defaultdict(float)
+        Returns:
+            Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
+        """
+        return {
+            "H": float(row[self.RH_name]),
+            "S": float(row[self.RS_name]),
+            "X": float(row[self.RX_name])
+        }
 
-    if HName == "H2":
-        br_H[("S", "S")] = float(row["b_H2_H1H1"])
-    if SName == "H2":
-        br_S[("H", "H")] = float(row["b_H2_H1H1"])
+    def _extract_SM_BRs(self,
+                        row: pd.Series) -> Dict[str, Dict[str, float]]:
+        """
+        Extracts SM branching ratios for each scalar from a scan row.
 
-    br_X[("H", "H")] = float(row[f"b_H3_{HName}{HName}"])
-    br_X[("S", "S")] = float(row[f"b_H3_{SName}{SName}"])
-    br_X[("S", "H")] = float(row["b_H3_H1H2"])
+        Args:
+            row (pd.Series): A row from the scan DataFrame.
 
-    return {"H": br_H, "S": br_S, "X": br_X}
+        Returns:
+            Dict[str, Dict[str, float]]: A dictionary of the form:
+                {
+                    'H': {decay: BR, ...},
+                    'S': {decay: BR, ...},
+                    'X': {decay: BR, ...}
+                }
+        """
+        br_H = {decay: float(row[f"b_{self.HName}_{decay}"]) for decay in SM_decays}
+        br_S = {decay: float(row[f"b_{self.SName}_{decay}"]) for decay in SM_decays}
+        br_X = {decay: float(row[f"b_{self.XName}_{decay}"]) for decay in SM_decays}
+        return {"H": br_H, "S": br_S, "X": br_X}
+
+    def _extract_BSM_BRs(self,
+                         row: pd.Series) -> Dict[str, Dict[Tuple[str, str], float]]:
+        """
+        Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
+
+        Args:
+            row (pd.Series): A row from the scan DataFrame.
+
+        Returns:
+            Dict[str, Dict[Tuple[str, str], float]]: A dictionary of the form:
+                {
+                    'H': {('S', 'S'): BR, ...},
+                    'S': {('H', 'H'): BR, ...},
+                    'X': {('H', 'H'): BR, ('S', 'S'): BR, ('S', 'H'): BR, ...}
+                }
+        """
+        br_H = defaultdict(float)
+        br_S = defaultdict(float)
+        br_X = defaultdict(float)
+
+        if self.HName == "H2":
+            br_H[("S", "S")] = float(row["b_H2_H1H1"])
+        if self.SName == "H2":
+            br_S[("H", "H")] = float(row["b_H2_H1H1"])
+
+        br_X[("H", "H")] = float(row[f"b_H3_{self.HName}{self.HName}"])
+        br_X[("S", "S")] = float(row[f"b_H3_{self.SName}{self.SName}"])
+        br_X[("S", "H")] = float(row["b_H3_H1H2"])
+
+        return {"H": br_H, "S": br_S, "X": br_X}
+
+    @staticmethod
+    def _process_chunk(instance: "BoundsFilter", df: pd.DataFrame) -> Tuple[List[int], List[int]]:
+        return instance.process_data(df)
 
 def configure_particle(particle,
                        label: str,
@@ -459,63 +432,3 @@ def print_bounds_result(bounds_result,
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
                 logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
-
-def chunk_dataframe(df: pd.DataFrame,
-                    n_chunks: int) -> List[pd.DataFrame]:
-    """
-    Splits a DataFrame into approximately equal-sized chunks.
-
-    Args:
-        df (pd.DataFrame): DataFrame to split.
-        n_chunks (int): Number of chunks.
-
-    Returns:
-        List[pd.DataFrame]: List of DataFrame chunks.
-    """
-    chunk_size = int(np.ceil(len(df) / n_chunks))
-    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
-
-def run_processing(df: pd.DataFrame,
-                   model: Model,
-                   n_workers: int = 1) -> Tuple[List[int], List[int]]:
-    """
-    Distributes scan filtering across multiple processes for performance.
-
-    Automatically falls back to serial processing if the data is too small
-    or only one worker is specified.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing scan points.
-        model (Model): Model object used for interpretation.
-        n_workers (int): Number of parallel workers to use.
-
-    Returns:
-        Tuple[List[int], List[int]]: (bounds results, signals results) as binary lists.
-    """
-
-    df_len = len(df)
-
-    if df_len < min_chunk_size or n_workers <= 1:
-        # Too small — run serially
-        return process_data(df, model)
-
-    # Determine optimal number of chunks to balance load vs overhead
-    n_chunks = min(n_workers, max(1, df_len // min_chunk_size))
-
-    if n_chunks == 1:
-        # Not enough data to justify parallelism
-        return process_data(df, model)
-
-    chunks = chunk_dataframe(df, n_chunks)
-
-    with mp.Pool(n_chunks) as pool:
-        results = pool.starmap(process_data, [(chunk, model) for chunk in chunks])
-
-    # Unpack the results
-    filt_bounds, filt_signals = zip(*results)
-
-    # Return flattened lists
-    return (
-        [item for sublist in filt_bounds for item in sublist],
-        [item for sublist in filt_signals for item in sublist],
-    )
