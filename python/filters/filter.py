@@ -14,7 +14,7 @@ import argparse
 from typing import Dict
 
 # local modules
-from filters import bounds
+from filters.bounds import BoundsFilter
 from filters.width import WidthFilter
 from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
@@ -41,8 +41,8 @@ class FilterPipeline:
         Args:
             model (Model): The scalar model providing scalar names and config context.
         """
-        self.model = model # TODO: remove this when it is no longer needed
         self.width_filter = WidthFilter(model)
+        self.bounds_filter = BoundsFilter(model)
 
     def apply_filters(self,
                       file_name: str,
@@ -67,13 +67,10 @@ class FilterPipeline:
         # Apply filters
         self.width_filter.apply(dataframe=dataframe,
                                 header=self.header_width)
-
-        # apply bounds and signals filters
-        bounds.filter_bounds(dataframe=dataframe,
-                            header_bounds=self.header_bounds,
-                            header_signals=self.header_signals,
-                            model=self.model,
-                            use_multiprocessing=use_multiprocessing)
+        self.bounds_filter.apply(dataframe=dataframe,
+                                 header_bounds=self.header_bounds,
+                                 header_signals=self.header_signals,
+                                 use_multiprocessing=use_multiprocessing)
 
         # Write updated dataframe
         write_to_tsv(dataframe, file_name)
