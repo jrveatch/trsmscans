@@ -20,6 +20,10 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 
+# get logger
+import logging
+logger = logging.getLogger(__name__)
+
 # class to parse arrays and provide details about data
 class Parse:
     """
@@ -354,7 +358,7 @@ class Parse:
             return np.array(valid_splits, dtype=float)
 
         except Exception as e:
-            print(f"[density_splits error] {e}")
+            logger.error(f"[density_splits error] {e}")
             return np.array([], dtype=float)
 
     def get_2d_density_splits(self,
