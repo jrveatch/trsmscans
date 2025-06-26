@@ -10,10 +10,8 @@ inside each worker.
 """
 
 # standard libraries
-import logging
 import multiprocessing as mp
 from typing import Any, Dict, List, Tuple
-from typing import cast
 
 # third-party libraries
 import pandas as pd
@@ -23,10 +21,10 @@ from utils.cpu_utils import get_n_cpus
 from utils.df_utils import chunk_dataframe
 import Higgs.predictions as HP
 from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
-from utils.config_loader import ConfigLoader
 from utils.model import Model
 
 # get logger
+import logging
 logger = logging.getLogger(__name__)
 
 SM_decays = ["WW", "ZZ", "Zgam", "gamgam", "gg", "bb", "tt", "ss", "cc", "mumu", "tautau"]
@@ -39,18 +37,22 @@ class BoundsFilter:
     tools, managing serial or parallel execution as needed.
     """
 
-    def __init__(self, model: Model):
+    def __init__(self,
+                 model: Model,
+                 min_chunk_size: int):
         """
         Initializes the BoundsFilter with a model and configures processing thresholds.
 
         Args:
             model (Model): The scalar model to evaluate.
+            min_chunk_size (int): Minimum number of events for chunked data.
 
         Raises:
             KeyError: If configuration keys are missing.
             Exception: For other unexpected config loading failures.
         """
         self.model = model
+        self.min_chunk_size = min_chunk_size
 
         self.HName = model.get_ordered_scalar_name("H")
         self.SName = model.get_ordered_scalar_name("S")
@@ -94,13 +96,6 @@ class BoundsFilter:
             }
         }
 
-        try:
-            config = ConfigLoader("RunConfig.yml")
-            self.min_chunk_size: int = config.get("bounds", "min_chunk_size")
-        except Exception as e:
-            logger.exception("Failed to load bounds filtering configuration.")
-            raise
-
     def apply(self,
               dataframe: pd.DataFrame,
               header_bounds: str,
@@ -143,7 +138,7 @@ class BoundsFilter:
 
         logger.info(f"BoundsFilter running with {n_chunks} chunks")
 
-        args = [(self.model, chunk) for chunk in chunks]
+        args = [(self.model, chunk, self.min_chunk_size) for chunk in chunks]
         with mp.Pool(n_chunks) as pool:
             results = pool.starmap(_process_chunk, args)
 
@@ -273,8 +268,10 @@ class BoundsFilter:
 
         return {"H": br_H, "S": br_S, "X": br_X}
 
-def _process_chunk(model: Model, chunk: pd.DataFrame) -> Tuple[List[int], List[int]]:
-    temp_filter = BoundsFilter(model)
+def _process_chunk(model: Model,
+                   chunk: pd.DataFrame,
+                   min_chunk_size: int) -> Tuple[List[int], List[int]]:
+    temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
 
 def configure_particle(particle,
