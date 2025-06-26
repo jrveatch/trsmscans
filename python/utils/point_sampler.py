@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # standard libraries
-import logging
 import math
 import os
 
@@ -14,6 +13,10 @@ from utils.parse import Parse
 from utils.point import Point
 from utils.run_scannerS import run_scannerS, run_scannerS_single_point
 from utils.tsv_utils import save_tsv_output
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class PointSampler:
     """
@@ -35,9 +38,6 @@ class PointSampler:
             out_dir (str): Base directory for outputs (ini, tsv).
             subdir_name (str): Optional subdirectory for organizing ini/tsv outputs.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # Initialize class variables
         self.out_dir = out_dir
@@ -156,7 +156,7 @@ class PointSampler:
         self.total_points_run = 0
 
         # Print total number of points requested
-        self.logger.info(f"{self.total_points_requested} points requested")
+        logger.info(f"{self.total_points_requested} points requested")
 
         # Run until points passed is >= points asked for
         while self.n_pass < self.total_points_requested:
@@ -169,10 +169,10 @@ class PointSampler:
             num_points_requested = math.ceil((self.total_points_requested-self.n_pass)/self.efficiency)
 
             # Print number of points that pass so far
-            self.logger.debug(f"{self.n_pass} of {self.total_points_requested} requested points done")
+            logger.debug(f"{self.n_pass} of {self.total_points_requested} requested points done")
 
             # Print number of points requested
-            self.logger.debug(f'Generating {num_points_requested} points')
+            logger.debug(f'Generating {num_points_requested} points')
 
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
@@ -184,7 +184,7 @@ class PointSampler:
             self.total_points_run += points
 
             # Print info about applying filters
-            self.logger.debug("Applying filters...")
+            logger.debug("Applying filters...")
 
             # Apply filters
             results = self.filter_pipeline.apply_filters(file_name = temp_tsv,
@@ -201,8 +201,8 @@ class PointSampler:
 
             # If no points passed the filters, raise an error
             if self.n_pass == 0:
-                self.logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
-                raise NoPointsPassedError(logger=self.logger)
+                logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
+                raise NoPointsPassedError(logger=logger)
 
             # Break if all points are being counted
             if not good_points_only:
@@ -212,17 +212,17 @@ class PointSampler:
             running_efficiency = self.n_pass / self.total_points_run
 
             # Print points passed and efficiency
-            self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
-            self.logger.debug(f'A total of {self.n_pass} points have passed')
+            logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%')
+            logger.debug(f'A total of {self.n_pass} points have passed')
 
             # Determine whether to adjust or keep the current efficiency
             if abs((self.efficiency/running_efficiency)-1) > 0.05:
                 # Print points passed and efficiency
-                self.logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
+                logger.debug(f'{results["pass"]} points passed the filters with an efficiency of {100*running_efficiency:.1f}%\n')
                 # Update the efficiency to the running efficiency with a small cushion
                 self.efficiency = running_efficiency * 0.98
             else:
-                self.logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
+                logger.debug(f'{results["pass"]} points passed the filters with a previous efficiency of {100*self.efficiency*1.02:.1f}%\n')
 
         # Print final number of events that pass
         self.print_n_pass()
@@ -269,14 +269,14 @@ class PointSampler:
         self.parser = Parse(point.model)
 
         # Print number of points requested
-        self.logger.debug('Generating 1 point')
+        logger.debug('Generating 1 point')
 
         # Run ScannerS
         run_scannerS_single_point(ini_name = ini_name,
                                   model_name = point.model_name)
 
         # Print info about applying filters
-        self.logger.debug("Applying filters...")
+        logger.debug("Applying filters...")
 
         # Apply filters
         results = self.filter_pipeline.apply_filters(temp_tsv)
@@ -303,7 +303,7 @@ class PointSampler:
         Prints the total number of points passed filters.
         """
         point_word = "point" + ("s" if self.total_points_run != 1 else "")
-        self.logger.info(
+        logger.info(
             f"{self.total_points_run} {point_word} generated, "
             f"{self.n_pass} passed the filters"
         )

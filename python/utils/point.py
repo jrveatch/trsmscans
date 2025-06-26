@@ -1,7 +1,6 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 from typing import Dict, Optional
 
 # third-party libraries
@@ -10,6 +9,10 @@ import pandas as pd
 # local modules
 from utils.math_utils import round_sig
 from utils.model import Model
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class that holds parameter and xb values for a single point
 class Point:
@@ -35,9 +38,6 @@ class Point:
             xb (float): The xb value associated with this point (default is 0.0).
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
         # store model name
         self.__model = model
 
@@ -50,7 +50,7 @@ class Point:
         if par_vals is not None:
             self.update_parameter_values(par_vals)
         else:
-            self.logger.debug("No parameter values provided, using default values.")
+            logger.debug("No parameter values provided, using default values.")
 
         # store xb value
         self.xb = xb
@@ -305,7 +305,7 @@ class Point:
             tsv_name (str): Output file path.
         """
         if self.tsv_data.empty:
-            self.logger.warning("No .tsv data available to write.")
+            logger.warning("No .tsv data available to write.")
             return
         self.tsv_data.to_csv(tsv_name,
                              sep="\t",

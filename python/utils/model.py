@@ -1,7 +1,6 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 import os
 from typing import Any, Dict, Tuple
 
@@ -10,6 +9,10 @@ import yaml
 
 # local modules
 from utils.env_utils import data_dir
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class that holds information about the model being used
 class Model:
@@ -36,9 +39,6 @@ class Model:
             name (str): The name of the model.
             masses (Dict[str, float]): A dictionary mapping particle names to their masses.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
         self.name = name
@@ -215,7 +215,7 @@ class Model:
 
         # make sure exactly 1 SM-like Higgs is provided
         if len(self.particles['SMHiggs']) != 1:
-            self.logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
+            logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
             return
 
         # store SM-like Higgs

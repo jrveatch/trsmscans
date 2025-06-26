@@ -43,9 +43,6 @@ class Parse:
             file_name (str, optional): Path to a .tsv file to load immediately (default is empty).
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
         # initialize model
         self.__model = model
 

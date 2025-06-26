@@ -2,7 +2,6 @@
 # standard libraries
 import copy
 from functools import cached_property
-import logging
 from typing import Dict, List, Optional, Tuple
 
 # local modules
@@ -10,6 +9,10 @@ from utils.logging_utils import log_table
 from utils.model import Model
 from utils.param_range import ParamRange
 from utils.point import Point
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to hold and update full set of parameter ranges used in a scan
 class ParamSpace:
@@ -40,9 +43,6 @@ class ParamSpace:
             decay (str): The decay mode used for scan analysis.
             name (str): A label for the parameter space instance.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # get model using model_name
         self.__model = model
@@ -168,7 +168,7 @@ class ParamSpace:
 
         # complain and exit if there is nothing to do
         if new_point is None and range_scale == 1.0:
-            self.logger.warning("Attempting to update parameter with no new information... returning...")
+            logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         # loop over parameters
@@ -197,10 +197,10 @@ class ParamSpace:
             if name in self.parameter_ranges:
                 param_range = self.parameter_ranges[name]
                 width = param_range.width / 2
-                self.logger.debug(f"Updating parameter '{name}' range to ({center - width},{center + width})")
+                logger.debug(f"Updating parameter '{name}' range to ({center - width},{center + width})")
                 param_range.set_low_high(center - width, center + width)
             else:
-                self.logger.debug(f"Skipping parameter '{name}' since it is not in the parameter ranges")
+                logger.debug(f"Skipping parameter '{name}' since it is not in the parameter ranges")
 
     def update_low_high(self,
                         low_dict: Optional[Dict[str, float]] = None,
@@ -222,7 +222,7 @@ class ParamSpace:
                     # use low_dict to update the low for each parameter
                     self.parameter_ranges[par_name].low = new_low
                 else:
-                    self.logger.warning(f"{par_name} is not known")
+                    logger.warning(f"{par_name} is not known")
 
         # check to see if high_dict exists
         if high_dict is not None:
@@ -233,7 +233,7 @@ class ParamSpace:
                     # use high_dict to update the high for each parameter
                     self.parameter_ranges[par_name].high = new_high
                 else:
-                    self.logger.warning(f"{par_name} is not known")
+                    logger.warning(f"{par_name} is not known")
 
     def volume(self) -> float:
         """
@@ -340,7 +340,7 @@ class ParamSpace:
             rows.append([parameter_name, self.parameter_ranges[parameter_name].format_bounds()])
 
         # print table of parameter bounds
-        log_table(logger=self.logger,
+        log_table(logger=logger,
                   headers=headers,
                   rows=rows)
 
@@ -356,7 +356,7 @@ class ParamSpace:
             rows.append([parameter_name, self.parameter_ranges[parameter_name].format_range()])
 
         # print table of parameter bounds
-        log_table(logger=self.logger,
+        log_table(logger=logger,
                   headers=headers,
                   rows=rows)
 

@@ -11,7 +11,6 @@ a fixed-rate zoom mode or a percentile-based zoom mode.
 
 # standard libraries
 import datetime
-import logging
 import os
 import shutil
 import time
@@ -28,6 +27,10 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.tsv_utils import write_point_to_summary_file
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class ZoomOptimizer:
     """
@@ -58,9 +61,6 @@ class ZoomOptimizer:
             label (str): A string label identifying the scan.
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
         # some basic scanner information
         self.param_space = param_space
         self.num_points = num_points
@@ -84,7 +84,7 @@ class ZoomOptimizer:
             self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
             self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
         except Exception as e:
-            self.logger.exception(e)
+            logger.exception(e)
             raise
 
         # supported strategies
@@ -146,11 +146,11 @@ class ZoomOptimizer:
 
         # get iteration identifier
         identifier = f"{self.label}-Iteration-{iter:04d}"
-        self.logger.info(f"Iteration: {identifier}")
+        logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
         if self.num_points < self.min_points_per_iteration:
-            self.logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
+            logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
             self.num_points = self.min_points_per_iteration
 
         # flag to indicate if zooming should be done
@@ -307,7 +307,7 @@ class ZoomOptimizer:
         Args:
             message (str): The message to record.
         """
-        self.logger.info(message)
+        logger.info(message)
         with open(self.details_name,"a") as details:
             details.write(message+"\n")
 
