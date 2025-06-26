@@ -7,9 +7,6 @@ Uses thresholds from a config file to flag parameter points where widths exceed
 allowed fractions of the scalar masses.
 """
 
-# standard libraries
-import logging
-
 # third-party libraries
 import numpy as np
 import pandas as pd
@@ -17,6 +14,10 @@ import pandas as pd
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.model import Model
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class WidthFilter:
     """
@@ -38,7 +39,6 @@ class WidthFilter:
             KeyError: If required threshold keys are missing from the config.
             Exception: For unexpected errors during config loading.
         """
-        self.logger = logging.getLogger(self.__class__.__name__)
     
         self.model = model
 
@@ -56,7 +56,7 @@ class WidthFilter:
                 config_loader.get('width', 'max_width_X'),
             ])
         except Exception as e:
-            self.logger.exception("Failed to load width thresholds from config.")
+            logger.exception("Failed to load width thresholds from config.")
             raise
 
     def apply(self,
@@ -86,8 +86,8 @@ class WidthFilter:
             # Update dataframe
             dataframe[header] = filt_width.astype(int)
         except KeyError as e:
-            self.logger.error(f"Missing required mass/width columns in DataFrame: {e}")
+            logger.error(f"Missing required mass/width columns in DataFrame: {e}")
             raise
         except Exception as e:
-            self.logger.exception("Error occurred while applying width filter.")
+            logger.exception("Error occurred while applying width filter.")
             raise

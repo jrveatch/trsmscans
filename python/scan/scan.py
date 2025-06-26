@@ -4,7 +4,6 @@ from copy import deepcopy
 import datetime
 from functools import cached_property
 import itertools
-import logging
 import os
 import shutil
 import time
@@ -24,6 +23,10 @@ from utils.run_metadata import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to organize and run a complete scan
 class Scan:
@@ -56,12 +59,12 @@ class Scan:
         """
 
         # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
+        logger = logging.getLogger(self.__class__.__name__)
 
-        self.logger.info("Creating a new scan")
-        self.logger.info(f"Model: {model.name}")
-        self.logger.info(f"Masses: {model.masses}")
-        self.logger.info(f"Decay: {decay}\n")
+        logger.info("Creating a new scan")
+        logger.info(f"Model: {model.name}")
+        logger.info(f"Masses: {model.masses}")
+        logger.info(f"Decay: {decay}\n")
 
         # store model and decay information
         self.model = model
@@ -86,7 +89,7 @@ class Scan:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except Exception as e:
-            self.logger.exception(e)
+            logger.exception(e)
             raise
 
         # number of prescan points to run
@@ -170,14 +173,14 @@ class Scan:
             raise
 
         # info message about prescan
-        self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
-        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
+        logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
+        logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
         # shrink param space based on the points contained by it
         self.prescan_parser.shrink_param_space_bounds(self.global_param_space)
 
         # print bounds table for new global parameter space
-        self.logger.info("Found the following ranges from the prescan:")
+        logger.info("Found the following ranges from the prescan:")
         self.global_param_space.log_bounds_table()
 
         # get scan density
@@ -221,7 +224,7 @@ class Scan:
             num_optimizers (int): Number of optimizers to run.
         """
 
-        self.logger.info("Running mean shift optimization...\n")
+        logger.info("Running mean shift optimization...\n")
 
         # get scan start time
         scan_start = time.time()
@@ -266,7 +269,7 @@ class Scan:
         try:
             points_gen: str = self.config_loader.get('meanshift', 'points_gen')
         except Exception as e:
-            self.logger.exception(e)
+            logger.exception(e)
             raise
 
         initial_pos_set = initial_positions(num_optimizers, points_gen)
@@ -276,7 +279,7 @@ class Scan:
                                      out_dir = self.out_dir,
                                      subdir_name = "meanshift")
 
-        self.logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+        logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"
@@ -314,7 +317,7 @@ class Scan:
             niter (int): Number of iterations to run. Leave as -1 to run until natural ending criteria are met.
         """
 
-        self.logger.info("Running zoom optimization...\n")
+        logger.info("Running zoom optimization...\n")
 
         # get scan start time
         scan_start = time.time()
@@ -327,8 +330,8 @@ class Scan:
         if run_exists(out_dir=self.out_dir,
                       optimization="zoom",
                       num_points=num_points) and not self.overwrite:
-                self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info("Use the -o option to overwrite the existing run.\n")
+                logger.info(f"Skipping scan requested with {num_points} points.")
+                logger.info("Use the -o option to overwrite the existing run.\n")
                 return
 
         # initialize output directories and files
@@ -351,7 +354,7 @@ class Scan:
 
             # check if user has added a set number of iterations
             if niter > 0 and iter >= niter:
-                self.logger.info(f"Ending after {niter} iterations as requested")
+                logger.info(f"Ending after {niter} iterations as requested")
                 break
 
             # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
@@ -396,7 +399,7 @@ class Scan:
             num_points (int): Number of points to use in the first iteration.
         """
 
-        self.logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
+        logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
 
         # Dictionary that will hold the values of the parameters
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
@@ -467,7 +470,7 @@ class Scan:
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
@@ -545,7 +548,7 @@ class Scan:
             num_points (int): Number of points to use in the first iteration.
         """
 
-        self.logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
+        logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
 
         # Retrieve the list of param spaces
         list_of_param_spaces = self.get_param_spaces(param_space)
@@ -572,13 +575,13 @@ class Scan:
                 label = f'ZoomOptimizer-{i}'
             )
 
-            self.logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
+            logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
 
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
         
         # Return list of all zoom optimizers
         return all_zoom_optimizers
@@ -605,7 +608,7 @@ class Scan:
 
         # Minimum points assignment
         min_points = min(num_points/10,20)
-        self.logger.debug(f"Minimum points per zoom optimizer: {min_points}")
+        logger.debug(f"Minimum points per zoom optimizer: {min_points}")
 
         # Distribute remaining points to indices by param space volume size
         for i in range(num_param_spaces):
@@ -630,10 +633,10 @@ class Scan:
         """
 
         # print message indicating scan is done
-        self.logger.info("Done!")
+        logger.info("Done!")
 
         # print out scan time
-        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
+        logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
 
         # write time info to details file
         with open(self.details_name, "a") as details:
@@ -649,5 +652,5 @@ class Scan:
         Delete the run directory if it exists.
         """
         if os.path.exists(self.out_dir):
-            self.logger.debug(f"Removing existing directory {self.out_dir}")
+            logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)

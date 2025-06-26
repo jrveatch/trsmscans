@@ -1,6 +1,5 @@
 
 # standard libraries
-import logging
 import os
 from typing import Any, Dict, Optional
 
@@ -9,6 +8,10 @@ import yaml
 
 # local modules
 from utils.env_utils import config_dir
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class ConfigLoader:
     """
@@ -35,14 +38,11 @@ class ConfigLoader:
             Exception: For other unexpected errors during loading.
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
         # if not config path is given, use default path defined as environment variable
         if config_path is None:
             config_path = config_dir()
 
-        self.logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}\n")
+        logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}\n")
 
         self.config = self.load_config(os.path.join(config_path,config_file_name))
 
@@ -68,13 +68,13 @@ class ConfigLoader:
             with open(path, 'r') as config_file:
                 return yaml.safe_load(config_file) or {}  # Ensure it returns a dictionary, even if empty
         except FileNotFoundError:
-            self.logger.exception(f"Configuration file '{path}' not found.")
+            logger.exception(f"Configuration file '{path}' not found.")
             raise  # Re-raise the exception to halt the program or handle as needed
         except yaml.YAMLError:
-            self.logger.exception(f"Failed to parse YAML file '{path}'.")
+            logger.exception(f"Failed to parse YAML file '{path}'.")
             raise  # Re-raise to handle upstream
         except Exception as e:
-            self.logger.exception(f"Unexpected error: {e}")
+            logger.exception(f"Unexpected error: {e}")
             raise
 
     def get(self,
@@ -100,7 +100,7 @@ class ConfigLoader:
             if value is None:
                 raise KeyError(f"Missing configuration for '{section}.{key}'")
         except Exception as e:
-            self.logger.exception(e)
+            logger.exception(e)
             raise
         else:
             return value
