@@ -10,10 +10,10 @@ inside each worker.
 """
 
 # standard libraries
-from collections import defaultdict
 import logging
 import multiprocessing as mp
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
+from typing import cast
 
 # third-party libraries
 import pandas as pd
@@ -59,6 +59,40 @@ class BoundsFilter:
         self.RH_name = "R11" if self.HName != "H2" else "R21"
         self.RS_name = "R21" if self.HName != "H2" else "R11"
         self.RX_name = "R31"
+
+        self.mass_keys = {
+            "H": f"m{self.HName}",
+            "S": f"m{self.SName}",
+            "X": f"m{self.XName}",
+        }
+
+        self.width_keys = {
+            "H": f"w_{self.HName}",
+            "S": f"w_{self.SName}",
+            "X": f"w_{self.XName}",
+        }
+
+        self.rescale_keys = {
+            "H": self.RH_name,
+            "S": self.RS_name,
+            "X": self.RX_name
+        }
+
+        self.br_SM_keys = {
+            "H": [f"b_{self.HName}_{decay}" for decay in SM_decays],
+            "S": [f"b_{self.SName}_{decay}" for decay in SM_decays],
+            "X": [f"b_{self.XName}_{decay}" for decay in SM_decays],
+        }
+
+        self.bsm_keys = {
+            "H": ("H2", "b_H2_H1H1") if self.HName == "H2" else None,
+            "S": ("H2", "b_H2_H1H1") if self.SName == "H2" else None,
+            "X": {
+                ("H", "H"): f"b_H3_{self.HName}{self.HName}",
+                ("S", "S"): f"b_H3_{self.SName}{self.SName}",
+                ("S", "H"): "b_H3_H1H2",
+            }
+        }
 
         try:
             config = ConfigLoader("RunConfig.yml")
@@ -144,10 +178,13 @@ class BoundsFilter:
         filt_bounds: List[int] = []
         filt_signals: List[int] = []
 
-        for idx, (_, row) in enumerate(df.iterrows()):
-            masses = self._extract_scalar_masses(row)
-            widths = self._extract_scalar_widths(row)
-            rescalings = self._extract_rescalings(row)
+        for idx, row in enumerate(df.itertuples(index=False)):
+            # Use getattr to access columns via attribute names
+            masses = {key: float(getattr(row, col)) for key, col in self.mass_keys.items()}
+            widths = {key: float(getattr(row, col)) for key, col in self.width_keys.items()}
+            rescalings = {key: float(getattr(row, col)) for key, col in self.rescale_keys.items()}
+
+            # Use Series wrapper for extract methods (they expect pd.Series)
             br_SM = self._extract_SM_BRs(row)
             br_BSM = self._extract_BSM_BRs(row)
 
@@ -155,7 +192,6 @@ class BoundsFilter:
             logger.verbose(f'  H: {widths["H"]}')
             logger.verbose(f'  S: {widths["S"]}')
             logger.verbose(f'  X: {widths["X"]}')
-
             logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
 
             configure_particle(H, "H", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
@@ -175,65 +211,14 @@ class BoundsFilter:
             filt_signals.append(int(HS_allowed))
 
         return filt_bounds, filt_signals
-    
-    def _extract_scalar_masses(self,
-                               row: pd.Series) -> Dict[str, float]:
-        """
-        Extracts the scalar particle masses from a DataFrame row.
-
-        Args:
-            row (pd.Series): A single row of scan data.
-
-        Returns:
-            Dict[str, float]: Mapping from {'H', 'S', 'X'} to their respective masses.
-        """
-        return {
-            "H": float(row["m" + self.HName]),
-            "S": float(row["m" + self.SName]),
-            "X": float(row["m" + self.XName])
-        }
-
-    def _extract_scalar_widths(self,
-                               row: pd.Series) -> Dict[str, float]:
-        """
-        Extracts the total widths of scalar particles from a DataFrame row.
-
-        Args:
-            row (pd.Series): A single row of scan data.
-
-        Returns:
-            Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
-        """
-        return {
-            "H": float(row["w_" + self.HName]),
-            "S": float(row["w_" + self.SName]),
-            "X": float(row["w_" + self.XName])
-        }
-
-    def _extract_rescalings(self,
-                            row: pd.Series) -> Dict[str, float]:
-        """
-        Extracts the rescalings of scalar particles from a DataFrame row.
-
-        Args:
-            row (pd.Series): A single row of scan data.
-
-        Returns:
-            Dict[str, float]: Dictionary mapping {'H', 'S', 'X'} to total widths.
-        """
-        return {
-            "H": float(row[self.RH_name]),
-            "S": float(row[self.RS_name]),
-            "X": float(row[self.RX_name])
-        }
 
     def _extract_SM_BRs(self,
-                        row: pd.Series) -> Dict[str, Dict[str, float]]:
+                        row: Any) -> Dict[str, Dict[str, float]]:
         """
         Extracts SM branching ratios for each scalar from a scan row.
 
         Args:
-            row (pd.Series): A row from the scan DataFrame.
+            row (Any): A row from the scan DataFrame.
 
         Returns:
             Dict[str, Dict[str, float]]: A dictionary of the form:
@@ -243,18 +228,22 @@ class BoundsFilter:
                     'X': {decay: BR, ...}
                 }
         """
-        br_H = {decay: float(row[f"b_{self.HName}_{decay}"]) for decay in SM_decays}
-        br_S = {decay: float(row[f"b_{self.SName}_{decay}"]) for decay in SM_decays}
-        br_X = {decay: float(row[f"b_{self.XName}_{decay}"]) for decay in SM_decays}
-        return {"H": br_H, "S": br_S, "X": br_X}
+        get = getattr
+        return {
+            label: {
+                decay: float(get(row, key))
+                for decay, key in zip(SM_decays, self.br_SM_keys[label])
+            }
+            for label in ("H", "S", "X")
+        }
 
     def _extract_BSM_BRs(self,
-                         row: pd.Series) -> Dict[str, Dict[Tuple[str, str], float]]:
+                         row: Any) -> Dict[str, Dict[Tuple[str, str], float]]:
         """
         Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
 
         Args:
-            row (pd.Series): A row from the scan DataFrame.
+            row (Any): A row from the scan DataFrame.
 
         Returns:
             Dict[str, Dict[Tuple[str, str], float]]: A dictionary of the form:
@@ -264,18 +253,23 @@ class BoundsFilter:
                     'X': {('H', 'H'): BR, ('S', 'S'): BR, ('S', 'H'): BR, ...}
                 }
         """
-        br_H = defaultdict(float)
-        br_S = defaultdict(float)
-        br_X = defaultdict(float)
+        get = getattr
+        br_H: Dict[Tuple[str, str], float] = {}
+        br_S: Dict[Tuple[str, str], float] = {}
+        br_X: Dict[Tuple[str, str], float] = {}
 
-        if self.HName == "H2":
-            br_H[("S", "S")] = float(row["b_H2_H1H1"])
-        if self.SName == "H2":
-            br_S[("H", "H")] = float(row["b_H2_H1H1"])
+        key_H = self.bsm_keys.get("H")
+        if key_H is not None:
+            _, key = key_H
+            br_H[("S", "S")] = float(get(row, key))
 
-        br_X[("H", "H")] = float(row[f"b_H3_{self.HName}{self.HName}"])
-        br_X[("S", "S")] = float(row[f"b_H3_{self.SName}{self.SName}"])
-        br_X[("S", "H")] = float(row["b_H3_H1H2"])
+        key_S = self.bsm_keys.get("S")
+        if key_S is not None:
+            _, key = key_S
+            br_S[("H", "H")] = float(get(row, key))
+
+        for decay, key in self.bsm_keys["X"].items():
+            br_X[decay] = float(get(row, key))
 
         return {"H": br_H, "S": br_S, "X": br_X}
 
