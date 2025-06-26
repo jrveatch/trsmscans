@@ -1,7 +1,6 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 from typing import Dict, List, Optional, Union
 
 # third-party libraries
