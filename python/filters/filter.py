@@ -16,8 +16,13 @@ from typing import Dict
 # local modules
 from filters.bounds import BoundsFilter
 from filters.width import WidthFilter
+from utils.config_loader import ConfigLoader
 from utils.df_utils import get_df, write_to_tsv
 from utils.model import Model
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class FilterPipeline:
     """
@@ -41,8 +46,14 @@ class FilterPipeline:
         Args:
             model (Model): The scalar model providing scalar names and config context.
         """
+        try:
+            config = ConfigLoader("RunConfig.yml")
+            min_chunk_size: int = config.get("bounds", "min_chunk_size")
+        except Exception as e:
+            logger.exception("Failed to load bounds filtering configuration.")
+            raise
         self.width_filter = WidthFilter(model)
-        self.bounds_filter = BoundsFilter(model)
+        self.bounds_filter = BoundsFilter(model, min_chunk_size)
 
     def apply_filters(self,
                       file_name: str,
