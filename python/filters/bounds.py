@@ -141,7 +141,7 @@ class BoundsFilter:
         n_chunks = min(n_workers, max(1, len(df) // self.min_chunk_size))
         chunks = chunk_dataframe(df, n_chunks)
 
-        print(f"Bounds: running with {n_chunks} chunks")
+        logger.info(f"BoundsFilter running with {n_chunks} chunks")
 
         args = [(self.model, chunk) for chunk in chunks]
         with mp.Pool(n_chunks) as pool:
