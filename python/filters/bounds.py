@@ -109,8 +109,9 @@ class BoundsFilter:
 
         print(f"Bounds: running with {n_chunks} chunks")
 
+        args = [(self.model, chunk) for chunk in chunks]
         with mp.Pool(n_chunks) as pool:
-            results = pool.starmap(BoundsFilter._process_chunk, [(self, chunk) for chunk in chunks])
+            results = pool.starmap(_process_chunk, args)
 
         filt_bounds, filt_signals = zip(*results)
         return ([x for sublist in filt_bounds for x in sublist],
@@ -278,9 +279,9 @@ class BoundsFilter:
 
         return {"H": br_H, "S": br_S, "X": br_X}
 
-    @staticmethod
-    def _process_chunk(instance: "BoundsFilter", df: pd.DataFrame) -> Tuple[List[int], List[int]]:
-        return instance.process_data(df)
+def _process_chunk(model: Model, chunk: pd.DataFrame) -> Tuple[List[int], List[int]]:
+    temp_filter = BoundsFilter(model)
+    return temp_filter.process_data(chunk)
 
 def configure_particle(particle,
                        label: str,
