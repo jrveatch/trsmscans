@@ -180,12 +180,9 @@ def run_process(process_args: List[str],
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
 
-    # change to the temporary directory
-    os.chdir(directory)
-
     # run the process with arguments and suppress output
     with open("ScannerS.log", "w") as log:
-        subprocess.run(process_args, stdout=log, stderr=log)
+        subprocess.run(process_args, stdout=log, stderr=log, cwd=directory)
 
     # increment the counter and print out how many processes are finished
     with lock:
