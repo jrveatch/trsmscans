@@ -218,7 +218,7 @@ class ZoomOptimizer:
         # end the ZoomOptimizer if counter reaches global_xb_fail_count
         if self.global_xb_fail >= self.global_xb_fail_count:
             self.is_running = False
-            self.termination_message("Local max is consistently less than half of global max")
+            self.termination_message(f"Local max is consistently less than {self.global_xb_fail_threshold*100:.1f}% of global max")
 
         # get a sorted list of the history of the local max xb
         sorted_history = sorted(self.local_history, key=lambda point: point.xb)
