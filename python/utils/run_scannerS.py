@@ -39,7 +39,8 @@ except Exception as e:
 def run_scannerS(ini_name: str,
                  num_points: int,
                  model_name: str,
-                 use_multiprocessing: bool = True) -> int:
+                 use_multiprocessing: bool = True,
+                 run_test_job: bool = True) -> int:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
@@ -71,18 +72,14 @@ def run_scannerS(ini_name: str,
     # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
 
-        # print out some information
-        logger.debug(f"Running a test job with {min_points_per_job} points")
-
-        # define test process with 10 points
-        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
-
-        # run test process
-        run_timed_process(process_args=test_process_args,
-                          model_name=model_name)
-
-        # print out some information
-        logger.debug("Test job was successful")
+        # run test process if requested
+        if run_test_job:
+            logger.debug(f"Running a test job with {min_points_per_job} points")
+            test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
+            logger.debug("Running test job to check if ScannerS works with the given configuration")
+            run_timed_process(process_args=test_process_args,
+                            model_name=model_name)
+            logger.debug("Test job was successful")
 
         # number of points left to run after test job
         points_to_run = num_points - min_points_per_job
