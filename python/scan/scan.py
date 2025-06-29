@@ -20,7 +20,7 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.precision_utils import Precision
-from utils.run_metadata import run_exists, save_run_metadata
+from utils.metadata_utils import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
@@ -285,7 +285,7 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="meanshift",
+        self.finalize(strategy="meanshift",
                       scan_time=scan_time,
                       num_points=num_optimizers)
 
@@ -311,7 +311,7 @@ class Scan:
 
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
-                      optimization="zoom",
+                      strategy="zoom",
                       num_points=num_points) and not self.overwrite:
                 logger.info(f"Skipping scan requested with {num_points} points.")
                 logger.info("Use the -o option to overwrite the existing run.\n")
@@ -372,7 +372,7 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="zoom",
+        self.finalize(strategy="zoom",
                       scan_time=scan_time,
                       num_points=num_points,
                       precision=self.precision)
@@ -608,7 +608,7 @@ class Scan:
         return tuple(points_per_optimizer_array.tolist())
        
     def finalize(self,
-                 optimization: str,
+                 strategy: str,
                  scan_time: float,
                  num_points: Optional[int] = None,
                  precision: Optional[Precision] = None) -> None:
@@ -616,7 +616,7 @@ class Scan:
         Finalize the scan by saving metadata and cleaning up.
 
         Args:
-            optimization (str): The optimization method used.
+            strategy (str): The optimization strategy used.
             scan_time (float): The total time taken for the scan.
             num_points (int, optional): Number of points to use in the first iteration. Defaults to -1.
             precision (Precision, optional): The precision level for the scan. Defaults to Precision.MEDIUM.
@@ -634,7 +634,7 @@ class Scan:
 
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
-                          optimization=optimization,
+                          strategy=strategy,
                           num_points=num_points,
                           precision=precision)
 
