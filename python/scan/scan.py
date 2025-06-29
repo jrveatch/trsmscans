@@ -82,7 +82,7 @@ class Scan:
             config_file_name = f"{self.model.name}_default.yml"
 
         # load config file
-        self.config_loader = ConfigLoader(config_file_name=config_file_name)
+        self.config_loader = ConfigLoader(config_file_name)
 
         # get configurations from config file
         try:
