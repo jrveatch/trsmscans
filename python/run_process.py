@@ -317,6 +317,7 @@ def main():
                             strategy=args.strategy,
                             xmass=xmass,
                             smass=smass,
+                            precision=args.precision,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
                             overwrite=args.overwrite,
