@@ -218,6 +218,14 @@ def plot_combination(model :str,
                        contour_masks=expected_exclusion_masks,
                        log_x=log_x,
                        log_y=log_y)
+    
+    plot_xb_to_limit_ratio(xb_max,
+                           obs_matched,
+                           X_mass_xb,
+                           S_mass_xb,
+                           os.path.join(output_directory(model, decay), f"{decay}_{identifier}_ratio_obs.png"),
+                           log_x=log_x,
+                           log_y=log_y)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
@@ -286,6 +294,54 @@ def plot_interpolation(X_mass: np.ndarray,
     _, labels = ax.get_legend_handles_labels()
     if labels:
         ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(file_name)
+
+from matplotlib.colors import BoundaryNorm
+import matplotlib.patches as mpatches
+
+def plot_xb_to_limit_ratio(xb: np.ndarray,
+                           limit: np.ndarray,
+                           X: np.ndarray,
+                           S: np.ndarray,
+                           file_name: str,
+                           log_x: bool = False,
+                           log_y: bool = False) -> None:
+    """
+    Plot discretized xb/limit ratio using categorical color levels.
+    """
+    ratio = np.divide(xb, limit, out=np.full_like(xb, np.nan), where=(limit > 0))
+    Xi, Yi, Zi = interpolate_grid(X, S, ratio)
+
+    levels = [0.0, 0.01, 0.1, 0.5, 0.8, 1.0, 1.5]
+    labels = [
+        "<0.01", "0.01-0.1", "0.1-0.5",
+        "0.5-0.8", "0.8-1.0", ">1.0"
+    ]
+    colors = [
+        "#440154", "#21918c", "#5ec962",
+        "#fde725", "#fdae61", "#d7191c"
+    ]
+
+    cmap = mcolors.ListedColormap(colors)
+    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+
+    fig, ax = plt.subplots()
+    #cf = ax.contourf(Xi, Yi, Zi, levels=levels, cmap=cmap, norm=norm)
+    cf = ax.contourf(Xi, Yi, Zi, levels=levels, cmap=cmap, norm=norm, extend='both')
+
+    ax.set_xlabel(mass_label("X"))
+    ax.set_ylabel(mass_label("S"))
+
+    if log_x:
+        ax.set_xscale("log")
+    if log_y:
+        ax.set_yscale("log")
+
+    # Construct a manual legend
+    patches = [mpatches.Patch(color=colors[i], label=labels[i]) for i in range(len(labels))]
+    ax.legend(handles=patches, title="xb / limit", loc="upper right", frameon=True)
 
     fig.tight_layout()
     fig.savefig(file_name)
