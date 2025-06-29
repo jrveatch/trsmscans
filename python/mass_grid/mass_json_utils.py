@@ -2,13 +2,13 @@
 import json
 import numpy as np
 import os
-from typing import List, NamedTuple, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 # local modules
 from utils.env_utils import data_dir
 
 def get_mass_permutations(decay: str,
-                          identifier: str) -> List[Tuple[int, int, bool]]:
+                          identifier: str) -> List[Tuple[int, int, bool, Dict[str,float]]]:
     """
     Returns a list of mass permutations for a given decay mode and identifier.
 
@@ -17,7 +17,8 @@ def get_mass_permutations(decay: str,
         identifier (str): Identifier to specify which set of mass points to use.
 
     Returns:
-        List[Tuple[int, int, bool]]: A list of tuples containing mass points and resolvable status.
+        List[Tuple[int, int, bool, Dict[str, float]]]:
+            A list of tuples containing mass points, resolvable status, and dictionary of limits.
     """
 
     permutations_file = os.path.join(data_dir(),"mass_points",f"{decay}_{identifier}.json")
@@ -27,7 +28,13 @@ def get_mass_permutations(decay: str,
         with open(permutations_file, 'r') as perm_file:
             data = json.load(perm_file)
             permutations = [
-                (p["mX"], p["mS"], p["resolvable"]) 
+                (p["mX"], p["mS"], p["resolvable"],
+                 {"observed": p["observed_limit"], # TODO: Handle case where limits are missing
+                  "expected": p["expected_limit"],
+                  "expected_m1": p["expected_limit_m1"],
+                  "expected_p1": p["expected_limit_p1"],
+                  "expected_m2": p["expected_limit_m2"],
+                  "expected_p2": p["expected_limit_p2"]}) 
                 for p in data["mass_points"]
             ]
         return permutations

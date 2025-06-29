@@ -278,16 +278,16 @@ def main():
         if not args.identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
-        mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
+        mass_points = [(x, s, args.HMass, limits) for x, s, _, limits in permutations]
         print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
     elif args.XMass and args.SMass:
-        mass_points = [(args.XMass, args.SMass, args.HMass)]
+        mass_points = [(args.XMass, args.SMass, args.HMass, {})]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     job_count = 0
 
-    for xmass, smass, hmass in mass_points:
+    for xmass, smass, hmass, limits in mass_points:
         if not args.overwrite:
             try:
                 status, _ = get_mass_point_status(

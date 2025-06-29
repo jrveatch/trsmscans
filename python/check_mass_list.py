@@ -63,7 +63,7 @@ def check_mass_list(model_name: str,
         "error": 0,
     }
 
-    for xmass, smass, resolvable in permutations:
+    for xmass, smass, resolvable, limits in permutations:
         model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
         subdir = model.mass_string
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
