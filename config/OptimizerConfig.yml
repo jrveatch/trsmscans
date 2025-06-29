@@ -1,6 +1,8 @@
 
 zoom:
   strategy: "percentile" # "percentile" or "rate"
+  global_xb_fail_threshold: 0.5
+  global_xb_fail_count: 2
   coarse:
     parameter_zoom_rate: 0.2
     density_growth_rate: 0.05

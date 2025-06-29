@@ -82,6 +82,8 @@ class ZoomOptimizer:
         self.config_loader = config_loader
         try:
             self.strategy: str = self.config_loader.get('zoom', 'strategy')
+            self.global_xb_fail_threshold: float = self.config_loader.get('zoom', 'global_xb_fail_threshold')
+            self.global_xb_fail_count: int = self.config_loader.get('zoom', 'global_xb_fail_count')
             self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
@@ -205,14 +207,14 @@ class ZoomOptimizer:
         self.write_details(identifier=identifier,
                            new_max=new_max)
 
-        # add to a counter if new point is less than half of the global max
-        if new_max < self.global_max * 0.5:
+        # add to a counter if new point is too low compared to the global max
+        if new_max < self.global_max * self.global_xb_fail_threshold:
             self.global_xb_fail += 1
         else:
             self.global_xb_fail = 0
 
-        # end the ZoomOptimizer if counter reaches 2
-        if self.global_xb_fail >= 2:
+        # end the ZoomOptimizer if counter reaches global_xb_fail_count
+        if self.global_xb_fail >= self.global_xb_fail_count:
             self.is_running = False
             self.termination_message("Local max is consistently less than half of global max")
 
