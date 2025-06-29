@@ -74,6 +74,7 @@ class ZoomOptimizer:
         self.is_running = True
         self.local_history = []
         self.point_sampler = point_sampler
+        self.run_test_job = True
 
         # get zoom configuration from config file
         self.config_loader = config_loader
@@ -160,7 +161,8 @@ class ZoomOptimizer:
         try:
             self.scan_parser = self.point_sampler.sample_points(param_space = self.param_space,
                                                                 num_points_requested = self.num_points,
-                                                                identifier = identifier)
+                                                                identifier = identifier,
+                                                                run_test_job = self.run_test_job)
         # if point sampling times out make a dummy new_max
         except TimeoutError:
             self.termination_message("No output detected")
@@ -179,6 +181,7 @@ class ZoomOptimizer:
             self.is_running = False
         # otherwise get new point as the maximum from the current scan
         else:
+            self.run_test_job = False  # no need to run test job again
             new_max = self.scan_parser.get_max_xb_point(self.decay)
 
         # store the previous point
