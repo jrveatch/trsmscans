@@ -35,8 +35,6 @@ meanshift:
   stop_sensitivity_xb: 0.05
   # Max number of small steps used for stopping conditions
   max_small_steps: 3
-  # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
-  pair_points_coeff: 0.005
   # Exponent for weighting (higher means greater pull from high xb points)
   z_exp: 1.0
   # Flag to control whether z_exp is adaptively modified
