@@ -65,6 +65,7 @@ def run_scan(model: Model,
              iterations: int,
              log_level: int,
              precision: Precision = Precision.MEDIUM,
+             limit_target: float = -1.0,
              dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
@@ -79,6 +80,7 @@ def run_scan(model: Model,
         iterations (int): Max number of scan iterations or shifters.
         log_level (int): Logging verbosity level.
         precision (Precision): Precision level for optimization.
+        limit_target (float): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
 
     Raises:
@@ -97,7 +99,8 @@ def run_scan(model: Model,
                 decay=decay,
                 prescan_points=prescan_points,
                 overwrite=overwrite,
-                precision=precision)
+                precision=precision,
+                limit_target=limit_target)
 
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
@@ -116,6 +119,7 @@ def submit_htcondor(mode: str,
                     xmass: float = -1.0,
                     smass: float = -1.0,
                     precision: Precision = Precision.MEDIUM,
+                    limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
                     overwrite: bool = False,
@@ -134,6 +138,7 @@ def submit_htcondor(mode: str,
         xmass (float): X scalar mass in GeV.
         smass (float): S scalar mass in GeV.
         precision (Precision): Precision level for optimization.
+        limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
         overwrite (bool): Whether to overwrite previous runs.
@@ -178,7 +183,8 @@ def submit_htcondor(mode: str,
         sh_lines.append(f"    -d {decay} \\")
         sh_lines.append(f"    -s {strategy} \\")
         sh_lines.append(f"    -p {precision.name.lower()} \\")
-        sh_lines.append(f"    --prescan_points {prescan_points} \\")
+        sh_lines.append(f"    --limit-target {limit_target} \\")
+        sh_lines.append(f"    --prescan-points {prescan_points} \\")
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
     if overwrite:
@@ -248,6 +254,7 @@ def main():
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
@@ -318,6 +325,7 @@ def main():
                             xmass=xmass,
                             smass=smass,
                             precision=args.precision,
+                            limit_target=args.limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
                             overwrite=args.overwrite,
@@ -338,6 +346,7 @@ def main():
                          strategy=args.strategy,
                          num_points=args.num_points,
                          precision=args.precision,
+                         limit_target=args.limit_target,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,

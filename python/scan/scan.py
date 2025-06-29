@@ -36,6 +36,7 @@ class Scan:
                  model: Model,
                  decay: str,
                  precision: Precision = Precision.MEDIUM,
+                 limit_target: float = -1.0,
                  prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -49,6 +50,8 @@ class Scan:
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
             precision (Precision, optional): The precision level for the scan.
                 Defaults to Precision.MEDIUM.
+            limit_target (float, optional): The target experimental limit for setting precision.
+                Defaults to -1.0.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             overwrite (bool, optional): Whether to overwrite existing scan results.
@@ -74,6 +77,9 @@ class Scan:
         self.model = model
         self.decay = decay
 
+        # store limit target
+        self.limit_target = limit_target
+
         # check whether decay is valid
         if not is_valid_decay(self.decay):
             raise ValueError(
@@ -93,6 +99,7 @@ class Scan:
         try:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
+            self.precision_insensitive_threshold: float = self.config_loader.get('scan', 'precision_insensitive_threshold')
         except Exception as e:
             logger.exception(e)
             raise
@@ -196,6 +203,13 @@ class Scan:
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
+
+        # check ratio of prescan max xb in fb to limit_target
+        if self.limit_target > 0.0:
+            ratio = self.global_max.xb * 1000 / self.limit_target
+            if ratio < self.precision_insensitive_threshold:
+                logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
+                self.precision = Precision.INSENSITIVE
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -324,8 +338,9 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
-        #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
+        if self.precision != Precision.INSENSITIVE:
+            all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
+            #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
         # list of which zoom optimizers are running
         running_list = [True]
