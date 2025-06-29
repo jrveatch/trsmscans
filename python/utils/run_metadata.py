@@ -46,7 +46,11 @@ def run_exists(out_dir: str,
             metadata = json.load(f)
             logger.info(f"Found a {optimization} run with {metadata['num_points']} points\n")
             if optimization == "zoom":
-                return num_points <= 1.5*metadata["num_points"]
+                if num_points <= 1.5*metadata["num_points"]:
+                    logger.info(f"Found a run with {metadata['num_iterations']} iterations\n")
+                    return True
+                else:
+                    return False
             if optimization == "meanshift":
                 return num_iterations <= 1.5*metadata["num_iterations"]
     return False

@@ -7,7 +7,7 @@ import itertools
 import os
 import shutil
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 # local modules
@@ -286,7 +286,8 @@ class Scan:
 
         # finalize the run
         self.finalize(optimization="meanshift",
-                      scan_time=scan_time)
+                      scan_time=scan_time,
+                      num_points=num_optimizers)
 
     def run_zoom_optimization(self,
                               num_points: int,
@@ -609,8 +610,8 @@ class Scan:
     def finalize(self,
                  optimization: str,
                  scan_time: float,
-                 num_points: int = -1,
-                 precision: Precision = Precision.MEDIUM) -> None:
+                 num_points: Optional[int] = None,
+                 precision: Optional[Precision] = None) -> None:
         """
         Finalize the scan by saving metadata and cleaning up.
 
