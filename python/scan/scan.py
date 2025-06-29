@@ -417,7 +417,7 @@ class Scan:
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(num_points // len(all_param_combinations), 1)
@@ -531,7 +531,7 @@ class Scan:
         list_of_param_spaces = self.get_param_spaces(param_space)
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
         # Get list of points for optimizers
         points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
