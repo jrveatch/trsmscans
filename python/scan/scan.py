@@ -19,6 +19,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
+from utils.precision_utils import Precision
 from utils.run_metadata import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
@@ -34,6 +35,7 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
+                 precision: Precision = Precision.MEDIUM,
                  prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -45,6 +47,8 @@ class Scan:
         Args:
             model (Model): The physical model object containing parameter definitions.
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
+            precision (Precision, optional): The precision level for the scan.
+                Defaults to Precision.MEDIUM.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             overwrite (bool, optional): Whether to overwrite existing scan results.
@@ -92,6 +96,9 @@ class Scan:
         except Exception as e:
             logger.exception(e)
             raise
+
+        # set precision
+        self.precision = precision
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -325,7 +332,7 @@ class Scan:
         # to keep count of which iteration the scan is on
         iter = 0
 
-        while any(running_list):
+        while any(running_list) and self.precision != Precision.INSENSITIVE:
 
             # check if user has added a set number of iterations
             if niter > 0 and iter >= niter:
@@ -351,6 +358,8 @@ class Scan:
                     # store max_xb
                     self.global_max = max(self.global_max, temp_max)
 
+                    # TODO: keep track of the highest precision used in zoom optimizers when it becomes adaptive
+
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
             
@@ -364,7 +373,8 @@ class Scan:
         # finalize the run
         self.finalize(optimization="zoom",
                       scan_time=scan_time,
-                      num_points=num_points)
+                      num_points=num_points,
+                      precision=self.precision)
 
     def prev_create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
         """
@@ -437,6 +447,7 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 param_space = params_copy,
+                precision= self.precision,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -544,6 +555,7 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
+                precision= self.precision,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -597,7 +609,8 @@ class Scan:
     def finalize(self,
                  optimization: str,
                  scan_time: float,
-                 num_points: int = -1) -> None:
+                 num_points: int = -1,
+                 precision: Precision = Precision.MEDIUM) -> None:
         """
         Finalize the scan by saving metadata and cleaning up.
 
@@ -605,6 +618,7 @@ class Scan:
             optimization (str): The optimization method used.
             scan_time (float): The total time taken for the scan.
             num_points (int, optional): Number of points to use in the first iteration. Defaults to -1.
+            precision (Precision, optional): The precision level for the scan. Defaults to Precision.MEDIUM.
         """
 
         # print message indicating scan is done
@@ -620,7 +634,8 @@ class Scan:
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
                           optimization=optimization,
-                          num_points=num_points)
+                          num_points=num_points,
+                          precision=precision)
 
     def delete_run_directory(self) -> None:
         """
