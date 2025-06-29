@@ -209,39 +209,10 @@ class ZoomOptimizer:
         self.write_details(identifier=identifier,
                            new_max=new_max)
 
-        # add to a counter if new point is too low compared to the global max
-        if new_max < self.global_max * self.global_xb_fail_threshold:
-            self.global_xb_fail += 1
-        else:
-            self.global_xb_fail = 0
-
-        # end the ZoomOptimizer if counter reaches global_xb_fail_count
-        if self.global_xb_fail >= self.global_xb_fail_count:
+        # check stopping conditions
+        if self.check_stopping_conditions(new_max):
             self.is_running = False
-            self.termination_message(f"Local max is consistently less than {self.global_xb_fail_threshold*100:.1f}% of global max")
-
-        # get a sorted list of the history of the local max xb
-        sorted_history = sorted(self.local_history, key=lambda point: point.xb)
-
-        if len(sorted_history) >= 5:
-            # if new points are on an upward trend, run this code
-            if self.local_history[-1] >= self.local_history[-2]:
-                # if point is not above the local_xb_fail_threshold, increment local_xb_fail
-                new_max_threshold = self.local_xb_fail_threshold[self.precision]
-                if new_max < sorted_history[-2] * (1.0 + new_max_threshold):
-                    self.local_xb_fail += 1
-                    if self.local_xb_fail >= self.local_xb_fail_count[self.precision]:
-                        self.is_running = False
-                        self.termination_message(f"Local max is increasing by less than {new_max_threshold*100:.1f}%")
-                # reset local_xb_fail
-                else:
-                    self.local_xb_fail = 0
-            elif new_max < sorted_history[-2]:
-                self.is_running = False
-                self.termination_message("Local max is not increasing")
-
-        # termination message if no longer running
-        if not self.is_running:
+            do_zoom = False
             self.termination_message("Terminating zoom optimizer")
 
         # store history of local max of xb
@@ -267,6 +238,44 @@ class ZoomOptimizer:
         self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
         return new_max
+
+    def check_stopping_conditions(self, new_max: Point) -> bool:
+        """
+        Checks stopping conditions and updates internal state.
+
+        Returns:
+            bool: True if optimization should stop, False otherwise.
+        """
+        # Global: new point < global_xb_fail_threshold of current global max
+        if new_max < self.global_max * self.global_xb_fail_threshold:
+            self.global_xb_fail += 1
+            if self.global_xb_fail >= self.global_xb_fail_count:
+                self.termination_message(f"Local max is consistently less than {int(self.global_xb_fail_threshold*100)}% of global max")
+                return True
+        else:
+            self.global_xb_fail = 0
+
+        # Local: based on improvement history
+        if len(self.local_history) >= 5:
+            last = self.local_history[-1]
+            second_last = self.local_history[-2]
+            second_best = sorted(self.local_history, key=lambda pt: pt.xb)[-2]
+
+            # If still improving, but not by enough
+            if last >= second_last:
+                new_max_threshold = self.local_xb_fail_threshold[self.precision]
+                if new_max < second_best * (1.0 + new_max_threshold):
+                    self.local_xb_fail += 1
+                    if self.local_xb_fail >= self.local_xb_fail_count[self.precision]:
+                        self.termination_message(f"Local max is increasing by less than {new_max_threshold*100:.1f}%")
+                        return True
+                else:
+                    self.local_xb_fail = 0
+            elif new_max < second_last:
+                self.termination_message("Local max is not increasing")
+                return True
+
+        return False
 
     def write_details(self,
                       identifier: str,
