@@ -16,3 +16,4 @@ class Precision(IntEnum):
 
     def __str__(self) -> str:
         return self.name.lower()
+    
