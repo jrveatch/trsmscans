@@ -12,7 +12,6 @@ a fixed-rate zoom mode or a percentile-based zoom mode.
 # standard libraries
 import datetime
 import os
-from pdb import run
 import shutil
 import time
 
