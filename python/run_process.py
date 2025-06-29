@@ -302,7 +302,7 @@ def main():
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
                 continue
-            if status not in {"missing", "below_threshold"}:
+            if status not in {"missing", "below_threshold", "low_precision"}:
                 print(f"Skipping X={xmass}, S={smass}: status = {status}")
                 continue
 
