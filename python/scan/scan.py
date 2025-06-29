@@ -235,44 +235,21 @@ class Scan:
         # run prescan
         self.run_prescan()
 
+        # Load Optimizer config file
+        config_loader = ConfigLoader("OptimizerConfig.yml")
+
         # Define helper functions (as inner functions because only for meanshift implementation)
 
         # Returns a list of initial positions for shifters
-        def initial_positions(points: int,
-                              strategy: str) -> Tuple[Point]:
+        def initial_positions(num_optimizers: int) -> Tuple[Point]:
             results = []
 
-            if strategy == 'random':
-                for i in range(points):
-                    results.append(self.global_param_space.random_point())
-            elif strategy == 'pair':
-                # TODO: Temporary block for this option until it can be fixed using Point
-                raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = self.global_param_space.random_point()
-                lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
-                coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-                offsets = [param.width * coeff for param in self.global_param_space]
-
-                results.append(initial_point)
-
-                next_point = list(deepcopy(initial_point))
-
-                for i in range(1, points):
-                    for i in range(len(next_point)):
-                        next_point[i] += lead_coeffs[i] * offsets[i]
-
-                    results.append(tuple(deepcopy(next_point)))
+            for i in range(num_optimizers):
+                results.append(self.global_param_space.random_point())
 
             return tuple(results)
 
-        # Load config
-        try:
-            points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except Exception as e:
-            logger.exception(e)
-            raise
-
-        initial_pos_set = initial_positions(num_optimizers, points_gen)
+        initial_pos_set = initial_positions(num_optimizers)
 
         # Create PointSampler object
         point_sampler = PointSampler(model = self.model,
@@ -289,7 +266,7 @@ class Scan:
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
                 point_sampler=point_sampler,
-                config_loader=self.config_loader
+                config_loader=config_loader
             ).run()
 
         # SCAN LOGIC END HERE

@@ -67,11 +67,11 @@ class MeanShiftOptimizer:
         self.config_loader = config_loader
         try:
             self.max_small_steps: int = self.config_loader.get('meanshift', 'max_small_steps')
-            self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
-            self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
-            self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
-            self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-            self.__num_points: int = config_loader.get('meanshift', 'num_points')
+            self.__stop_mode: int = self.config_loader.get('meanshift', 'stop_mode')
+            self.__stop_sens_par: float = self.config_loader.get('meanshift', 'stop_sensitivity_par')
+            self.__stop_sens_xb: float = self.config_loader.get('meanshift', 'stop_sensitivity_xb')
+            self.__scan_perc: float = self.config_loader.get('meanshift', 'scan_perc')
+            self.__num_points: int = self.config_loader.get('meanshift', 'num_points')
         except Exception as e:
             logger.exception(e)
             raise

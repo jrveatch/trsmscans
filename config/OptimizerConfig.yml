@@ -1,0 +1,51 @@
+
+zoom:
+  coarse:
+    parameter_zoom_rate: 0.2
+    density_growth_rate: 0.5
+    zoom_percentile: 0.8
+    min_points_per_iteration: 10
+    strategy: "percentile"
+
+  low:
+    parameter_zoom_rate: 0.1
+    density_growth_rate: 0.3
+    zoom_percentile: 0.9
+    min_points_per_iteration: 15
+    strategy: "percentile"
+
+  medium:
+    parameter_zoom_rate: 0.05
+    density_growth_rate: 0.2
+    zoom_percentile: 0.95
+    min_points_per_iteration: 20
+    strategy: "percentile"
+
+  high:
+    parameter_zoom_rate: 0.02
+    density_growth_rate: 0.1
+    zoom_percentile: 0.98
+    min_points_per_iteration: 50
+    strategy: "percentile"
+
+meanshift:
+  # Proportion of total volume to use for scan volume
+  scan_perc: 0.1
+  # Number of points to sample for each iteration
+  num_points: 50
+  # Mode to use for stop condition, 0 = test point, 1 = prev point
+  stop_mode: 1
+  # Threshold fractional change in any parameter to continue optimization
+  stop_sensitivity_par: 0.05
+  # Threshold fractional change in xb to continue optimization
+  stop_sensitivity_xb: 0.05
+  # Max number of small steps used for stopping conditions
+  max_small_steps: 3
+  # "pair" points coefficient to use for generating subsequent points as a percentage subtracted from the previous point
+  pair_points_coeff: 0.005
+  # Exponent for weighting (higher means greater pull from high xb points)
+  z_exp: 1.0
+  # Flag to control whether z_exp is adaptively modified
+  use_adaptive_z_exp: True
+  # alpha value for the coefficient variation calculation (higher means more sensitivity to bumps)
+  z_exp_alpha: 0.9
