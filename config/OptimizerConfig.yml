@@ -1,37 +1,26 @@
 
 zoom:
   strategy: "percentile" # "percentile" or "rate"
-  parameter_zoom_rate: 0.05
-  density_growth_rate: 0.2
-  zoom_percentile: 0.95
-  min_points_per_iteration: 20
   coarse:
     parameter_zoom_rate: 0.2
-    density_growth_rate: 0.5
-    zoom_percentile: 0.8
+    density_growth_rate: 0.05
+    zoom_percentile: 0.98
     min_points_per_iteration: 10
-    strategy: "percentile"
-
   low:
     parameter_zoom_rate: 0.1
-    density_growth_rate: 0.3
-    zoom_percentile: 0.9
+    density_growth_rate: 0.1
+    zoom_percentile: 0.98
     min_points_per_iteration: 15
-    strategy: "percentile"
-
   medium:
     parameter_zoom_rate: 0.05
     density_growth_rate: 0.2
     zoom_percentile: 0.95
-    min_points_per_iteration: 20
-    strategy: "percentile"
-
+    min_points_per_iteration: 25
   high:
     parameter_zoom_rate: 0.02
-    density_growth_rate: 0.1
-    zoom_percentile: 0.98
+    density_growth_rate: 0.5
+    zoom_percentile: 0.95
     min_points_per_iteration: 50
-    strategy: "percentile"
 
 meanshift:
   # Proportion of total volume to use for scan volume

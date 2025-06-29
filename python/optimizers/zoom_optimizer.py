@@ -14,6 +14,7 @@ import datetime
 import os
 import shutil
 import time
+from typing import Dict
 
 # third-party libraries
 import pandas as pd
@@ -75,14 +76,16 @@ class ZoomOptimizer:
         self.local_history = []
         self.point_sampler = point_sampler
 
+        self.precision = "medium"
+
         # get zoom configuration from config file
         self.config_loader = config_loader
         try:
             self.strategy: str = self.config_loader.get('zoom', 'strategy')
-            self.zoom_percentile: int = self.config_loader.get('zoom', 'zoom_percentile')
-            self.parameter_zoom_rate: float = self.config_loader.get('zoom', 'parameter_zoom_rate')
-            self.density_growth_rate: float = self.config_loader.get('zoom', 'density_growth_rate')
-            self.min_points_per_iteration: int = self.config_loader.get('zoom', 'min_points_per_iteration')
+            self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
+            self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
+            self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
+            self.min_points_per_iteration: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'min_points_per_iteration')
         except Exception as e:
             logger.exception(e)
             raise
@@ -149,9 +152,9 @@ class ZoomOptimizer:
         logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
-        if self.num_points < self.min_points_per_iteration:
-            logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration} points instead')
-            self.num_points = self.min_points_per_iteration
+        if self.num_points < self.min_points_per_iteration[self.precision]:
+            logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration[self.precision]} points instead')
+            self.num_points = self.min_points_per_iteration[self.precision]
 
         # flag to indicate if zooming should be done
         do_zoom = True
@@ -336,7 +339,7 @@ class ZoomOptimizer:
         min_points = 10
 
         # percentile threshold that can be adjusted on the fly
-        percentile_threshold = self.zoom_percentile
+        percentile_threshold = self.zoom_percentile[self.precision]
 
         # get an array of xb results
         xb_array = self.scan_parser.get_xb(self.decay)
@@ -378,7 +381,7 @@ class ZoomOptimizer:
 
         # calculate the new number of points based on the remaining xb range
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
-        self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate))
+        self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate[self.precision]))
 
     def rate_zoom(self) -> None:
         """
@@ -389,7 +392,7 @@ class ZoomOptimizer:
         """
 
         # parameter scaling factor
-        range_scale = 1.0 - self.parameter_zoom_rate
+        range_scale = 1.0 - self.parameter_zoom_rate[self.precision]
 
         # get volume before zooming
         volume_old = self.param_space.volume()
@@ -402,4 +405,4 @@ class ZoomOptimizer:
         volume_ratio = volume_new / volume_old
 
         # step down num_points
-        self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate))
+        self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate[self.precision]))
