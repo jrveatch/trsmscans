@@ -84,6 +84,8 @@ class ZoomOptimizer:
             self.strategy: str = self.config_loader.get('zoom', 'strategy')
             self.global_xb_fail_threshold: float = self.config_loader.get('zoom', 'global_xb_fail_threshold')
             self.global_xb_fail_count: int = self.config_loader.get('zoom', 'global_xb_fail_count')
+            self.local_xb_fail_threshold: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_threshold')
+            self.local_xb_fail_count: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_count')
             self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
@@ -224,12 +226,13 @@ class ZoomOptimizer:
         if len(sorted_history) >= 5:
             # if new points are on an upward trend, run this code
             if self.local_history[-1] >= self.local_history[-2]:
-                # if point is less than 5% higher than the 2nd highest point twice in a row, end scan
-                if new_max < sorted_history[-2] * 1.05:
+                # if point is not above the local_xb_fail_threshold, increment local_xb_fail
+                new_max_threshold = self.local_xb_fail_threshold[self.precision]
+                if new_max < sorted_history[-2] * (1.0 + new_max_threshold):
                     self.local_xb_fail += 1
-                    if self.local_xb_fail >= 2:
+                    if self.local_xb_fail >= self.local_xb_fail_count[self.precision]:
                         self.is_running = False
-                        self.termination_message("Local max is increasing by less than 5%")
+                        self.termination_message(f"Local max is increasing by less than {new_max_threshold*100:.1f}%")
                 # reset local_xb_fail
                 else:
                     self.local_xb_fail = 0

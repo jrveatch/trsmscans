@@ -4,21 +4,29 @@ zoom:
   global_xb_fail_threshold: 0.5
   global_xb_fail_count: 2
   coarse:
+    local_xb_fail_threshold: 0.2
+    local_xb_fail_count: 2
     parameter_zoom_rate: 0.2
     density_growth_rate: 0.05
     zoom_percentile: 0.98
     min_points_per_iteration: 10
   low:
+    local_xb_fail_threshold: 0.1
+    local_xb_fail_count: 2
     parameter_zoom_rate: 0.1
     density_growth_rate: 0.1
     zoom_percentile: 0.98
     min_points_per_iteration: 15
   medium:
+    local_xb_fail_threshold: 0.05
+    local_xb_fail_count: 3
     parameter_zoom_rate: 0.05
     density_growth_rate: 0.2
     zoom_percentile: 0.95
     min_points_per_iteration: 25
   high:
+    local_xb_fail_threshold: 0.02
+    local_xb_fail_count: 3
     parameter_zoom_rate: 0.02
     density_growth_rate: 0.5
     zoom_percentile: 0.95
