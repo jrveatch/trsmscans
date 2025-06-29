@@ -8,7 +8,7 @@ either locally or via HTCondor. Supports grid scanning, logging, and dry-run mod
 
 Usage examples:
     python run_process.py --mode scan -X 600 -S 300 -m TRSMBroken -d SHbbbb -s zoom -n 1000
-    python run_process.py --mode scan --batch -l -i lowmass -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
+    python run_process.py --mode scan --batch -l -i CMS -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
 """
 
 import argparse
@@ -23,6 +23,7 @@ from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model
+from utils.precision_utils import Precision
 import utils.htcondor_utils as htcondor_utils
 from mass_grid.mass_json_utils import get_mass_permutations
 
@@ -63,6 +64,7 @@ def run_scan(model: Model,
              overwrite: bool,
              iterations: int,
              log_level: int,
+             precision: Precision = Precision.MEDIUM,
              dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
@@ -76,6 +78,7 @@ def run_scan(model: Model,
         overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
         log_level (int): Logging verbosity level.
+        precision (Precision): Precision level for optimization.
         dry_run (bool): If True, print message but do not run job.
 
     Raises:
@@ -90,7 +93,11 @@ def run_scan(model: Model,
     setup_logging(log_file=log_file,
                   level=log_level)
 
-    scan = Scan(model=model, decay=decay, prescan_points=prescan_points, overwrite=overwrite)
+    scan = Scan(model=model,
+                decay=decay,
+                prescan_points=prescan_points,
+                overwrite=overwrite,
+                precision=precision)
 
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
@@ -108,6 +115,7 @@ def submit_htcondor(mode: str,
                     strategy: Optional[str] = None,
                     xmass: float = -1.0,
                     smass: float = -1.0,
+                    precision: Precision = Precision.MEDIUM,
                     prescan_points: int = -1,
                     iterations: int = -1,
                     overwrite: bool = False,
@@ -125,6 +133,7 @@ def submit_htcondor(mode: str,
         strategy (Optional[str]): Optimization strategy (required for scan).
         xmass (float): X scalar mass in GeV.
         smass (float): S scalar mass in GeV.
+        precision (Precision): Precision level for optimization.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
         overwrite (bool): Whether to overwrite previous runs.
@@ -168,7 +177,8 @@ def submit_htcondor(mode: str,
     if mode == "scan":
         sh_lines.append(f"    -d {decay} \\")
         sh_lines.append(f"    -s {strategy} \\")
-        sh_lines.append(f"    -p {prescan_points} \\")
+        sh_lines.append(f"    -p {precision.name.lower()} \\")
+        sh_lines.append(f"    --prescan_points {prescan_points} \\")
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
     if overwrite:
@@ -238,13 +248,14 @@ def main():
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("-p", "--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
+    arg_parser.add_argument("--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-c", "--num_cpus", default=8, type=int, help="Number of CPUs to request for the job")
     arg_parser.add_argument("-j", "--job_length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
+    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Set optimization precision level")
     args = arg_parser.parse_args()
 
     log_level = LOG_LEVELS[args.log_level.lower()]
@@ -325,6 +336,7 @@ def main():
                          decay=args.decay,
                          strategy=args.strategy,
                          num_points=args.num_points,
+                         precision=args.precision,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,

@@ -67,7 +67,7 @@ def _get_local_cpu_reserve(total_cpus: int) -> int:
             return 2
         
     # get configurations
-    config_loader = ConfigLoader(config_file_name="RunConfig.yml")
+    config_loader = ConfigLoader("RunConfig.yml")
     try:
         # number of CPUs to reserve when multiprocessing
         cpu_reserve: int = config_loader.get('MultiProcessing', 'cpu_reserve')

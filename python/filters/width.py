@@ -48,7 +48,7 @@ class WidthFilter:
         self.XName = model.get_ordered_scalar_name('X')
 
         # Load configuration thresholds
-        config_loader = ConfigLoader(config_file_name=f"{model.name}_default.yml")
+        config_loader = ConfigLoader(f"{model.name}_default.yml")
         try:
             self.thresholds: np.ndarray = np.array([
                 config_loader.get('width', 'max_width_H'),

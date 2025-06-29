@@ -7,7 +7,7 @@ import itertools
 import os
 import shutil
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 # local modules
@@ -19,6 +19,7 @@ from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
+from utils.precision_utils import Precision
 from utils.run_metadata import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
@@ -34,6 +35,7 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
+                 precision: Precision = Precision.MEDIUM,
                  prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -45,6 +47,8 @@ class Scan:
         Args:
             model (Model): The physical model object containing parameter definitions.
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
+            precision (Precision, optional): The precision level for the scan.
+                Defaults to Precision.MEDIUM.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             overwrite (bool, optional): Whether to overwrite existing scan results.
@@ -81,8 +85,9 @@ class Scan:
         if not config_file_name:
             config_file_name = f"{self.model.name}_default.yml"
 
-        # load config file
-        self.config_loader = ConfigLoader(config_file_name=config_file_name)
+        # load config files
+        self.config_loader = ConfigLoader(config_file_name)
+        self.optimizer_config_loader = ConfigLoader("OptimizerConfig.yml")
 
         # get configurations from config file
         try:
@@ -91,6 +96,9 @@ class Scan:
         except Exception as e:
             logger.exception(e)
             raise
+
+        # set precision
+        self.precision = precision
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -238,41 +246,15 @@ class Scan:
         # Define helper functions (as inner functions because only for meanshift implementation)
 
         # Returns a list of initial positions for shifters
-        def initial_positions(points: int,
-                              strategy: str) -> Tuple[Point]:
+        def initial_positions(num_optimizers: int) -> Tuple[Point]:
             results = []
 
-            if strategy == 'random':
-                for i in range(points):
-                    results.append(self.global_param_space.random_point())
-            elif strategy == 'pair':
-                # TODO: Temporary block for this option until it can be fixed using Point
-                raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = self.global_param_space.random_point()
-                lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
-                coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-                offsets = [param.width * coeff for param in self.global_param_space]
-
-                results.append(initial_point)
-
-                next_point = list(deepcopy(initial_point))
-
-                for i in range(1, points):
-                    for i in range(len(next_point)):
-                        next_point[i] += lead_coeffs[i] * offsets[i]
-
-                    results.append(tuple(deepcopy(next_point)))
+            for i in range(num_optimizers):
+                results.append(self.global_param_space.random_point())
 
             return tuple(results)
 
-        # Load config
-        try:
-            points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except Exception as e:
-            logger.exception(e)
-            raise
-
-        initial_pos_set = initial_positions(num_optimizers, points_gen)
+        initial_pos_set = initial_positions(num_optimizers)
 
         # Create PointSampler object
         point_sampler = PointSampler(model = self.model,
@@ -289,7 +271,7 @@ class Scan:
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
                 point_sampler=point_sampler,
-                config_loader=self.config_loader
+                config_loader=self.optimizer_config_loader
             ).run()
 
         # SCAN LOGIC END HERE
@@ -304,7 +286,8 @@ class Scan:
 
         # finalize the run
         self.finalize(optimization="meanshift",
-                      scan_time=scan_time)
+                      scan_time=scan_time,
+                      num_points=num_optimizers)
 
     def run_zoom_optimization(self,
                               num_points: int,
@@ -350,7 +333,7 @@ class Scan:
         # to keep count of which iteration the scan is on
         iter = 0
 
-        while any(running_list):
+        while any(running_list) and self.precision != Precision.INSENSITIVE:
 
             # check if user has added a set number of iterations
             if niter > 0 and iter >= niter:
@@ -376,6 +359,8 @@ class Scan:
                     # store max_xb
                     self.global_max = max(self.global_max, temp_max)
 
+                    # TODO: keep track of the highest precision used in zoom optimizers when it becomes adaptive
+
                 # keeping track of which zoom optimizers are running
                 running_list.append(zoom_optimizer.is_running)
             
@@ -389,7 +374,8 @@ class Scan:
         # finalize the run
         self.finalize(optimization="zoom",
                       scan_time=scan_time,
-                      num_points=num_points)
+                      num_points=num_points,
+                      precision=self.precision)
 
     def prev_create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
         """
@@ -440,7 +426,7 @@ class Scan:
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(num_points // len(all_param_combinations), 1)
@@ -462,9 +448,10 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 param_space = params_copy,
+                precision= self.precision,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
-                config_loader = self.config_loader,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
@@ -554,7 +541,7 @@ class Scan:
         list_of_param_spaces = self.get_param_spaces(param_space)
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
         # Get list of points for optimizers
         points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
@@ -569,9 +556,10 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
+                precision= self.precision,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
-                config_loader = self.config_loader,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
 
@@ -622,7 +610,8 @@ class Scan:
     def finalize(self,
                  optimization: str,
                  scan_time: float,
-                 num_points: int = -1) -> None:
+                 num_points: Optional[int] = None,
+                 precision: Optional[Precision] = None) -> None:
         """
         Finalize the scan by saving metadata and cleaning up.
 
@@ -630,6 +619,7 @@ class Scan:
             optimization (str): The optimization method used.
             scan_time (float): The total time taken for the scan.
             num_points (int, optional): Number of points to use in the first iteration. Defaults to -1.
+            precision (Precision, optional): The precision level for the scan. Defaults to Precision.MEDIUM.
         """
 
         # print message indicating scan is done
@@ -645,7 +635,8 @@ class Scan:
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
                           optimization=optimization,
-                          num_points=num_points)
+                          num_points=num_points,
+                          precision=precision)
 
     def delete_run_directory(self) -> None:
         """

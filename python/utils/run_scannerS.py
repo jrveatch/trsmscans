@@ -25,7 +25,7 @@ from utils.tsv_utils import save_tsv_output
 logger = logging.getLogger(__name__)
 
 # get configurations
-config_loader = ConfigLoader(config_file_name="RunConfig.yml")
+config_loader = ConfigLoader("RunConfig.yml")
 try:
     # minimum number of points per job
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
