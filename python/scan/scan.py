@@ -20,7 +20,7 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.precision_utils import Precision
-from utils.run_metadata import run_exists, save_run_metadata
+from utils.metadata_utils import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
