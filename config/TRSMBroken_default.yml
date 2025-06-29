@@ -10,10 +10,3 @@ width:
 scan:
   default_prescan_points: 10000
   default_starting_points: 10000
-
-zoom:
-  strategy: "percentile" # "percentile" or "rate"
-  parameter_zoom_rate: 0.05
-  density_growth_rate: 0.2
-  zoom_percentile: 0.95
-  min_points_per_iteration: 20

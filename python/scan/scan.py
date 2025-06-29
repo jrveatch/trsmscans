@@ -81,8 +81,9 @@ class Scan:
         if not config_file_name:
             config_file_name = f"{self.model.name}_default.yml"
 
-        # load config file
+        # load config files
         self.config_loader = ConfigLoader(config_file_name)
+        self.optimizer_config_loader = ConfigLoader("OptimizerConfig.yml")
 
         # get configurations from config file
         try:
@@ -235,9 +236,6 @@ class Scan:
         # run prescan
         self.run_prescan()
 
-        # Load Optimizer config file
-        config_loader = ConfigLoader("OptimizerConfig.yml")
-
         # Define helper functions (as inner functions because only for meanshift implementation)
 
         # Returns a list of initial positions for shifters
@@ -266,7 +264,7 @@ class Scan:
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
                 point_sampler=point_sampler,
-                config_loader=config_loader
+                config_loader=self.optimizer_config_loader
             ).run()
 
         # SCAN LOGIC END HERE
@@ -441,7 +439,7 @@ class Scan:
                 param_space = params_copy,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
-                config_loader = self.config_loader,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
@@ -548,7 +546,7 @@ class Scan:
                 param_space = space,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
-                config_loader = self.config_loader,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
 
