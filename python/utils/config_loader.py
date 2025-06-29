@@ -42,7 +42,7 @@ class ConfigLoader:
         if config_path is None:
             config_path = config_dir()
 
-        logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}\n")
+        logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}")
 
         self.config = self.load_config(os.path.join(config_path,config_file_name))
         self.level_index = self.build_level_index(self.config)

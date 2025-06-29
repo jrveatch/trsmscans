@@ -110,7 +110,8 @@ class PointSampler:
                       num_points_requested: int,
                       identifier = "",
                       use_multiprocessing: bool = True,
-                      good_points_only: bool = False) -> Parse:
+                      good_points_only: bool = False,
+                      run_test_job: bool = True) -> Parse:
         """
         Samples multiple parameter points using ScannerS until the desired number of points
         pass all filters. Writes to .ini/.tsv files and returns a Parse object with results.
@@ -119,7 +120,9 @@ class PointSampler:
             param_space (ParamSpace): The parameter space to sample from.
             num_points_requested (int): Number of accepted points desired.
             identifier (str): Optional tag to distinguish output files.
+            use_multiprocessing (bool): If True, uses multiprocessing for filter application.
             good_points_only (bool): If True, continues sampling until enough good points are found.
+            run_test_job (bool): If True, runs a test job to ensure ScannerS works with the given configuration.
 
         Returns:
             Parse: A Parse object containing the filtered and analyzed results.
@@ -178,7 +181,8 @@ class PointSampler:
             points = run_scannerS(ini_name = ini_name,
                                   num_points = num_points_requested,
                                   model_name = param_space.model_name,
-                                  use_multiprocessing = use_multiprocessing)
+                                  use_multiprocessing = use_multiprocessing,
+                                  run_test_job = run_test_job)
 
             # Update the total points run
             self.total_points_run += points
