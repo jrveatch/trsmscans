@@ -295,6 +295,7 @@ def main():
     job_count = 0
 
     for xmass, smass, hmass, limits in mass_points:
+        limit_target = min(limits.values()) if limits else args.limit_target
         if not args.overwrite:
             try:
                 status, _ = get_mass_point_status(
@@ -326,7 +327,7 @@ def main():
                             xmass=xmass,
                             smass=smass,
                             precision=args.precision,
-                            limit_target=args.limit_target,
+                            limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
                             overwrite=args.overwrite,
@@ -345,7 +346,7 @@ def main():
                          strategy=args.strategy,
                          num_points=args.num_points,
                          precision=args.precision,
-                         limit_target=args.limit_target,
+                         limit_target=limit_target,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
