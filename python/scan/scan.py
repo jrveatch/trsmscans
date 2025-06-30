@@ -465,6 +465,15 @@ class Scan:
     def get_param_spaces(self,
                          param_space: ParamSpace) -> List[ParamSpace]:
 
+        """
+        Create list of param spaces based on splits from the global parameter space.
+
+        Args:
+            param_space (ParamSpace): Global parameter space
+        """
+
+        self.logger.debug("Splitting global param space...")
+
         # Initialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
         final_param_space_list =[]
@@ -514,6 +523,10 @@ class Scan:
 
             if not did_split:
                 final_param_space_list.append(current)
+
+        self.logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
+
+        self.logger.debug("Shrinking each param space...")
 
         # Shrink the param spaces in final_param_space_list
         for space in final_param_space_list:
@@ -576,8 +589,18 @@ class Scan:
 
     def distribute_points(self, param_space_list: List[ParamSpace], num_points: int) -> Tuple[int]:
 
+        """
+        Distribute the points among the list of param spaces based on their volume.
+
+        Args:
+            param_space_list (List[ParamSpace]): List of all parameter spaces from get_param_spaces.
+            num_points (int): Number of points to use in the first iteration.
+        """
+
         # Retrieve number of param spaces
         num_param_spaces = len(param_space_list)
+
+        self.logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
 
         # Initialize list of param space volumes
         volumes = np.array([self.prescan_parser.estimate_effective_volume_by_count(space) for space in param_space_list])
