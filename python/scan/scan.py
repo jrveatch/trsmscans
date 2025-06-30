@@ -213,8 +213,6 @@ class Scan:
             if ratio < self.precision_threshold_coarse:
                 logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
                 self.precision = Precision.INSENSITIVE
-            else:
-                self.precision = Precision.COARSE
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
