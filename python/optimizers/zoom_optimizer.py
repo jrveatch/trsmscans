@@ -85,7 +85,7 @@ class ZoomOptimizer:
 
         if precision is None:
             self.use_adaptive_precision = True
-            self.precision = Precision.LOW
+            self.precision = Precision.COARSE
         else:
             self.use_adaptive_precision = False
             self.precision = precision
@@ -231,17 +231,14 @@ class ZoomOptimizer:
                 raise ValueError("Cannot adapt precision: limit_target is effectively zero")
             ratio = self.local_max.xb * 1000 / self.limit_target
             if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
-                logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2e}%)")
+                logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2f})")
                 self.precision = Precision.LOW
             elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
-                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2e}%)")
+                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
                 self.precision = Precision.MEDIUM
-            elif self.precision_threshold_high <= ratio < 1.0 and self.precision != Precision.HIGH:
-                logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2e}%)")
+            elif self.precision_threshold_high <= ratio and self.precision != Precision.HIGH:
+                logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
                 self.precision = Precision.HIGH
-            elif 1.0 < ratio and self.precision != Precision.MEDIUM:
-                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2e}%)")
-                self.precision = Precision.MEDIUM
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
