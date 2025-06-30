@@ -8,7 +8,7 @@ either locally or via HTCondor. Supports grid scanning, logging, and dry-run mod
 
 Usage examples:
     python run_process.py --mode scan -X 600 -S 300 -m TRSMBroken -d SHbbbb -s zoom -n 1000
-    python run_process.py --mode scan --batch -l -i CMS -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
+    python run_process.py --mode scan --batch -l -i CMS -m TRSMBroken -d SHbbbb -s zoom -n 5000
 """
 
 import argparse
