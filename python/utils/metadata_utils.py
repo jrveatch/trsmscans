@@ -37,13 +37,19 @@ def run_exists(out_dir: str,
                num_points: int = -1) -> bool:
     """Check if a run exists by looking for the metadata file."""
     metadata_path = os.path.join(out_dir, metadata_file_name(strategy))
-    if os.path.isfile(metadata_path):
-        with open(metadata_path, "r") as f:
-            metadata = json.load(f)
-            logger.info(f"Found a {strategy} run with {metadata['num_points']} points\n")
-            if strategy == "zoom":
-                if num_points <= 1.5*metadata["num_points"]:
-                    return True
-            if strategy == "meanshift":
-                return num_points <= 1.2*metadata["num_points"]
+    if not os.path.isfile(metadata_path):
+        return False
+
+    with open(metadata_path, "r") as f:
+        metadata: Dict[str, Any] = json.load(f)
+
+    existing_points: int = metadata.get("num_points", 0)
+    logger.info(f"Found a {strategy} run with {existing_points} points")
+
+    if strategy == "zoom":
+        if num_points <= 1.5 * existing_points:
+            return True
+    if strategy == "meanshift":
+        return num_points <= 1.2 * existing_points
+
     return False
