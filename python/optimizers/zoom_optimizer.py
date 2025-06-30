@@ -225,7 +225,23 @@ class ZoomOptimizer:
         # if new point is better than the local max point, replace it
         self.local_max = max(self.local_max, new_max)
 
-        # TODO: Check local max ratio to limit target and update precision if needed
+        # adaptive precision adjustment based on xb value
+        if self.use_adaptive_precision:
+            if abs(self.limit_target) < 1e-12:
+                raise ValueError("Cannot adapt precision: limit_target is effectively zero")
+            ratio = self.local_max.xb * 1000 / self.limit_target
+            if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
+                logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2e}%)")
+                self.precision = Precision.LOW
+            elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
+                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2e}%)")
+                self.precision = Precision.MEDIUM
+            elif self.precision_threshold_high <= ratio < 1.0 and self.precision != Precision.HIGH:
+                logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2e}%)")
+                self.precision = Precision.HIGH
+            elif 1.0 < ratio and self.precision != Precision.MEDIUM:
+                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2e}%)")
+                self.precision = Precision.MEDIUM
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
