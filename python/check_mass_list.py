@@ -63,7 +63,7 @@ def check_mass_list(model_name: str,
         "error": 0,
     }
 
-    for xmass, smass, resolvable, limits in permutations:
+    for xmass, smass, resolvable, _ in permutations:
         model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
         subdir = model.mass_string
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
@@ -105,7 +105,8 @@ def check_mass_list(model_name: str,
         out.write(f"# Mode: {mode}\n")
         out.write(f"# Model: {model_name}\n")
         out.write(f"# Decay: {decay}\n")
-        out.write(f"# Identifier: {identifier}\n\n")
+        out.write(f"# Identifier: {identifier}\n")
+        out.write(f"# Precision: {precision}\n\n")
         out.write(f"Total mass points checked:   {total}\n")
         out.write(f"  Pass threshold:            {counts['ok']}\n")
         out.write(f"  Below threshold:           {counts['below_threshold']}\n")
