@@ -67,7 +67,7 @@ def run_exists(out_dir: str,
             if existing_precision >= precision:
                 return True
             else:
-                logger.info(f"Existing precision {existing_precision} is lower than requested {precision}.")
+                logger.info(f"Existing precision '{existing_precision}' is lower than requested '{precision}'.")
                 return False
 
     if strategy == "meanshift":
