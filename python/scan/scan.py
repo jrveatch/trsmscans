@@ -71,7 +71,11 @@ class Scan:
         logger.info("Creating a new scan")
         logger.info(f"Model: {model.name}")
         logger.info(f"Masses: {model.masses}")
-        logger.info(f"Decay: {decay}\n")
+        logger.info(f"Decay: {decay}")
+        if precision is not None:
+            logger.info(f"Precision: {precision}\n")
+        else:
+            logger.info("Adaptable precision\n")
 
         # store model and decay information
         self.model = model
