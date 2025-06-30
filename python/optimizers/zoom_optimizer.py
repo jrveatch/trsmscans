@@ -51,7 +51,8 @@ class ZoomOptimizer:
                  point_sampler: PointSampler,
                  config_loader: ConfigLoader,
                  label: str,
-                 precision: Optional[Precision] = None) -> None:
+                 precision: Optional[Precision] = None,
+                 limit_target: float = -1.0) -> None:
         """
         Initializes a ZoomOptimizer instance with configuration and scan parameters.
 
@@ -63,6 +64,7 @@ class ZoomOptimizer:
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
             precision (Optional[Precision]): The precision level for the scan.
+            limit_target (float, optional): The target experimental limit for setting precision. Defaults to -1.0.
         """
 
         # some basic scanner information
@@ -79,6 +81,7 @@ class ZoomOptimizer:
         self.local_history = []
         self.point_sampler = point_sampler
         self.run_test_job = True
+        self.limit_target = limit_target
 
         if precision is None:
             self.use_adaptive_precision = True
@@ -221,6 +224,8 @@ class ZoomOptimizer:
 
         # if new point is better than the local max point, replace it
         self.local_max = max(self.local_max, new_max)
+
+        # TODO: Check local max ratio to limit target and update precision if needed
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
