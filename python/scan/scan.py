@@ -327,7 +327,8 @@ class Scan:
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
                       strategy="zoom",
-                      num_points=num_points) and not self.overwrite:
+                      num_points=num_points,
+                      precision=self.precision) and not self.overwrite:
                 logger.info(f"Skipping scan requested with {num_points} points.")
                 logger.info("Use the -o option to overwrite the existing run.\n")
                 return
