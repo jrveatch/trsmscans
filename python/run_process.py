@@ -287,7 +287,7 @@ def main():
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
         mass_points = [(x, s, args.HMass, limits) for x, s, _, limits in permutations]
         print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
-    elif args.XMass and args.SMass:
+    elif args.XMass is not None and args.SMass is not None:
         mass_points = [(args.XMass, args.SMass, args.HMass, {})]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
@@ -340,8 +340,6 @@ def main():
                             log_level=log_level,
                             dry_run=args.dry_run)
             else:
-                if not args.decay or not args.strategy:
-                    raise ValueError("Scan mode requires --decay and --strategy")
                 run_scan(model=model,
                          decay=args.decay,
                          strategy=args.strategy,
@@ -360,6 +358,8 @@ def main():
             print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{args.decay}' '{args.identifier}'")
         else:
             print(f"\nSuccessfully processed job for X={args.XMass}, S={args.SMass}")
+    if job_count == 0:
+        print("\nNo jobs were submitted or executed. All mass points may already be processed.")
 
 if __name__ == "__main__":
     main()
