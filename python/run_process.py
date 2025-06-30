@@ -263,6 +263,7 @@ def main():
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Set optimization precision level")
+    arg_parser.add_argument("-a", "--adaptive-precision", action="store_true", help="Automatically adjust precision based on target limit")
     args = arg_parser.parse_args()
 
     log_level = LOG_LEVELS[args.log_level.lower()]
@@ -294,10 +295,17 @@ def main():
 
     job_count = 0
 
+    # Set starting precision based on whether adaptive precision is enabled
+    if args.adaptive_precision:
+        starting_precision = Precision.LOW
+    else:
+        starting_precision = args.precision
+
     for xmass, smass, hmass, limits in mass_points:
         limit_target = min(limits.values()) if limits else args.limit_target
         if not args.overwrite:
             try:
+                # TODO: Handle adaptive precision logic here
                 status, _ = get_mass_point_status(
                     model_name=args.model,
                     decay=args.decay,
@@ -306,7 +314,7 @@ def main():
                     threshold=args.num_points,
                     mode=args.mode,
                     strategy=args.strategy,
-                    precision=args.precision
+                    precision=starting_precision
                 )
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
@@ -326,7 +334,7 @@ def main():
                             strategy=args.strategy,
                             xmass=xmass,
                             smass=smass,
-                            precision=args.precision,
+                            precision=starting_precision,
                             limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
@@ -345,7 +353,7 @@ def main():
                          decay=args.decay,
                          strategy=args.strategy,
                          num_points=args.num_points,
-                         precision=args.precision,
+                         precision=starting_precision,
                          limit_target=limit_target,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
