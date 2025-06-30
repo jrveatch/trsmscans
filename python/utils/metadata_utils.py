@@ -45,29 +45,29 @@ def run_exists(out_dir: str,
         metadata: Dict[str, Any] = json.load(f)
 
     existing_points: int = metadata.get("num_points", 0)
-    logger.info(f"Found a {strategy} run with {existing_points} points")
+    existing_precision_str = metadata.get("precision")
+    logger.info(f"Found a {strategy} run with {existing_points} points and {existing_precision_str} precision.")
 
     if strategy == "zoom":
         # Check point threshold
         if num_points <= 1.5 * existing_points:
             # Handle optional precision logic
-            existing_precision_str = metadata.get("precision")
             if precision is None:
                 return True
             if existing_precision_str is None:
-                logger.info("Existing run has no precision field; cannot satisfy fixed precision requirement")
+                logger.info("Existing run has no precision field; cannot satisfy fixed precision requirement.")
                 return False
 
             try:
                 existing_precision = Precision.from_string(existing_precision_str)
             except ValueError:
-                logger.warning(f"Could not parse existing precision '{existing_precision_str}'")
+                logger.warning(f"Could not parse existing precision '{existing_precision_str}'.")
                 return False
 
             if existing_precision >= precision:
                 return True
             else:
-                logger.info(f"Existing precision {existing_precision} is lower than requested {precision}")
+                logger.info(f"Existing precision {existing_precision} is lower than requested {precision}.")
                 return False
 
     if strategy == "meanshift":
