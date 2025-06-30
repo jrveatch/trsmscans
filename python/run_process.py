@@ -64,7 +64,7 @@ def run_scan(model: Model,
              overwrite: bool,
              iterations: int,
              log_level: int,
-             precision: Precision = Precision.MEDIUM,
+             precision: Optional[Precision] = None,
              limit_target: float = -1.0,
              dry_run: bool = False) -> None:
     """
@@ -79,7 +79,7 @@ def run_scan(model: Model,
         overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
         log_level (int): Logging verbosity level.
-        precision (Precision): Precision level for optimization.
+        precision (Optional[Precision]): Precision level for optimization.
         limit_target (float): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
 
@@ -118,7 +118,7 @@ def submit_htcondor(mode: str,
                     strategy: Optional[str] = None,
                     xmass: float = -1.0,
                     smass: float = -1.0,
-                    precision: Precision = Precision.MEDIUM,
+                    precision: Optional[Precision] = None,
                     limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
@@ -137,7 +137,7 @@ def submit_htcondor(mode: str,
         strategy (Optional[str]): Optimization strategy (required for scan).
         xmass (float): X scalar mass in GeV.
         smass (float): S scalar mass in GeV.
-        precision (Precision): Precision level for optimization.
+        precision (Optional[Precision]): Precision level for optimization.
         limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
@@ -262,8 +262,7 @@ def main():
     arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
-    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Set optimization precision level")
-    arg_parser.add_argument("-a", "--adaptive-precision", action="store_true", help="Automatically adjust precision based on target limit")
+    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None, help="Fix optimization precision level. If not set, precision is adapted automatically.")
     args = arg_parser.parse_args()
 
     log_level = LOG_LEVELS[args.log_level.lower()]
@@ -295,17 +294,12 @@ def main():
 
     job_count = 0
 
-    # Set starting precision based on whether adaptive precision is enabled
-    if args.adaptive_precision:
-        starting_precision = Precision.LOW
-    else:
-        starting_precision = args.precision
-
     for xmass, smass, hmass, limits in mass_points:
         limit_target = min(limits.values()) if limits else args.limit_target
+        if args.precision is None and limit_target < 0:
+            raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
-                # TODO: Handle adaptive precision logic here
                 status, _ = get_mass_point_status(
                     model_name=args.model,
                     decay=args.decay,
@@ -314,7 +308,7 @@ def main():
                     threshold=args.num_points,
                     mode=args.mode,
                     strategy=args.strategy,
-                    precision=starting_precision
+                    precision=args.precision
                 )
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
@@ -334,7 +328,7 @@ def main():
                             strategy=args.strategy,
                             xmass=xmass,
                             smass=smass,
-                            precision=starting_precision,
+                            precision=args.precision,
                             limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
@@ -353,7 +347,7 @@ def main():
                          decay=args.decay,
                          strategy=args.strategy,
                          num_points=args.num_points,
-                         precision=starting_precision,
+                         precision=args.precision,
                          limit_target=limit_target,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,

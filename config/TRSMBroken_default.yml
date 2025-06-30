@@ -10,4 +10,3 @@ width:
 scan:
   default_prescan_points: 10000
   default_starting_points: 10000
-  precision_insensitive_threshold: 0.01

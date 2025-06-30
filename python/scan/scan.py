@@ -35,7 +35,7 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
-                 precision: Precision = Precision.MEDIUM,
+                 precision: Optional[Precision] = None,
                  limit_target: float = -1.0,
                  prescan_points: int = -1,
                  overwrite: bool = False,
@@ -48,8 +48,8 @@ class Scan:
         Args:
             model (Model): The physical model object containing parameter definitions.
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
-            precision (Precision, optional): The precision level for the scan.
-                Defaults to Precision.MEDIUM.
+            precision (Optional[Precision]): The precision level for the scan.
+                Defaults to None.
             limit_target (float, optional): The target experimental limit for setting precision.
                 Defaults to -1.0.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
@@ -77,9 +77,6 @@ class Scan:
         self.model = model
         self.decay = decay
 
-        # store limit target
-        self.limit_target = limit_target
-
         # check whether decay is valid
         if not is_valid_decay(self.decay):
             raise ValueError(
@@ -99,13 +96,15 @@ class Scan:
         try:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-            self.precision_insensitive_threshold: float = self.config_loader.get('scan', 'precision_insensitive_threshold')
+            self.precision_threshold_coarse: float = self.optimizer_config_loader.get('precision', 'threshold_coarse')
         except Exception as e:
             logger.exception(e)
             raise
 
-        # set precision
+        # set precision, limit target and adaptive precision flag
         self.precision = precision
+        self.limit_target = limit_target
+        self.use_adaptive_precision = precision is None
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -205,11 +204,13 @@ class Scan:
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
 
         # check ratio of prescan max xb in fb to limit_target
-        if self.limit_target > 0.0:
+        if self.use_adaptive_precision:
             ratio = self.global_max.xb * 1000 / self.limit_target
-            if ratio < self.precision_insensitive_threshold:
+            if ratio < self.precision_threshold_coarse:
                 logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
                 self.precision = Precision.INSENSITIVE
+            else:
+                self.precision = Precision.COARSE
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -375,7 +376,10 @@ class Scan:
                         self.global_max = max(self.global_max, temp_max)
 
                         # keep track of the maximum precision used
-                        self.precision = max(self.precision, zoom_optimizer.precision)
+                        if self.precision is None:
+                            self.precision = Precision.LOW
+                        if zoom_optimizer.precision is not None:
+                            self.precision = max(self.precision, zoom_optimizer.precision)
 
                     # keeping track of which zoom optimizers are running
                     running_list.append(zoom_optimizer.is_running)

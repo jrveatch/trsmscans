@@ -1,4 +1,10 @@
 
+precision:
+  threshold_coarse: 0.01
+  threshold_low: 0.1
+  threshold_medium: 0.5
+  threshold_high: 0.8
+
 zoom:
   strategy: "percentile" # "percentile" or "rate"
   global_xb_fail_threshold: 0.5

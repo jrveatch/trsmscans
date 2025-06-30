@@ -14,7 +14,7 @@ import datetime
 import os
 import shutil
 import time
-from typing import Dict
+from typing import Dict, Optional
 
 # third-party libraries
 import pandas as pd
@@ -51,8 +51,7 @@ class ZoomOptimizer:
                  point_sampler: PointSampler,
                  config_loader: ConfigLoader,
                  label: str,
-                 precision: Precision = Precision.MEDIUM,
-                 use_adaptive_precision: bool = False) -> None:
+                 precision: Optional[Precision] = None) -> None:
         """
         Initializes a ZoomOptimizer instance with configuration and scan parameters.
 
@@ -63,8 +62,7 @@ class ZoomOptimizer:
             point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
-            precision (Precision, optional): The precision level for the scan.
-            use_adaptive_precision (bool, optional): If True, uses adaptive precision.
+            precision (Optional[Precision]): The precision level for the scan.
         """
 
         # some basic scanner information
@@ -82,9 +80,12 @@ class ZoomOptimizer:
         self.point_sampler = point_sampler
         self.run_test_job = True
 
-        # TODO: implement adaptive precision logic
-        self.use_adaptive_precision = use_adaptive_precision
-        self.precision = precision
+        if precision is None:
+            self.use_adaptive_precision = True
+            self.precision = Precision.LOW
+        else:
+            self.use_adaptive_precision = False
+            self.precision = precision
 
         # get zoom configuration from config file
         self.config_loader = config_loader
@@ -98,6 +99,9 @@ class ZoomOptimizer:
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
             self.min_points_per_iteration: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'min_points_per_iteration')
+            self.precision_threshold_low: float = self.config_loader.get('precision', 'threshold_low')
+            self.precision_threshold_medium: float = self.config_loader.get('precision', 'threshold_medium')
+            self.precision_threshold_high: float = self.config_loader.get('precision', 'threshold_high')
         except Exception as e:
             logger.exception(e)
             raise
@@ -137,14 +141,14 @@ class ZoomOptimizer:
         return self.param_space.decay
 
     @property
-    def precision(self) -> Precision:
+    def precision(self) -> Optional[Precision]:
         """
         Returns the precision level of the scan.
         """
         return self._precision
 
     @precision.setter
-    def precision(self, value: Precision) -> None:
+    def precision(self, value: Optional[Precision]) -> None:
         """
         Sets the precision level of the scan.
         """
