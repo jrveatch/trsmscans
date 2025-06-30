@@ -304,7 +304,8 @@ def main():
                     smass=smass,
                     threshold=args.num_points,
                     mode=args.mode,
-                    strategy=args.strategy
+                    strategy=args.strategy,
+                    precision=args.precision
                 )
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")

@@ -184,7 +184,7 @@ def get_mass_point_status(model_name: str,
         with open(path, "r") as f:
             data = json.load(f)
         prev_precision = data.get("precision", Precision.INSENSITIVE)
-        if prev_precision < precision:
+        if precision is not None and Precision.from_string(prev_precision) < precision:
             return ("low_precision", prev_precision)
         count = data.get("num_points", 0)
         return ("ok", count) if count >= threshold else ("below_threshold", count)
