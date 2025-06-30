@@ -28,13 +28,17 @@ def get_mass_permutations(decay: str,
         with open(permutations_file, 'r') as perm_file:
             data = json.load(perm_file)
             permutations = [
-                (p["mX"], p["mS"], p["resolvable"],
-                 {"observed": p["observed_limit"], # TODO: Handle case where limits are missing
-                  "expected": p["expected_limit"],
-                  "expected_m1": p["expected_limit_m1"],
-                  "expected_p1": p["expected_limit_p1"],
-                  "expected_m2": p["expected_limit_m2"],
-                  "expected_p2": p["expected_limit_p2"]}) 
+                (
+                 p["mX"], p["mS"], p["resolvable"],
+                 {
+                  "observed": p.get("observed_limit", -1.0),
+                  "expected": p.get("expected_limit", -1.0),
+                  "expected_m1": p.get("expected_limit_m1", -1.0),
+                  "expected_p1": p.get("expected_limit_p1", -1.0),
+                  "expected_m2": p.get("expected_limit_m2", -1.0),
+                  "expected_p2": p.get("expected_limit_p2", -1.0)
+                  }
+                ) 
                 for p in data["mass_points"]
             ]
         return permutations
