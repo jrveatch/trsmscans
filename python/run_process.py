@@ -182,9 +182,10 @@ def submit_htcondor(mode: str,
     if mode == "scan":
         sh_lines.append(f"    -d {decay} \\")
         sh_lines.append(f"    -s {strategy} \\")
-        sh_lines.append(f"    -p {precision.name.lower()} \\")
-        sh_lines.append(f"    --limit-target {limit_target} \\")
         sh_lines.append(f"    --prescan-points {prescan_points} \\")
+        if precision is not None:
+            sh_lines.append(f"    -p {precision.name.lower()} \\")
+        sh_lines.append(f"    --limit-target {limit_target} \\")
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
     if overwrite:
