@@ -2,9 +2,10 @@ from enum import IntEnum
 
 class Precision(IntEnum):
     INSENSITIVE = 0
-    LOW         = 1
-    MEDIUM      = 2
-    HIGH        = 3
+    COARSE      = 1
+    LOW         = 2
+    MEDIUM      = 3
+    HIGH        = 4
 
     @classmethod
     def from_string(cls, s: str) -> "Precision":

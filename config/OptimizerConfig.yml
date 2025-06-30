@@ -3,6 +3,13 @@ zoom:
   strategy: "percentile" # "percentile" or "rate"
   global_xb_fail_threshold: 0.5
   global_xb_fail_count: 2
+  coarse:
+    local_xb_fail_threshold: 0.2
+    local_xb_fail_count: 2
+    parameter_zoom_rate: 0.2
+    density_growth_rate: 0.05
+    zoom_percentile: 0.98
+    min_points_per_iteration: 10
   low:
     local_xb_fail_threshold: 0.1
     local_xb_fail_count: 2
