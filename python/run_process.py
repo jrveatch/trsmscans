@@ -296,7 +296,7 @@ def main():
 
     for xmass, smass, hmass, limits in mass_points:
         limit_target = min(limits.values()) if limits else args.limit_target
-        if args.precision is None and limit_target < 0:
+        if args.precision is None and limit_target < 0.0:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
