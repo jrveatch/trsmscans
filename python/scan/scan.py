@@ -342,45 +342,46 @@ class Scan:
             all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
             #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
-        # list of which zoom optimizers are running
-        running_list = [True]
+            # list of which zoom optimizers are running
+            running_list = [True]
 
-        # to keep count of which iteration the scan is on
-        iter = 0
+            # to keep count of which iteration the scan is on
+            iter = 0
 
-        while any(running_list) and self.precision != Precision.INSENSITIVE:
+            while any(running_list):
 
-            # check if user has added a set number of iterations
-            if niter > 0 and iter >= niter:
-                logger.info(f"Ending after {niter} iterations as requested")
-                break
+                # check if user has added a set number of iterations
+                if niter > 0 and iter >= niter:
+                    logger.info(f"Ending after {niter} iterations as requested")
+                    break
 
-            # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
-            # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a separate function to check for the maximum is best
+                # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
+                # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
+                # Consider if having a separate function to check for the maximum is best
 
-            # TODO: possibly redistribute points to all active scanners
+                # TODO: possibly redistribute points to all active scanners
 
-            running_list = []
+                running_list = []
 
-            for zoom_optimizer in all_zoom_optimizers:
+                for zoom_optimizer in all_zoom_optimizers:
 
-                if zoom_optimizer.is_running:
+                    if zoom_optimizer.is_running:
 
-                    # store a temp_max to compare against current max_xb
-                    temp_max = zoom_optimizer.run(iter=iter,
-                                                  global_max=self.global_max)
+                        # store a temp_max to compare against current max_xb
+                        temp_max = zoom_optimizer.run(iter=iter,
+                                                    global_max=self.global_max)
 
-                    # store max_xb
-                    self.global_max = max(self.global_max, temp_max)
+                        # store max_xb
+                        self.global_max = max(self.global_max, temp_max)
 
-                    # TODO: keep track of the highest precision used in zoom optimizers when it becomes adaptive
+                        # keep track of the maximum precision used
+                        self.precision = max(self.precision, zoom_optimizer.precision)
 
-                # keeping track of which zoom optimizers are running
-                running_list.append(zoom_optimizer.is_running)
-            
-            # count iteration
-            iter += 1
+                    # keeping track of which zoom optimizers are running
+                    running_list.append(zoom_optimizer.is_running)
+                
+                # count iteration
+                iter += 1
 
         # get total scan time
         scan_end = time.time()
