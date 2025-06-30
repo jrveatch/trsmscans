@@ -51,7 +51,8 @@ class ZoomOptimizer:
                  point_sampler: PointSampler,
                  config_loader: ConfigLoader,
                  label: str,
-                 precision: Precision = Precision.MEDIUM) -> None:
+                 precision: Precision = Precision.MEDIUM,
+                 use_adaptive_precision: bool = False) -> None:
         """
         Initializes a ZoomOptimizer instance with configuration and scan parameters.
 
@@ -63,6 +64,7 @@ class ZoomOptimizer:
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
             precision (Precision, optional): The precision level for the scan.
+            use_adaptive_precision (bool, optional): If True, uses adaptive precision.
         """
 
         # some basic scanner information
@@ -80,6 +82,8 @@ class ZoomOptimizer:
         self.point_sampler = point_sampler
         self.run_test_job = True
 
+        # TODO: implement adaptive precision logic
+        self.use_adaptive_precision = use_adaptive_precision
         self.precision = precision
 
         # get zoom configuration from config file
@@ -131,6 +135,20 @@ class ZoomOptimizer:
     def decay(self) -> str:
         """Returns the decay channel being evaluated (e.g., 'H->SS')."""
         return self.param_space.decay
+
+    @property
+    def precision(self) -> Precision:
+        """
+        Returns the precision level of the scan.
+        """
+        return self._precision
+
+    @precision.setter
+    def precision(self, value: Precision) -> None:
+        """
+        Sets the precision level of the scan.
+        """
+        self._precision = value
 
     def run(self,
             iter: int,
