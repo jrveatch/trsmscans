@@ -75,7 +75,7 @@ class Scan:
         if precision is not None:
             logger.info(f"Precision: {precision}\n")
         else:
-            logger.info("Adaptive precision\n")
+            logger.info("Precision: adaptive\n")
 
         # store model and decay information
         self.model = model
