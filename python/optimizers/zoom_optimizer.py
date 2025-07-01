@@ -227,18 +227,7 @@ class ZoomOptimizer:
 
         # adaptive precision adjustment based on xb value
         if self.use_adaptive_precision:
-            if abs(self.limit_target) < 1e-12:
-                raise ValueError("Cannot adapt precision: limit_target is effectively zero")
-            ratio = self.local_max.xb * 1000 / self.limit_target
-            if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
-                logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2f})")
-                self.precision = Precision.LOW
-            elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
-                logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
-                self.precision = Precision.MEDIUM
-            elif self.precision_threshold_high <= ratio and self.precision != Precision.HIGH:
-                logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
-                self.precision = Precision.HIGH
+            self.update_precision(self.local_max)
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
@@ -284,6 +273,27 @@ class ZoomOptimizer:
         self.termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
         return new_max
+
+    def update_precision(self,
+                         test_point: Point) -> None:
+        """
+        Updates the precision based on the new maximum xb value.
+
+        Args:
+            test_point (Point): The Point to test against self.limit_target.
+        """
+        if abs(self.limit_target) < 1e-12:
+            raise ValueError("Cannot adapt precision: limit_target is effectively zero")
+        ratio = test_point.xb * 1000 / self.limit_target
+        if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
+            logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2f})")
+            self.precision = Precision.LOW
+        elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
+            logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
+            self.precision = Precision.MEDIUM
+        elif self.precision_threshold_high <= ratio and self.precision != Precision.HIGH:
+            logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
+            self.precision = Precision.HIGH
 
     def check_stopping_conditions(self, new_max: Point) -> bool:
         """
