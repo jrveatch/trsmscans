@@ -32,7 +32,7 @@ zoom:
     min_points_per_iteration: 25
   high:
     local_xb_fail_threshold: 0.02
-    local_xb_fail_count: 3
+    local_xb_fail_count: 4
     parameter_zoom_rate: 0.02
     density_growth_rate: 0.5
     zoom_percentile: 0.95
