@@ -8,7 +8,7 @@ precision:
 zoom:
   strategy: "percentile" # "percentile" or "rate"
   global_xb_fail_threshold: 0.5
-  global_xb_fail_count: 2
+  global_xb_fail_count: 3
   coarse:
     local_xb_fail_threshold: 0.2
     local_xb_fail_count: 2
