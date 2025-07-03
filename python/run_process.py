@@ -22,7 +22,7 @@ from utils.file_utils import prescan_dir, scan_dir
 from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
-from utils.model import Model
+from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 import utils.htcondor_utils as htcondor_utils
 from mass_grid.mass_json_utils import get_mass_permutations
@@ -251,9 +251,9 @@ def main():
     arg_parser.add_argument("-S", "--SMass", type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Scan strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
