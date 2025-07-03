@@ -77,6 +77,8 @@ class ZoomOptimizer:
         self.top_percentile_xb = None
         self.global_xb_fail = 0
         self.local_xb_fail = 0
+        self.no_improvement_count = 0
+        self.small_improvement_count = 0
         self.is_running = True
         self.local_history = []
         self.point_sampler = point_sampler
@@ -102,6 +104,9 @@ class ZoomOptimizer:
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
             self.min_points_per_iteration: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'min_points_per_iteration')
+            self.no_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'no_improvement_max')
+            self.small_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'small_improvement_max')
+            self.small_improvement_frac: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'small_improvement_frac')
             self.precision_threshold_low: float = self.config_loader.get('precision', 'threshold_low')
             self.precision_threshold_medium: float = self.config_loader.get('precision', 'threshold_medium')
             self.precision_threshold_high: float = self.config_loader.get('precision', 'threshold_high')
@@ -296,43 +301,67 @@ class ZoomOptimizer:
             logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
             self.precision = Precision.HIGH
 
-    def check_stopping_conditions(self, new_max: Point) -> bool:
+    def check_stopping_conditions(self,
+                                  new_max: Point) -> bool:
         """
         Checks stopping conditions and updates internal state.
+
+        Args:
+            new_max (Point): The new maximum point found in the current iteration.
 
         Returns:
             bool: True if optimization should stop, False otherwise.
         """
-        # Global: new point < global_xb_fail_threshold of current global max
+        # ---- Global stopping condition ----
         if new_max < self.global_max * self.global_xb_fail_threshold:
             self.global_xb_fail += 1
-            if self.global_xb_fail >= self.global_xb_fail_count:
-                self.termination_message(f"Local max is consistently less than {int(self.global_xb_fail_threshold*100)}% of global max")
-                return True
         else:
             self.global_xb_fail = 0
 
+        if self.global_xb_fail >= self.global_xb_fail_count:
+            self.termination_message(f"Local max is consistently less than {int(self.global_xb_fail_threshold*100)}% of global max")
+            return True
+
+        # ---- Local stopping conditions ----
+        if not self.local_history:
+            return False
+
         precision_key = str(self.precision)
 
-        # Local: based on improvement history
-        if len(self.local_history) >= 5:
-            last = self.local_history[-1]
-            second_last = self.local_history[-2]
-            second_best = sorted(self.local_history, key=lambda pt: pt.xb)[-2]
+        # Compare to previous local max
+        if new_max.xb <= self.local_max_old.xb:
+            self.no_improvement_count += 1
+            logger.debug(f"No improvement detected (xb={new_max.xb:.3e})")
+        else:
+            self.no_improvement_count = 0
+        
+        # Compare to Nth best in history
+        sorted_history = sorted(self.local_history, key=lambda pt: pt.xb)
+        nth_index = -self.local_xb_fail_count[precision_key]
+        if abs(nth_index) <= len(sorted_history):
+            reference = sorted_history[nth_index]
+        else:
+            reference = sorted_history[0]  # fallback to worst if not enough points
 
-            # If still improving, but not by enough
-            if last >= second_last:
-                new_max_threshold = self.local_xb_fail_threshold[precision_key]
-                if new_max < second_best * (1.0 + new_max_threshold):
-                    self.local_xb_fail += 1
-                    if self.local_xb_fail >= self.local_xb_fail_count[precision_key]:
-                        self.termination_message(f"Local max is increasing by less than {new_max_threshold*100:.1f}%")
-                        return True
-                else:
-                    self.local_xb_fail = 0
-            elif new_max < second_last:
-                self.termination_message("Local max is not increasing")
-                return True
+        required_frac = self.local_xb_fail_threshold[precision_key]
+        if new_max.xb < reference.xb * (1.0 + required_frac):
+            self.small_improvement_count += 1
+            logger.debug(f"Small improvement (xb={new_max.xb:.3e} vs {reference.xb:.3e})")
+        else:
+            self.small_improvement_count = 0
+
+        # ---- Evaluate stopping ----
+        if self.no_improvement_count >= self.no_improvement_max[precision_key]:
+            self.termination_message(
+                f"No improvement in local max for {self.no_improvement_max[precision_key]} consecutive iterations"
+            )
+            return True
+
+        if self.small_improvement_count >= self.small_improvement_max[precision_key]:
+            self.termination_message(
+                f"Local max improving by less than {int(required_frac * 100)}% for {self.small_improvement_max[precision_key]} iterations"
+            )
+            return True
 
         return False
 
