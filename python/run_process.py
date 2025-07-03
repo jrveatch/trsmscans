@@ -8,7 +8,7 @@ either locally or via HTCondor. Supports grid scanning, logging, and dry-run mod
 
 Usage examples:
     python run_process.py --mode scan -X 600 -S 300 -m TRSMBroken -d SHbbbb -s zoom -n 1000
-    python run_process.py --mode scan --batch -l -i CMS -m TRSMBroken -d SHbbbb -s zoom -n 5000 -p 1000 -t 5
+    python run_process.py --mode scan --batch -l -i CMS -m TRSMBroken -d SHbbbb -s zoom -n 5000
 """
 
 import argparse
@@ -64,7 +64,8 @@ def run_scan(model: Model,
              overwrite: bool,
              iterations: int,
              log_level: int,
-             precision: Precision = Precision.MEDIUM,
+             precision: Optional[Precision] = None,
+             limit_target: float = -1.0,
              dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
@@ -78,7 +79,8 @@ def run_scan(model: Model,
         overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
         log_level (int): Logging verbosity level.
-        precision (Precision): Precision level for optimization.
+        precision (Optional[Precision]): Precision level for optimization.
+        limit_target (float): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
 
     Raises:
@@ -97,7 +99,8 @@ def run_scan(model: Model,
                 decay=decay,
                 prescan_points=prescan_points,
                 overwrite=overwrite,
-                precision=precision)
+                precision=precision,
+                limit_target=limit_target)
 
     if strategy == "zoom":
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
@@ -115,7 +118,8 @@ def submit_htcondor(mode: str,
                     strategy: Optional[str] = None,
                     xmass: float = -1.0,
                     smass: float = -1.0,
-                    precision: Precision = Precision.MEDIUM,
+                    precision: Optional[Precision] = None,
+                    limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
                     overwrite: bool = False,
@@ -133,7 +137,8 @@ def submit_htcondor(mode: str,
         strategy (Optional[str]): Optimization strategy (required for scan).
         xmass (float): X scalar mass in GeV.
         smass (float): S scalar mass in GeV.
-        precision (Precision): Precision level for optimization.
+        precision (Optional[Precision]): Precision level for optimization.
+        limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
         overwrite (bool): Whether to overwrite previous runs.
@@ -177,8 +182,10 @@ def submit_htcondor(mode: str,
     if mode == "scan":
         sh_lines.append(f"    -d {decay} \\")
         sh_lines.append(f"    -s {strategy} \\")
-        sh_lines.append(f"    -p {precision.name.lower()} \\")
-        sh_lines.append(f"    --prescan_points {prescan_points} \\")
+        sh_lines.append(f"    --prescan-points {prescan_points} \\")
+        if precision is not None:
+            sh_lines.append(f"    -p {precision.name.lower()} \\")
+        sh_lines.append(f"    --limit-target {limit_target} \\")
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
     if overwrite:
@@ -248,14 +255,15 @@ def main():
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", type=str, choices=['zoom','meanshift'], help="Scan strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("--prescan_points", default=-1, type=int, help="Number of prescan points when using scan mode")
+    arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
+    arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
-    arg_parser.add_argument("-c", "--num_cpus", default=8, type=int, help="Number of CPUs to request for the job")
-    arg_parser.add_argument("-j", "--job_length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
+    arg_parser.add_argument("-c", "--num-cpus", default=8, type=int, help="Number of CPUs to request for the job")
+    arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
-    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Set optimization precision level")
+    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None, help="Fix optimization precision level. If not set, precision is adapted automatically.")
     args = arg_parser.parse_args()
 
     log_level = LOG_LEVELS[args.log_level.lower()]
@@ -278,16 +286,19 @@ def main():
         if not args.identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
-        mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
+        mass_points = [(x, s, args.HMass, limits) for x, s, _, limits in permutations]
         print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
-    elif args.XMass and args.SMass:
-        mass_points = [(args.XMass, args.SMass, args.HMass)]
+    elif args.XMass is not None and args.SMass is not None:
+        mass_points = [(args.XMass, args.SMass, args.HMass, {})]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     job_count = 0
 
-    for xmass, smass, hmass in mass_points:
+    for xmass, smass, hmass, limits in mass_points:
+        limit_target = min(limits.values()) if limits else args.limit_target
+        if args.precision is None and limit_target < 0.0:
+            raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
                 status, _ = get_mass_point_status(
@@ -297,12 +308,13 @@ def main():
                     smass=smass,
                     threshold=args.num_points,
                     mode=args.mode,
-                    strategy=args.strategy
+                    strategy=args.strategy,
+                    precision=args.precision
                 )
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
                 continue
-            if status not in {"missing", "below_threshold"}:
+            if status not in {"missing", "below_threshold", "low_precision"}:
                 print(f"Skipping X={xmass}, S={smass}: status = {status}")
                 continue
 
@@ -317,6 +329,8 @@ def main():
                             strategy=args.strategy,
                             xmass=xmass,
                             smass=smass,
+                            precision=args.precision,
+                            limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
                             overwrite=args.overwrite,
@@ -330,13 +344,12 @@ def main():
                             log_level=log_level,
                             dry_run=args.dry_run)
             else:
-                if not args.decay or not args.strategy:
-                    raise ValueError("Scan mode requires --decay and --strategy")
                 run_scan(model=model,
                          decay=args.decay,
                          strategy=args.strategy,
                          num_points=args.num_points,
                          precision=args.precision,
+                         limit_target=limit_target,
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
@@ -349,6 +362,8 @@ def main():
             print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{args.decay}' '{args.identifier}'")
         else:
             print(f"\nSuccessfully processed job for X={args.XMass}, S={args.SMass}")
+    if job_count == 0:
+        print("\nNo jobs were submitted or executed. All mass points may already be processed.")
 
 if __name__ == "__main__":
     main()

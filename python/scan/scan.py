@@ -35,7 +35,8 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
-                 precision: Precision = Precision.MEDIUM,
+                 precision: Optional[Precision] = None,
+                 limit_target: float = -1.0,
                  prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -47,8 +48,10 @@ class Scan:
         Args:
             model (Model): The physical model object containing parameter definitions.
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
-            precision (Precision, optional): The precision level for the scan.
-                Defaults to Precision.MEDIUM.
+            precision (Optional[Precision]): The precision level for the scan.
+                Defaults to None.
+            limit_target (float, optional): The target experimental limit for setting precision.
+                Defaults to -1.0.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             overwrite (bool, optional): Whether to overwrite existing scan results.
@@ -68,7 +71,11 @@ class Scan:
         logger.info("Creating a new scan")
         logger.info(f"Model: {model.name}")
         logger.info(f"Masses: {model.masses}")
-        logger.info(f"Decay: {decay}\n")
+        logger.info(f"Decay: {decay}")
+        if precision is not None:
+            logger.info(f"Precision: {precision}\n")
+        else:
+            logger.info("Precision: adaptive\n")
 
         # store model and decay information
         self.model = model
@@ -93,12 +100,15 @@ class Scan:
         try:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
+            self.precision_threshold_coarse: float = self.optimizer_config_loader.get('precision', 'threshold_coarse')
         except Exception as e:
             logger.exception(e)
             raise
 
-        # set precision
+        # set precision, limit target and adaptive precision flag
         self.precision = precision
+        self.limit_target = limit_target
+        self.use_adaptive_precision = precision is None
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -196,6 +206,13 @@ class Scan:
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
+
+        # check ratio of prescan max xb in fb to limit_target
+        if self.use_adaptive_precision:
+            ratio = self.global_max.xb * 1000 / self.limit_target
+            if ratio < self.precision_threshold_coarse:
+                logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
+                self.precision = Precision.INSENSITIVE
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -312,10 +329,11 @@ class Scan:
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
                       strategy="zoom",
-                      num_points=num_points) and not self.overwrite:
-                logger.info(f"Skipping scan requested with {num_points} points.")
-                logger.info("Use the -o option to overwrite the existing run.\n")
-                return
+                      num_points=num_points,
+                      precision=self.precision) and not self.overwrite:
+            logger.info(f"Skipping scan requested with {num_points} points.")
+            logger.info("Use the -o option to overwrite the existing run.\n")
+            return
 
         # initialize output directories and files
         self.initialize_output("zoom")
@@ -324,48 +342,53 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
-        #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
+        if self.precision != Precision.INSENSITIVE:
+            all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
+            #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
-        # list of which zoom optimizers are running
-        running_list = [True]
+            # list of which zoom optimizers are running
+            running_list = [True]
 
-        # to keep count of which iteration the scan is on
-        iter = 0
+            # to keep count of which iteration the scan is on
+            iter = 0
 
-        while any(running_list) and self.precision != Precision.INSENSITIVE:
+            while any(running_list):
 
-            # check if user has added a set number of iterations
-            if niter > 0 and iter >= niter:
-                logger.info(f"Ending after {niter} iterations as requested")
-                break
+                # check if user has added a set number of iterations
+                if niter > 0 and iter >= niter:
+                    logger.info(f"Ending after {niter} iterations as requested")
+                    break
 
-            # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
-            # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a separate function to check for the maximum is best
+                # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
+                # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
+                # Consider if having a separate function to check for the maximum is best
 
-            # TODO: possibly redistribute points to all active scanners
+                # TODO: possibly redistribute points to all active scanners
 
-            running_list = []
+                running_list = []
 
-            for zoom_optimizer in all_zoom_optimizers:
+                for zoom_optimizer in all_zoom_optimizers:
 
-                if zoom_optimizer.is_running:
+                    if zoom_optimizer.is_running:
 
-                    # store a temp_max to compare against current max_xb
-                    temp_max = zoom_optimizer.run(iter=iter,
-                                                  global_max=self.global_max)
+                        # store a temp_max to compare against current max_xb
+                        temp_max = zoom_optimizer.run(iter=iter,
+                                                    global_max=self.global_max)
 
-                    # store max_xb
-                    self.global_max = max(self.global_max, temp_max)
+                        # store max_xb
+                        self.global_max = max(self.global_max, temp_max)
 
-                    # TODO: keep track of the highest precision used in zoom optimizers when it becomes adaptive
+                        # keep track of the maximum precision used
+                        if self.precision is None:
+                            self.precision = Precision.LOW
+                        if zoom_optimizer.precision is not None:
+                            self.precision = max(self.precision, zoom_optimizer.precision)
 
-                # keeping track of which zoom optimizers are running
-                running_list.append(zoom_optimizer.is_running)
-            
-            # count iteration
-            iter += 1
+                    # keeping track of which zoom optimizers are running
+                    running_list.append(zoom_optimizer.is_running)
+                
+                # count iteration
+                iter += 1
 
         # get total scan time
         scan_end = time.time()
@@ -449,6 +472,7 @@ class Scan:
                 num_points = num_scanner_points,
                 param_space = params_copy,
                 precision= self.precision,
+                limit_target=self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -557,6 +581,7 @@ class Scan:
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
                 precision= self.precision,
+                limit_target=self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,

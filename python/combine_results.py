@@ -36,7 +36,7 @@ def combine_results(model: str,
     open(combination_file_name, 'w').close()
     open(tsv_combination_file_name, 'w').close()
 
-    for XMass, SMass, resolvable in permutations:
+    for XMass, SMass, resolvable, _ in permutations:
 
         # Get the directory for the mass point
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
