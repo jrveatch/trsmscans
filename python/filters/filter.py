@@ -49,7 +49,7 @@ class FilterPipeline:
         try:
             config = ConfigLoader("RunConfig.yml")
             min_chunk_size: int = config.get("bounds", "min_chunk_size")
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to load bounds filtering configuration.")
             raise
         self.width_filter = WidthFilter(model)

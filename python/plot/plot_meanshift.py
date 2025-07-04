@@ -7,7 +7,6 @@ that show how optimization paths evolve in parameter space, optionally colored
 by cross section times branching ratio (xb) or other metrics.
 """
 
-import argparse
 from itertools import combinations
 import os
 from typing import Any, cast, Sequence
