@@ -185,7 +185,7 @@ def get_mass_point_status(model_name: str,
         with open(path, "r") as f:
             data = json.load(f)
 
-        existing_precision_str = data.get("precision")
+        existing_precision_str: str = data.get("precision")
         # Handle missing or invalid precision from file
         if existing_precision_str is None:
             if precision is not None:
