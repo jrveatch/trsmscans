@@ -17,7 +17,7 @@ def main():
     arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
     arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Scan strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
     # Load mass points

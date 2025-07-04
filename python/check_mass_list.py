@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     parser.add_argument("-i", "--identifier", required=True, type=str, help="Set identifier")
     parser.add_argument("-t", "--threshold", required=True, type=int, help="Point count threshold")
-    parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Scan strategy (required for scan mode)")
+    parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy (required for scan mode)")
     parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Precision level threshold")
     args = parser.parse_args()
 
