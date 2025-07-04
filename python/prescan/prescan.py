@@ -14,7 +14,6 @@ import datetime
 import logging
 import os
 import time
-from typing import Union
 
 # local modules
 from utils.config_loader import ConfigLoader

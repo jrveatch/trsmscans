@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from calendar import prcal
 import os
 import argparse
 import json

@@ -55,7 +55,7 @@ class WidthFilter:
                 config_loader.get('width', 'max_width_S'),
                 config_loader.get('width', 'max_width_X'),
             ])
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to load width thresholds from config.")
             raise
 
@@ -89,5 +89,5 @@ class WidthFilter:
             logger.error(f"Missing required mass/width columns in DataFrame: {e}")
             raise
         except Exception as e:
-            logger.exception("Error occurred while applying width filter.")
+            logger.exception(f"Error occurred while applying width filter: {e}")
             raise

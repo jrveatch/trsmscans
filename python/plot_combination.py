@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from math import exp
 import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors

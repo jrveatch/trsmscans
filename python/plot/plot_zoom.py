@@ -8,7 +8,6 @@ binned maximum-`xb` heatmaps.
 """
 
 # standard libraries
-import argparse
 from collections import defaultdict
 from functools import cached_property
 from itertools import combinations

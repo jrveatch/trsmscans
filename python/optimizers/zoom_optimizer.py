@@ -76,7 +76,6 @@ class ZoomOptimizer:
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
-        self.local_xb_fail = 0
         self.no_improvement_count = 0
         self.small_improvement_count = 0
         self.is_running = True
@@ -98,7 +97,6 @@ class ZoomOptimizer:
             self.strategy: str = self.config_loader.get('zoom', 'strategy')
             self.global_xb_fail_threshold: float = self.config_loader.get('zoom', 'global_xb_fail_threshold')
             self.global_xb_fail_count: int = self.config_loader.get('zoom', 'global_xb_fail_count')
-            self.local_xb_fail_threshold: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_threshold')
             self.local_xb_fail_count: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_count')
             self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
@@ -343,7 +341,7 @@ class ZoomOptimizer:
         else:
             reference = sorted_history[0]  # fallback to worst if not enough points
 
-        required_frac = self.local_xb_fail_threshold[precision_key]
+        required_frac = self.small_improvement_frac[precision_key]
         if new_max.xb < reference.xb * (1.0 + required_frac):
             self.small_improvement_count += 1
             logger.debug(f"Small improvement (xb={new_max.xb:.3e} vs {reference.xb:.3e})")
