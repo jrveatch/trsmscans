@@ -3,7 +3,7 @@
 import argparse
 
 from mass_grid.mass_json_utils import get_mass_permutations
-from utils.model import Model
+from utils.model import Model, supported_models
 from plot.plot_meanshift import MeanShiftPlotter
 from plot.plot_zoom import ZoomPlotter
 
@@ -15,9 +15,9 @@ def main():
     arg_parser.add_argument("-S", "--SMass", type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", required=True, type=str, choices=['zoom','meanshift'], help="Scan strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Scan strategy")
     args = arg_parser.parse_args()
 
     # Load mass points
