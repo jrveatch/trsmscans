@@ -10,7 +10,7 @@ from utils.tsv_utils import count_tsv_points
 from mass_grid.mass_json_utils import get_mass_permutations
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
-from utils.model import Model
+from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 
 def check_mass_list(model_name: str,
@@ -196,11 +196,11 @@ def get_mass_point_status(model_name: str,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--mode", required=True, choices=["prescan", "scan"], help="Which type of file to evaluate")
-    parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     parser.add_argument("-i", "--identifier", required=True, type=str, help="Set identifier")
     parser.add_argument("-t", "--threshold", required=True, type=int, help="Point count threshold")
-    parser.add_argument("-s", "--strategy", required=False, type=str, help="Scan strategy (required for scan mode)")
+    parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy (required for scan mode)")
     parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=Precision.MEDIUM, help="Precision level threshold")
     args = parser.parse_args()
 

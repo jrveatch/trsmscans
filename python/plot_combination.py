@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple
 
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
+from utils.model import supported_models
 from utils.plot_utils import interpolate_grid, mass_label, xb_label
 
 XRES = 200
@@ -364,7 +365,7 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 if __name__ =="__main__":
 
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
     arg_parser.add_argument("-l", "--plot-limits", action="store_true", help="Produce exclusion limits plots")
