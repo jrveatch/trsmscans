@@ -184,9 +184,23 @@ def get_mass_point_status(model_name: str,
             return "missing", None
         with open(path, "r") as f:
             data = json.load(f)
-        prev_precision = data.get("precision", Precision.INSENSITIVE)
-        if precision is not None and Precision.from_string(prev_precision) < precision:
-            return ("low_precision", prev_precision)
+
+        existing_precision_str: str = data.get("precision")
+        # Handle missing or invalid precision from file
+        if existing_precision_str is None:
+            if precision is not None:
+                return "low_precision", None  # Precision was requested, but missing in metadata
+            prev_precision = None
+        else:
+            try:
+                prev_precision = Precision.from_string(existing_precision_str)
+            except ValueError:
+                # If string is invalid or malformed, treat as too low to be safe
+                return "low_precision", None
+        # Now compare, if required
+        if precision is not None and (prev_precision is None or prev_precision < precision):
+            return "low_precision", prev_precision
+
         count = data.get("num_points", 0)
         return ("ok", count) if count >= threshold else ("below_threshold", count)
 
