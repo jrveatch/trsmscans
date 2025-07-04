@@ -6,6 +6,7 @@ import os
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
 from mass_grid.mass_json_utils import get_mass_permutations
+from utils.model import supported_models
 from utils.tsv_utils import parse_tsv_file
 
 HIGGS_MASS = 125.09
@@ -128,10 +129,10 @@ if __name__ == "__main__":
 
     # Parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
     arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Set identifier")
-    arg_parser.add_argument("-s", "--strategy", required=True, type=str, choices=['zoom','meanshift'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
     combine_results(model=args.model,
