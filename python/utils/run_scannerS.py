@@ -151,7 +151,8 @@ def run_scannerS(ini_name: str,
                           model_name=model_name)
         tsv_files.append(f"{model_name}.tsv")
 
-    df = load_scanner_output(tsv_files)
+    # get dataframe from the output files
+    data = load_scanner_output(tsv_files)
 
     # clean up artifact files
     remove_artifact_files(model_name)
@@ -160,7 +161,7 @@ def run_scannerS(ini_name: str,
     remove_temp_directories(directories)
 
     # return dataframe
-    return df
+    return data
 
 def run_scannerS_single_point(ini_name: str,
                               model_name: str) -> pd.DataFrame:
