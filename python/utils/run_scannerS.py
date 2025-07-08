@@ -154,6 +154,9 @@ def run_scannerS(ini_name: str,
 
     df = load_scanner_output(tsv_files)
 
+    # clean up artifact files
+    remove_artifact_files(model_name)
+
     # remove temporary directories
     remove_temp_directories(directories)
 
@@ -241,9 +244,6 @@ def run_timed_process(process_args: List[str],
 
             # wait 1 second before checking again
             time.sleep(1)
-
-    # clean up artifact files
-    remove_artifact_files(model_name)
 
 # get a list of the outputs from parallel processes
 def list_outputs(directories: List[str],
