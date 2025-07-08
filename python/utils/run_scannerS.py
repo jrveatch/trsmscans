@@ -243,7 +243,7 @@ def run_timed_process(process_args: List[str],
             time.sleep(1)
 
     # clean up artifact files
-    remove_artifact_files()
+    remove_artifact_files(model_name)
 
 # get a list of the outputs from parallel processes
 def list_outputs(directories: List[str],
@@ -287,12 +287,13 @@ def remove_temp_dir(directory, retries=5, delay=1):
             return
     logger.exception(f"Failed to remove {directory} after {retries} retries.")
 
-def remove_artifact_files() -> None:
+def remove_artifact_files(model_name: str) -> None:
     """Remove artifact files that are not needed after the scan."""
     artifact_files = ["HS_analyses.txt",
                       "HS_correlations.txt",
                       "Key.dat", "STXS_analyses.txt",
-                      "STXS_correlations.txt",]
+                      "STXS_correlations.txt",
+                      f"{model_name}.tsv"]
     for file in artifact_files:
         if os.path.exists(file):
             os.remove(file)
