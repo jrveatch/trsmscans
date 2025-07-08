@@ -83,9 +83,6 @@ class FilterPipeline:
                                  header_signals=self.header_signals,
                                  use_multiprocessing=use_multiprocessing)
 
-        # Write updated dataframe
-        #write_to_tsv(data, file_name)
-
         # Compute stats
         f_width = data[self.header_width].astype(bool)
         f_bounds = data[self.header_bounds].astype(bool)
