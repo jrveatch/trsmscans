@@ -21,7 +21,6 @@ from utils.config_loader import ConfigLoader
 from utils.cpu_utils import get_n_cpus
 from utils.df_utils import load_scanner_output
 from utils.env_utils import data_dir
-from utils.tsv_utils import save_tsv_output
 
 # get logger
 logger = logging.getLogger(__name__)
