@@ -79,6 +79,9 @@ def run_scannerS(ini_name: str,
     # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
 
+        # set points_to_run
+        points_to_run = num_points
+
         # run test process if requested
         if run_test_job:
             logger.debug(f"Running a test job with {min_points_per_job} points")
@@ -87,10 +90,8 @@ def run_scannerS(ini_name: str,
             run_timed_process(process_args=test_process_args,
                               model_name=model_name)
             tsv_files.append(f"{model_name}.tsv")
+            points_to_run -= min_points_per_job
             logger.debug("Test job was successful")
-
-        # number of points left to run after test job
-        points_to_run = num_points - min_points_per_job
 
         # set number of processes to the number of allowed CPUs
         num_processes = num_cpu
@@ -99,7 +100,7 @@ def run_scannerS(ini_name: str,
         points_per_process = math.ceil(points_to_run/num_processes)
 
         # if points_per_process is less than min_points_per_job, reduce the number of jobs
-        if points_per_process < min_points_per_job:
+        if points_per_process <= min_points_per_job:
             num_processes = math.ceil(points_to_run/min_points_per_job)
             points_per_process = min_points_per_job
 
@@ -110,7 +111,9 @@ def run_scannerS(ini_name: str,
         logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
-        num_points = points_to_run + min_points_per_job
+        num_points = points_to_run
+        if run_test_job:
+            num_points += min_points_per_job
 
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
