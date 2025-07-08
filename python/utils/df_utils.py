@@ -26,14 +26,9 @@ def get_df(file_name: str) -> pd.DataFrame:
     """
 
     # load the file into a dataframe
-    dataframe = pd.read_csv(file_name,
-                            sep='\t',
-                            header=0)
-
-    # drop the first column by position
-    dataframe = dataframe.drop(dataframe.columns[0], axis=1)
-
-    return dataframe
+    return pd.read_csv(file_name,
+                       sep='\t',
+                       index_col=0)
 
 def load_scanner_output(input_files: List[str]) -> pd.DataFrame:
     """
