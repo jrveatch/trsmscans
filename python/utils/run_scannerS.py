@@ -10,7 +10,7 @@ import os
 import shutil
 import subprocess
 import time
-from typing import List
+from typing import List, Optional
 
 # third-party libraries
 from blessings import Terminal
@@ -31,9 +31,17 @@ try:
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
+    # random seed for ScannerS - should generally be None, unless needed for development
+    initial_seed: Optional[int] = config_loader.get('ScannerS', 'seed', default=None)
 except Exception as e:
     logger.exception(e)
     raise
+
+# initialize seed as an evolving counter
+if mp.current_process().name == "MainProcess":
+    if initial_seed is not None:
+        logger.info(f"Using {initial_seed} as initial ScannerS seed\n")
+seed = initial_seed
 
 # method to run ScannerS
 def run_scannerS(ini_name: str,
@@ -112,10 +120,13 @@ def run_scannerS(ini_name: str,
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
 
-        # define process
-        process_args = get_process_args(model_name=model_name,
-                                        ini_name=ini_name,
-                                        num_points=points_per_process)
+        # define process args for each job (seed increments here)
+        process_args_list = [
+            get_process_args(model_name=model_name,
+                             ini_name=ini_name,
+                             num_points=points_per_process)
+            for _ in directories
+        ]
 
         # create a shared counter and a lock
         counter: ValueProxy = mp.Manager().Value("i",0)
@@ -128,7 +139,10 @@ def run_scannerS(ini_name: str,
         with mp.Pool(processes=num_processes) as pool:
 
             # map the run_process function to each directory
-            pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
+            pool.starmap(run_process, [
+                (args, directory, num_processes, counter, lock)
+                for args, directory in zip(process_args_list, directories)
+                ])
 
             # wait for all processes to finish
             pool.close()
@@ -302,7 +316,19 @@ def get_process_args(model_name: str,
                      ini_name: str,
                      num_points: int) -> List[str]:
     args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+    s = next_seed()
+    if s is not None:
+        args.extend(["--seed", str(s)])
     return args
+
+def next_seed() -> Optional[int]:
+    global seed
+    if seed is None:
+        return None
+    current = seed
+    seed += 1
+    logger.debug(f"Assigning seed: {current}")
+    return current
 
 if __name__ == "__main__":
 
