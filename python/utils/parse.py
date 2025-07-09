@@ -35,12 +35,14 @@ class Parse:
 
     def __init__(self,
                  model: Model,
+                 data: Optional[pd.DataFrame] = None,
                  file_name: str = ""):
         """
         Initializes the parser with a model and optionally loads scan data from a file.
 
         Args:
             model (Model): The model used to interpret parameter names and scalar definitions.
+            data (Optional[pd.DataFrame]): 
             file_name (str, optional): Path to a .tsv file to load immediately (default is empty).
         """
 
@@ -48,10 +50,12 @@ class Parse:
         self.__model = model
 
         # initialize class variables
-        self.data: pd.DataFrame = pd.DataFrame()
+        self.__data: pd.DataFrame = pd.DataFrame()
 
         # get arrays from file name if it is provided
-        if file_name:
+        if data is not None:
+            self.data = data
+        elif file_name:
             self.read_file(file_name)
 
     @property
@@ -68,6 +72,17 @@ class Parse:
     def SName(self) -> str:
         """Returns the name of the S scalar defined in the model."""
         return self.model.get_ordered_scalar_name('S')
+
+    @property
+    def data(self) -> pd.DataFrame:
+        """Returns the data"""
+        return self.__data
+
+    @data.setter
+    def data(self,
+             new_data: pd.DataFrame) -> None:
+        """Sets the data"""
+        self.__data = new_data
 
     @property
     def filtered_data(self) -> pd.DataFrame:

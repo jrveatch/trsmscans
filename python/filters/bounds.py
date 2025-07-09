@@ -98,7 +98,7 @@ class BoundsFilter:
         }
 
     def apply(self,
-              dataframe: pd.DataFrame,
+              data: pd.DataFrame,
               header_bounds: str,
               header_signals: str,
               use_multiprocessing: bool = True) -> None:
@@ -108,15 +108,15 @@ class BoundsFilter:
         Adds two columns indicating pass/fail status for HiggsBounds and HiggsSignals.
 
         Args:
-            dataframe (pd.DataFrame): The scan data.
+            data (pd.DataFrame): The scan data.
             header_bounds (str): Column name for HiggsBounds result.
             header_signals (str): Column name for HiggsSignals result.
             use_multiprocessing (bool): If True, enables parallel filtering.
         """
         n_workers = get_n_cpus() if use_multiprocessing else 1
-        filt_bounds, filt_signals = self._run_processing(dataframe, n_workers)
-        dataframe[header_bounds] = filt_bounds
-        dataframe[header_signals] = filt_signals
+        filt_bounds, filt_signals = self._run_processing(data, n_workers)
+        data[header_bounds] = filt_bounds
+        data[header_signals] = filt_signals
 
     def _run_processing(self,
                         df: pd.DataFrame,

@@ -13,12 +13,13 @@ from typing import List, Optional
 
 # third-party libraries
 from blessings import Terminal
+import pandas as pd
 
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.cpu_utils import get_n_cpus
+from utils.df_utils import load_scanner_output
 from utils.env_utils import data_dir
-from utils.tsv_utils import save_tsv_output
 
 # get logger
 from utils.logging_utils import VERBOSE_LEVEL
@@ -49,11 +50,17 @@ def run_scannerS(ini_name: str,
                  num_points: int,
                  model_name: str,
                  use_multiprocessing: bool = True,
-                 run_test_job: bool = True) -> int:
+                 run_test_job: bool = True) -> pd.DataFrame:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
         raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+    
+    # list of output.tsv files
+    tsv_files: List[str] = []
+
+    # list of temporary directories
+    directories: List[str] = []
 
     # initialize number of processes to 1
     num_processes = 1
@@ -93,6 +100,7 @@ def run_scannerS(ini_name: str,
             logger.debug("Running test job to check if ScannerS works with the given configuration")
             run_timed_process(process_args=test_process_args,
                               model_name=model_name)
+            tsv_files.append(f"{model_name}.tsv")
             points_to_run -= min_points_per_job
             logger.debug("Test job was successful")
 
@@ -113,10 +121,6 @@ def run_scannerS(ini_name: str,
         # print out some information
         logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
-
-        num_points = points_to_run
-        if run_test_job:
-            num_points += min_points_per_job
 
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
@@ -152,9 +156,8 @@ def run_scannerS(ini_name: str,
         # success message
         logger.info("All processes finished. Merging outputs...")
 
-        # combine the outputs into a single file
-        concatenate_files(directories=directories,
-                          file_name=model_name+".tsv")
+        tsv_files += list_outputs(directories=directories,
+                                  file_name=model_name+".tsv")
 
     else:
         logger.info("Running as a single process")
@@ -167,12 +170,22 @@ def run_scannerS(ini_name: str,
         # run test process
         run_timed_process(process_args=process_args,
                           model_name=model_name)
+        tsv_files.append(f"{model_name}.tsv")
 
-    # return number of points that are actually used, including test job points
-    return num_points
+    # get dataframe from the output files
+    data = load_scanner_output(tsv_files)
+
+    # clean up artifact files
+    remove_artifact_files(model_name)
+
+    # remove temporary directories
+    remove_temp_directories(directories)
+
+    # return dataframe
+    return data
 
 def run_scannerS_single_point(ini_name: str,
-                              model_name: str) -> None:
+                              model_name: str) -> pd.DataFrame:
     """Runs ScannerS for a single parameter point using the given model configuration.
 
     Args:
@@ -192,6 +205,8 @@ def run_scannerS_single_point(ini_name: str,
     # run timed process
     run_timed_process(process_args=process_args,
                       model_name=model_name)
+
+    return load_scanner_output([f"{model_name}.tsv"])
 
 # run a process for multiprocessing
 def run_process(process_args: List[str],
@@ -253,29 +268,24 @@ def run_timed_process(process_args: List[str],
             # wait 1 second before checking again
             time.sleep(1)
 
-    # clean up artifact files
-    remove_artifact_files()
+# get a list of the outputs from parallel processes
+def list_outputs(directories: List[str],
+                 file_name: str) -> List[str]:
+    output_list: List[str] = []
+    for directory in directories:
+        input_file = os.path.join(directory, file_name)
+        # Check if the file exists before attempting to concatenate
+        if os.path.exists(input_file):
+            output_list.append(input_file)
+        else:
+            logger.warning(f"Missing expected file: {input_file}")
+    return output_list
 
-# concatenate outputs from parallel processes into a single .tsv file
-def concatenate_files(directories: List[str],
-                      file_name: str) -> None:
+def remove_temp_directories(directories: List[str]) -> None:
 
-    try:
-        # Loop over directories and concatenate their .tsv files
-        for directory in directories:
-            input_file = os.path.join(directory, file_name)
-
-            # Check if the file exists before attempting to concatenate
-            if os.path.exists(input_file):
-                save_tsv_output(input_file=input_file, output_file=file_name)
-            else:
-                logger.warning(f"Missing expected file: {input_file}")
-
-        logger.debug(f"Successfully concatenated all files into {file_name}")
-
-    except Exception as e:
-        logger.exception(f"Error during file concatenation: {e}")
-        return  # Do not proceed with deleting directories
+    # Skip if directories is an empty list
+    if not directories:
+        return
 
     # If everything worked, proceed to delete directories
     logger.debug("Removing temp directories")
@@ -302,12 +312,13 @@ def remove_temp_dir(directory, retries=5, delay=1):
             return
     logger.exception(f"Failed to remove {directory} after {retries} retries.")
 
-def remove_artifact_files() -> None:
+def remove_artifact_files(model_name: str) -> None:
     """Remove artifact files that are not needed after the scan."""
     artifact_files = ["HS_analyses.txt",
                       "HS_correlations.txt",
                       "Key.dat", "STXS_analyses.txt",
-                      "STXS_correlations.txt",]
+                      "STXS_correlations.txt",
+                      f"{model_name}.tsv"]
     for file in artifact_files:
         if os.path.exists(file):
             os.remove(file)
