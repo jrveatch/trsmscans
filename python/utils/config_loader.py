@@ -13,6 +13,8 @@ from utils.env_utils import config_dir
 import logging
 logger = logging.getLogger(__name__)
 
+_MISSING = object()  # sentinel value
+
 class ConfigLoader:
     """
     Loads and provides access to structured configuration data from a YAML file.
@@ -42,7 +44,7 @@ class ConfigLoader:
         if config_path is None:
             config_path = config_dir()
 
-        logger.info(f"Loading configuration from {os.path.join(config_path,config_file_name)}")
+        logger.debug(f"Loading configuration from {os.path.join(config_path,config_file_name)}")
 
         self.config = self.load_config(os.path.join(config_path,config_file_name))
         self.level_index = self.build_level_index(self.config)
@@ -80,13 +82,16 @@ class ConfigLoader:
 
     def get(self,
             section: str,
-            key: str) -> Any:
+            key: str,
+            default: Any = _MISSING) -> Any:
         """
         Retrieve a configuration value from a given section and key.
 
         Args:
             section (str): The section name in the configuration file.
             key (str): The key name within the section.
+            default (Any, optional): Fallback value if key is missing.
+                                     If not set, raises KeyError. Defaults to _MISSING.
 
         Returns:
             Any: The value from the configuration.
@@ -97,14 +102,24 @@ class ConfigLoader:
         """
 
         try:
-            value = self.config.get(section, {}).get(key)
-            if value is None:
-                raise KeyError(f"Missing configuration for '{section}.{key}'")
+            section_dict = self.config.get(section)
+            if section_dict is None:
+                if default is not _MISSING:
+                    return default
+                raise KeyError(f"Missing configuration section: '{section}'")
+
+            value = section_dict.get(key, _MISSING)
+            if value is not _MISSING:
+                return value
+
+            if default is not _MISSING:
+                return default
+
+            raise KeyError(f"Missing configuration for '{section}.{key}'")
+
         except Exception as e:
             logger.exception(e)
             raise
-        else:
-            return value
 
     def build_level_index(self,
                           config: Dict[str, Any]) -> Dict[str, Dict[str, Dict[str, Any]]]:

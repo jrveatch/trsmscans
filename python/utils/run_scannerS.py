@@ -10,7 +10,7 @@ import os
 import shutil
 import subprocess
 import time
-from typing import List
+from typing import List, Optional
 
 # third-party libraries
 from blessings import Terminal
@@ -31,9 +31,17 @@ try:
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
+    # random seed for ScannerS - should generally be None, unless needed for development
+    initial_seed: Optional[int] = config_loader.get('ScannerS', 'seed', default=None)
 except Exception as e:
     logger.exception(e)
     raise
+
+# initialize seed as an evolving counter
+if mp.current_process().name == "MainProcess":
+    if initial_seed is not None:
+        logger.info(f"Using {initial_seed} as initial ScannerS seed\n")
+seed = initial_seed
 
 # method to run ScannerS
 def run_scannerS(ini_name: str,
@@ -78,7 +86,9 @@ def run_scannerS(ini_name: str,
         # run test process if requested
         if run_test_job:
             logger.debug(f"Running a test job with {min_points_per_job} points")
-            test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
+            test_process_args = get_process_args(model_name=model_name,
+                                                 ini_name=ini_name,
+                                                 num_points=min_points_per_job)
             logger.debug("Running test job to check if ScannerS works with the given configuration")
             run_timed_process(process_args=test_process_args,
                               model_name=model_name)
@@ -110,8 +120,13 @@ def run_scannerS(ini_name: str,
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
 
-        # define process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+        # define process args for each job (seed increments here)
+        process_args_list = [
+            get_process_args(model_name=model_name,
+                             ini_name=ini_name,
+                             num_points=points_per_process)
+            for _ in directories
+        ]
 
         # create a shared counter and a lock
         counter: ValueProxy = mp.Manager().Value("i",0)
@@ -124,7 +139,10 @@ def run_scannerS(ini_name: str,
         with mp.Pool(processes=num_processes) as pool:
 
             # map the run_process function to each directory
-            pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
+            pool.starmap(run_process, [
+                (args, directory, num_processes, counter, lock)
+                for args, directory in zip(process_args_list, directories)
+                ])
 
             # wait for all processes to finish
             pool.close()
@@ -141,7 +159,9 @@ def run_scannerS(ini_name: str,
         logger.info("Running as a single process")
 
         # define test process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+        process_args = get_process_args(model_name=model_name,
+                                        ini_name=ini_name,
+                                        num_points=num_points)
 
         # run test process
         run_timed_process(process_args=process_args,
@@ -164,7 +184,9 @@ def run_scannerS_single_point(ini_name: str,
         raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
+    process_args = get_process_args(model_name=model_name,
+                                    ini_name=ini_name,
+                                    num_points=1)
 
     # run timed process
     run_timed_process(process_args=process_args,
@@ -291,6 +313,24 @@ def remove_artifact_files() -> None:
             logger.debug(f"Removed artifact file: {file}")
         else:
             logger.debug(f"Artifact file {file} does not exist, skipping removal.")
+
+def get_process_args(model_name: str,
+                     ini_name: str,
+                     num_points: int) -> List[str]:
+    args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+    s = next_seed()
+    if s is not None:
+        args.extend(["--seed", str(s)])
+    return args
+
+def next_seed() -> Optional[int]:
+    global seed
+    if seed is None:
+        return None
+    current = seed
+    seed += 1
+    logger.debug(f"Assigning seed: {current}")
+    return current
 
 if __name__ == "__main__":
 
