@@ -10,7 +10,7 @@ inside each worker.
 """
 
 # standard libraries
-import multiprocessing as mp
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Tuple
 
 # third-party libraries
@@ -121,7 +121,7 @@ class BoundsFilter:
                         df: pd.DataFrame,
                         n_workers: int) -> Tuple[List[int], List[int]]:
         """
-        Internal method to handle serial or parallel filtering.
+        Internal method to handle serial or thread-parallel filtering.
 
         Args:
             df (pd.DataFrame): The scan data.
@@ -139,12 +139,23 @@ class BoundsFilter:
         logger.info(f"BoundsFilter running with {n_chunks} chunks")
 
         args = [(self.model, chunk, self.min_chunk_size) for chunk in chunks]
-        with mp.Pool(n_chunks) as pool:
-            results = pool.starmap(_process_chunk, args)
+    
+        filt_bounds: List[int] = []
+        filt_signals: List[int] = []
 
-        filt_bounds, filt_signals = zip(*results)
-        return ([x for sublist in filt_bounds for x in sublist],
-                [x for sublist in filt_signals for x in sublist])
+        with ThreadPoolExecutor(max_workers=n_chunks) as executor:
+            futures = [executor.submit(_process_chunk, *arg) for arg in args]
+
+            for future in as_completed(futures):
+                try:
+                    bounds_chunk, signals_chunk = future.result()
+                    filt_bounds.extend(bounds_chunk)
+                    filt_signals.extend(signals_chunk)
+                except Exception as e:
+                    logger.error("Error during threaded filtering", exc_info=e)
+                    raise
+
+        return filt_bounds, filt_signals
 
     def process_data(self,
                      df: pd.DataFrame) -> Tuple[List[int], List[int]]:
