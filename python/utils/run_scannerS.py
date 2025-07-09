@@ -78,7 +78,9 @@ def run_scannerS(ini_name: str,
         # run test process if requested
         if run_test_job:
             logger.debug(f"Running a test job with {min_points_per_job} points")
-            test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
+            test_process_args = get_process_args(model_name=model_name,
+                                                 ini_name=ini_name,
+                                                 num_points=min_points_per_job)
             logger.debug("Running test job to check if ScannerS works with the given configuration")
             run_timed_process(process_args=test_process_args,
                               model_name=model_name)
@@ -111,7 +113,9 @@ def run_scannerS(ini_name: str,
         directories = [f"dir_{i}" for i in range(num_processes)]
 
         # define process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+        process_args = get_process_args(model_name=model_name,
+                                        ini_name=ini_name,
+                                        num_points=points_per_process)
 
         # create a shared counter and a lock
         counter: ValueProxy = mp.Manager().Value("i",0)
@@ -141,7 +145,9 @@ def run_scannerS(ini_name: str,
         logger.info("Running as a single process")
 
         # define test process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+        process_args = get_process_args(model_name=model_name,
+                                        ini_name=ini_name,
+                                        num_points=num_points)
 
         # run test process
         run_timed_process(process_args=process_args,
@@ -164,7 +170,9 @@ def run_scannerS_single_point(ini_name: str,
         raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
+    process_args = get_process_args(model_name=model_name,
+                                    ini_name=ini_name,
+                                    num_points=1)
 
     # run timed process
     run_timed_process(process_args=process_args,
@@ -289,6 +297,12 @@ def remove_artifact_files() -> None:
             logger.debug(f"Removed artifact file: {file}")
         else:
             logger.debug(f"Artifact file {file} does not exist, skipping removal.")
+
+def get_process_args(model_name: str,
+                     ini_name: str,
+                     num_points: int) -> List[str]:
+    args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+    return args
 
 if __name__ == "__main__":
 
