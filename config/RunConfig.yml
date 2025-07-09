@@ -1,6 +1,6 @@
 
 ScannerS:
-  min_points_per_job: 10
+  min_points_per_job: 5
   timeout: 20
   #seed: 123456 # random seed for ScannerS - should be commented out except for development
 
