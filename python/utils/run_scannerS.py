@@ -2,7 +2,6 @@
 
 # standard libraries
 import argparse
-import logging
 import math
 import multiprocessing as mp
 from multiprocessing.managers import ValueProxy
@@ -22,6 +21,8 @@ from utils.env_utils import data_dir
 from utils.tsv_utils import save_tsv_output
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
+import logging
 logger = logging.getLogger(__name__)
 
 # get configurations
@@ -288,10 +289,12 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.verbose(f"Successfully removed: {directory}")
+            if logger.isEnabledFor(VERBOSE_LEVEL):
+                logger.verbose(f"Successfully removed: {directory}")
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                if logger.isEnabledFor(VERBOSE_LEVEL):
+                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
