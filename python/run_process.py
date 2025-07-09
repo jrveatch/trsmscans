@@ -16,10 +16,12 @@ import os
 import subprocess
 from typing import Optional
 
+# import logging utils first to ensure no messages are lost
+import utils.logging_utils as logging_utils
+
 from check_mass_list import get_mass_point_status
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
-from utils.logging_utils import LOG_LEVELS, setup_logging
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model, supported_models
@@ -30,7 +32,6 @@ from mass_grid.mass_json_utils import get_mass_permutations
 def run_prescan(model: Model,
                 num_points: int,
                 overwrite: bool,
-                log_level: int,
                 dry_run: bool = False) -> None:
     """
     Run a prescan for a single mass point.
@@ -39,18 +40,12 @@ def run_prescan(model: Model,
         model (Model): The scalar model to scan.
         num_points (int): Number of points to sample.
         overwrite (bool): Whether to overwrite existing results.
-        log_level (int): Logging level (e.g., logging.INFO).
         dry_run (bool): If True, print message but do not run job.
     """
 
     if dry_run:
         print(f"[DRY-RUN] Would run: prescan for {model.mass_string}")
         return None
-
-    log_file = os.path.join(prescan_dir(model), "prescan.log")
-
-    setup_logging(log_file=log_file,
-                  level=log_level)
 
     prescan(model=model,
             num_points=num_points,
@@ -63,7 +58,6 @@ def run_scan(model: Model,
              prescan_points: int,
              overwrite: bool,
              iterations: int,
-             log_level: int,
              precision: Optional[Precision] = None,
              limit_target: float = -1.0,
              dry_run: bool = False) -> None:
@@ -78,7 +72,6 @@ def run_scan(model: Model,
         prescan_points (int): Number of prescan points to use.
         overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
-        log_level (int): Logging verbosity level.
         precision (Optional[Precision]): Precision level for optimization.
         limit_target (float): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
@@ -90,10 +83,6 @@ def run_scan(model: Model,
     if dry_run:
         print(f"[DRY-RUN] Would run: scan for {model.mass_string} using {strategy}")
         return None
-
-    log_file = os.path.join(scan_dir(model=model, decay=decay), f"{strategy}.log")
-    setup_logging(log_file=log_file,
-                  level=log_level)
 
     scan = Scan(model=model,
                 decay=decay,
@@ -261,12 +250,10 @@ def main():
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-c", "--num-cpus", default=8, type=int, help="Number of CPUs to request for the job")
     arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
-    arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=LOG_LEVELS.keys(), help="Set the logging level")
+    arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=logging_utils.LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None, help="Fix optimization precision level. If not set, precision is adapted automatically.")
     args = arg_parser.parse_args()
-
-    log_level = LOG_LEVELS[args.log_level.lower()]
 
     # Validate arguments
     if args.mode == "scan":
@@ -319,6 +306,15 @@ def main():
                 continue
 
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
+
+        log_level = logging_utils.LOG_LEVELS[args.log_level.lower()]
+        log_file = os.path.join(prescan_dir(model), "prescan.log")
+        if args.mode == "scan":
+            log_file = os.path.join(scan_dir(model=model, decay=args.decay), f"{args.strategy}.log")
+
+        logging_utils.setup_logging(log_file=log_file,
+                                    level=log_level)
+
         if args.batch:
             submit_htcondor(mode=args.mode,
                             model=model,
@@ -341,7 +337,6 @@ def main():
                 run_prescan(model=model,
                             num_points=args.num_points,
                             overwrite=args.overwrite,
-                            log_level=log_level,
                             dry_run=args.dry_run)
             else:
                 run_scan(model=model,
@@ -353,7 +348,6 @@ def main():
                          prescan_points=args.prescan_points,
                          overwrite=args.overwrite,
                          iterations=args.iterations,
-                         log_level=log_level,
                          dry_run=args.dry_run)
             job_count += 1
 

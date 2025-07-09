@@ -65,9 +65,6 @@ class Scan:
             Exception: For unexpected errors during config loading.
         """
 
-        # get logger
-        logger = logging.getLogger(self.__class__.__name__)
-
         logger.info("Creating a new scan")
         logger.info(f"Model: {model.name}")
         logger.info(f"Masses: {model.masses}")
