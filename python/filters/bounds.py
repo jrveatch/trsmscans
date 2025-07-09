@@ -24,6 +24,7 @@ from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_h
 from utils.model import Model
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
 import logging
 logger = logging.getLogger(__name__)
 
@@ -138,7 +139,8 @@ class BoundsFilter:
 
         logger.info(f"BoundsFilter running with {n_chunks} chunks")
 
-        args = [(self.model, chunk, self.min_chunk_size) for chunk in chunks]
+        log_level = logging.getLogger().getEffectiveLevel()
+        args = [(self.model, chunk, self.min_chunk_size, log_level) for chunk in chunks]
         with mp.Pool(n_chunks) as pool:
             results = pool.starmap(_process_chunk, args)
 
@@ -183,11 +185,12 @@ class BoundsFilter:
             br_SM = self._extract_SM_BRs(row)
             br_BSM = self._extract_BSM_BRs(row)
 
-            logger.verbose('Scalar widths are:')
-            logger.verbose(f'  H: {widths["H"]}')
-            logger.verbose(f'  S: {widths["S"]}')
-            logger.verbose(f'  X: {widths["X"]}')
-            logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
+            if logger.isEnabledFor(VERBOSE_LEVEL):
+                logger.verbose('Scalar widths are:')
+                logger.verbose(f'  H: {widths["H"]}')
+                logger.verbose(f'  S: {widths["S"]}')
+                logger.verbose(f'  X: {widths["X"]}')
+                logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
 
             configure_particle(H, "H", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
             configure_particle(S, "S", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
@@ -197,7 +200,7 @@ class BoundsFilter:
             signals_result = signals(pred)
             HS_allowed = signals_result - signals_result_SM < 4.0
 
-            if logging.getLogger().isEnabledFor(logging.VERBOSE):
+            if logger.isEnabledFor(VERBOSE_LEVEL):
                 print_bounds_result(bounds_result, idx, masses)
                 logger.verbose(f"signals_result = {signals_result}")
                 logger.verbose(f"HS_allowed = {HS_allowed}")
@@ -270,7 +273,9 @@ class BoundsFilter:
 
 def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
-                   min_chunk_size: int) -> Tuple[List[int], List[int]]:
+                   min_chunk_size: int,
+                   log_level: int) -> Tuple[List[int], List[int]]:
+    logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
 
@@ -351,7 +356,8 @@ def set_BRs(particle,
         # add SM BRs to sum
         sum_BR += BR
 
-        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+        if logger.isEnabledFor(VERBOSE_LEVEL):
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
         # skip ZZ decay
         if adjust_ZZ and decay == "ZZ":
@@ -369,7 +375,8 @@ def set_BRs(particle,
         # add BSM BRs to sum
         sum_BR += BR
 
-        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+        if logger.isEnabledFor(VERBOSE_LEVEL):
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
     if adjust_ZZ:
 
@@ -380,7 +387,8 @@ def set_BRs(particle,
         if sum_BR > 1.0:
             BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
 
-        logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
+        if logger.isEnabledFor(VERBOSE_LEVEL):
+            logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
