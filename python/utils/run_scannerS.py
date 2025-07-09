@@ -266,10 +266,12 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.verbose(f"Successfully removed: {directory}")
+            if logging.getLogger().isEnabledFor(logging.VERBOSE):
+                logger.verbose(f"Successfully removed: {directory}")
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                if logging.getLogger().isEnabledFor(logging.VERBOSE):
+                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error

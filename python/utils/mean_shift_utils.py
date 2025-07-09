@@ -65,11 +65,12 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     nZ = Z_mod / Z_safe_sum
 
     # Verbose logging
-    logger.verbose("\nPre-shift:\n==========")
-    logger.verbose(f"Parameter names: {list(arrays.keys())}")
-    for i, X in enumerate(XX):
-        logger.verbose(f"X_{i}:{X}")
-    logger.verbose(f"nZ: {nZ}")
+    if logging.getLogger().isEnabledFor(logging.VERBOSE):
+        logger.verbose("\nPre-shift:\n==========")
+        logger.verbose(f"Parameter names: {list(arrays.keys())}")
+        for i, X in enumerate(XX):
+            logger.verbose(f"X_{i}:{X}")
+        logger.verbose(f"nZ: {nZ}")
 
     # Compute weighted mean shift
     means = np.einsum('ij,j->i', XX, nZ)

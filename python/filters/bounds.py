@@ -183,11 +183,12 @@ class BoundsFilter:
             br_SM = self._extract_SM_BRs(row)
             br_BSM = self._extract_BSM_BRs(row)
 
-            logger.verbose('Scalar widths are:')
-            logger.verbose(f'  H: {widths["H"]}')
-            logger.verbose(f'  S: {widths["S"]}')
-            logger.verbose(f'  X: {widths["X"]}')
-            logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
+            if logging.getLogger().isEnabledFor(logging.VERBOSE):
+                logger.verbose('Scalar widths are:')
+                logger.verbose(f'  H: {widths["H"]}')
+                logger.verbose(f'  S: {widths["S"]}')
+                logger.verbose(f'  X: {widths["X"]}')
+                logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
 
             configure_particle(H, "H", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
             configure_particle(S, "S", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
@@ -351,7 +352,8 @@ def set_BRs(particle,
         # add SM BRs to sum
         sum_BR += BR
 
-        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+        if logging.getLogger().isEnabledFor(logging.VERBOSE):
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
         # skip ZZ decay
         if adjust_ZZ and decay == "ZZ":
@@ -369,7 +371,8 @@ def set_BRs(particle,
         # add BSM BRs to sum
         sum_BR += BR
 
-        logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+        if logging.getLogger().isEnabledFor(logging.VERBOSE):
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
 
     if adjust_ZZ:
 
@@ -380,7 +383,8 @@ def set_BRs(particle,
         if sum_BR > 1.0:
             BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
 
-        logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
+        if logging.getLogger().isEnabledFor(logging.VERBOSE):
+            logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
