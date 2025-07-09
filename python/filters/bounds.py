@@ -139,7 +139,8 @@ class BoundsFilter:
 
         logger.info(f"BoundsFilter running with {n_chunks} chunks")
 
-        args = [(self.model, chunk, self.min_chunk_size) for chunk in chunks]
+        log_level = logging.getLogger().getEffectiveLevel()
+        args = [(self.model, chunk, self.min_chunk_size, log_level) for chunk in chunks]
         with mp.Pool(n_chunks) as pool:
             results = pool.starmap(_process_chunk, args)
 
@@ -272,7 +273,9 @@ class BoundsFilter:
 
 def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
-                   min_chunk_size: int) -> Tuple[List[int], List[int]]:
+                   min_chunk_size: int,
+                   log_level: int) -> Tuple[List[int], List[int]]:
+    logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
 
