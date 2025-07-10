@@ -9,6 +9,8 @@ import shutil
 import time
 from typing import Dict, List, Optional, Tuple
 import numpy as np
+from multiprocessing import Process
+import multiprocessing
 
 # local modules
 from prescan.prescan import prescan
@@ -223,8 +225,8 @@ class Scan:
 
         self.global_max.write_tsv_to_file(self.tsv_summary_name)
 
-    def run_ms_optimization(self,
-                            num_optimizers: int) -> None:
+    def run__ms_optimization(self,
+                        num_optimizers: int) -> None:
         """
         Run a mean shift optimization.
 
@@ -258,8 +260,8 @@ class Scan:
 
         # Create PointSampler object
         point_sampler = PointSampler(model = self.model,
-                                     out_dir = self.out_dir,
-                                     subdir_name = "meanshift")
+                                    out_dir = self.out_dir,
+                                    subdir_name = "meanshift")
 
         logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
@@ -286,8 +288,106 @@ class Scan:
 
         # finalize the run
         self.finalize(strategy="meanshift",
+                    scan_time=scan_time,
+                    num_points=num_optimizers)
+        
+    def run_ms_optimization(self,
+                            num_optimizers: int) -> None:
+        """
+        Run a mean shift optimization.
+
+        Args:
+            num_optimizers (int): Number of optimizers to run.
+        """
+
+        logger.info("Running NEW mean shift optimization...\n")
+
+        # get scan start time
+        scan_start = time.time()
+
+        # initialize output directories and files
+        self.initialize_output("meanshift")
+
+        # run prescan
+        self.run_prescan()
+
+        # Define helper functions (as inner functions because only for meanshift implementation)
+
+        # Returns a list of initial positions for shifters
+        def initial_positions(num_optimizers: int) -> Tuple[Point]:
+            results = []
+
+            #num_optimizers = 1
+            for i in range(num_optimizers):
+                results.append(self.global_param_space.random_point())
+
+            return tuple(results)
+
+        initial_pos_set = initial_positions(num_optimizers)
+        #initial_pos_set = 1
+
+        print("initial_pos_set of optimizers: ")
+        #print(initial_pos_set)
+
+        logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+
+        #num_cpus = multiprocessing.cpu_count()
+        #num_workers = min(num_optimizers, num_cpus)
+        #logger.info(f"Using {num_workers} worker processes for {num_optimizers} optimizers")
+        
+        result_queue = multiprocessing.Queue()
+        processes = []
+
+        for i, initial_pos in enumerate(initial_pos_set):
+            p = multiprocessing.Process(
+                target=run_ms_process,
+                args=(i, initial_pos, self.model, self.out_dir, self.global_param_space, self.optimizer_config_loader, result_queue)
+            )
+            p.start()
+            processes.append(p)
+
+        # Collect results
+        results = []
+        for _ in processes:
+            results.append(result_queue.get())  # blocks until each result is available
+
+        # Wait for all processes to complete
+        for p in processes:
+            p.join()
+
+        '''
+        for i, initial_pos in enumerate(initial_pos_set):
+            label = f"MeanShiftOptimizer-{i}"
+
+            local_sampler = PointSampler(
+                model=self.model,
+                out_dir=self.out_dir,
+                subdir_name=f"meanshift-{i}"  # give each optimizer its own subdir
+            )
+
+
+            p = Process(target=optimizer.run)
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()'''
+
+        # SCAN LOGIC END HERE
+
+        # sort summary file
+        # TODO: make sure to sort the tsv summary file as well
+        sort_tsv_file(self.summary_name)
+
+        # get total scan time
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(strategy="meanshift",
                       scan_time=scan_time,
                       num_points=num_optimizers)
+        
 
     def run_zoom_optimization(self,
                               num_points: int,
@@ -668,3 +768,36 @@ class Scan:
         if os.path.exists(self.out_dir):
             logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)
+
+def run_ms_process(i, initial_pos, model, out_dir, global_param_space, config_loader, result_queue):
+
+        label = f"MeanShiftOptimizer-{i}"
+
+       # try:
+
+        print("-----TRYING-------")
+        sampler = PointSampler(
+        model=model,
+        out_dir=out_dir,
+        subdir_name=f"meanshift"  # give each optimizer its own subdir
+        )
+
+        print(f"Sampler: {sampler}")
+
+        #print(f"Config loader in Scan: {Scan().config_loader}")
+        print(f"Config loader in process: {config_loader}")
+        optimizer = MeanShiftOptimizer(
+            label=label,
+            initial_pos=initial_pos,
+            global_param_space=global_param_space,
+            point_sampler=sampler,
+            config_loader=config_loader
+        )
+
+        print(optimizer)
+
+        result = optimizer.run()
+
+        result_queue.put({"label": label, "best_point": result})
+    #except Exception as e:
+        # result_queue.put({"label": label, "error": str(e)})
