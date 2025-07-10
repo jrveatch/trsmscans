@@ -82,7 +82,7 @@ class ConfigLoader:
 
     def get(self,
             section: str,
-            key: Optional[str] = _MISSING,
+            key: Optional[str] = None,
             default: Any = _MISSING) -> Any:
         """
         Retrieve a configuration value from a specified section.
@@ -95,9 +95,9 @@ class ConfigLoader:
         Args:
             section (str): The section name in the configuration.
             key (Optional[str], optional): The key within the section. If omitted,
-                                        the entire section dict is returned.
+                                           the entire section dict is returned.
             default (Any, optional): Fallback value if the key is missing.
-                                    If not set, a missing key raises KeyError.
+                                     If not set, a missing key raises KeyError.
 
         Returns:
             Any: The configuration value for the given section and key, or the
@@ -115,7 +115,7 @@ class ConfigLoader:
                     return default
                 raise KeyError(f"Missing configuration section: '{section}'")
 
-            if key is _MISSING:
+            if key is None:
                 return section_dict
 
             value = section_dict.get(key, _MISSING)
