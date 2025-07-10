@@ -47,7 +47,7 @@ class Precision(IntEnum):
         except Exception as e:
             logger.exception(e)
             raise
-        
+
         return thresholds
 
     @classmethod
