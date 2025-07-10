@@ -105,9 +105,9 @@ class ZoomOptimizer:
             self.no_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'no_improvement_max')
             self.small_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'small_improvement_max')
             self.small_improvement_frac: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'small_improvement_frac')
-            self.precision_threshold_low: float = self.config_loader.get('precision', 'threshold_low')
-            self.precision_threshold_medium: float = self.config_loader.get('precision', 'threshold_medium')
-            self.precision_threshold_high: float = self.config_loader.get('precision', 'threshold_high')
+            self.precision_threshold_low: float = self.config_loader.get('precision_thresholds', 'low')
+            self.precision_threshold_medium: float = self.config_loader.get('precision_thresholds', 'medium')
+            self.precision_threshold_high: float = self.config_loader.get('precision_thresholds', 'high')
         except Exception as e:
             logger.exception(e)
             raise

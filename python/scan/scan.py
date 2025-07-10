@@ -97,7 +97,7 @@ class Scan:
         try:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-            self.precision_threshold_coarse: float = self.optimizer_config_loader.get('precision', 'threshold_coarse')
+            self.precision_threshold_coarse: float = self.optimizer_config_loader.get('precision_thresholds', 'coarse')
         except Exception as e:
             logger.exception(e)
             raise
