@@ -97,7 +97,6 @@ class Scan:
         try:
             self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
-            self.precision_threshold_coarse: float = self.optimizer_config_loader.get('precision_thresholds', 'coarse')
         except Exception as e:
             logger.exception(e)
             raise
@@ -207,7 +206,7 @@ class Scan:
         # check ratio of prescan max xb in fb to limit_target
         if self.use_adaptive_precision:
             ratio = self.global_max.xb * 1000 / self.limit_target
-            if ratio < self.precision_threshold_coarse:
+            if ratio < Precision.COARSE.threshold():
                 logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
                 self.precision = Precision.INSENSITIVE
 
