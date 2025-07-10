@@ -55,20 +55,20 @@ class WidthFilter:
                 config_loader.get('width', 'max_width_S'),
                 config_loader.get('width', 'max_width_X'),
             ])
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to load width thresholds from config.")
             raise
 
     def apply(self,
-              dataframe: pd.DataFrame,
+              data: pd.DataFrame,
               header: str) -> None:
         """
-        Applies width constraints to the dataframe in-place.
+        Applies width constraints to the data in-place.
 
         Adds a binary column indicating if widths are below configured thresholds.
 
         Args:
-            dataframe (pd.DataFrame): Scan data with mass and width columns.
+            data (pd.DataFrame): Scan data with mass and width columns.
             header (str): Column name to add (e.g., 'filt_width').
 
         Raises:
@@ -77,17 +77,17 @@ class WidthFilter:
         """
         try:
             # Extract data arrays
-            arr_widths: np.ndarray = dataframe[[f"w_{self.HName}", f"w_{self.SName}", f"w_{self.XName}"]].to_numpy()
-            arr_masses: np.ndarray = dataframe[[f"m{self.HName}", f"m{self.SName}", f"m{self.XName}"]].to_numpy()
+            arr_widths: np.ndarray = data[[f"w_{self.HName}", f"w_{self.SName}", f"w_{self.XName}"]].to_numpy()
+            arr_masses: np.ndarray = data[[f"m{self.HName}", f"m{self.SName}", f"m{self.XName}"]].to_numpy()
 
             # Apply mask: width < mass * threshold
             filt_width: np.ndarray = np.all(arr_widths < arr_masses * self.thresholds, axis=1)
 
-            # Update dataframe
-            dataframe[header] = filt_width.astype(int)
+            # Update data
+            data[header] = filt_width.astype(int)
         except KeyError as e:
             logger.error(f"Missing required mass/width columns in DataFrame: {e}")
             raise
         except Exception as e:
-            logger.exception("Error occurred while applying width filter.")
+            logger.exception(f"Error occurred while applying width filter: {e}")
             raise

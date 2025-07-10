@@ -9,8 +9,6 @@ import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks, argrelextrema
 from scipy.stats import gaussian_kde
-from scipy.spatial import ConvexHull
-from sklearn.cluster import DBSCAN
 from typing import cast
 
 # local modules
@@ -37,12 +35,14 @@ class Parse:
 
     def __init__(self,
                  model: Model,
+                 data: Optional[pd.DataFrame] = None,
                  file_name: str = ""):
         """
         Initializes the parser with a model and optionally loads scan data from a file.
 
         Args:
             model (Model): The model used to interpret parameter names and scalar definitions.
+            data (Optional[pd.DataFrame]): 
             file_name (str, optional): Path to a .tsv file to load immediately (default is empty).
         """
 
@@ -50,10 +50,12 @@ class Parse:
         self.__model = model
 
         # initialize class variables
-        self.data: pd.DataFrame = pd.DataFrame()
+        self.__data: pd.DataFrame = pd.DataFrame()
 
         # get arrays from file name if it is provided
-        if file_name:
+        if data is not None:
+            self.data = data
+        elif file_name:
             self.read_file(file_name)
 
     @property
@@ -70,6 +72,17 @@ class Parse:
     def SName(self) -> str:
         """Returns the name of the S scalar defined in the model."""
         return self.model.get_ordered_scalar_name('S')
+
+    @property
+    def data(self) -> pd.DataFrame:
+        """Returns the data"""
+        return self.__data
+
+    @data.setter
+    def data(self,
+             new_data: pd.DataFrame) -> None:
+        """Sets the data"""
+        self.__data = new_data
 
     @property
     def filtered_data(self) -> pd.DataFrame:
@@ -572,60 +585,6 @@ class Parse:
         """
         mask = self.param_space_mask(param_space)
         return float(mask.sum())
-
-    def compute_effective_volume(self,
-                                 param_space: ParamSpace,
-                                 eps: float = 0.05,
-                                 min_samples: int = 10) -> float:
-        """
-        Estimates the effective volume occupied by filtered points in the specified parameter space.
-        Uses DBSCAN to identify clusters and computes the sum of 5D convex hull volumes for each.
-
-        Args:
-            param_space (ParamSpace): Restrict analysis to this region of parameter space.
-            eps (float): Maximum distance between samples for clustering (DBSCAN).
-            min_samples (int): Minimum number of samples per cluster (DBSCAN).
-
-        Returns:
-            float: Estimated effective volume in N dimensions.
-        """
-
-        # Get filtered data in the param space
-        df = self.get_filtered_data(param_space)
-
-        # Extract only the 5D input parameters
-        param_names = list(self.model.input_parameters.keys())
-        cols = [self.model.input_parameters[p]['fullname'] for p in param_names]
-        points = df[cols].to_numpy(dtype=float)
-
-        if len(points) <= 5:
-            return 0.0
-
-        # Normalize to unit box
-        normalized_points = np.empty_like(points)
-        for i, param in enumerate(param_names):
-            low = param_space[param].low
-            high = param_space[param].high
-            normalized_points[:, i] = (points[:, i] - low) / (high - low)
-
-        # Cluster the points to identify disconnected components
-        clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(normalized_points)
-        labels = clustering.labels_
-
-        # Sum convex hull volumes of each cluster
-        total_unit_vol = 0.0
-        for label in set(labels):
-            if label == -1:
-                continue  # skip noise
-            cluster_points = normalized_points[labels == label]
-            if len(cluster_points) > 5:
-                try:
-                    hull = ConvexHull(cluster_points)
-                    total_unit_vol += hull.volume
-                except Exception:
-                    continue
-
-        return total_unit_vol * param_space.volume()
 
     def __get_xsec_prod(self) -> pd.Series:
         """

@@ -13,11 +13,13 @@ filtering statistics.
 import argparse
 from typing import Dict
 
+import pandas as pd
+
 # local modules
 from filters.bounds import BoundsFilter
 from filters.width import WidthFilter
 from utils.config_loader import ConfigLoader
-from utils.df_utils import get_df, write_to_tsv
+from utils.df_utils import get_df
 from utils.model import Model
 
 # get logger
@@ -49,14 +51,14 @@ class FilterPipeline:
         try:
             config = ConfigLoader("RunConfig.yml")
             min_chunk_size: int = config.get("bounds", "min_chunk_size")
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to load bounds filtering configuration.")
             raise
         self.width_filter = WidthFilter(model)
         self.bounds_filter = BoundsFilter(model, min_chunk_size)
 
     def apply_filters(self,
-                      file_name: str,
+                      data: pd.DataFrame,
                       use_multiprocessing: bool = True) -> Dict[str, int]:
         """
         Applies width, bounds, and signal filters to a scan result file.
@@ -65,7 +67,7 @@ class FilterPipeline:
         writes updated results back to disk, and returns filter pass counts.
 
         Args:
-            file_name (str): Path to the `.tsv` file containing scan results.
+            data (pd.DataFrame): Dataframe of the scan output
             use_multiprocessing (bool): Whether to enable parallel processing for bounds filtering.
 
         Returns:
@@ -73,23 +75,18 @@ class FilterPipeline:
                             and all filters combined. Keys include 'width', 'bounds', 'signals', and 'pass'.
         """
 
-        dataframe = get_df(file_name)
-
         # Apply filters
-        self.width_filter.apply(dataframe=dataframe,
+        self.width_filter.apply(data=data,
                                 header=self.header_width)
-        self.bounds_filter.apply(dataframe=dataframe,
+        self.bounds_filter.apply(data=data,
                                  header_bounds=self.header_bounds,
                                  header_signals=self.header_signals,
                                  use_multiprocessing=use_multiprocessing)
 
-        # Write updated dataframe
-        write_to_tsv(dataframe, file_name)
-
         # Compute stats
-        f_width = dataframe[self.header_width].astype(bool)
-        f_bounds = dataframe[self.header_bounds].astype(bool)
-        f_signals = dataframe[self.header_signals].astype(bool)
+        f_width = data[self.header_width].astype(bool)
+        f_bounds = data[self.header_bounds].astype(bool)
+        f_signals = data[self.header_signals].astype(bool)
 
         return {
             "width": f_width.sum(),
@@ -117,4 +114,6 @@ if __name__ == "__main__":
 
     filter_pipeline = FilterPipeline(model)
 
-    filter_pipeline.apply_filters(file_name=args.file_name)
+    data = get_df(args.file_name)
+
+    filter_pipeline.apply_filters(data=data)
