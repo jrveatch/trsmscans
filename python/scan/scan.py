@@ -4,11 +4,10 @@ from copy import deepcopy
 import datetime
 from functools import cached_property
 import itertools
-import logging
 import os
 import shutil
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 # local modules
@@ -19,10 +18,16 @@ from utils.file_utils import scan_dir, recreate_dir
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
-from utils.run_metadata import run_exists, save_run_metadata
+from utils.point_sampler import PointSampler
+from utils.precision_utils import Precision
+from utils.metadata_utils import run_exists, save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to organize and run a complete scan
 class Scan:
@@ -30,6 +35,8 @@ class Scan:
     def __init__(self,
                  model: Model,
                  decay: str,
+                 precision: Optional[Precision] = None,
+                 limit_target: float = -1.0,
                  prescan_points: int = -1,
                  overwrite: bool = False,
                  config_file_name: str = ""
@@ -41,6 +48,10 @@ class Scan:
         Args:
             model (Model): The physical model object containing parameter definitions.
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
+            precision (Optional[Precision]): The precision level for the scan.
+                Defaults to None.
+            limit_target (float, optional): The target experimental limit for setting precision.
+                Defaults to -1.0.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             overwrite (bool, optional): Whether to overwrite existing scan results.
@@ -54,13 +65,14 @@ class Scan:
             Exception: For unexpected errors during config loading.
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
-        self.logger.info("Creating a new scan")
-        self.logger.info(f"Model: {model.name}")
-        self.logger.info(f"Masses: {model.masses}")
-        self.logger.info(f"Decay: {decay}\n")
+        logger.info("Creating a new scan")
+        logger.info(f"Model: {model.name}")
+        logger.info(f"Masses: {model.masses}")
+        logger.info(f"Decay: {decay}")
+        if precision is not None:
+            logger.info(f"Precision: {precision}\n")
+        else:
+            logger.info("Precision: adaptive\n")
 
         # store model and decay information
         self.model = model
@@ -77,16 +89,22 @@ class Scan:
         if not config_file_name:
             config_file_name = f"{self.model.name}_default.yml"
 
-        # load config file
-        self.config_loader = ConfigLoader(config_file_name=config_file_name)
+        # load config files
+        self.config_loader = ConfigLoader(config_file_name)
+        self.optimizer_config_loader = ConfigLoader("OptimizerConfig.yml")
 
         # get configurations from config file
         try:
-            self.num_starting_points: int = self.config_loader.get('scan', 'num_starting_points')
+            self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
             default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
         except Exception as e:
-            self.logger.exception(e)
+            logger.exception(e)
             raise
+
+        # set precision, limit target and adaptive precision flag
+        self.precision = precision
+        self.limit_target = limit_target
+        self.use_adaptive_precision = precision is None
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -157,8 +175,7 @@ class Scan:
         try:
             # call prescan
             self.prescan_parser = prescan(num_points = prescan_points,
-                                          model = self.model,
-                                          config_loader = self.config_loader)
+                                          model = self.model)
 
         # if prescan fails, remove directory and raise an error
         except TimeoutError:
@@ -170,14 +187,14 @@ class Scan:
             raise
 
         # info message about prescan
-        self.logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
-        self.logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
+        logger.debug(f"Analyzing prescan with {self.prescan_parser.num_unfiltered_points} points")
+        logger.debug(f"{self.prescan_parser.num_filtered_points} passed filters\n")
 
         # shrink param space based on the points contained by it
         self.prescan_parser.shrink_param_space_bounds(self.global_param_space)
 
         # print bounds table for new global parameter space
-        self.logger.info("Found the following ranges from the prescan:")
+        logger.info("Found the following ranges from the prescan:")
         self.global_param_space.log_bounds_table()
 
         # get scan density
@@ -185,6 +202,13 @@ class Scan:
 
         # get new points
         self.global_max = self.prescan_parser.get_max_xb_point(self.decay)
+
+        # check ratio of prescan max xb in fb to limit_target
+        if self.use_adaptive_precision:
+            ratio = self.global_max.xb * 1000 / self.limit_target
+            if ratio < Precision.COARSE.threshold():
+                logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
+                self.precision = Precision.INSENSITIVE
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -221,7 +245,7 @@ class Scan:
             num_optimizers (int): Number of optimizers to run.
         """
 
-        self.logger.info("Running mean shift optimization...\n")
+        logger.info("Running mean shift optimization...\n")
 
         # get scan start time
         scan_start = time.time()
@@ -235,43 +259,22 @@ class Scan:
         # Define helper functions (as inner functions because only for meanshift implementation)
 
         # Returns a list of initial positions for shifters
-        def initial_positions(points: int,
-                              strategy: str) -> Tuple[Point]:
+        def initial_positions(num_optimizers: int) -> Tuple[Point]:
             results = []
 
-            if strategy == 'random':
-                for i in range(points):
-                    results.append(self.global_param_space.random_point())
-            elif strategy == 'pair':
-                # TODO: Temporary block for this option until it can be fixed using Point
-                raise NotImplementedError("Pair strategy not implemented yet.")
-                initial_point = self.global_param_space.random_point()
-                lead_coeffs = [-1 if p >= 0 else 1 for p in initial_point]
-                coeff: float = self.config_loader.get('meanshift', 'pair_points_coeff') or 0.005
-                offsets = [param.width * coeff for param in self.global_param_space]
-
-                results.append(initial_point)
-
-                next_point = list(deepcopy(initial_point))
-
-                for i in range(1, points):
-                    for i in range(len(next_point)):
-                        next_point[i] += lead_coeffs[i] * offsets[i]
-
-                    results.append(tuple(deepcopy(next_point)))
+            for i in range(num_optimizers):
+                results.append(self.global_param_space.random_point())
 
             return tuple(results)
 
-        # Load config
-        try:
-            points_gen: str = self.config_loader.get('meanshift', 'points_gen')
-        except Exception as e:
-            self.logger.exception(e)
-            raise
+        initial_pos_set = initial_positions(num_optimizers)
 
-        initial_pos_set = initial_positions(num_optimizers, points_gen)
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "meanshift")
 
-        self.logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+        logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"
@@ -280,7 +283,8 @@ class Scan:
                 label=label,
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
-                config_loader=self.config_loader
+                point_sampler=point_sampler,
+                config_loader=self.optimizer_config_loader
             ).run()
 
         # SCAN LOGIC END HERE
@@ -294,8 +298,9 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="meanshift",
-                      scan_time=scan_time)
+        self.finalize(strategy="meanshift",
+                      scan_time=scan_time,
+                      num_points=num_optimizers)
 
     def run_zoom_optimization(self,
                               num_points: int,
@@ -308,22 +313,23 @@ class Scan:
             niter (int): Number of iterations to run. Leave as -1 to run until natural ending criteria are met.
         """
 
-        self.logger.info("Running zoom optimization...\n")
+        logger.info("Running zoom optimization...\n")
 
         # get scan start time
         scan_start = time.time()
 
-        # if num_points isn't given, use num_starting_points
+        # if num_points isn't given, use default_starting_points
         if num_points < 0:
-            num_points = self.num_starting_points
+            num_points = self.default_starting_points
 
         # exit if run already exists and overwrite is not set
         if run_exists(out_dir=self.out_dir,
-                      optimization="zoom",
-                      num_points=num_points) and not self.overwrite:
-                self.logger.info(f"Skipping scan requested with {num_points} points.")
-                self.logger.info("Use the -o option to overwrite the existing run.\n")
-                return
+                      strategy="zoom",
+                      num_points=num_points,
+                      precision=self.precision) and not self.overwrite:
+            logger.info(f"Skipping scan requested with {num_points} points.")
+            logger.info("Use the -o option to overwrite the existing run.\n")
+            return
 
         # initialize output directories and files
         self.initialize_output("zoom")
@@ -332,55 +338,63 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
-        #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
+        if self.precision != Precision.INSENSITIVE:
+            all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
+            #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
-        # list of which zoom optimizers are running
-        running_list = [True]
+            # list of which zoom optimizers are running
+            running_list = [True]
 
-        # to keep count of which iteration the scan is on
-        iter = 0
+            # to keep count of which iteration the scan is on
+            iter = 0
 
-        while any(running_list):
+            while any(running_list):
 
-            # check if user has added a set number of iterations
-            if niter > 0 and iter >= niter:
-                self.logger.info(f"Ending after {niter} iterations as requested")
-                break
+                # check if user has added a set number of iterations
+                if niter > 0 and iter >= niter:
+                    logger.info(f"Ending after {niter} iterations as requested")
+                    break
 
-            # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
-            # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
-            # Consider if having a separate function to check for the maximum is best
+                # Have a way to differentiate active zoom optimizers and inactive zoom optimizers during each iteration
+                # If zoom optimizers are differentiated, maybe have different loops to only scan from active zoom optimizers
+                # Consider if having a separate function to check for the maximum is best
 
-            # TODO: possibly redistribute points to all active scanners
+                # TODO: possibly redistribute points to all active scanners
 
-            running_list = []
+                running_list = []
 
-            for zoom_optimizer in all_zoom_optimizers:
+                for zoom_optimizer in all_zoom_optimizers:
 
-                if zoom_optimizer.is_running:
+                    if zoom_optimizer.is_running:
 
-                    # store a temp_max to compare against current max_xb
-                    temp_max = zoom_optimizer.run(iter=iter,
-                                                  global_max=self.global_max)
+                        # store a temp_max to compare against current max_xb
+                        temp_max = zoom_optimizer.run(iter=iter,
+                                                    global_max=self.global_max)
 
-                    # store max_xb
-                    self.global_max = max(self.global_max, temp_max)
+                        # store max_xb
+                        self.global_max = max(self.global_max, temp_max)
 
-                # keeping track of which zoom optimizers are running
-                running_list.append(zoom_optimizer.is_running)
-            
-            # count iteration
-            iter += 1
+                        # keep track of the maximum precision used
+                        if self.precision is None:
+                            self.precision = Precision.LOW
+                        if zoom_optimizer.precision is not None:
+                            self.precision = max(self.precision, zoom_optimizer.precision)
+
+                    # keeping track of which zoom optimizers are running
+                    running_list.append(zoom_optimizer.is_running)
+                
+                # count iteration
+                iter += 1
 
         # get total scan time
         scan_end = time.time()
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="zoom",
+        self.finalize(strategy="zoom",
                       scan_time=scan_time,
-                      num_points=num_points)
+                      num_points=num_points,
+                      precision=self.precision)
 
     def prev_create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
         """
@@ -390,7 +404,7 @@ class Scan:
             num_points (int): Number of points to use in the first iteration.
         """
 
-        self.logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
+        logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
 
         # Dictionary that will hold the values of the parameters
         param_dict: Dict[str, List[ Dict[str, float] ]] = {}
@@ -431,10 +445,15 @@ class Scan:
             all_param_combinations.append((params_copy, param_combination_data))
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
         # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
         points_per_scanner = max(num_points // len(all_param_combinations), 1)
+
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "zoom")
 
         # Initialize zoom optimizers for each parameter combination
         for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
@@ -448,19 +467,23 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 param_space = params_copy,
+                precision= self.precision,
+                limit_target=self.limit_target,
                 starting_max = self.global_max,
-                config_loader = self.config_loader,
+                point_sampler = point_sampler,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
     
-    def get_param_spaces(self, param_space: 'ParamSpace') -> List[ParamSpace]:
+    def get_param_spaces(self,
+                         param_space: ParamSpace) -> List[ParamSpace]:
 
         """
         Create list of param spaces based on splits from the global parameter space.
@@ -480,26 +503,45 @@ class Scan:
 
             # Remove the first param space and hold on to it as the current param space
             current = current_param_space_list.pop(0)
+            param_names = current.parameter_names
 
-            # Iterate through the current param space
-            for parameter_name in current.parameter_names:
-
-                # Check modality by evaluating where to split
-                all_splits = self.prescan_parser.get_param_space_splits(param_name=parameter_name, decay=self.decay, param_space=current)
-
-                # Check if points to split where found
+            # --- Step 1: 1D Splitting Pass ---
+            did_split = False
+            for parameter_name in param_names:
+                all_splits = self.prescan_parser.get_param_space_splits(
+                    param_name=parameter_name,
+                    decay=self.decay,
+                    param_space=current
+                )
                 if all_splits:
-
-                    # Retrieve new param spaces based on the split at given points
-                    new_param_spaces = current.split_range(param_name=parameter_name, split_values=all_splits)
-
-                    # Add the new param spaces to the recurring list of param spaces
+                    new_param_spaces = current.split_range(
+                        param_name=parameter_name, split_values=all_splits
+                    )
                     current_param_space_list.extend(new_param_spaces)
-            
-                    break
+                    did_split = True
+                    break  # Exit 1D splitting loop
 
-            # Append the current list if no further splitting was done to current param space
-            else:
+            if did_split:
+                continue  # Skip 2D pass if 1D split occurred
+
+            # --- Step 2: 2D Splitting Pass ---
+            for i in range(len(param_names)):
+                for j in range(i + 1, len(param_names)):
+                    param_x, param_y = param_names[i], param_names[j]
+                    split_dict = self.prescan_parser.get_2d_density_splits(
+                        param_x, param_y, decay=self.decay, param_space=current
+                    )
+                    if split_dict:
+                        subspaces = [current]
+                        for pname, split_vals in split_dict.items():
+                            subspaces = [s for ps in subspaces for s in ps.split_range(pname, split_vals)]
+                        current_param_space_list.extend(subspaces)
+                        did_split = True
+                        break  # Exit inner 2D loop
+                if did_split:
+                    break  # Exit outer 2D loop
+
+            if not did_split:
                 final_param_space_list.append(current)
 
         self.logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
@@ -514,7 +556,9 @@ class Scan:
         
         return final_param_space_list
 
-    def create_zoom_optimizers(self, param_space: ParamSpace, num_points: int) -> List[ZoomOptimizer]:
+    def create_zoom_optimizers(self,
+                               param_space: ParamSpace,
+                               num_points: int) -> List[ZoomOptimizer]:
 
         """
         Create list of zoom optimizers based on the parameter space.
@@ -524,33 +568,42 @@ class Scan:
             num_points (int): Number of points to use in the first iteration.
         """
 
-        self.logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
+        logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
 
         # Retrieve the list of param spaces
         list_of_param_spaces = self.get_param_spaces(param_space)
 
         # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List['ZoomOptimizer'] = []
+        all_zoom_optimizers: List[ZoomOptimizer] = []
 
+        # Get list of points for optimizers
         points_per_optimizer_list = self.distribute_points(list_of_param_spaces, num_points)
+
+        # Create PointSampler object
+        point_sampler = PointSampler(model = self.model,
+                                     out_dir = self.out_dir,
+                                     subdir_name = "zoom")
 
         # Create zoom optimizers based on param spaces
         for i, space in enumerate(list_of_param_spaces):
             zoom_optimizer = ZoomOptimizer(
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
+                precision= self.precision,
+                limit_target=self.limit_target,
                 starting_max = self.global_max,
-                config_loader = self.config_loader,
+                point_sampler = point_sampler,
+                config_loader = self.optimizer_config_loader,
                 label = f'ZoomOptimizer-{i}'
             )
 
-            self.logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
+            logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
 
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
 
         # Print the number of zoom optimizers
-        self.logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
+        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
         
         # Return list of all zoom optimizers
         return all_zoom_optimizers
@@ -571,7 +624,7 @@ class Scan:
         self.logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
 
         # Initialize list of param space volumes
-        volumes = np.array([self.prescan_parser.compute_effective_volume(space) for space in param_space_list])
+        volumes = np.array([self.prescan_parser.estimate_effective_volume_by_count(space) for space in param_space_list])
 
         # Retrieve total volume of all param spaces
         total_volume = volumes.sum()
@@ -587,7 +640,7 @@ class Scan:
 
         # Minimum points assignment
         min_points = min(num_points/10,20)
-        self.logger.debug(f"Minimum points per zoom optimizer: {min_points}")
+        logger.debug(f"Minimum points per zoom optimizer: {min_points}")
 
         # Distribute remaining points to indices by param space volume size
         for i in range(num_param_spaces):
@@ -599,23 +652,25 @@ class Scan:
         return tuple(points_per_optimizer_array.tolist())
        
     def finalize(self,
-                 optimization: str,
+                 strategy: str,
                  scan_time: float,
-                 num_points: int = -1) -> None:
+                 num_points: Optional[int] = None,
+                 precision: Optional[Precision] = None) -> None:
         """
         Finalize the scan by saving metadata and cleaning up.
 
         Args:
-            optimization (str): The optimization method used.
+            strategy (str): The optimization strategy used.
             scan_time (float): The total time taken for the scan.
             num_points (int, optional): Number of points to use in the first iteration. Defaults to -1.
+            precision (Precision, optional): The precision level for the scan. Defaults to Precision.MEDIUM.
         """
 
         # print message indicating scan is done
-        self.logger.info("Done!")
+        logger.info("Done!")
 
         # print out scan time
-        self.logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
+        logger.info(f"Scan took {datetime.timedelta(seconds=int(scan_time))} (hh:mm:ss)\n")
 
         # write time info to details file
         with open(self.details_name, "a") as details:
@@ -623,13 +678,14 @@ class Scan:
 
         # save metadata
         save_run_metadata(out_dir=self.out_dir,
-                          optimization=optimization,
-                          num_points=num_points)
+                          strategy=strategy,
+                          num_points=num_points,
+                          precision=precision)
 
     def delete_run_directory(self) -> None:
         """
         Delete the run directory if it exists.
         """
         if os.path.exists(self.out_dir):
-            self.logger.debug(f"Removing existing directory {self.out_dir}")
+            logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)

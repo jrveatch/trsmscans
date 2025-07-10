@@ -1,9 +1,11 @@
 
 # standard libraries
 import logging
+import os
 from typing import cast, List
 
 # third-party libraries
+import numpy as np
 import pandas as pd
 
 # get logger
@@ -24,14 +26,28 @@ def get_df(file_name: str) -> pd.DataFrame:
     """
 
     # load the file into a dataframe
-    dataframe = pd.read_csv(file_name,
-                            sep='\t',
-                            header=0)
+    return pd.read_csv(file_name,
+                       sep='\t',
+                       index_col=0)
 
-    # drop first column to avoid compounding indices
-    dataframe = dataframe.iloc[:, 1:]
+def load_scanner_output(input_files: List[str]) -> pd.DataFrame:
+    """
+    Reads and merges multiple .tsv files into a single DataFrame.
 
-    return dataframe
+    Args:
+        input_files (List[str]): List of input .tsv files with their paths
+
+    Returns:
+        pd.DataFrame: Merged DataFrame containing all rows from all found .tsv files.
+    """
+    dfs = []
+    for f in input_files:
+        if os.path.exists(f):
+            df = pd.read_csv(f,
+                             sep="\t",
+                             index_col=0)
+            dfs.append(df)
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 def get_header_string(dataframe: pd.DataFrame) -> str:
     """
@@ -64,3 +80,18 @@ def write_to_tsv(dataframe: pd.DataFrame,
     except Exception:
         logger.exception(f"Error writing to file {file_name}")
         raise
+
+def chunk_dataframe(df: pd.DataFrame,
+                    n_chunks: int) -> List[pd.DataFrame]:
+    """
+    Splits a DataFrame into approximately equal-sized chunks.
+
+    Args:
+        df (pd.DataFrame): DataFrame to split.
+        n_chunks (int): Number of chunks.
+
+    Returns:
+        List[pd.DataFrame]: List of DataFrame chunks.
+    """
+    chunk_size = int(np.ceil(len(df) / n_chunks))
+    return [df.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]

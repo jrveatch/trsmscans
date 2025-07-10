@@ -14,7 +14,6 @@ import datetime
 import logging
 import os
 import time
-from typing import Union
 
 # local modules
 from utils.config_loader import ConfigLoader
@@ -30,8 +29,6 @@ logger = logging.getLogger(__name__)
 
 def prescan(model: Model,
             num_points: int,
-            config_loader: Union[ConfigLoader, None] = None,
-            config_file_name: Union[str, None] = None,
             overwrite: bool = False) -> Parse:
     """
     Executes a prescan of the parameter space for a given scalar model.
@@ -45,8 +42,6 @@ def prescan(model: Model,
     Args:
         model (Model): The scalar model to scan.
         num_points (int): Total number of scan points to generate.
-        config_loader (Union[ConfigLoader, None], optional): Optional configuration loader.
-        config_file_name (Union[str, None], optional): Path to a config file if no loader is provided.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -96,19 +91,8 @@ def prescan(model: Model,
     # print location
     logger.debug(f"Running prescan in {out_dir}")
 
-    # if config loader is not provided, create one
-    if not config_loader:
-
-        # use default config file name if none is provided
-        if config_file_name is None:
-            config_file_name = model.name + "_default.yml"
-
-        logger.debug(f"Loading config file {config_file_name}")
-
-        # load config file
-        config_loader = ConfigLoader(config_file_name = config_file_name)
-
     # get configurations from config file
+    config_loader = ConfigLoader("RunConfig.yml")
     try:
         chunk_size: int = config_loader.get('prescan', 'chunk_size')
     except Exception as e:
@@ -126,9 +110,8 @@ def prescan(model: Model,
     param_space = ParamSpace(model)
 
     # create PointSampler object
-    point_sampler = PointSampler(out_dir = out_dir,
-                                 config_loader = config_loader)
-
+    point_sampler = PointSampler(model = model,
+                                 out_dir = out_dir)
 
     # run prescan in chunks until we reach the requested number of points
     parser = None
@@ -139,6 +122,8 @@ def prescan(model: Model,
         if remaining <= 0:
             logger.info(f"Reached {num_current} points, target met.")
             break
+        else:
+            logger.info(f"{num_current} / {num_points} points sampled so far")
 
         this_batch = min(chunk_size, remaining)
         logger.info(f"Sampling batch of {this_batch} points")
@@ -150,7 +135,6 @@ def prescan(model: Model,
             identifier = "prescan",
             good_points_only = False
         )
-        logger.info(f"{num_current} / {num_points} points sampled so far")
 
     # get total time taken
     scan_end = time.time()

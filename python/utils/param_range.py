@@ -1,11 +1,14 @@
 
 # standard libraries
-import logging
 import random
 from typing import Any, Dict, Optional, Tuple
 
 # local modules
 from utils.math_utils import round_sig
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to hold and update ranges for a single model parameter
 class ParamRange:
@@ -32,9 +35,6 @@ class ParamRange:
             name (str): Short name of the parameter.
             param_info (Dict[str, Any]): Dictionary containing 'fullname', 'min', and 'max'.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize parameter name
         self.name = name
@@ -154,7 +154,7 @@ class ParamRange:
 
         # complain and exit if there is nothing to do
         if new_val is None and range_scale == 1.0:
-            self.logger.warning("Attempting to update parameter with no new information... returning...")
+            logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         width = self.width

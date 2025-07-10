@@ -1,9 +1,16 @@
 
 # standard libraries
-import logging
 import os
 import sys
 from typing import Any, List
+
+import logging
+# Minimal fallback logging config
+if not logging.getLogger().hasHandlers():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s: %(message)s'
+    )
 
 # Define the numeric value for VERBOSE
 VERBOSE_LEVEL = 5  # Below DEBUG (10)

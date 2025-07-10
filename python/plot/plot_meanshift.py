@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 """
 Generates 2D plots for visualizing the paths taken by the mean-shift optimizer.
@@ -8,7 +7,6 @@ that show how optimization paths evolve in parameter space, optionally colored
 by cross section times branching ratio (xb) or other metrics.
 """
 
-import argparse
 from itertools import combinations
 import os
 from typing import Any, cast, Sequence
@@ -134,8 +132,8 @@ class MeanShiftPlotter:
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Normalize the color scale across all values
-        all_values = data[color_by].values
-        norm = Normalize(all_values.min(), all_values.max())
+        all_values = data[color_by].to_numpy(dtype=float)
+        norm = Normalize(np.min(all_values), np.max(all_values))
         cmap = plt.get_cmap("viridis")
 
         # Plot each optimizer path as a colored segment collection
@@ -195,25 +193,3 @@ class MeanShiftPlotter:
                 self.plot_paths_2d(x=param, y="xb", walk_type=walk_type, save=True, show=False)
             for pair in combinations(self.model.input_parameter_names, 2):
                 self.plot_paths_2d(x=pair[0], y=pair[1], walk_type=walk_type, save=True, show=False)
-
-# Command-line interface to generate mean-shift path plots.
-# Creates a MeanShiftPlotter and produces 2D visualizations of the optimization walks.
-if __name__ == '__main__':
-
-    # Parse command line arguments
-    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of heavy scalar X in GeV")
-    arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
-    arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
-    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    args = arg_parser.parse_args()
-
-    # create model object
-    model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-
-    plotter = MeanShiftPlotter(model=model,
-                               decay=args.decay)
-
-    plotter.make_mean_shift_plots()
