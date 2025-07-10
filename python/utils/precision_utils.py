@@ -49,7 +49,11 @@ class Precision(IntEnum):
             raise
         
         return thresholds
-    
+
+    @classmethod
+    def all_thresholds(cls) -> Dict[str, float]:
+        return cls._load_thresholds()
+
     def threshold(self) -> float:
         """
         Get the threshold value for a given precision level name.
