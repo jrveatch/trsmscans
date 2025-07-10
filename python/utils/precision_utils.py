@@ -1,7 +1,7 @@
 
 from enum import IntEnum
 from typing import Dict
-from functools import cached_property
+from functools import lru_cache
 
 from utils.config_loader import ConfigLoader
 
@@ -26,9 +26,9 @@ class Precision(IntEnum):
     def __str__(self) -> str:
         return self.name.lower()
 
-    @classmethod
-    @cached_property
-    def precision_thresholds(self) -> Dict[str, float]:
+    @staticmethod
+    @lru_cache()
+    def _load_thresholds() -> Dict[str, float]:
         """
         Load precision threshold values from the configuration file.
 
@@ -61,7 +61,7 @@ class Precision(IntEnum):
             KeyError: If the level is not found in the configuration.
         """
         key = str(self)  # e.g., "low"
-        thresholds = type(self).precision_thresholds  # Access class-level property
+        thresholds = self._load_thresholds()
 
         if key not in thresholds:
             raise KeyError(f"Missing threshold for level '{key}'")
