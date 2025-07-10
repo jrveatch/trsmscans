@@ -1,5 +1,4 @@
 
-import logging
 import numpy as np
 from typing import Dict
 
@@ -8,6 +7,8 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
+import logging
 logger = logging.getLogger(__name__)
 
 def mean_shift(arrays: Dict[str,np.ndarray],
@@ -65,11 +66,12 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     nZ = Z_mod / Z_safe_sum
 
     # Verbose logging
-    logger.verbose("\nPre-shift:\n==========")
-    logger.verbose(f"Parameter names: {list(arrays.keys())}")
-    for i, X in enumerate(XX):
-        logger.verbose(f"X_{i}:{X}")
-    logger.verbose(f"nZ: {nZ}")
+    if logger.isEnabledFor(VERBOSE_LEVEL):
+        logger.verbose("\nPre-shift:\n==========")
+        logger.verbose(f"Parameter names: {list(arrays.keys())}")
+        for i, X in enumerate(XX):
+            logger.verbose(f"X_{i}:{X}")
+        logger.verbose(f"nZ: {nZ}")
 
     # Compute weighted mean shift
     means = np.einsum('ij,j->i', XX, nZ)

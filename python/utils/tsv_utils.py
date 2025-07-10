@@ -29,59 +29,6 @@ def count_tsv_points(file_name: str) -> int:
     except Exception:
         return 0
 
-def save_tsv_output(input_file: str,
-                    output_file: str) -> None:
-    """
-    Merge the contents of an input .tsv file into an output .tsv file, renumbering the index column.
-
-    If the output file does not exist or is empty, the input file is simply renamed.
-    If the output file exists, the input is appended (skipping its header), and index values are
-    updated to ensure uniqueness.
-
-    Args:
-        input_file (str): Path to the source .tsv file.
-        output_file (str): Path to the destination .tsv file.
-    """
-
-    # normalize paths to absolute paths for comparison
-    input_file = os.path.abspath(input_file)
-    output_file = os.path.abspath(output_file)
-
-    # check if input_file and output_file point to the same file
-    if input_file==output_file:
-        logger.warning(f"Input file path '{input_file}' and output file path '{output_file}' are the same.")
-        return
-
-    # get number of points already in output file
-    num_existing = count_tsv_points(output_file)
-
-    # if output file doesn't exist or is empty, simply rename input file
-    if num_existing <= 0:
-        shutil.move(input_file,output_file)
-        return
-
-    # otherwise append the contents of input_file to output_file
-    with open(input_file,'r') as source_file:
-
-        # skip the first line to avoid writing headers multiple times
-        next(source_file)
-
-        # open output .tsv file for appending
-        with open(output_file,'a') as destination_file:
-
-            # get each line in the new .tsv file
-            for count, line in enumerate(source_file):
-
-                # replace the index with a unique value
-                parts = line.strip().split('\t')
-                parts[0] = str(count + num_existing)
-
-                # append each line to final .tsv file
-                destination_file.write('\t'.join(parts) + '\n')
-
-    # delete input .tsv file
-    os.remove(input_file)
-
 def sort_tsv_file(file_name: str,
                   sort_column: str = "xb") -> None:
     """

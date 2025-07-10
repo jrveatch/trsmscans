@@ -222,7 +222,7 @@ class MeanShiftOptimizer:
                                                           use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
-                logger.info(f"No points found.\n")
+                logger.info("No points found.\n")
                 logger.info(f"Exiting {identifier}\n")
                 return
 

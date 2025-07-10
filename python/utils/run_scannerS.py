@@ -2,7 +2,6 @@
 
 # standard libraries
 import argparse
-import logging
 import math
 import multiprocessing as mp
 from multiprocessing.managers import ValueProxy
@@ -10,18 +9,21 @@ import os
 import shutil
 import subprocess
 import time
-from typing import List
+from typing import List, Optional
 
 # third-party libraries
 from blessings import Terminal
+import pandas as pd
 
 # local modules
 from utils.config_loader import ConfigLoader
 from utils.cpu_utils import get_n_cpus
+from utils.df_utils import load_scanner_output
 from utils.env_utils import data_dir
-from utils.tsv_utils import save_tsv_output
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
+import logging
 logger = logging.getLogger(__name__)
 
 # get configurations
@@ -31,20 +33,34 @@ try:
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
+    # random seed for ScannerS - should generally be None, unless needed for development
+    initial_seed: Optional[int] = config_loader.get('ScannerS', 'seed', default=None)
 except Exception as e:
     logger.exception(e)
     raise
+
+# initialize seed as an evolving counter
+if mp.current_process().name == "MainProcess":
+    if initial_seed is not None:
+        logger.info(f"Using {initial_seed} as initial ScannerS seed\n")
+seed = initial_seed
 
 # method to run ScannerS
 def run_scannerS(ini_name: str,
                  num_points: int,
                  model_name: str,
                  use_multiprocessing: bool = True,
-                 run_test_job: bool = True) -> int:
+                 run_test_job: bool = True) -> pd.DataFrame:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
         raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+    
+    # list of output.tsv files
+    tsv_files: List[str] = []
+
+    # list of temporary directories
+    directories: List[str] = []
 
     # initialize number of processes to 1
     num_processes = 1
@@ -72,17 +88,21 @@ def run_scannerS(ini_name: str,
     # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
 
+        # set points_to_run
+        points_to_run = num_points
+
         # run test process if requested
         if run_test_job:
             logger.debug(f"Running a test job with {min_points_per_job} points")
-            test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
+            test_process_args = get_process_args(model_name=model_name,
+                                                 ini_name=ini_name,
+                                                 num_points=min_points_per_job)
             logger.debug("Running test job to check if ScannerS works with the given configuration")
             run_timed_process(process_args=test_process_args,
-                            model_name=model_name)
+                              model_name=model_name)
+            tsv_files.append(f"{model_name}.tsv")
+            points_to_run -= min_points_per_job
             logger.debug("Test job was successful")
-
-        # number of points left to run after test job
-        points_to_run = num_points - min_points_per_job
 
         # set number of processes to the number of allowed CPUs
         num_processes = num_cpu
@@ -91,7 +111,7 @@ def run_scannerS(ini_name: str,
         points_per_process = math.ceil(points_to_run/num_processes)
 
         # if points_per_process is less than min_points_per_job, reduce the number of jobs
-        if points_per_process < min_points_per_job:
+        if points_per_process <= min_points_per_job:
             num_processes = math.ceil(points_to_run/min_points_per_job)
             points_per_process = min_points_per_job
 
@@ -102,13 +122,16 @@ def run_scannerS(ini_name: str,
         logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
-        num_points = points_to_run + min_points_per_job
-
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
 
-        # define process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+        # define process args for each job (seed increments here)
+        process_args_list = [
+            get_process_args(model_name=model_name,
+                             ini_name=ini_name,
+                             num_points=points_per_process)
+            for _ in directories
+        ]
 
         # create a shared counter and a lock
         counter: ValueProxy = mp.Manager().Value("i",0)
@@ -121,7 +144,10 @@ def run_scannerS(ini_name: str,
         with mp.Pool(processes=num_processes) as pool:
 
             # map the run_process function to each directory
-            pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
+            pool.starmap(run_process, [
+                (args, directory, num_processes, counter, lock)
+                for args, directory in zip(process_args_list, directories)
+                ])
 
             # wait for all processes to finish
             pool.close()
@@ -130,25 +156,36 @@ def run_scannerS(ini_name: str,
         # success message
         logger.info("All processes finished. Merging outputs...")
 
-        # combine the outputs into a single file
-        concatenate_files(directories=directories,
-                          file_name=model_name+".tsv")
+        tsv_files += list_outputs(directories=directories,
+                                  file_name=model_name+".tsv")
 
     else:
         logger.info("Running as a single process")
 
         # define test process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+        process_args = get_process_args(model_name=model_name,
+                                        ini_name=ini_name,
+                                        num_points=num_points)
 
         # run test process
         run_timed_process(process_args=process_args,
                           model_name=model_name)
+        tsv_files.append(f"{model_name}.tsv")
 
-    # return number of points that are actually used, including test job points
-    return num_points
+    # get dataframe from the output files
+    data = load_scanner_output(tsv_files)
+
+    # clean up artifact files
+    remove_artifact_files(model_name)
+
+    # remove temporary directories
+    remove_temp_directories(directories)
+
+    # return dataframe
+    return data
 
 def run_scannerS_single_point(ini_name: str,
-                              model_name: str) -> None:
+                              model_name: str) -> pd.DataFrame:
     """Runs ScannerS for a single parameter point using the given model configuration.
 
     Args:
@@ -161,11 +198,15 @@ def run_scannerS_single_point(ini_name: str,
         raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
+    process_args = get_process_args(model_name=model_name,
+                                    ini_name=ini_name,
+                                    num_points=1)
 
     # run timed process
     run_timed_process(process_args=process_args,
                       model_name=model_name)
+
+    return load_scanner_output([f"{model_name}.tsv"])
 
 # run a process for multiprocessing
 def run_process(process_args: List[str],
@@ -227,29 +268,24 @@ def run_timed_process(process_args: List[str],
             # wait 1 second before checking again
             time.sleep(1)
 
-    # clean up artifact files
-    remove_artifact_files()
+# get a list of the outputs from parallel processes
+def list_outputs(directories: List[str],
+                 file_name: str) -> List[str]:
+    output_list: List[str] = []
+    for directory in directories:
+        input_file = os.path.join(directory, file_name)
+        # Check if the file exists before attempting to concatenate
+        if os.path.exists(input_file):
+            output_list.append(input_file)
+        else:
+            logger.warning(f"Missing expected file: {input_file}")
+    return output_list
 
-# concatenate outputs from parallel processes into a single .tsv file
-def concatenate_files(directories: List[str],
-                      file_name: str) -> None:
+def remove_temp_directories(directories: List[str]) -> None:
 
-    try:
-        # Loop over directories and concatenate their .tsv files
-        for directory in directories:
-            input_file = os.path.join(directory, file_name)
-
-            # Check if the file exists before attempting to concatenate
-            if os.path.exists(input_file):
-                save_tsv_output(input_file=input_file, output_file=file_name)
-            else:
-                logger.warning(f"Missing expected file: {input_file}")
-
-        logger.debug(f"Successfully concatenated all files into {file_name}")
-
-    except Exception as e:
-        logger.exception(f"Error during file concatenation: {e}")
-        return  # Do not proceed with deleting directories
+    # Skip if directories is an empty list
+    if not directories:
+        return
 
     # If everything worked, proceed to delete directories
     logger.debug("Removing temp directories")
@@ -263,10 +299,12 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.verbose(f"Successfully removed: {directory}")
+            if logger.isEnabledFor(VERBOSE_LEVEL):
+                logger.verbose(f"Successfully removed: {directory}")
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                if logger.isEnabledFor(VERBOSE_LEVEL):
+                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
@@ -274,18 +312,37 @@ def remove_temp_dir(directory, retries=5, delay=1):
             return
     logger.exception(f"Failed to remove {directory} after {retries} retries.")
 
-def remove_artifact_files() -> None:
+def remove_artifact_files(model_name: str) -> None:
     """Remove artifact files that are not needed after the scan."""
     artifact_files = ["HS_analyses.txt",
                       "HS_correlations.txt",
                       "Key.dat", "STXS_analyses.txt",
-                      "STXS_correlations.txt",]
+                      "STXS_correlations.txt",
+                      f"{model_name}.tsv"]
     for file in artifact_files:
         if os.path.exists(file):
             os.remove(file)
             logger.debug(f"Removed artifact file: {file}")
         else:
             logger.debug(f"Artifact file {file} does not exist, skipping removal.")
+
+def get_process_args(model_name: str,
+                     ini_name: str,
+                     num_points: int) -> List[str]:
+    args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+    s = next_seed()
+    if s is not None:
+        args.extend(["--seed", str(s)])
+    return args
+
+def next_seed() -> Optional[int]:
+    global seed
+    if seed is None:
+        return None
+    current = seed
+    seed += 1
+    logger.debug(f"Assigning seed: {current}")
+    return current
 
 if __name__ == "__main__":
 

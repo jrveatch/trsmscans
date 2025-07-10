@@ -22,7 +22,7 @@ import shutil
 from typing import Dict, Tuple
 
 from utils import file_utils
-from utils.model import Model
+from utils.model import Model, supported_models
 from utils.parse import Parse
 
 logging.basicConfig(
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     args = arg_parser.parse_args()
 
     model = Model(name=args.model,

@@ -3,7 +3,7 @@
 import argparse
 
 from mass_grid.mass_json_utils import get_mass_permutations
-from utils.model import Model
+from utils.model import Model, supported_models
 from plot.plot_meanshift import MeanShiftPlotter
 from plot.plot_zoom import ZoomPlotter
 
@@ -15,9 +15,9 @@ def main():
     arg_parser.add_argument("-S", "--SMass", type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
     arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", required=True, type=str, choices=['zoom','meanshift'], help="Scan strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
     # Load mass points
@@ -27,14 +27,14 @@ def main():
         if not args.identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
-        mass_points = [(x, s, args.HMass) for x, s, _ in permutations]
+        mass_points = [(x, s, args.HMass, {}) for x, s, _, _ in permutations]
         print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
     elif args.XMass and args.SMass:
-        mass_points = [(args.XMass, args.SMass, args.HMass)]
+        mass_points = [(args.XMass, args.SMass, args.HMass, {})]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
-    for xmass, smass, hmass in mass_points:
+    for xmass, smass, hmass, _ in mass_points:
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
         if not model.is_calculable:
              print(f"{model.mass_string} is not calculable. Skipping...")

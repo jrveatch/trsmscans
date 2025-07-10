@@ -34,16 +34,43 @@ def save_run_metadata(out_dir: str,
 
 def run_exists(out_dir: str,
                strategy: str,
-               num_points: int = -1) -> bool:
+               num_points: int = -1,
+               precision: Optional[Precision] = None) -> bool:
     """Check if a run exists by looking for the metadata file."""
     metadata_path = os.path.join(out_dir, metadata_file_name(strategy))
-    if os.path.isfile(metadata_path):
-        with open(metadata_path, "r") as f:
-            metadata = json.load(f)
-            logger.info(f"Found a {strategy} run with {metadata['num_points']} points\n")
-            if strategy == "zoom":
-                if num_points <= 1.5*metadata["num_points"]:
-                    return True
-            if strategy == "meanshift":
-                return num_points <= 1.2*metadata["num_points"]
+    if not os.path.isfile(metadata_path):
+        return False
+
+    with open(metadata_path, "r") as f:
+        metadata: Dict[str, Any] = json.load(f)
+
+    existing_points: int = metadata.get("num_points", 0)
+    existing_precision_str = metadata.get("precision")
+    logger.info(f"Found a {strategy} run with {existing_points} points and {existing_precision_str} precision.")
+
+    if strategy == "zoom":
+        # Check point threshold
+        if num_points <= 1.5 * existing_points:
+            # Handle optional precision logic
+            if precision is None:
+                return True
+            if existing_precision_str is None:
+                logger.info("Existing run has no precision field; cannot satisfy fixed precision requirement.")
+                return False
+
+            try:
+                existing_precision = Precision.from_string(existing_precision_str)
+            except ValueError:
+                logger.warning(f"Could not parse existing precision '{existing_precision_str}'.")
+                return False
+
+            if existing_precision >= precision:
+                return True
+            else:
+                logger.info(f"Existing precision '{existing_precision}' is lower than requested '{precision}'.")
+                return False
+
+    if strategy == "meanshift":
+        return num_points <= 1.2 * existing_points
+
     return False

@@ -14,7 +14,6 @@ import datetime
 import logging
 import os
 import time
-from typing import Union
 
 # local modules
 from utils.config_loader import ConfigLoader
@@ -123,6 +122,8 @@ def prescan(model: Model,
         if remaining <= 0:
             logger.info(f"Reached {num_current} points, target met.")
             break
+        else:
+            logger.info(f"{num_current} / {num_points} points sampled so far")
 
         this_batch = min(chunk_size, remaining)
         logger.info(f"Sampling batch of {this_batch} points")
@@ -134,7 +135,6 @@ def prescan(model: Model,
             identifier = "prescan",
             good_points_only = False
         )
-        logger.info(f"{num_current} / {num_points} points sampled so far")
 
     # get total time taken
     scan_end = time.time()

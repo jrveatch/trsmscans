@@ -14,6 +14,11 @@ from utils.env_utils import data_dir
 import logging
 logger = logging.getLogger(__name__)
 
+# list of supported models
+supported_models = [
+    "TRSMBroken"
+]
+
 # class that holds information about the model being used
 class Model:
     """

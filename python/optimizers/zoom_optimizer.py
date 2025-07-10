@@ -14,7 +14,7 @@ import datetime
 import os
 import shutil
 import time
-from typing import Dict
+from typing import Dict, Optional
 
 # third-party libraries
 import pandas as pd
@@ -51,7 +51,8 @@ class ZoomOptimizer:
                  point_sampler: PointSampler,
                  config_loader: ConfigLoader,
                  label: str,
-                 precision: Precision = Precision.MEDIUM) -> None:
+                 precision: Optional[Precision] = None,
+                 limit_target: float = -1.0) -> None:
         """
         Initializes a ZoomOptimizer instance with configuration and scan parameters.
 
@@ -62,7 +63,8 @@ class ZoomOptimizer:
             point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
-            precision (Precision, optional): The precision level for the scan.
+            precision (Optional[Precision]): The precision level for the scan.
+            limit_target (float, optional): The target experimental limit for setting precision. Defaults to -1.0.
         """
 
         # some basic scanner information
@@ -74,13 +76,20 @@ class ZoomOptimizer:
         self.top_percentile = {}
         self.top_percentile_xb = None
         self.global_xb_fail = 0
-        self.local_xb_fail = 0
+        self.no_improvement_count = 0
+        self.small_improvement_count = 0
         self.is_running = True
         self.local_history = []
         self.point_sampler = point_sampler
         self.run_test_job = True
+        self.limit_target = limit_target
 
-        self.precision = precision
+        if precision is None:
+            self.use_adaptive_precision = True
+            self.precision = Precision.COARSE
+        else:
+            self.use_adaptive_precision = False
+            self.precision = precision
 
         # get zoom configuration from config file
         self.config_loader = config_loader
@@ -88,12 +97,17 @@ class ZoomOptimizer:
             self.strategy: str = self.config_loader.get('zoom', 'strategy')
             self.global_xb_fail_threshold: float = self.config_loader.get('zoom', 'global_xb_fail_threshold')
             self.global_xb_fail_count: int = self.config_loader.get('zoom', 'global_xb_fail_count')
-            self.local_xb_fail_threshold: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_threshold')
             self.local_xb_fail_count: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_count')
             self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
             self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
             self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
             self.min_points_per_iteration: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'min_points_per_iteration')
+            self.no_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'no_improvement_max')
+            self.small_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'small_improvement_max')
+            self.small_improvement_frac: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'small_improvement_frac')
+            self.precision_threshold_low: float = self.config_loader.get('precision', 'threshold_low')
+            self.precision_threshold_medium: float = self.config_loader.get('precision', 'threshold_medium')
+            self.precision_threshold_high: float = self.config_loader.get('precision', 'threshold_high')
         except Exception as e:
             logger.exception(e)
             raise
@@ -132,6 +146,20 @@ class ZoomOptimizer:
         """Returns the decay channel being evaluated (e.g., 'H->SS')."""
         return self.param_space.decay
 
+    @property
+    def precision(self) -> Optional[Precision]:
+        """
+        Returns the precision level of the scan.
+        """
+        return self._precision
+
+    @precision.setter
+    def precision(self, value: Optional[Precision]) -> None:
+        """
+        Sets the precision level of the scan.
+        """
+        self._precision = value
+
     def run(self,
             iter: int,
             global_max: Point) -> Point:
@@ -160,9 +188,10 @@ class ZoomOptimizer:
         logger.info(f"Iteration: {identifier}")
 
         # make sure num_points doesn't drop below min_points_per_iteration
-        if self.num_points < self.min_points_per_iteration[str(self.precision)]:
-            logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration[str(self.precision)]} points instead')
-            self.num_points = self.min_points_per_iteration[str(self.precision)]
+        precision_key = str(self.precision)
+        if self.num_points < self.min_points_per_iteration[precision_key]:
+            logger.debug(f'{self.num_points} is below the minimum, requesting {self.min_points_per_iteration[precision_key]} points instead')
+            self.num_points = self.min_points_per_iteration[precision_key]
 
         # flag to indicate if zooming should be done
         do_zoom = True
@@ -199,6 +228,10 @@ class ZoomOptimizer:
 
         # if new point is better than the local max point, replace it
         self.local_max = max(self.local_max, new_max)
+
+        # adaptive precision adjustment based on xb value
+        if self.use_adaptive_precision:
+            self.update_precision(self.local_max)
 
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
@@ -245,41 +278,88 @@ class ZoomOptimizer:
 
         return new_max
 
-    def check_stopping_conditions(self, new_max: Point) -> bool:
+    def update_precision(self,
+                         test_point: Point) -> None:
+        """
+        Updates the precision based on the new maximum xb value.
+
+        Args:
+            test_point (Point): The Point to test against self.limit_target.
+        """
+        if abs(self.limit_target) < 1e-12:
+            raise ValueError("Cannot adapt precision: limit_target is effectively zero")
+        ratio = test_point.xb * 1000 / self.limit_target
+        if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
+            logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2f})")
+            self.precision = Precision.LOW
+        elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
+            logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
+            self.precision = Precision.MEDIUM
+        elif self.precision_threshold_high <= ratio and self.precision != Precision.HIGH:
+            logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
+            self.precision = Precision.HIGH
+
+    def check_stopping_conditions(self,
+                                  new_max: Point) -> bool:
         """
         Checks stopping conditions and updates internal state.
+
+        Args:
+            new_max (Point): The new maximum point found in the current iteration.
 
         Returns:
             bool: True if optimization should stop, False otherwise.
         """
-        # Global: new point < global_xb_fail_threshold of current global max
+        # ---- Global stopping condition ----
         if new_max < self.global_max * self.global_xb_fail_threshold:
             self.global_xb_fail += 1
-            if self.global_xb_fail >= self.global_xb_fail_count:
-                self.termination_message(f"Local max is consistently less than {int(self.global_xb_fail_threshold*100)}% of global max")
-                return True
         else:
             self.global_xb_fail = 0
 
-        # Local: based on improvement history
-        if len(self.local_history) >= 5:
-            last = self.local_history[-1]
-            second_last = self.local_history[-2]
-            second_best = sorted(self.local_history, key=lambda pt: pt.xb)[-2]
+        if self.global_xb_fail >= self.global_xb_fail_count:
+            self.termination_message(f"Local max is consistently less than {int(self.global_xb_fail_threshold*100)}% of global max")
+            return True
 
-            # If still improving, but not by enough
-            if last >= second_last:
-                new_max_threshold = self.local_xb_fail_threshold[str(self.precision)]
-                if new_max < second_best * (1.0 + new_max_threshold):
-                    self.local_xb_fail += 1
-                    if self.local_xb_fail >= self.local_xb_fail_count[str(self.precision)]:
-                        self.termination_message(f"Local max is increasing by less than {new_max_threshold*100:.1f}%")
-                        return True
-                else:
-                    self.local_xb_fail = 0
-            elif new_max < second_last:
-                self.termination_message("Local max is not increasing")
-                return True
+        # ---- Local stopping conditions ----
+        if not self.local_history:
+            return False
+
+        precision_key = str(self.precision)
+
+        # Compare to previous local max
+        if new_max.xb <= self.local_max_old.xb:
+            self.no_improvement_count += 1
+            logger.debug(f"No improvement detected (xb={new_max.xb:.3e})")
+        else:
+            self.no_improvement_count = 0
+        
+        # Compare to Nth best in history
+        sorted_history = sorted(self.local_history, key=lambda pt: pt.xb)
+        nth_index = -self.local_xb_fail_count[precision_key]
+        if abs(nth_index) <= len(sorted_history):
+            reference = sorted_history[nth_index]
+        else:
+            reference = sorted_history[0]  # fallback to worst if not enough points
+
+        required_frac = self.small_improvement_frac[precision_key]
+        if new_max.xb < reference.xb * (1.0 + required_frac):
+            self.small_improvement_count += 1
+            logger.debug(f"Small improvement (xb={new_max.xb:.3e} vs {reference.xb:.3e})")
+        else:
+            self.small_improvement_count = 0
+
+        # ---- Evaluate stopping ----
+        if self.no_improvement_count >= self.no_improvement_max[precision_key]:
+            self.termination_message(
+                f"No improvement in local max for {self.no_improvement_max[precision_key]} consecutive iterations"
+            )
+            return True
+
+        if self.small_improvement_count >= self.small_improvement_max[precision_key]:
+            self.termination_message(
+                f"Local max improving by less than {int(required_frac * 100)}% for {self.small_improvement_max[precision_key]} iterations"
+            )
+            return True
 
         return False
 
@@ -358,8 +438,10 @@ class ZoomOptimizer:
         # minimum number of points required before zooming in
         min_points = 10
 
+        precision_key = str(self.precision)
+
         # percentile threshold that can be adjusted on the fly
-        percentile_threshold = self.zoom_percentile[str(self.precision)]
+        percentile_threshold = self.zoom_percentile[precision_key]
 
         # get an array of xb results
         xb_array = self.scan_parser.get_xb(self.decay)
@@ -401,7 +483,7 @@ class ZoomOptimizer:
 
         # calculate the new number of points based on the remaining xb range
         height_ratio = (xb_array.max() - xb_threshold) / (xb_array.max() - xb_array.min())
-        self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate[str(self.precision)]))
+        self.num_points = int(self.num_points * height_ratio * (1.0 + self.density_growth_rate[precision_key]))
 
     def rate_zoom(self) -> None:
         """
@@ -411,8 +493,10 @@ class ZoomOptimizer:
         adjusts point density proportionally to the new parameter space volume.
         """
 
+        precision_key = str(self.precision)
+
         # parameter scaling factor
-        range_scale = 1.0 - self.parameter_zoom_rate[str(self.precision)]
+        range_scale = 1.0 - self.parameter_zoom_rate[precision_key]
 
         # get volume before zooming
         volume_old = self.param_space.volume()
@@ -425,4 +509,4 @@ class ZoomOptimizer:
         volume_ratio = volume_new / volume_old
 
         # step down num_points
-        self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate[str(self.precision)]))
+        self.num_points = int(self.num_points * volume_ratio * (1.0 + self.density_growth_rate[precision_key]))
