@@ -105,9 +105,6 @@ class ZoomOptimizer:
             self.no_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'no_improvement_max')
             self.small_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'small_improvement_max')
             self.small_improvement_frac: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'small_improvement_frac')
-            self.precision_threshold_low: float = self.config_loader.get('precision_thresholds', 'low')
-            self.precision_threshold_medium: float = self.config_loader.get('precision_thresholds', 'medium')
-            self.precision_threshold_high: float = self.config_loader.get('precision_thresholds', 'high')
         except Exception as e:
             logger.exception(e)
             raise
@@ -289,13 +286,13 @@ class ZoomOptimizer:
         if abs(self.limit_target) < 1e-12:
             raise ValueError("Cannot adapt precision: limit_target is effectively zero")
         ratio = test_point.xb * 1000 / self.limit_target
-        if self.precision_threshold_low < ratio <= self.precision_threshold_medium and self.precision != Precision.LOW:
+        if Precision.LOW.threshold() < ratio <= Precision.MEDIUM.threshold() and self.precision != Precision.LOW:
             logger.info(f"Adjusting precision to LOW (ratio = {ratio:.2f})")
             self.precision = Precision.LOW
-        elif self.precision_threshold_medium <= ratio < self.precision_threshold_high and self.precision != Precision.MEDIUM:
+        elif Precision.MEDIUM.threshold() <= ratio < Precision.HIGH.threshold() and self.precision != Precision.MEDIUM:
             logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
             self.precision = Precision.MEDIUM
-        elif self.precision_threshold_high <= ratio and self.precision != Precision.HIGH:
+        elif Precision.HIGH.threshold() <= ratio and self.precision != Precision.HIGH:
             logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
             self.precision = Precision.HIGH
 
