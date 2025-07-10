@@ -1,4 +1,13 @@
+
 from enum import IntEnum
+from typing import Dict
+from functools import cached_property
+
+from utils.config_loader import ConfigLoader
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 class Precision(IntEnum):
     INSENSITIVE = 0
@@ -16,3 +25,45 @@ class Precision(IntEnum):
 
     def __str__(self) -> str:
         return self.name.lower()
+
+    @classmethod
+    @cached_property
+    def precision_thresholds(self) -> Dict[str, float]:
+        """
+        Load precision threshold values from the configuration file.
+
+        Returns:
+            Dict[str, float]: A dictionary mapping precision levels
+                            (e.g., 'coarse', 'low', 'medium', 'high')
+                            to their corresponding threshold values.
+
+        Raises:
+            Exception: If the configuration section is missing or invalid.
+        """
+        config_loader = ConfigLoader("OptimizerConfig.yml")
+
+        try:
+            thresholds: Dict[str, float] = config_loader.get('precision_thresholds')
+        except Exception as e:
+            logger.exception(e)
+            raise
+        
+        return thresholds
+    
+    def threshold(self) -> float:
+        """
+        Get the threshold value for a given precision level name.
+
+        Returns:
+            float: The configured threshold for the specified level.
+
+        Raises:
+            KeyError: If the level is not found in the configuration.
+        """
+        key = str(self)  # e.g., "low"
+        thresholds = type(self).precision_thresholds  # Access class-level property
+
+        if key not in thresholds:
+            raise KeyError(f"Missing threshold for level '{key}'")
+
+        return thresholds[key]
