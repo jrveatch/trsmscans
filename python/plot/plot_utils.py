@@ -1,5 +1,6 @@
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 from typing import Tuple
 
@@ -64,3 +65,11 @@ def interpolate_grid(x: np.ndarray,
     Xi, Yi = np.meshgrid(xi, yi)
     Zi = griddata((x, y), z, (Xi, Yi), method=method)
     return Xi, Yi, Zi
+
+def get_discrete_colors(n: int,
+                        cmap_name: str = "viridis") -> list:
+    """
+    Return n discrete colors sampled from a matplotlib colormap.
+    """
+    cmap = plt.get_cmap(cmap_name)
+    return [cmap(i) for i in np.linspace(0, 1, n)]

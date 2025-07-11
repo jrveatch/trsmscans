@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
 from utils.model import supported_models
-from plot.plot_utils import interpolate_grid, mass_label, xb_label
+from plot.plot_utils import interpolate_grid, mass_label, xb_label, get_discrete_colors
 from utils.precision_utils import Precision
 
 XRES = 200
@@ -347,14 +347,6 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
-
-def get_discrete_colors(n: int,
-                        cmap_name: str = "viridis") -> list:
-    """
-    Return n discrete colors sampled from a matplotlib colormap.
-    """
-    cmap = plt.get_cmap(cmap_name)
-    return [cmap(i) for i in np.linspace(0, 1, n)]
 
 def match_limit_values_to_subset(X_sub: np.ndarray,
                                  S_sub: np.ndarray,
