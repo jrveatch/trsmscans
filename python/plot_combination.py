@@ -14,6 +14,7 @@ import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
 from utils.model import supported_models
 from utils.plot_utils import interpolate_grid, mass_label, xb_label
+from utils.precision_utils import Precision
 
 XRES = 200
 SRES = 200
@@ -218,6 +219,14 @@ def plot_combination(model :str,
                        contour_masks=expected_exclusion_masks,
                        log_x=log_x,
                        log_y=log_y)
+    
+    plot_xb_to_limit_ratio(xb_max,
+                           obs_matched,
+                           X_mass_xb,
+                           S_mass_xb,
+                           os.path.join(output_directory(model, decay), f"{decay}_{identifier}_ratio_obs.png"),
+                           log_x=log_x,
+                           log_y=log_y)
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
@@ -289,6 +298,63 @@ def plot_interpolation(X_mass: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
+
+from matplotlib.colors import BoundaryNorm
+import matplotlib.patches as mpatches
+
+def plot_xb_to_limit_ratio(xb: np.ndarray,
+                           limit: np.ndarray,
+                           X: np.ndarray,
+                           S: np.ndarray,
+                           file_name: str,
+                           log_x: bool = False,
+                           log_y: bool = False) -> None:
+    """
+    Plot discretized xb/limit ratio using categorical color levels.
+    """
+    ratio = np.divide(xb, limit, out=np.full_like(xb, np.nan), where=(limit > 0))
+    Xi, Yi, Zi = interpolate_grid(X, S, ratio)
+
+    ordered_thresholds = [p.threshold() for p in Precision if p != Precision.INSENSITIVE]
+    levels = [0.0] + ordered_thresholds + [1.0, 1.5]
+
+    labels = [f"<{ordered_thresholds[0]:.3f}"]
+    labels += [f"{ordered_thresholds[i]:.2f}-{ordered_thresholds[i+1]:.2f}" for i in range(len(ordered_thresholds)-1)]
+    labels.append(f"{ordered_thresholds[-1]:.2f}-1.0")
+    labels.append(">1.0")
+
+    num_bins = len(levels) - 1
+    colors = get_discrete_colors(num_bins,
+                                 cmap_name="plasma")
+
+    cmap = mcolors.ListedColormap(colors)
+    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+
+    fig, ax = plt.subplots()
+    ax.contourf(Xi, Yi, Zi, levels=levels, cmap=cmap, norm=norm, extend='both')
+
+    ax.set_xlabel(mass_label("X"))
+    ax.set_ylabel(mass_label("S"))
+
+    if log_x:
+        ax.set_xscale("log")
+    if log_y:
+        ax.set_yscale("log")
+
+    # Construct a manual legend
+    patches = [mpatches.Patch(color=colors[i], label=labels[i]) for i in range(len(labels))]
+    ax.legend(handles=patches, title="xb / limit", loc="upper right", frameon=True)
+
+    fig.tight_layout()
+    fig.savefig(file_name)
+
+def get_discrete_colors(n: int,
+                        cmap_name: str = "viridis") -> list:
+    """
+    Return n discrete colors sampled from a matplotlib colormap.
+    """
+    cmap = plt.get_cmap(cmap_name)
+    return [cmap(i) for i in np.linspace(0, 1, n)]
 
 def match_limit_values_to_subset(X_sub: np.ndarray,
                                  S_sub: np.ndarray,
