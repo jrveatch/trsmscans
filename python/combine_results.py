@@ -25,7 +25,8 @@ def combine_results(model: str,
         optimization (str): Optimization strategy used in the scan, e.g., 'zoom' or 'meanshift'.
     """
 
-    permutations = get_mass_permutations(decay=decay, identifier=identifier)
+    permutations = get_mass_permutations(decay=decay,
+                                         identifier=identifier)
 
     scan_dir = os.path.join(output_dir(), model, "scan")
     comb_dir = os.path.join(output_dir(), model, "combination")
@@ -56,6 +57,7 @@ def combine_results(model: str,
                 write_combination_row(
                     input_path=os.path.join(directory, file),
                     output_path=tsv_combination_file_name,
+                    optimization=optimization,
                     skip_first_col=True
                 )
 
@@ -64,27 +66,33 @@ def combine_results(model: str,
                 write_combination_row(
                     input_path=os.path.join(directory, file),
                     output_path=combination_file_name,
+                    optimization=optimization,
                     header_prefix="XMass\tSMass\tHMass\t",
                     row_prefix=f"{float(XMass)}\t{float(SMass)}\t{HIGGS_MASS}\t",
-                    skip_last_col=True
+                    skip_last_col=True,
+                    add_precision=True
                 )
 
 def write_combination_row(input_path: str,
                           output_path: str,
+                          optimization: str,
                           header_prefix: str = "",
                           row_prefix: str = "",
                           skip_first_col: bool = False,
-                          skip_last_col: bool = False) -> None:
+                          skip_last_col: bool = False,
+                          add_precision: bool = False) -> None:
     """
     Appends the last row of a TSV file to an output file, writing headers if needed.
 
     Args:
         input_path (str): Path to the input TSV file.
         output_path (str): Path to the output combined TSV file.
+        optimization (str): Optimization strategy used in the scan, e.g., 'zoom' or 'meanshift'.
         header_prefix (str): Prefix to prepend to the header row.
         row_prefix (str): Prefix to prepend to the data row.
         skip_first_col (bool): Whether to exclude the first column from input.
         skip_last_col (bool): Whether to exclude the last column from input.
+        add_precision (bool): Whether to include the scan precision as a new column.
     """
     try:
         headers, rows = parse_tsv_file(input_path,
@@ -106,11 +114,27 @@ def write_combination_row(input_path: str,
     except FileNotFoundError:
         write_header = True
 
+    precision_str = ""
+    if add_precision:
+        try:
+            json_file = os.path.join(os.path.dirname(input_path), optimization, f"run_metadata_{optimization}.json")
+            with open(json_file, 'r') as jf:
+                import json
+                config = json.load(jf)
+                precision_str = str(config.get("precision", ""))
+        except Exception as e:
+            print(f"Could not read precision from {json_file}: {e}")
+
     with open(output_path, 'a') as output_file:
         if write_header:
-            output_file.write(header_prefix + "\t".join(headers) + "\n")
+            header_line = header_prefix + "\t".join(headers)
+            if add_precision:
+                header_line += "\tprecision"
+            output_file.write(header_line + "\n")
 
         last_row_values = [rows[-1].get(h, "") for h in headers]
+        if add_precision:
+            last_row_values.append(precision_str)
         output_file.write(row_prefix + "\t".join(last_row_values) + "\n")
 
 def is_summary_file(file_name: str,
