@@ -206,9 +206,14 @@ class Scan:
         # check ratio of prescan max xb in fb to limit_target
         if self.use_adaptive_precision:
             ratio = self.global_max.xb * 1000 / self.limit_target
+            max_xb = self.global_max.xb * 1000
+            formatted_max_xb = f"{max_xb:.2e}" if max_xb < 0.1 or max_xb >= 100 else f"{max_xb:.2f}"
             if ratio < Precision.COARSE.threshold():
-                logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
+                logger.info(f"Prescan max of {formatted_max_xb} fb is insensitive to limit target {self.limit_target} fb.")
                 self.precision = Precision.INSENSITIVE
+            if ratio > Precision.SATURATED.threshold():
+                logger.info(f"Prescan max of {formatted_max_xb} fb is more than {Precision.SATURATED.threshold()} times the limit target {self.limit_target} fb.")
+                self.precision = Precision.SATURATED
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -338,7 +343,7 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        if self.precision != Precision.INSENSITIVE:
+        if self.precision != Precision.INSENSITIVE and self.precision != Precision.SATURATED:
             all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
             #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
@@ -467,8 +472,8 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 param_space = params_copy,
-                precision= self.precision,
-                limit_target=self.limit_target,
+                precision = self.precision,
+                limit_target = self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -589,8 +594,8 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
-                precision= self.precision,
-                limit_target=self.limit_target,
+                precision = self.precision,
+                limit_target = self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
