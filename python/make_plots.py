@@ -2,7 +2,7 @@
 
 import argparse
 import multiprocessing as mp
-from functools import partial
+from tqdm import tqdm
 
 from utils.cpu_utils import get_n_cpus
 from mass_grid.mass_json_utils import get_mass_permutations
@@ -10,12 +10,8 @@ from utils.model import Model, supported_models
 from plot.plot_meanshift import MeanShiftPlotter
 from plot.plot_zoom import ZoomPlotter
 
-def plot_mass_point(xmass: int,
-                    smass: int,
-                    hmass: int,
-                    decay: str,
-                    model_name: str,
-                    strategy: str):
+def plot_mass_point(args):
+    xmass, smass, hmass, decay, model_name, strategy = args
     model = Model(name=model_name, masses={"H": hmass, "S": smass, "X": xmass})
     if not model.is_calculable:
         print(f"{model.mass_string} is not calculable. Skipping...")
@@ -59,14 +55,10 @@ def main():
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
-    # Create partially applied function
-    worker_fn = partial(plot_mass_point,
-                        decay=args.decay,
-                        model_name=args.model,
-                        strategy=args.strategy)
-
+    args_list = [(x, s, h, args.decay, args.model, args.strategy) for (x, s, h) in mass_points]
     with mp.Pool(processes=get_n_cpus()) as pool:
-        pool.starmap(worker_fn, mass_points)
+        for _ in tqdm(pool.imap_unordered(plot_mass_point, args_list), total=len(args_list)):
+            pass
 
 if __name__ == "__main__":
     mp.set_start_method("spawn")
