@@ -49,9 +49,8 @@ def main():
             model = Model(name=args.model, masses={"H": args.HMass, "S": s, "X": x})
             if model.is_calculable:
                 mass_points.append((x, s, args.HMass))
-            else:
-                print(f"X={x}, S={s} is not calculable. Skipping...")
-        print(f"Loaded {len(mass_points)} good mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+        print(f"Skipping {len(permutations) - len(mass_points)} non-calculable mass points.")
+        print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
 
     elif args.XMass and args.SMass:
         model = Model(name=args.model, masses={"H": args.HMass, "S": args.SMass, "X": args.XMass})
