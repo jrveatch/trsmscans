@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
 from utils.model import supported_models
-from utils.plot_utils import interpolate_grid, mass_label, xb_label
+from plot.plot_utils import interpolate_grid, mass_label, xb_label
 from utils.precision_utils import Precision
 
 XRES = 200
