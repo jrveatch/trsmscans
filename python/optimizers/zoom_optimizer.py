@@ -226,10 +226,6 @@ class ZoomOptimizer:
         # if new point is better than the local max point, replace it
         self.local_max = max(self.local_max, new_max)
 
-        # adaptive precision adjustment based on xb value
-        if self.use_adaptive_precision:
-            self.update_precision(self.local_max)
-
         # if a new optimal point is found, write information to the summary file
         if self.is_new_global_max(new_max):
 
@@ -244,6 +240,10 @@ class ZoomOptimizer:
         # write scan details to details file
         self.write_details(identifier=identifier,
                            new_max=new_max)
+
+        # adaptive precision adjustment based on xb value
+        if self.use_adaptive_precision:
+            self.update_precision(self.local_max)
 
         # check stopping conditions
         if self.check_stopping_conditions(new_max):
@@ -292,9 +292,12 @@ class ZoomOptimizer:
         elif Precision.MEDIUM.threshold() <= ratio < Precision.HIGH.threshold() and self.precision != Precision.MEDIUM:
             logger.info(f"Adjusting precision to MEDIUM (ratio = {ratio:.2f})")
             self.precision = Precision.MEDIUM
-        elif Precision.HIGH.threshold() <= ratio and self.precision != Precision.HIGH:
+        elif Precision.HIGH.threshold() <= ratio < Precision.SATURATED.threshold() and self.precision != Precision.HIGH:
             logger.info(f"Adjusting precision to HIGH (ratio = {ratio:.2f})")
             self.precision = Precision.HIGH
+        elif Precision.SATURATED.threshold() <= ratio and self.precision != Precision.SATURATED:
+            logger.info(f"Adjusting precision to SATURATED (ratio = {ratio:.2f})")
+            self.precision = Precision.SATURATED
 
     def check_stopping_conditions(self,
                                   new_max: Point) -> bool:
@@ -307,6 +310,13 @@ class ZoomOptimizer:
         Returns:
             bool: True if optimization should stop, False otherwise.
         """
+        # ---- Saturation stopping condition ----
+        if self.precision == Precision.SATURATED:
+            self.termination_message(
+                f"Max rate is more than {Precision.SATURATED.threshold()} times the limit target"
+            )
+            return True
+
         # ---- Global stopping condition ----
         if new_max < self.global_max * self.global_xb_fail_threshold:
             self.global_xb_fail += 1

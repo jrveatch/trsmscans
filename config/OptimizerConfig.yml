@@ -4,6 +4,7 @@ precision_thresholds:
   low: 0.1
   medium: 0.5
   high: 0.8
+  saturated: 20.0
 
 zoom:
   strategy: "percentile" # "percentile" or "rate"

@@ -15,6 +15,7 @@ class Precision(IntEnum):
     LOW         = 2
     MEDIUM      = 3
     HIGH        = 4
+    SATURATED   = 5
 
     @classmethod
     def from_string(cls, s: str) -> "Precision":
