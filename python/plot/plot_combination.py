@@ -411,7 +411,7 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
     fig.tight_layout()
     fig.savefig(file_name)
 
-def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Load XMass, SMass, and MaxXB from a .tsv file using column names.
 
@@ -419,7 +419,7 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         file_path (str): Path to the .tsv file.
 
     Returns:
-        Tuple of arrays: (X_mass, S_mass, xb_max)
+        Tuple of arrays: (X_mass, S_mass, xb_max, precision)
 
     Raises:
         RuntimeError: If the file cannot be read or parsed correctly.
