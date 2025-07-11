@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -419,30 +418,3 @@ def build_contour_mask_sets(interp_masks: Dict[str, np.ndarray],
         expected_masks = [expected_masks[2]]  # Only the median
 
     return observed_masks, expected_masks
-
-if __name__ =="__main__":
-
-    arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
-    arg_parser.add_argument("-d", "--decay", required=True, type=str, help="Decay mode")
-    arg_parser.add_argument("-i", "--identifier", required=True, type=str, help="Identifier")
-    arg_parser.add_argument("-l", "--plot-limits", action="store_true", help="Produce exclusion limits plots")
-    arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
-    arg_parser.add_argument("--log-x", action="store_true", help="Use logarithmic scale for the X mass axis")
-    arg_parser.add_argument("--log-y", action="store_true", help="Use logarithmic scale for the S mass axis")
-    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both axes (equivalent to --log_x --log_y)")
-    args = arg_parser.parse_args()
-
-    # If --log_axes is used, override both log_x and log_y
-    log_x = args.log_x or args.log_axes
-    log_y = args.log_y or args.log_axes
-    
-    combination_plotter = CombinationPlotter(model=args.model,
-                                             decay=args.decay,
-                                             identifier=args.identifier,
-                                             plot_limits=args.plot_limits,
-                                             include_sigma_bands=not args.no_sigma_bands,
-                                             log_x=log_x,
-                                             log_y=log_y)
-    
-    combination_plotter.make_combination_plots()
