@@ -492,7 +492,7 @@ class Scan:
             param_space (ParamSpace): Global parameter space
         """
 
-        self.logger.debug("Splitting global param space...")
+        logger.debug("Splitting global param space...")
 
         # Initialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
@@ -544,9 +544,9 @@ class Scan:
             if not did_split:
                 final_param_space_list.append(current)
 
-        self.logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
+        logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
 
-        self.logger.debug("Shrinking each param space...")
+        logger.debug("Shrinking each param space...")
 
         # Shrink the param spaces in final_param_space_list
         for space in final_param_space_list:
@@ -621,7 +621,7 @@ class Scan:
         # Retrieve number of param spaces
         num_param_spaces = len(param_space_list)
 
-        self.logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
+        logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
 
         # Initialize list of param space volumes
         volumes = np.array([self.prescan_parser.estimate_effective_volume_by_count(space) for space in param_space_list])
