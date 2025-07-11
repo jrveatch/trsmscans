@@ -303,13 +303,20 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
     ratio = np.divide(xb, limit, out=np.full_like(xb, np.nan), where=(limit > 0))
     Xi, Yi, Zi = interpolate_grid(X, S, ratio)
 
-    ordered_thresholds = [p.threshold() for p in Precision if p != Precision.INSENSITIVE]
-    levels = [0.0] + ordered_thresholds + [1.0, 1.5]
+    # Thresholds: all except INSENSITIVE, include SATURATED separately
+    thresholds = [p.threshold() for p in Precision if p not in {Precision.INSENSITIVE, Precision.SATURATED}]
+    saturated_threshold = Precision.SATURATED.threshold()
 
-    labels = [f"<{ordered_thresholds[0]:.3f}"]
-    labels += [f"{ordered_thresholds[i]:.2f}-{ordered_thresholds[i+1]:.2f}" for i in range(len(ordered_thresholds)-1)]
-    labels.append(f"{ordered_thresholds[-1]:.2f}-1.0")
-    labels.append(">1.0")
+    # Build level boundaries
+    levels = [0.0] + thresholds + [1.0, saturated_threshold]
+    levels.append(saturated_threshold * 1.2)  # pad upper range
+
+    # Labels: one per bin
+    labels = [f"< {thresholds[0]:.3f}"]
+    labels += [f"{thresholds[i]:.2f}-{thresholds[i+1]:.2f}" for i in range(len(thresholds) - 1)]
+    labels.append(f"{thresholds[-1]:.2f}-1.0")
+    labels.append(f"1.0-{saturated_threshold:.0f}")
+    labels.append(f"> {saturated_threshold:.0f}")
 
     num_bins = len(levels) - 1
     colors = get_discrete_colors(num_bins,
