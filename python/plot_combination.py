@@ -13,7 +13,8 @@ from typing import Dict, List, Optional, Tuple
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
 from utils.model import supported_models
-from plot.plot_utils import interpolate_grid, mass_label, xb_label, get_discrete_colors
+from plot.plot_utils import interpolate_grid, mass_label, xb_label
+from plot.plot_utils import get_discrete_colors, match_limit_values_to_subset
 from utils.precision_utils import Precision
 
 XRES = 200
@@ -347,29 +348,6 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
-
-def match_limit_values_to_subset(X_sub: np.ndarray,
-                                 S_sub: np.ndarray,
-                                 X_all: np.ndarray,
-                                 S_all: np.ndarray,
-                                 limit_values: np.ndarray) -> np.ndarray:
-    """
-    Given a subset of points (X_sub, S_sub) and a full limit grid (X_all, S_all),
-    return the corresponding limit values for the subset.
-
-    Args:
-        X_sub, S_sub: Points in the xb_max dataset
-        X_all, S_all: Full coordinate grid from limit dataset
-        limit_values: Limit values on the full grid
-
-    Returns:
-        np.ndarray of limit values matching the subset coordinates
-    """
-    lookup = {(x, s): val for x, s, val in zip(X_all, S_all, limit_values)}
-    try:
-        return np.array([lookup[(x, s)] for x, s in zip(X_sub, S_sub)])
-    except KeyError as e:
-        raise ValueError(f"Subset point {e} not found in limit dataset.")
 
 def output_directory(model: str,
                      decay: str) -> str:

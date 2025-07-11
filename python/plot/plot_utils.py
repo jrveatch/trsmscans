@@ -73,3 +73,26 @@ def get_discrete_colors(n: int,
     """
     cmap = plt.get_cmap(cmap_name)
     return [cmap(i) for i in np.linspace(0, 1, n)]
+
+def match_limit_values_to_subset(X_sub: np.ndarray,
+                                 S_sub: np.ndarray,
+                                 X_all: np.ndarray,
+                                 S_all: np.ndarray,
+                                 limit_values: np.ndarray) -> np.ndarray:
+    """
+    Given a subset of points (X_sub, S_sub) and a full limit grid (X_all, S_all),
+    return the corresponding limit values for the subset.
+
+    Args:
+        X_sub, S_sub: Points in the xb_max dataset
+        X_all, S_all: Full coordinate grid from limit dataset
+        limit_values: Limit values on the full grid
+
+    Returns:
+        np.ndarray of limit values matching the subset coordinates
+    """
+    lookup = {(x, s): val for x, s, val in zip(X_all, S_all, limit_values)}
+    try:
+        return np.array([lookup[(x, s)] for x, s in zip(X_sub, S_sub)])
+    except KeyError as e:
+        raise ValueError(f"Subset point {e} not found in limit dataset.")
