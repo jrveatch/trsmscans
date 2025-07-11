@@ -1,11 +1,28 @@
 #!/usr/bin/env python3
 
 import argparse
+import multiprocessing as mp
+from tqdm import tqdm
 
+from utils.cpu_utils import get_n_cpus
 from mass_grid.mass_json_utils import get_mass_permutations
 from utils.model import Model, supported_models
 from plot.plot_meanshift import MeanShiftPlotter
 from plot.plot_zoom import ZoomPlotter
+
+def plot_mass_point(args):
+    xmass, smass, hmass, decay, model_name, strategy = args
+    model = Model(name=model_name, masses={"H": hmass, "S": smass, "X": xmass})
+    try:
+        if strategy == "zoom":
+            plotter = ZoomPlotter(decay=decay, model=model)
+            plotter.make_scan_plots()
+            plotter.make_max_xb_plots()
+        elif strategy == "meanshift":
+            plotter = MeanShiftPlotter(model=model, decay=decay)
+            plotter.make_mean_shift_plots()
+    except Exception as e:
+        print(f"Error while plotting {model.mass_string}: {e}")
 
 def main():
 
@@ -27,27 +44,29 @@ def main():
         if not args.identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
-        mass_points = [(x, s, args.HMass, {}) for x, s, _, _ in permutations]
-        print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+        mass_points = []
+        for x, s, _, _ in permutations:
+            model = Model(name=args.model, masses={"H": args.HMass, "S": s, "X": x})
+            if model.is_calculable:
+                mass_points.append((x, s, args.HMass))
+            else:
+                print(f"X={x}, S={s} is not calculable. Skipping...")
+        print(f"Loaded {len(mass_points)} good mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+
     elif args.XMass and args.SMass:
-        mass_points = [(args.XMass, args.SMass, args.HMass, {})]
+        model = Model(name=args.model, masses={"H": args.HMass, "S": args.SMass, "X": args.XMass})
+        if not model.is_calculable:
+            print(f"Single point X={args.XMass}, S={args.SMass} is not calculable. Exiting.")
+            return
+        mass_points = [(args.XMass, args.SMass, args.HMass)]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
-    for xmass, smass, hmass, _ in mass_points:
-        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
-        if not model.is_calculable:
-             print(f"{model.mass_string} is not calculable. Skipping...")
-             continue
-        if args.strategy == "zoom":
-                plotter = ZoomPlotter(decay=args.decay,
-                                      model=model)
-                plotter.make_scan_plots()
-                plotter.make_max_xb_plots()
-        elif args.strategy == "meanshift":
-                plotter = MeanShiftPlotter(model=model,
-                                           decay=args.decay)
-                plotter.make_mean_shift_plots()
+    args_list = [(x, s, h, args.decay, args.model, args.strategy) for (x, s, h) in mass_points]
+    with mp.Pool(processes=get_n_cpus()) as pool:
+        for _ in tqdm(pool.imap_unordered(plot_mass_point, args_list), total=len(args_list)):
+            pass
 
 if __name__ == "__main__":
+    mp.set_start_method("spawn")
     main()

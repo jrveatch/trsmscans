@@ -190,7 +190,6 @@ class ZoomPlotter:
         plots how the sampled points evolve across iterations.
         """
 
-        print("Making scan plots for", self.model.name, self.decay, self.model.mass_string)
         for var1, var2 in combinations(self.var_names, 2):
             self.plot_variable_pair(var1, var2)
 
@@ -242,7 +241,6 @@ class ZoomPlotter:
         a shared color scale to highlight regions of interest.
         """
 
-        print("Making max XB plots for", self.model.name, self.decay, self.model.mass_string)
         for var1, var2 in combinations(self.var_names, 2):
             if 'xb' not in (var1, var2):
                 self.plot_max_xb_heatmap(var1, var2)
