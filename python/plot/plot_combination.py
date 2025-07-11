@@ -12,7 +12,6 @@ from typing import Dict, List, Literal, Optional, Tuple
 
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
-from utils.model import supported_models
 from plot.plot_utils import interpolate_grid, mass_label, xb_label
 from plot.plot_utils import get_discrete_colors, match_limit_values_to_subset
 from utils.precision_utils import Precision
@@ -73,7 +72,7 @@ class CombinationPlotter:
                                        "combination",
                                        f"{self.decay}_{self.identifier}_combination.tsv")
 
-        self.X_mass_xb, self.S_mass_xb, self.xb_max = load_data(self.input_file)
+        self.X_mass_xb, self.S_mass_xb, self.xb_max, self.precision_levels = load_data(self.input_file)
 
     def get_output_dir(self) -> str:
         """
@@ -168,9 +167,12 @@ class CombinationPlotter:
                                matched["observed"],
                                self.X_mass_xb,
                                self.S_mass_xb,
-                               os.path.join(self.output_dir, f"{self.decay}_{self.identifier}_ratio_obs.png"),
+                               file_name=os.path.join(self.output_dir, f"{self.decay}_{self.identifier}_ratio_obs.png"),
                                log_x=self.log_x,
                                log_y=self.log_y)
+
+        # Plot precision map
+        self.plot_precision_map()
 
     def print_summary(self, masks: Dict[str, np.ndarray]) -> None:
         """
@@ -197,6 +199,66 @@ class CombinationPlotter:
                 total = len(masks[sigma])
                 label = sigma.replace('expected_', '').replace('m', '-').replace('p', '+') + 'σ'
                 print(f"Expected {label}: {count} / {total} points exceed limits")
+
+    def plot_precision_map(self) -> None:
+        """
+        Plot a categorized map of the precision levels used in the scan.
+        """
+
+        # Interpolate from scan points to grid
+        Xi, Yi, Pi = interpolate_grid(
+            self.X_mass_xb,
+            self.S_mass_xb,
+            self.precision_levels,  # array of enum values
+            resolution=(self.xres, self.sres),
+            method='linear'
+        )
+
+        # Add epsilon to precision values to avoid bin-edge issues
+        epsilon = 0.01
+        Pi = np.round(Pi) + epsilon
+
+        # All enum levels
+        precision_levels = list(Precision)
+
+        # Define boundaries based on enum values
+        levels = [p.value for p in Precision] + [max(p.value for p in Precision) + 1]
+
+        # Labels using str(p) → already lowercase
+        labels = [str(p).capitalize() for p in precision_levels]
+
+        # Colors: 1 per bin
+        num_bins = len(levels) - 1
+        colors = get_discrete_colors(num_bins,
+                                     cmap_name="plasma")
+
+        cmap = mcolors.ListedColormap(colors)
+        norm = BoundaryNorm(levels,
+                            ncolors=num_bins,
+                            clip=False)
+
+        fig, ax = plt.subplots()
+        ax.contourf(Xi, Yi, Pi,
+                    levels=levels,
+                    cmap=cmap,
+                    norm=norm,
+                    extend='both')
+
+        ax.set_xlabel(mass_label("X"))
+        ax.set_ylabel(mass_label("S"))
+
+        if self.log_x:
+            ax.set_xscale("log")
+        if self.log_y:
+            ax.set_yscale("log")
+
+        # Legend: manual mapping of color to label
+        import matplotlib.patches as mpatches
+        patches = [mpatches.Patch(color=colors[i], label=labels[i]) for i in range(num_bins)]
+        ax.legend(handles=patches, title="Scan precision", loc="upper right", frameon=True)
+
+        fig.tight_layout()
+        fig.savefig(os.path.join(self.output_dir, f"{self.decay}_{self.identifier}_precision_map.png"))
 
 def plot_interpolation(X_mass: np.ndarray,
                        S_mass: np.ndarray,
@@ -323,10 +385,16 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
                                  cmap_name="plasma")
 
     cmap = mcolors.ListedColormap(colors)
-    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+    norm = BoundaryNorm(levels,
+                        ncolors=cmap.N,
+                        clip=True)
 
     fig, ax = plt.subplots()
-    ax.contourf(Xi, Yi, Zi, levels=levels, cmap=cmap, norm=norm, extend='both')
+    ax.contourf(Xi, Yi, Zi,
+                levels=levels,
+                cmap=cmap,
+                norm=norm,
+                extend='both')
 
     ax.set_xlabel(mass_label("X"))
     ax.set_ylabel(mass_label("S"))
@@ -343,7 +411,7 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
     fig.tight_layout()
     fig.savefig(file_name)
 
-def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Load XMass, SMass, and MaxXB from a .tsv file using column names.
 
@@ -351,14 +419,14 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         file_path (str): Path to the .tsv file.
 
     Returns:
-        Tuple of arrays: (X_mass, S_mass, xb_max)
+        Tuple of arrays: (X_mass, S_mass, xb_max, precision)
 
     Raises:
         RuntimeError: If the file cannot be read or parsed correctly.
     """
     try:
         df = pd.read_csv(file_path, sep='\t')
-        required_cols = {'XMass', 'SMass', 'xb'}
+        required_cols = {'XMass', 'SMass', 'xb', 'precision'}
         if not required_cols.issubset(df.columns):
             missing = required_cols - set(df.columns)
             raise ValueError(f"Missing required columns in TSV file: {missing}")
@@ -366,7 +434,9 @@ def load_data(file_path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         X_mass = df['XMass'].to_numpy()
         S_mass = df['SMass'].to_numpy()
         xbmax = df['xb'].to_numpy() * 1000 # Convert to fb
-        return X_mass, S_mass, xbmax
+        precision_raw = df['precision'].astype(str).str.lower()
+        precision_enum = np.array([Precision.from_string(p).value for p in precision_raw])
+        return X_mass, S_mass, xbmax, precision_enum
 
     except Exception as e:
         raise RuntimeError(f"Failed to read or parse data from {file_path}: {e}")
