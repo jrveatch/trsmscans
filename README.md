@@ -8,24 +8,24 @@ A complete set of tools to automate scanning the TRSM model using ScannerS to ma
 These tools use `ScannerS` and `HiggsTools`, both of which have several dependencies that need to be installed manually through your favorite package manager.
 Make sure you have the following installed:
 
-  - Working compilers for C++ and C. The C++ compiler must support
+- Working compilers for C++ and C. The C++ compiler must support
     `c++17` (e.g., `gcc-9` or newer).
-    - On Mac, Apple Clang should support `c++17`, but an argument needs
-      to be passed to `cmake` to specify this requirement, which is already
-      in the installation script.
-  - A working compiler for Fortran such as `gfortran`.
-    - Apple Clang, unfortunately does not compile Fortran, so you will need
-      to install `gcc` (or another compiler) manually.
-  - `python` >= 3.8
-  - `cmake` >= 3.17, download it through your package manager, through
-    `pip`, or grab the latest binary.
-  - GSL, can be installed through the package manager on most unix systems.
-    The package is called `libgsl-dev` on Ubuntu and `gsl` most everywhere else
-    (e.g. on OpenSUSE/CentOS or homebrew).
-  - Eigen3 >= 3.3.0, can be installed through the package manager on most unix
-    systems. The package is called `libeigen3-dev` on Ubuntu, `eigen3` on
-    OpenSUSE/CentOS and `eigen` in homebrew.
-  - `clang` >= 5. If you are using macOS, this corresponds to `Apple clang` >= 7.
+  - On Mac, Apple Clang should support `c++17`, but an argument needs
+    to be passed to `cmake` to specify this requirement, which is already
+    in the installation script.
+- A working compiler for Fortran such as `gfortran`.
+  - Apple Clang, unfortunately does not compile Fortran, so you will need
+    to install `gcc` (or another compiler) manually.
+- `python` >= 3.8
+- `cmake` >= 3.17, download it through your package manager, through
+  `pip`, or grab the latest binary.
+- GSL, can be installed through the package manager on most unix systems.
+  The package is called `libgsl-dev` on Ubuntu and `gsl` most everywhere else
+  (e.g. on OpenSUSE/CentOS or homebrew).
+- Eigen3 >= 3.3.0, can be installed through the package manager on most unix
+  systems. The package is called `libeigen3-dev` on Ubuntu, `eigen3` on
+  OpenSUSE/CentOS and `eigen` in homebrew.
+- `clang` >= 5. If you are using macOS, this corresponds to `Apple clang` >= 7.
 
 Note: If you are using a Mac, the installation seems to work better if you use homebrew instead of macports as your package manager.
 
@@ -42,10 +42,10 @@ In order to access them, it is necessary to have SSH keys set up on [https://git
 
 The submodule repositories can be found using these links:
 
-  * [ScannerS](https://gitlab.com/jonaswittbrodt/ScannerS)
-  * [HiggsTools](https://gitlab.com/higgsbounds/higgstools)
-  * [HBDataSet](https://gitlab.com/higgsbounds/hbdataset)
-  * [HSDataSet](https://gitlab.com/higgsbounds/hsdataset)
+- [ScannerS](https://gitlab.com/jonaswittbrodt/ScannerS)
+- [HiggsTools](https://gitlab.com/higgsbounds/higgstools)
+- [HBDataSet](https://gitlab.com/higgsbounds/hbdataset)
+- [HSDataSet](https://gitlab.com/higgsbounds/hsdataset)
 
 ### Pre-installed submodules
 
@@ -63,26 +63,12 @@ This will set up the `ScannerS` and `HiggsTools` submodules, install both packag
 The code needs to be run from a python virtual environment that needs to be set up every time you start a new shell.
 The virtual environment can be activated with `source setup.sh`.
 
-## Optimization strategies
+## Decay modes
 
-Multiple optimization strategies are or will be supported. Currently, only
-the `zoom` strategy is fully supported and recommended.
+To run a full scan or to specify a mass list, a decay mode (`-d`) needs to be
+specified. The full list of supported decay modes is available in `data/decay_modes.yml`.
 
-### Zoom optimization
-
-The parameter space is split into regions around maxima and each subspace
-is iteratively zoomed in as more points are sampled. The highest sampled
-point is taken as the maximum. Run using the `zoom` option.
-
-### Mean-shift optimization
-
-Multiple small regions of parameter space are sampled using a small number
-of points. The center of each region is shifted based on a weighted mean
-of the sampled points, resulting in an "uphill walk" until a local maximum
-is found. Multiple local maxima are then compared. Run using the `meanshift`
-option.
-
-## Running
+## Running optimization
 
 The tools are designed for you to run from the `run` directory.
 An example of how to run a scan using zoom optimization is given in the
@@ -93,6 +79,16 @@ in `output`, you will find all of the `.tsv` files under `zoom` as well as
 maxima. The entry point for all scans or prescans is `run_process.py`, which
 provides options to either run a scan or a prescan, run a single mass point
 or a list of points, and locally or on the lxplus `HTCondor` batch system.
+
+### Precision
+
+To improve optimization efficiency, dynamic precision levels are used. These
+control how tight the stopping conditions are based on experimental limits
+that are used as targets (defined in each mass list file). If the rates for
+a mass point are more than two orders of magnitude smaller than the experimental
+limits, the optimization is terminated. As the rates get closer to the limits,
+stopping conditions are tightened to allow for a more thorough sampling of the
+parameter space.
 
 ### Processing a single mass point
 
@@ -124,11 +120,59 @@ external directory for the output. If you provide a path, a symbolic
 link will be created such that `run/output` points to it. Otherwise,
 `run/output` will be created and the outputs will be stored there.
 
+## Post-processing mass list results
+
+Two tools are provided for post-processing the outputs from a run over a mass list.
+
+- `combine_results.py` produces a single output file in `output/<model name>/combination`
+  that provides the maximum rate found for each mass point in the list. This step is
+  necessary for making plots.
+- `check_mass_list.py` parses the outputs and produces a report indicating which mass
+  points have successfully been run. This is not a necessary step, but is helpful for
+  bookkeeping and debugging purposes.
+
+## Making plots
+
+Tools are provided to produce a number of helpful plots. These can all be run using
+`make_plots.py`. The plots come in two types, which can either be run separately or
+together.
+
+- `Mass point plots`: These show a combination of all sampled points for a single
+  mass point, These are very useful for visualizing the shape of the parameter space,
+  the progression of the optimization procedure, and the maximum rates. These include
+  2D projections for every pair of free parameters as well as the rate vs. each parameter.
+- `Combination plots`: These display the maximum rates for all mass points in the list
+  interpolated in a 2D plane (mS vs mX). Plots can also be produced to show the mass
+  points that are sensitive to exclusions from experimental limits.
+
+## Optimization strategies
+
+Multiple optimization strategies are or will be supported. Currently, only
+the `zoom` strategy is fully supported and recommended.
+
+### Zoom optimization
+
+The parameter space is split into regions around maxima and each subspace
+is iteratively zoomed in as more points are sampled. The highest sampled
+point is taken as the maximum. Run using the `zoom` option. This is the
+default strategy.
+
+### Mean-shift optimization
+
+> ⚠️ **Warning:** Currently, the mean-shift optimization strategy is under development
+> and is not recommended for use.
+
+Multiple small regions of parameter space are sampled using a small number
+of points. The center of each region is shifted based on a weighted mean
+of the sampled points, resulting in an "uphill walk" until a local maximum
+is found. Multiple local maxima are then compared. Run using the `meanshift`
+option.
+
 ## Scan filters
 
-The outputs from `ScannerS` are checked against a width requirement
-(configurable by the user) and experimental bounds and any scan points
-that fail any requirement are removed.
+The outputs from `ScannerS` are checked against width requirements
+(configurable by the user) and experimental bounds. Sampled points
+that fail any requirement are excluded.
 
 ## Prescan
 
@@ -142,8 +186,3 @@ prescan process only runs as many points as necessary to meet the specified
 `npoints` and appends the new points to the existing ones. Prescans are
 processed in chunks in order to save progress in case the job is interrupted.
 A prescan can be run standalone or as part of a scan.
-
-## Decay modes
-
-To run a full scan or to specify a mass list, a decay mode (`-d`) needs to
-be specified. The full list of supported decay modes is available in `data/decay_modes.yml`.
