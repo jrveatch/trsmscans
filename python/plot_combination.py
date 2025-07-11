@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.ticker import LogLocator, LogFormatterMathtext
+from matplotlib.colors import BoundaryNorm
+import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
@@ -299,9 +301,6 @@ def plot_interpolation(X_mass: np.ndarray,
 
     fig.tight_layout()
     fig.savefig(file_name)
-
-from matplotlib.colors import BoundaryNorm
-import matplotlib.patches as mpatches
 
 def plot_xb_to_limit_ratio(xb: np.ndarray,
                            limit: np.ndarray,
