@@ -12,7 +12,6 @@ from typing import Dict, List, Literal, Optional, Tuple
 
 import utils.env_utils as env
 from mass_grid.mass_json_utils import load_limit_data
-from utils.model import supported_models
 from plot.plot_utils import interpolate_grid, mass_label, xb_label
 from plot.plot_utils import get_discrete_colors, match_limit_values_to_subset
 from utils.precision_utils import Precision
