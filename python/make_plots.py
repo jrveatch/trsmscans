@@ -13,10 +13,6 @@ from plot.plot_zoom import ZoomPlotter
 def plot_mass_point(args):
     xmass, smass, hmass, decay, model_name, strategy = args
     model = Model(name=model_name, masses={"H": hmass, "S": smass, "X": xmass})
-    if not model.is_calculable:
-        print(f"{model.mass_string} is not calculable. Skipping...")
-        return
-
     try:
         if strategy == "zoom":
             plotter = ZoomPlotter(decay=decay, model=model)
@@ -48,9 +44,20 @@ def main():
         if not args.identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
-        mass_points = [(x, s, args.HMass) for x, s, _, _ in permutations]
-        print(f"Loaded {len(mass_points)} mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+        mass_points = []
+        for x, s, _, _ in permutations:
+            model = Model(name=args.model, masses={"H": args.HMass, "S": s, "X": x})
+            if model.is_calculable:
+                mass_points.append((x, s, args.HMass))
+            else:
+                print(f"X={x}, S={s} is not calculable. Skipping...")
+        print(f"Loaded {len(mass_points)} good mass points from identifier '{args.identifier}' with decay '{args.decay}'")
+
     elif args.XMass and args.SMass:
+        model = Model(name=args.model, masses={"H": args.HMass, "S": args.SMass, "X": args.XMass})
+        if not model.is_calculable:
+            print(f"Single point X={args.XMass}, S={args.SMass} is not calculable. Exiting.")
+            return
         mass_points = [(args.XMass, args.SMass, args.HMass)]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
