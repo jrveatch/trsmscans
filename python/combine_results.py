@@ -6,12 +6,12 @@ import os
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
 from mass_grid.mass_json_utils import get_mass_permutations
-from utils.model import supported_models
+from utils.model import Model, supported_models
 from utils.tsv_utils import parse_tsv_file
 
 HIGGS_MASS = 125.09
 
-def combine_results(model: str,
+def combine_results(model_name: str,
                     decay: str,
                     identifier: str,
                     optimization: str) -> None:
@@ -19,7 +19,7 @@ def combine_results(model: str,
     Combines results from multiple mass points into a single summary file.
 
     Args:
-        model (str): Name of the theoretical model.
+        model_name (str): Name of the theoretical model.
         decay (str): Decay mode.
         identifier (str): Identifier to specify which set of mass points to use.
         optimization (str): Optimization strategy used in the scan, e.g., 'zoom' or 'meanshift'.
@@ -28,8 +28,8 @@ def combine_results(model: str,
     permutations = get_mass_permutations(decay=decay,
                                          identifier=identifier)
 
-    scan_dir = os.path.join(output_dir(), model, "scan")
-    comb_dir = os.path.join(output_dir(), model, "combination")
+    scan_dir = os.path.join(output_dir(), model_name, "scan")
+    comb_dir = os.path.join(output_dir(), model_name, "combination")
     os.makedirs(comb_dir, exist_ok=True)
     combination_file_name = os.path.join(comb_dir, f"{decay}_{identifier}_combination.tsv")
     tsv_combination_file_name = os.path.join(comb_dir, f"{decay}_{identifier}_tsv_combination.tsv")
@@ -38,7 +38,13 @@ def combine_results(model: str,
     open(combination_file_name, 'w').close()
     open(tsv_combination_file_name, 'w').close()
 
+    non_calculable = 0
     for XMass, SMass, resolvable, _ in permutations:
+
+        model = Model(name=model_name, masses={"H": 125.09, "S": SMass, "X": XMass})
+        if not model.is_calculable:
+            non_calculable += 1
+            continue
 
         # Get the directory for the mass point
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
@@ -72,6 +78,9 @@ def combine_results(model: str,
                     skip_last_col=True,
                     add_precision=True
                 )
+
+    print(f"Done combining {len(permutations) - non_calculable} results for {decay} {identifier} mass list.")
+    print(f"Skipped {non_calculable} non-calculable mass points.")
 
 def write_combination_row(input_path: str,
                           output_path: str,
@@ -159,7 +168,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     args = arg_parser.parse_args()
 
-    combine_results(model=args.model,
+    combine_results(model_name=args.model,
                     decay=args.decay,
                     identifier=args.identifier,
                     optimization=args.strategy)
