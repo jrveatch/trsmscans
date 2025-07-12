@@ -186,11 +186,11 @@ class BoundsFilter:
             br_BSM = self._extract_BSM_BRs(row)
 
             if logger.isEnabledFor(VERBOSE_LEVEL):
-                logger.verbose('Scalar widths are:')
-                logger.verbose(f'  H: {widths["H"]}')
-                logger.verbose(f'  S: {widths["S"]}')
-                logger.verbose(f'  X: {widths["X"]}')
-                logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')
+                logger.verbose('Scalar widths are:')  # type: ignore[attr-defined]
+                logger.verbose(f'  H: {widths["H"]}')  # type: ignore[attr-defined]
+                logger.verbose(f'  S: {widths["S"]}')  # type: ignore[attr-defined]
+                logger.verbose(f'  X: {widths["X"]}')  # type: ignore[attr-defined]
+                logger.verbose(f'Rescalings are {rescalings["H"]} {rescalings["S"]} {rescalings["X"]}')  # type: ignore[attr-defined]
 
             configure_particle(H, "H", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
             configure_particle(S, "S", masses, widths, rescalings, br_SM, br_BSM, adjust_ZZ=True)
@@ -202,8 +202,8 @@ class BoundsFilter:
 
             if logger.isEnabledFor(VERBOSE_LEVEL):
                 print_bounds_result(bounds_result, idx, masses)
-                logger.verbose(f"signals_result = {signals_result}")
-                logger.verbose(f"HS_allowed = {HS_allowed}")
+                logger.verbose(f"signals_result = {signals_result}")  # type: ignore[attr-defined]
+                logger.verbose(f"HS_allowed = {HS_allowed}")  # type: ignore[attr-defined]
 
             filt_bounds.append(int(bounds_result.allowed))
             filt_signals.append(int(HS_allowed))
@@ -320,9 +320,9 @@ def set_effective_couplings(particle,
     """
 
     if mass < 150:
-        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")
+        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling),reference="SMHiggsEW")  # type: ignore[attr-defined]
     else:
-        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling))
+        HP.effectiveCouplingInput(particle, HP.scaledSMlikeEffCouplings(rescaling))  # type: ignore[attr-defined]
 
 def set_BRs(particle,
             BRs_SM: Dict[str,float],
@@ -357,7 +357,7 @@ def set_BRs(particle,
         sum_BR += BR
 
         if logger.isEnabledFor(VERBOSE_LEVEL):
-            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")  # type: ignore[attr-defined]
 
         # skip ZZ decay
         if adjust_ZZ and decay == "ZZ":
@@ -376,7 +376,7 @@ def set_BRs(particle,
         sum_BR += BR
 
         if logger.isEnabledFor(VERBOSE_LEVEL):
-            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")
+            logger.verbose(f"{decay}: {BR} Sum = {sum_BR}")  # type: ignore[attr-defined]
 
     if adjust_ZZ:
 
@@ -388,7 +388,7 @@ def set_BRs(particle,
             BR_ZZ = BRs_SM['ZZ'] - sum_BR + 1.0
 
         if logger.isEnabledFor(VERBOSE_LEVEL):
-            logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")
+            logger.verbose(f"Adjusted ZZ: {BR_ZZ} Sum = {sum_BR - BRs_SM['ZZ'] + BR_ZZ}")  # type: ignore[attr-defined]
 
         # set ZZ BR
         particle.setBr('ZZ',BR_ZZ)
@@ -405,8 +405,8 @@ def print_bounds_result(bounds_result,
         masses (Dict[str, float]): Masses of the scalars.
     """
 
-    logger.verbose(bounds_result)
-    logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")
+    logger.verbose(bounds_result)  # type: ignore[attr-defined]
+    logger.verbose(f"bounds_result.allowed = {bounds_result.allowed}")  # type: ignore[attr-defined]
 
     mH = masses["H"]
     mS = masses["S"]
@@ -422,13 +422,13 @@ def print_bounds_result(bounds_result,
         # we will want to ignore 13022 at least near 125 since it excludes SM
         for lim in limits1:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose(f'\t hbexcl1 {idx} \t 1 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl1 {idx} \t 1 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')  # type: ignore[attr-defined]
         for lim in limits2:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose(f'\t hbexcl2 {idx} \t 2 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl2 {idx} \t 2 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')  # type: ignore[attr-defined]
         for lim in limits3:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose(f'\t hbexcl3 {idx} \t 3 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl3 {idx} \t 3 {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')  # type: ignore[attr-defined]
         for lim in limits:
             if lim.expRatio() > 1 and lim.obsRatio() > 1:
-                logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')
+                logger.verbose(f'\t hbexcl {idx} {mH} {mS} {mX} {lim.limit().id()} {lim.obsRatio()} {lim.expRatio()}')  # type: ignore[attr-defined]
