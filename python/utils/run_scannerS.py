@@ -225,7 +225,7 @@ def run_process(process_args: List[str],
     # increment the counter and print out how many processes are finished
     with lock:
         counter.value += 1
-        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")
+        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")  # type: ignore[attr-defined]
 
 # run a python test process as a single job
 def run_timed_process(process_args: List[str],
@@ -300,11 +300,11 @@ def remove_temp_dir(directory, retries=5, delay=1):
         try:
             shutil.rmtree(directory)
             if logger.isEnabledFor(VERBOSE_LEVEL):
-                logger.verbose(f"Successfully removed: {directory}")
+                logger.verbose(f"Successfully removed: {directory}")  # type: ignore[attr-defined]
         except OSError as e:
             if 'Directory not empty' in str(e):
                 if logger.isEnabledFor(VERBOSE_LEVEL):
-                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")  # type: ignore[attr-defined]
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error

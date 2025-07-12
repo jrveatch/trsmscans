@@ -129,6 +129,7 @@ def main() -> None:
 
     # Plot mass points if requested
     if do_plot_masspoints:
+        mass_points = []
         if args.use_mass_list:
             print(f"\nMaking mass point plots for identifier '{args.identifier}' and decay '{args.decay}'")
             permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)

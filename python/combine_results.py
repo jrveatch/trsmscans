@@ -125,8 +125,8 @@ def write_combination_row(input_path: str,
 
     precision_str = ""
     if add_precision:
+        json_file = os.path.join(os.path.dirname(input_path), optimization, f"run_metadata_{optimization}.json")
         try:
-            json_file = os.path.join(os.path.dirname(input_path), optimization, f"run_metadata_{optimization}.json")
             with open(json_file, 'r') as jf:
                 import json
                 config = json.load(jf)

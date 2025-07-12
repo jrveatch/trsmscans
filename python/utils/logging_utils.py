@@ -24,14 +24,14 @@ def verbose(self, message, *args, **kwargs):
         self._log(VERBOSE_LEVEL, message, args, **kwargs)
 
 # Add the method to the Logger class
-logging.Logger.verbose = verbose
+logging.Logger.verbose = verbose  # type: ignore[attr-defined]
 
 # Add VERBOSE as an attribute to the logging module
-logging.VERBOSE = VERBOSE_LEVEL
+logging.VERBOSE = VERBOSE_LEVEL  # type: ignore[attr-defined]
 
 # Define a mapping of string levels to logging levels
 LOG_LEVELS = {
-    "verbose": logging.VERBOSE,
+    "verbose": logging.VERBOSE,  # type: ignore[attr-defined]
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
@@ -43,7 +43,7 @@ LOG_LEVELS = {
 class CustomFormatter(logging.Formatter):
     def format(self, record):
         # Use a simple format for specific messages
-        if hasattr(record, "skip_level") and record.skip_level:
+        if getattr(record, "skip_level", False):
             return record.getMessage()
         return super().format(record)
 
