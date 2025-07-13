@@ -288,7 +288,7 @@ def main():
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
-                status, _ = get_mass_point_status(
+                status, _, _ = get_mass_point_status(
                     model_name=args.model,
                     decay=args.decay,
                     xmass=xmass,
