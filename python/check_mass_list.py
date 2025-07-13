@@ -9,6 +9,7 @@ from utils.tsv_utils import count_tsv_points
 from mass_grid.mass_json_utils import get_mass_permutations
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
+from utils.metadata_utils import load_metadata, get_precision
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 
@@ -181,26 +182,13 @@ def get_mass_point_status(model_name: str,
                             strategy, f"run_metadata_{strategy}.json")
         if not os.path.isfile(path):
             return "missing", None
-        with open(path, "r") as f:
-            data = json.load(f)
+        metadata = load_metadata(path)
 
-        existing_precision_str: str = data.get("precision")
-        # Handle missing or invalid precision from file
-        if existing_precision_str is None:
-            if precision is not None:
-                return "low_precision", None  # Precision was requested, but missing in metadata
-            prev_precision = None
-        else:
-            try:
-                prev_precision = Precision.from_string(existing_precision_str)
-            except ValueError:
-                # If string is invalid or malformed, treat as too low to be safe
-                return "low_precision", None
-        # Now compare, if required
+        prev_precision = get_precision(metadata)
         if precision is not None and (prev_precision is None or prev_precision < precision):
             return "low_precision", prev_precision
 
-        count = data.get("num_points", 0)
+        count = metadata.get("num_points", 0)
         return ("ok", count) if count >= threshold else ("below_threshold", count)
 
     else:
