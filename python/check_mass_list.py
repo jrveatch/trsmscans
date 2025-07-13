@@ -120,11 +120,17 @@ def check_mass_list(model_name: str,
             for mass_str, _, count, prev_precision in group:
                 if category in ["ok", "below_threshold"] and count is not None:
                     count_str = f"{count}"
-                    if prev_precision is not None:
-                        count_str += f" {prev_precision}"
+                    if mode == "scan":
+                        if prev_precision is not None:
+                            count_str += f" {prev_precision}"
+                        else:
+                            count_str += " unknown precision"
                     out.write(f"  {mass_str}: {count_str}\n")
-                elif category == "low_precision" and prev_precision is not None:
-                    out.write(f"  {mass_str}: {prev_precision}\n")
+                elif category == "low_precision":
+                    if prev_precision is not None:
+                        out.write(f"  {mass_str}: {prev_precision}\n")
+                    else:
+                        out.write(f"  {mass_str}: unknown precision\n")
                 else:
                     out.write(f"  {mass_str}\n")
             out.write("\n")
@@ -174,7 +180,7 @@ def get_mass_point_status(model_name: str,
         if not os.path.isfile(path):
             return "missing", None, None
         count = count_tsv_points(path)
-        return ("ok", count) if count >= threshold else ("below_threshold", count)
+        return ("ok", count, None) if count >= threshold else ("below_threshold", count, None)
 
     elif mode == "scan":
         if strategy is None:
