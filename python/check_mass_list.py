@@ -2,8 +2,7 @@
 
 import os
 import argparse
-import json
-from typing import Tuple, Optional, Union
+from typing import List, Tuple, Optional
 
 from utils.tsv_utils import count_tsv_points
 from mass_grid.mass_json_utils import get_mass_permutations
@@ -53,7 +52,7 @@ def check_mass_list(model_name: str,
     """
     permutations = get_mass_permutations(decay=decay, identifier=identifier)
 
-    rows = []  # Each row: (subdir, status, count or message)
+    rows: List[Tuple[str, str, Optional[int], Optional[Precision]]] = []  # Each row: (mass, status, count, precision)
     counts = {
         "ok": 0,
         "below_threshold": 0,
@@ -65,11 +64,10 @@ def check_mass_list(model_name: str,
 
     for xmass, smass, resolvable, _ in permutations:
         model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
-        subdir = model.mass_string
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
 
         try:
-            status, info = get_mass_point_status(
+            status, count, prev_precision = get_mass_point_status(
                 model_name=model_name,
                 decay=decay_used,
                 xmass=xmass,
@@ -81,9 +79,10 @@ def check_mass_list(model_name: str,
             )
         except Exception as e:
             status = "error"
-            info = str(e)
+            count = None
+            prev_precision = None
 
-        rows.append((subdir, status, info))
+        rows.append((model.mass_string, status, count, prev_precision))
         counts[status] += 1
 
     total = sum(counts.values())
@@ -118,15 +117,16 @@ def check_mass_list(model_name: str,
         for category in counts:
             group = [r for r in rows if r[1] == category]
             out.write(f"--- {category} ({len(group)}) ---\n")
-            for subdir, _, detail in group:
-                if category in ["ok", "below_threshold"] and isinstance(detail, int):
-                    out.write(f"  {subdir}: {detail}\n")
-                elif category == "low_precision" and isinstance(detail, Precision):
-                    out.write(f"  {subdir}: {detail}\n")
-                elif category == "error":
-                    out.write(f"  {subdir}: ERROR: {detail}\n")
+            for mass_str, _, count, prev_precision in group:
+                if category in ["ok", "below_threshold"] and count is not None:
+                    count_str = f"{count}"
+                    if prev_precision is not None:
+                        count_str += f" {prev_precision}"
+                    out.write(f"  {mass_str}: {count_str}\n")
+                elif category == "low_precision" and prev_precision is not None:
+                    out.write(f"  {mass_str}: {prev_precision}\n")
                 else:
-                    out.write(f"  {subdir}\n")
+                    out.write(f"  {mass_str}\n")
             out.write("\n")
 
     print(f"\nDetailed results written to: {out_filename}")
@@ -139,7 +139,7 @@ def get_mass_point_status(model_name: str,
                           mode: str,
                           strategy: Optional[str] = None,
                           precision: Optional[Precision] = None
-                          ) -> Tuple[str, Optional[Union[int,Precision]]]:
+                          ) -> Tuple[str, Optional[int], Optional[Precision]]:
     """
     Check the scan or prescan status of a single (X, S) mass point.
 
@@ -154,9 +154,10 @@ def get_mass_point_status(model_name: str,
         precision (Optional[Precision]): Minimum required precision.
 
     Returns:
-        Tuple[str, Optional[int]]:
+        Tuple[str, Optional[int], Optional[Precision]]:
             - Status: One of {"ok", "below_threshold", "low_precision", "missing", "non_calculable"}
             - Count of points if applicable (None for "missing" or "non_calculable")
+            - Previous precision (None if field is not saved)
 
     Raises:
         ValueError: If required parameters are missing or invalid.
@@ -166,12 +167,12 @@ def get_mass_point_status(model_name: str,
     subdir = model.mass_string
 
     if not model.is_calculable:
-        return "non_calculable", None
+        return "non_calculable", None, None
 
     if mode == "prescan":
         path = os.path.join(output_dir(), model.name, "prescan", subdir, f"{model.name}_prescan.tsv")
         if not os.path.isfile(path):
-            return "missing", None
+            return "missing", None, None
         count = count_tsv_points(path)
         return ("ok", count) if count >= threshold else ("below_threshold", count)
 
@@ -181,15 +182,15 @@ def get_mass_point_status(model_name: str,
         path = os.path.join(output_dir(), model.name, "scan", decay, subdir,
                             strategy, f"run_metadata_{strategy}.json")
         if not os.path.isfile(path):
-            return "missing", None
+            return "missing", None, None
         metadata = load_metadata(path)
 
-        prev_precision = get_precision(metadata)
-        if precision is not None and (prev_precision is None or prev_precision < precision):
-            return "low_precision", prev_precision
-
         count = metadata.get("num_points", 0)
-        return ("ok", count) if count >= threshold else ("below_threshold", count)
+        prev_precision = get_precision(metadata)
+
+        if precision is not None and (prev_precision is None or prev_precision < precision):
+            return "low_precision", count, prev_precision
+        return ("ok", count, prev_precision) if count >= threshold else ("below_threshold", count, prev_precision)
 
     else:
         raise ValueError(f"Invalid mode '{mode}'")
