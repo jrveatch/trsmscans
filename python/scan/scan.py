@@ -20,7 +20,7 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.precision_utils import Precision
-from utils.metadata_utils import run_exists, save_run_metadata
+from utils.metadata_utils import save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
@@ -38,7 +38,6 @@ class Scan:
                  precision: Optional[Precision] = None,
                  limit_target: float = -1.0,
                  prescan_points: int = -1,
-                 overwrite: bool = False,
                  config_file_name: str = ""
                  ):
 
@@ -54,8 +53,6 @@ class Scan:
                 Defaults to -1.0.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
-            overwrite (bool, optional): Whether to overwrite existing scan results.
-                Defaults to False.
             config_file_name (str, optional): Path to a YAML config file. If not specified,
                 a default name based on the model is used.
 
@@ -118,9 +115,6 @@ class Scan:
 
         # make dummy optimal point
         self.global_max = Point(model=self.model)
-
-        # store overwrite flag
-        self.overwrite = overwrite
 
     @cached_property
     def out_dir(self) -> str:
@@ -326,15 +320,6 @@ class Scan:
         # if num_points isn't given, use default_starting_points
         if num_points < 0:
             num_points = self.default_starting_points
-
-        # exit if run already exists and overwrite is not set
-        if run_exists(out_dir=self.out_dir,
-                      strategy="zoom",
-                      num_points=num_points,
-                      precision=self.precision) and not self.overwrite:
-            logger.info(f"Skipping scan requested with {num_points} points.")
-            logger.info("Use the -o option to overwrite the existing run.\n")
-            return
 
         # initialize output directories and files
         self.initialize_output("zoom")
