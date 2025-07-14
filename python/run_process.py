@@ -175,7 +175,7 @@ def submit_htcondor(mode: str,
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
     if force_rerun:
-        sh_lines.append("    --force_rerun \\")
+        sh_lines.append("    --force-rerun \\")
     
     # Remove trailing backslash from the last line
     sh_lines[-1] = sh_lines[-1].rstrip(" \\")
@@ -299,7 +299,7 @@ def main():
 
     for xmass, smass, hmass, limits in mass_points:
         mass_string = f"X={xmass}, S={smass}"
-        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
+        model = Model(name=args.model, masses={"X": xmass, "S": smass, "H": hmass})
         if not model.is_calculable:
             print(f"Skipping {mass_string} because it is not calculable")
             continue
