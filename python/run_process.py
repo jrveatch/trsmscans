@@ -300,6 +300,9 @@ def main():
     for xmass, smass, hmass, limits in mass_points:
         mass_string = f"X={xmass}, S={smass}"
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
+        if not model.is_calculable:
+            print(f"Skipping {mass_string} because it is not calculable")
+            continue
         limit_target = min(limits.values()) if limits else args.limit_target
         if precision is None and limit_target < 0.0:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
@@ -315,10 +318,7 @@ def main():
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate {mass_string}: {e}")
                 continue
-            if status == "non_calculable":
-                print(f"Skipping {mass_string} because it is not calculable")
-                continue
-            elif status == "missing":
+            if status == "missing":
                 print(f"No previous scan found for {mass_string}: running")
             elif status == "below_threshold":
                 print(f"Previous scan for {mass_string} only has {count} points (required: {num_points}): re-running")
