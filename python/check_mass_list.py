@@ -68,10 +68,8 @@ def check_mass_list(model_name: str,
 
         try:
             status, count, prev_precision = get_mass_point_status(
-                model_name=model_name,
+                model=model,
                 decay=decay_used,
-                xmass=xmass,
-                smass=smass,
                 threshold=threshold,
                 mode=mode,
                 strategy=strategy,
@@ -137,10 +135,8 @@ def check_mass_list(model_name: str,
 
     print(f"\nDetailed results written to: {out_filename}")
 
-def get_mass_point_status(model_name: str,
+def get_mass_point_status(model: Model,
                           decay: str,
-                          xmass: float,
-                          smass: float,
                           threshold: int,
                           mode: str,
                           strategy: Optional[str] = None,
@@ -150,10 +146,8 @@ def get_mass_point_status(model_name: str,
     Check the scan or prescan status of a single (X, S) mass point.
 
     Args:
-        model_name (str): Name of the scalar model.
+        model (Model): Model to use.
         decay (str): Decay mode to use exactly as provided.
-        xmass (float): X scalar mass (GeV).
-        smass (float): S scalar mass (GeV).
         threshold (int): Minimum required number of points.
         mode (str): Either "prescan" or "scan".
         strategy (Optional[str]): Optimization strategy. Required if mode is "scan".
@@ -169,7 +163,6 @@ def get_mass_point_status(model_name: str,
         ValueError: If required parameters are missing or invalid.
         OSError / JSONDecodeError: If files are corrupt or unreadable.
     """
-    model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
     subdir = model.mass_string
 
     if not model.is_calculable:

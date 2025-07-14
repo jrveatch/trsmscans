@@ -288,16 +288,15 @@ def main():
 
     for xmass, smass, hmass, limits in mass_points:
         mass_string = f"X={xmass}, S={smass}"
+        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
         limit_target = min(limits.values()) if limits else args.limit_target
         if args.precision is None and limit_target < 0.0:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
                 status, count, prev_precision = get_mass_point_status(
-                    model_name=args.model,
+                    model=model,
                     decay=args.decay,
-                    xmass=xmass,
-                    smass=smass,
                     threshold=args.num_points,
                     mode=args.mode,
                     strategy=args.strategy
@@ -323,8 +322,6 @@ def main():
             else:
                 print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
                 continue
-
-        model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
 
         log_level = logging_utils.LOG_LEVELS[args.log_level.lower()]
         log_file = os.path.join(prescan_dir(model), "prescan.log")
