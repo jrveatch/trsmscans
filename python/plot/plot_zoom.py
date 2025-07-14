@@ -179,6 +179,7 @@ class ZoomPlotter:
         ax.set_title(f"{var1_name} vs {var2_name}")
         ax.set_xlabel(var1_name)
         ax.set_ylabel(var2_name)
+        fig.tight_layout()
         fig.savefig(os.path.join(self.output_dir, f"scan_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
@@ -230,6 +231,7 @@ class ZoomPlotter:
         ax.set_xlabel(var1_name)
         ax.set_ylabel(var2_name)
         ax.set_title(f'{var1_name} vs {var2_name}')
+        fig.tight_layout()
         fig.savefig(os.path.join(self.output_dir, f"maxxb_{var1_name}_vs_{var2_name}.png"))
         plt.close()
 
