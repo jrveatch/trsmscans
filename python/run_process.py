@@ -287,26 +287,41 @@ def main():
     job_count = 0
 
     for xmass, smass, hmass, limits in mass_points:
+        mass_string = f"X={xmass}, S={smass}"
         limit_target = min(limits.values()) if limits else args.limit_target
         if args.precision is None and limit_target < 0.0:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if not args.overwrite:
             try:
-                status, _, _ = get_mass_point_status(
+                status, count, prev_precision = get_mass_point_status(
                     model_name=args.model,
                     decay=args.decay,
                     xmass=xmass,
                     smass=smass,
                     threshold=args.num_points,
                     mode=args.mode,
-                    strategy=args.strategy,
-                    precision=args.rerun_precision
+                    strategy=args.strategy
                 )
             except Exception as e:
-                print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
+                print(f"[ERROR] Failed to evaluate {mass_string}: {e}")
                 continue
-            if status not in {"missing", "below_threshold", "low_precision"}:
-                print(f"Skipping X={xmass}, S={smass}: status = {status}")
+            if status == "non_calculable":
+                print(f"Skipping {mass_string} because it is not calculable")
+                continue
+            elif status == "missing":
+                print(f"No previous scan found for {mass_string}: running")
+            elif status == "below_threshold":
+                print(f"Previous scan for {mass_string} only has {count} points (required: {args.num_points}): re-running")
+            elif prev_precision is None:
+                print(f"Previous scan for {mass_string} has no precision metadata: re-running")
+            elif (
+                args.rerun_precision is not None
+                and prev_precision >= args.rerun_precision
+                and prev_precision != Precision.SATURATED
+            ):
+                print(f"Previous scan for {mass_string} has precision {prev_precision} ≥ {args.rerun_precision}: re-running")
+            else:
+                print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
                 continue
 
         model = Model(name=args.model, masses={"H": hmass, "S": smass, "X": xmass})
