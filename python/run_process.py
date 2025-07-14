@@ -19,9 +19,9 @@ from typing import Optional
 # import logging utils first to ensure no messages are lost
 import utils.logging_utils as logging_utils
 
-from check_mass_list import get_mass_point_status
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
+from check_mass_list import get_mass_point_status
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model, supported_models
@@ -56,7 +56,6 @@ def run_scan(model: Model,
              strategy: str,
              num_points: int,
              prescan_points: int,
-             overwrite: bool,
              iterations: int,
              precision: Optional[Precision] = None,
              limit_target: float = -1.0,
@@ -70,7 +69,6 @@ def run_scan(model: Model,
         strategy (str): Optimization strategy ('zoom' or 'meanshift').
         num_points (int): Number of points to start the scan.
         prescan_points (int): Number of prescan points to use.
-        overwrite (bool): Whether to overwrite previous runs.
         iterations (int): Max number of scan iterations or shifters.
         precision (Optional[Precision]): Precision level for optimization.
         limit_target (float): The target experimental limit for setting precision.
@@ -87,7 +85,6 @@ def run_scan(model: Model,
     scan = Scan(model=model,
                 decay=decay,
                 prescan_points=prescan_points,
-                overwrite=overwrite,
                 precision=precision,
                 limit_target=limit_target)
 
@@ -111,7 +108,7 @@ def submit_htcondor(mode: str,
                     limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
-                    overwrite: bool = False,
+                    force_rerun: bool = False,
                     dry_run: bool = False) -> None:
     """
     Generate and optionally submit an HTCondor job for prescan or scan.
@@ -130,7 +127,7 @@ def submit_htcondor(mode: str,
         limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
-        overwrite (bool): Whether to overwrite previous runs.
+        force_rerun (bool): Force a new run, overwriting the previous results.
         dry_run (bool): If True, write scripts but do not submit job.
 
     Side Effects:
@@ -177,8 +174,8 @@ def submit_htcondor(mode: str,
         sh_lines.append(f"    --limit-target {limit_target} \\")
         if strategy == "meanshift":
             sh_lines.append(f"    -t {iterations} \\")
-    if overwrite:
-        sh_lines.append("    --overwrite \\")
+    if force_rerun:
+        sh_lines.append("    --force_rerun \\")
     
     # Remove trailing backslash from the last line
     sh_lines[-1] = sh_lines[-1].rstrip(" \\")
@@ -247,16 +244,16 @@ def main():
     arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
-    arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-c", "--num-cpus", default=8, type=int, help="Number of CPUs to request for the job")
     arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(),
                             help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=logging_utils.LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None,
-                            help="Fix optimization precision level. If not set, precision is adapted automatically.")
+                            help="Fix optimization precision level. If not set, precision is adapted automatically")
     arg_parser.add_argument("-r", "--rerun-precision", type=Precision.from_string, choices=list(Precision), default=None,
-                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --overwrite is set.")
+                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --force-rerun is set")
+    arg_parser.add_argument("-f", "--force-rerun", action="store_true", help="Force a rerun, overwriting previous results")
     args = arg_parser.parse_args()
 
     # Validate arguments
@@ -268,7 +265,7 @@ def main():
         if args.strategy == "zoom" and args.num_points <= 0:
             raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
         if args.strategy == "meanshift" and args.iterations <= 0:
-            raise ValueError("Meanshift strategy requires -t/--iterations to be greater than 0")
+            raise ValueError("Mean shift strategy requires -t/--iterations to be greater than 0")
 
     # Load mass points
     if args.use_mass_list:
@@ -285,6 +282,7 @@ def main():
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     job_count = 0
+    skip_count = 0
 
     for xmass, smass, hmass, limits in mass_points:
         mass_string = f"X={xmass}, S={smass}"
@@ -292,7 +290,7 @@ def main():
         limit_target = min(limits.values()) if limits else args.limit_target
         if args.precision is None and limit_target < 0.0:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
-        if not args.overwrite:
+        if not args.force_rerun:
             try:
                 status, count, prev_precision = get_mass_point_status(
                     model=model,
@@ -321,6 +319,7 @@ def main():
                 print(f"Previous scan for {mass_string} has precision {prev_precision} ≥ {args.rerun_precision}: re-running")
             else:
                 print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
+                skip_count += 1
                 continue
 
         log_level = logging_utils.LOG_LEVELS[args.log_level.lower()]
@@ -345,14 +344,14 @@ def main():
                             limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=args.iterations,
-                            overwrite=args.overwrite,
+                            force_rerun=args.force_rerun,
                             dry_run=args.dry_run)
             job_count += 1
         else:
             if args.mode == "prescan":
                 run_prescan(model=model,
                             num_points=args.num_points,
-                            overwrite=args.overwrite,
+                            overwrite=args.force_rerun,
                             dry_run=args.dry_run)
             else:
                 run_scan(model=model,
@@ -362,7 +361,6 @@ def main():
                          precision=args.precision,
                          limit_target=limit_target,
                          prescan_points=args.prescan_points,
-                         overwrite=args.overwrite,
                          iterations=args.iterations,
                          dry_run=args.dry_run)
             job_count += 1
@@ -370,6 +368,9 @@ def main():
     if job_count > 0:
         if args.use_mass_list:
             print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{args.decay}' '{args.identifier}'")
+            if skip_count > 0:
+                print(f"Skipped {skip_count} calculable job{'s' if skip_count > 1 else ''}.")
+                print("If you want to force them to be run, please use the -f/--force-rerun option.")
         else:
             print(f"\nSuccessfully processed job for X={args.XMass}, S={args.SMass}")
     if job_count == 0:
