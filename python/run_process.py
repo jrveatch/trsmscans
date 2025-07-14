@@ -275,8 +275,6 @@ def main():
     if mode == "scan":
         if not decay:
             raise ValueError("Scan mode requires -d/--decay")
-        if not strategy:
-            raise ValueError("Scan mode requires -s/--strategy")
         if strategy == "zoom" and num_points <= 0:
             raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
         if strategy == "meanshift" and iterations <= 0:
