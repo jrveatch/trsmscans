@@ -21,7 +21,7 @@ import utils.logging_utils as logging_utils
 
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
-from check_mass_list import get_mass_point_status
+from utils.metadata_utils import get_mass_point_status
 from prescan.prescan import prescan
 from scan.scan import Scan
 from utils.model import Model, supported_models
