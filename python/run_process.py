@@ -249,10 +249,14 @@ def main():
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-o", "--overwrite", action="store_true", help="Overwrite previous scan")
     arg_parser.add_argument("-c", "--num-cpus", default=8, type=int, help="Number of CPUs to request for the job")
-    arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(), help="HTCondor job length strategy")
+    arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(),
+                            help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=logging_utils.LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
-    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None, help="Fix optimization precision level. If not set, precision is adapted automatically.")
+    arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None,
+                            help="Fix optimization precision level. If not set, precision is adapted automatically.")
+    arg_parser.add_argument("-r", "--rerun-precision", type=Precision.from_string, choices=list(Precision), default=None,
+                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --overwrite is set.")
     args = arg_parser.parse_args()
 
     # Validate arguments
@@ -296,7 +300,7 @@ def main():
                     threshold=args.num_points,
                     mode=args.mode,
                     strategy=args.strategy,
-                    precision=args.precision
+                    precision=args.rerun_precision
                 )
             except Exception as e:
                 print(f"[ERROR] Failed to evaluate X={xmass}, S={smass}: {e}")
