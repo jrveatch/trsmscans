@@ -275,7 +275,6 @@ def main():
     if mode == "scan":
         if not decay:
             raise ValueError("Scan mode requires -d/--decay")
-        assert decay is not None
         if strategy == "zoom" and num_points <= 0:
             raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
         if strategy == "meanshift" and iterations <= 0:
@@ -285,7 +284,6 @@ def main():
     if args.use_mass_list:
         if not decay:
             raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
-        assert decay is not None
         if not identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
         permutations = get_mass_permutations(decay=decay, identifier=identifier)
@@ -295,6 +293,9 @@ def main():
         mass_points = [(XMass, SMass, HMass, {})]
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
+
+    # Already checked that decay is not None
+    assert decay is not None
 
     job_count = 0
     skip_count = 0
