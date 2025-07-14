@@ -4,11 +4,10 @@ import os
 import argparse
 from typing import List, Tuple, Optional
 
-from utils.tsv_utils import count_tsv_points
 from mass_grid.mass_json_utils import get_mass_permutations
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
-from utils.metadata_utils import load_metadata, get_precision
+from utils.metadata_utils import get_mass_point_status
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 
@@ -68,10 +67,8 @@ def check_mass_list(model_name: str,
 
         try:
             status, count, prev_precision = get_mass_point_status(
-                model_name=model_name,
+                model=model,
                 decay=decay_used,
-                xmass=xmass,
-                smass=smass,
                 threshold=threshold,
                 mode=mode,
                 strategy=strategy,
@@ -136,70 +133,6 @@ def check_mass_list(model_name: str,
             out.write("\n")
 
     print(f"\nDetailed results written to: {out_filename}")
-
-def get_mass_point_status(model_name: str,
-                          decay: str,
-                          xmass: float,
-                          smass: float,
-                          threshold: int,
-                          mode: str,
-                          strategy: Optional[str] = None,
-                          precision: Optional[Precision] = None
-                          ) -> Tuple[str, Optional[int], Optional[Precision]]:
-    """
-    Check the scan or prescan status of a single (X, S) mass point.
-
-    Args:
-        model_name (str): Name of the scalar model.
-        decay (str): Decay mode to use exactly as provided.
-        xmass (float): X scalar mass (GeV).
-        smass (float): S scalar mass (GeV).
-        threshold (int): Minimum required number of points.
-        mode (str): Either "prescan" or "scan".
-        strategy (Optional[str]): Optimization strategy. Required if mode is "scan".
-        precision (Optional[Precision]): Minimum required precision.
-
-    Returns:
-        Tuple[str, Optional[int], Optional[Precision]]:
-            - Status: One of {"ok", "below_threshold", "low_precision", "missing", "non_calculable"}
-            - Count of points if applicable (None for "missing" or "non_calculable")
-            - Previous precision (None if field is not saved)
-
-    Raises:
-        ValueError: If required parameters are missing or invalid.
-        OSError / JSONDecodeError: If files are corrupt or unreadable.
-    """
-    model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
-    subdir = model.mass_string
-
-    if not model.is_calculable:
-        return "non_calculable", None, None
-
-    if mode == "prescan":
-        path = os.path.join(output_dir(), model.name, "prescan", subdir, f"{model.name}_prescan.tsv")
-        if not os.path.isfile(path):
-            return "missing", None, None
-        count = count_tsv_points(path)
-        return ("ok", count, None) if count >= threshold else ("below_threshold", count, None)
-
-    elif mode == "scan":
-        if strategy is None:
-            raise ValueError("Scan mode requires a strategy.")
-        path = os.path.join(output_dir(), model.name, "scan", decay, subdir,
-                            strategy, f"run_metadata_{strategy}.json")
-        if not os.path.isfile(path):
-            return "missing", None, None
-        metadata = load_metadata(path)
-
-        count = metadata.get("num_points", 0)
-        prev_precision = get_precision(metadata)
-
-        if precision is not None and (prev_precision is None or prev_precision < precision):
-            return "low_precision", count, prev_precision
-        return ("ok", count, prev_precision) if count >= threshold else ("below_threshold", count, prev_precision)
-
-    else:
-        raise ValueError(f"Invalid mode '{mode}'")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

@@ -84,11 +84,15 @@ or a list of points, and locally or on the lxplus `HTCondor` batch system.
 
 To improve optimization efficiency, dynamic precision levels are used. These
 control how tight the stopping conditions are based on experimental limits
-that are used as targets (defined in each mass list file). If the rates for
-a mass point are more than two orders of magnitude smaller than the experimental
-limits, the optimization is terminated. As the rates get closer to the limits,
-stopping conditions are tightened to allow for a more thorough sampling of the
-parameter space.
+that are used as targets (defined in each mass list file). By default, an
+adaptive precision calculation is used. If the rates for a mass point are
+more than two orders of magnitude smaller (insensitive) or a factor of 20
+larger (saturated) than the experimental limits, the optimization is terminated
+to prevent unnecessary computation. As the rates get closer to the limits,
+stopping conditions are tightened to allow for a more thorough sampling of
+the parameter space. Adaptive precision can be switched off by specifying a
+precision level with the `-p/--precision` argument. The precision configurations
+are in `config/OptimizerConfig.yml`.
 
 ### Processing a single mass point
 
@@ -107,6 +111,23 @@ list will result in individual jobs being launched for each mass point.
 
 Mass points with `mX >= 3000 GeV` are skipped due to calculated cross-sections not being
 available.
+
+### Re-running jobs
+
+Nominally, prescan jobs will not run again if the requested number of points is
+less than or equal to the number that was previously run. If  more points are
+requested than were previously run, new points will be appended to those that
+already exist until the requested total number is reached. Using the `force-rerun`
+flag will overwrite any previously existing prescan points.
+
+By default, scan jobs will not run if a previous run exists with at least as many
+points as those requested. Running with the `-r/--rerun-precision` argument will
+rerun any job that was previously run with a precision greater than or equal to the
+given value (except saturated or insensitive points). This allows you to tighten the
+precision settings (and get a more accurate rate) for mass points that are close to
+the experimental limits without rerunning points that are far from the limits.
+Using the `-f/--force-rerun` flag will force the job to be rerun regardless
+of the previous number of points or precision.
 
 ### Batch mode
 

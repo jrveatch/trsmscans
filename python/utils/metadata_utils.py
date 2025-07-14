@@ -3,9 +3,12 @@ from datetime import datetime
 import json
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
+from utils.file_utils import output_dir
+from utils.model import Model
 from utils.precision_utils import Precision
+from utils.tsv_utils import count_tsv_points
 
 # get logger
 logger = logging.getLogger(__name__)
@@ -71,63 +74,6 @@ def save_run_metadata(out_dir: str,
     with open(metadata_path, "w") as f:
         json.dump(metadata, f)
 
-def run_exists(out_dir: str,
-               strategy: str,
-               num_points: int = -1,
-               precision: Optional[Precision] = None) -> bool:
-    """
-    Check if a previous run exists with sufficient sampling and, for zoom, sufficient precision.
-
-    For 'zoom' strategy:
-        - Returns True if a metadata file exists and contains at least (num_points / 1.5)
-          and meets the requested precision (if provided).
-    For 'meanshift' strategy:
-        - Returns True if the metadata file contains at least (num_points / 1.2).
-        - Precision is not checked.
-
-    Args:
-        out_dir (str): Directory where metadata should be found.
-        strategy (str): Strategy name ("zoom" or "meanshift").
-        num_points (int): Number of points expected in the new run.
-        precision (Optional[Precision]): Minimum required precision (only checked for 'zoom').
-
-    Returns:
-        bool: True if an existing run satisfies the requirements, False otherwise.
-
-    Raises:
-        OSError: If the metadata file exists but cannot be read.
-        json.JSONDecodeError: If the metadata file is not valid JSON.
-    """
-    metadata_path = os.path.join(out_dir, metadata_file_name(strategy))
-    if not os.path.isfile(metadata_path):
-        return False
-
-    metadata = load_metadata(metadata_path)
-    existing_points: int = metadata.get("num_points", 0)
-    existing_precision = get_precision(metadata)
-
-    logger.info(f"Found a {strategy} run with {existing_points} points"
-                f"{' and precision ' + str(existing_precision) if existing_precision is not None else ''}.")
-
-    if strategy == "zoom":
-        # Check point threshold
-        if num_points > 1.5 * existing_points:
-            return False
-        # Handle optional precision logic
-        if precision is not None:
-            if existing_precision is None:
-                logger.info("Existing run has no precision field; cannot satisfy fixed precision requirement.")
-                return False
-            if existing_precision < precision:
-                logger.info(f"Existing precision '{existing_precision}' is lower than requested '{precision}'.")
-                return False
-        return True
-
-    if strategy == "meanshift":
-        return num_points <= 1.2 * existing_points
-
-    return False
-
 def get_precision(data: Dict[str, Any]) -> Optional[Precision]:
     """
     Extract the precision level from metadata, if present and valid.
@@ -145,3 +91,62 @@ def get_precision(data: Dict[str, Any]) -> Optional[Precision]:
         return Precision.from_string(precision_str)
     except ValueError:
         return None
+
+def get_mass_point_status(model: Model,
+                          decay: str,
+                          threshold: int,
+                          mode: str,
+                          strategy: Optional[str] = None,
+                          precision: Optional[Precision] = None
+                          ) -> Tuple[str, Optional[int], Optional[Precision]]:
+    """
+    Check the scan or prescan status of a single (X, S) mass point.
+
+    Args:
+        model (Model): Model to use.
+        decay (str): Decay mode to use exactly as provided.
+        threshold (int): Minimum required number of points.
+        mode (str): Either "prescan" or "scan".
+        strategy (Optional[str]): Optimization strategy. Required if mode is "scan".
+        precision (Optional[Precision]): Minimum required precision.
+
+    Returns:
+        Tuple[str, Optional[int], Optional[Precision]]:
+            - Status: One of {"ok", "below_threshold", "low_precision", "missing", "non_calculable"}
+            - Count of points if applicable (None for "missing" or "non_calculable")
+            - Previous precision (None if field is not saved)
+
+    Raises:
+        ValueError: If required parameters are missing or invalid.
+        OSError / JSONDecodeError: If files are corrupt or unreadable.
+    """
+    subdir = model.mass_string
+
+    if not model.is_calculable:
+        return "non_calculable", None, None
+
+    if mode == "prescan":
+        path = os.path.join(output_dir(), model.name, "prescan", subdir, f"{model.name}_prescan.tsv")
+        if not os.path.isfile(path):
+            return "missing", None, None
+        count = count_tsv_points(path)
+        return ("ok", count, None) if count >= threshold else ("below_threshold", count, None)
+
+    elif mode == "scan":
+        if strategy is None:
+            raise ValueError("Scan mode requires a strategy.")
+        path = os.path.join(output_dir(), model.name, "scan", decay, subdir,
+                            strategy, f"run_metadata_{strategy}.json")
+        if not os.path.isfile(path):
+            return "missing", None, None
+        metadata = load_metadata(path)
+
+        count = metadata.get("num_points", 0)
+        prev_precision = get_precision(metadata)
+
+        if precision is not None and (prev_precision is None or prev_precision < precision):
+            return "low_precision", count, prev_precision
+        return ("ok", count, prev_precision) if count >= threshold else ("below_threshold", count, prev_precision)
+
+    else:
+        raise ValueError(f"Invalid mode '{mode}'")
