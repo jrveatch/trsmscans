@@ -382,8 +382,8 @@ def main():
         if args.use_mass_list:
             print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{decay}' '{identifier}'")
             if skip_count > 0:
-                print(f"Skipped {skip_count} calculable job{'s' if skip_count > 1 else ''}.")
-                print("If you want to force them to be run, please use the -f/--force-rerun option.")
+                print(f"Skipped {skip_count} calculable job{'s' if skip_count > 1 else ''}. "
+                      "Use the -f/--force-rerun option to force them to be rerun.")
         else:
             print(f"\nSuccessfully processed job for X={XMass}, S={SMass}")
     if job_count == 0:
