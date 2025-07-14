@@ -76,7 +76,7 @@ An example of how to run a scan using zoom optimization is given in the
 directory based on the scan parameters. Within the corresponding directory
 in `output`, you will find all of the `.tsv` files under `zoom` as well as
 `summary_zoom_TRSMBroken_*.tsv` that shows a summary of scans that find new
-maxima. The entry point for all scans or prescans is `run_process.py`, which
+maxima. The entry point for all scans or prescans is `launch_scan.py`, which
 provides options to either run a scan or a prescan, run a single mass point
 or a list of points, and locally or on the lxplus `HTCondor` batch system.
 
@@ -131,7 +131,7 @@ of the previous number of points or precision.
 
 ### Batch mode
 
-To run in batch mode, use the `-b` option when calling `run_process.py`.
+To run in batch mode, use the `-b` option when calling `launch_scan.py`.
 Submission files will automatically be generated and jobs will be launched.
 
 ### External `output` directory
