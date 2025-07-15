@@ -99,13 +99,13 @@ def run_scan(model: Model,
 def submit_htcondor(mode: str,
                     model: Model,
                     num_points: int,
+                    limit_target: float,
                     num_cpus: Optional[int] = None,
                     memory: Optional[int] = None,
                     job_length: Optional[str] = None,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
                     precision: Optional[Precision] = None,
-                    limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
                     force_rerun: bool = False,
@@ -117,13 +117,13 @@ def submit_htcondor(mode: str,
         mode (str): Either 'prescan' or 'scan'.
         model (Model): The scalar model being scanned.
         num_points (int): Number of starting points for scan or prescan.
+        limit_target (float): The target experimental limit for setting precision.
         num_cpus (Optional[int]): Number of CPUs to request.
         memory: (Optional[int]): Amount of memory to request in MB.
         job_length (Optional[str]): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
         precision (Optional[Precision]): Precision level for optimization.
-        limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
         force_rerun (bool): Force a new run, overwriting the previous results.
@@ -376,13 +376,13 @@ def main():
             submit_htcondor(mode=mode,
                             model=model,
                             num_points=num_points,
+                            limit_target=limit_target,
                             num_cpus=args.num_cpus,
                             memory=args.memory,
                             job_length=args.job_length,
                             decay=decay,
                             strategy=strategy,
                             precision=precision,
-                            limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=iterations,
                             force_rerun=force_rerun,
