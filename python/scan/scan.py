@@ -36,7 +36,7 @@ class Scan:
                  model: Model,
                  decay: str,
                  precision: Optional[Precision] = None,
-                 limit_target: float = -1.0,
+                 limit_target: Optional[float] = None,
                  prescan_points: int = -1,
                  config_file_name: str = ""
                  ):
@@ -49,8 +49,7 @@ class Scan:
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
             precision (Optional[Precision]): The precision level for the scan.
                 Defaults to None.
-            limit_target (float, optional): The target experimental limit for setting precision.
-                Defaults to -1.0.
+            limit_target (Optional[float]): The target experimental limit for setting precision.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
             config_file_name (str, optional): Path to a YAML config file. If not specified,
@@ -102,6 +101,10 @@ class Scan:
         self.precision = precision
         self.limit_target = limit_target
         self.use_adaptive_precision = precision is None
+
+        # some information about using adaptive precision
+        if self.use_adaptive_precision:
+            logger.info(f"Adaptive precision enabled. Limit target: {self.limit_target}")
 
         # number of prescan points to run
         self.prescan_points = prescan_points
@@ -199,6 +202,8 @@ class Scan:
 
         # check ratio of prescan max xb in fb to limit_target
         if self.use_adaptive_precision:
+            if self.limit_target is None:
+                raise ValueError("Limit target must be specified for adaptive precision.")
             ratio = self.global_max.xb * 1000 / self.limit_target
             max_xb = self.global_max.xb * 1000
             formatted_max_xb = f"{max_xb:.2e}" if max_xb < 0.1 or max_xb >= 100 else f"{max_xb:.2f}"

@@ -59,7 +59,7 @@ def run_scan(model: Model,
              prescan_points: int,
              iterations: int,
              precision: Optional[Precision] = None,
-             limit_target: float = -1.0,
+             limit_target: Optional[float] = None,
              dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
@@ -72,7 +72,7 @@ def run_scan(model: Model,
         prescan_points (int): Number of prescan points to use.
         iterations (int): Max number of scan iterations or shifters.
         precision (Optional[Precision]): Precision level for optimization.
-        limit_target (float): The target experimental limit for setting precision.
+        limit_target (Optional[float]): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
 
     Raises:
@@ -99,13 +99,13 @@ def run_scan(model: Model,
 def submit_htcondor(mode: str,
                     model: Model,
                     num_points: int,
+                    limit_target: float,
                     num_cpus: Optional[int] = None,
                     memory: Optional[int] = None,
                     job_length: Optional[str] = None,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
                     precision: Optional[Precision] = None,
-                    limit_target: float = -1.0,
                     prescan_points: int = -1,
                     iterations: int = -1,
                     force_rerun: bool = False,
@@ -117,13 +117,13 @@ def submit_htcondor(mode: str,
         mode (str): Either 'prescan' or 'scan'.
         model (Model): The scalar model being scanned.
         num_points (int): Number of starting points for scan or prescan.
+        limit_target (float): The target experimental limit for setting precision.
         num_cpus (Optional[int]): Number of CPUs to request.
         memory: (Optional[int]): Amount of memory to request in MB.
         job_length (Optional[str]): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
         precision (Optional[Precision]): Precision level for optimization.
-        limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
         iterations (int): Iteration count for optimizer.
         force_rerun (bool): Force a new run, overwriting the previous results.
@@ -266,7 +266,7 @@ def main():
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
+    arg_parser.add_argument("--limit-target", default=None, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-c", "--num-cpus", type=int, help="Number of CPUs to request for the job")
@@ -333,7 +333,7 @@ def main():
             print(f"Skipping {mass_string} because it is not calculable")
             continue
         limit_target = min(limits.values()) if limits else args.limit_target
-        if precision is None and limit_target < 0.0:
+        if precision is None and limit_target is None:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if mode == "scan" and not force_rerun:
             try:
@@ -376,13 +376,13 @@ def main():
             submit_htcondor(mode=mode,
                             model=model,
                             num_points=num_points,
+                            limit_target=limit_target,
                             num_cpus=args.num_cpus,
                             memory=args.memory,
                             job_length=args.job_length,
                             decay=decay,
                             strategy=strategy,
                             precision=precision,
-                            limit_target=limit_target,
                             prescan_points=args.prescan_points,
                             iterations=iterations,
                             force_rerun=force_rerun,

@@ -52,7 +52,7 @@ class ZoomOptimizer:
                  config_loader: ConfigLoader,
                  label: str,
                  precision: Optional[Precision] = None,
-                 limit_target: float = -1.0) -> None:
+                 limit_target: Optional[float] = None) -> None:
         """
         Initializes a ZoomOptimizer instance with configuration and scan parameters.
 
@@ -64,7 +64,7 @@ class ZoomOptimizer:
             config_loader (ConfigLoader): Configuration loader for reading zoom settings.
             label (str): A string label identifying the scan.
             precision (Optional[Precision]): The precision level for the scan.
-            limit_target (float, optional): The target experimental limit for setting precision. Defaults to -1.0.
+            limit_target (Optional[float]): The target experimental limit for setting precision.
         """
 
         # some basic scanner information
@@ -283,6 +283,8 @@ class ZoomOptimizer:
         Args:
             test_point (Point): The Point to test against self.limit_target.
         """
+        if self.limit_target is None:
+            raise ValueError("Limit target must be specified for adaptive precision.")
         if abs(self.limit_target) < 1e-12:
             raise ValueError("Cannot adapt precision: limit_target is effectively zero")
         ratio = test_point.xb * 1000 / self.limit_target
