@@ -101,7 +101,6 @@ def submit_htcondor(mode: str,
                     num_points: int,
                     limit_target: float,
                     num_cpus: Optional[int] = None,
-                    memory: Optional[int] = None,
                     job_length: Optional[str] = None,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
@@ -119,7 +118,6 @@ def submit_htcondor(mode: str,
         num_points (int): Number of starting points for scan or prescan.
         limit_target (float): The target experimental limit for setting precision.
         num_cpus (Optional[int]): Number of CPUs to request.
-        memory: (Optional[int]): Amount of memory to request in MB.
         job_length (Optional[str]): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
@@ -141,7 +139,6 @@ def submit_htcondor(mode: str,
     # get default configurations from config file
     try:
         default_num_cpus: int = run_config.get('HTCondor', 'num_cpus')
-        default_memory: int = run_config.get('HTCondor', 'memory')
         default_job_length: str = run_config.get('HTCondor', 'job_length')
     except Exception as e:
         print(e)
@@ -150,8 +147,6 @@ def submit_htcondor(mode: str,
     # use default values if arguments are not provided
     if num_cpus is None:
         num_cpus = default_num_cpus
-    if memory is None:
-        memory = default_memory
     if job_length is None:
         job_length = default_job_length
 
@@ -225,7 +220,6 @@ def submit_htcondor(mode: str,
          "job_name": job_name,
          "input_files": input_files,
          "num_cpus": num_cpus,
-         "memory": memory,
          "job_length": job_length}
     )
     sub_file.write_text(submit_file)
@@ -270,7 +264,6 @@ def main():
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-c", "--num-cpus", type=int, help="Number of CPUs to request for the job")
-    arg_parser.add_argument("--memory", type=int, help="Amount of memory in MB to request for the job")
     arg_parser.add_argument("-j", "--job-length", type=str, choices=htcondor_utils.job_lengths.keys(),
                             help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=logging_utils.LOG_LEVELS.keys(), help="Set the logging level")
@@ -378,7 +371,6 @@ def main():
                             num_points=num_points,
                             limit_target=limit_target,
                             num_cpus=args.num_cpus,
-                            memory=args.memory,
                             job_length=args.job_length,
                             decay=decay,
                             strategy=strategy,
