@@ -19,6 +19,7 @@ from typing import Optional
 # import logging utils first to ensure no messages are lost
 import utils.logging_utils as logging_utils
 
+from utils.config_loader import ConfigLoader
 from utils.env_utils import env_sh
 from utils.file_utils import prescan_dir, scan_dir
 from utils.metadata_utils import get_mass_point_status
@@ -98,8 +99,9 @@ def run_scan(model: Model,
 def submit_htcondor(mode: str,
                     model: Model,
                     num_points: int,
-                    num_cpus: int,
-                    job_length: str,
+                    num_cpus: Optional[int] = None,
+                    memory: Optional[int] = None,
+                    job_length: Optional[str] = None,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
                     xmass: float = -1.0,
@@ -117,8 +119,9 @@ def submit_htcondor(mode: str,
         mode (str): Either 'prescan' or 'scan'.
         model (Model): The scalar model being scanned.
         num_points (int): Number of starting points for scan or prescan.
-        num_cpus (int): Number of CPUs to request.
-        job_length (str): Job runtime class (e.g., 'microcentury').
+        num_cpus (Optional[int]): Number of CPUs to request.
+        memory: (Optional[int]): Amount of memory to request in MB.
+        job_length (Optional[str]): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
         xmass (float): X scalar mass in GeV.
@@ -135,6 +138,26 @@ def submit_htcondor(mode: str,
         - Optionally submits job via `condor_submit`.
         - Creates log and submission directories if needed.
     """
+
+    # load config file
+    run_config = ConfigLoader("RunConfig.yml")
+
+    # get default configurations from config file
+    try:
+        default_num_cpus: int = run_config.get('HTCondor', 'num_cpus')
+        default_memory: int = run_config.get('HTCondor', 'memory')
+        default_job_length: str = run_config.get('HTCondor', 'job_length')
+    except Exception as e:
+        print(e)
+        raise
+
+    # use default values if arguments are not provided
+    if num_cpus is None:
+        num_cpus = default_num_cpus
+    if memory is None:
+        memory = default_memory
+    if job_length is None:
+        job_length = default_job_length
 
     job_name = f"{mode}_{model.name}_{decay if mode == 'scan' else mode}_X{int(xmass)}_S{int(smass)}"
 
@@ -201,6 +224,7 @@ def submit_htcondor(mode: str,
          "job_name": job_name,
          "input_files": input_files,
          "num_cpus": num_cpus,
+         "memory": memory,
          "job_length": job_length}
     )
     sub_file.write_text(submit_file)
@@ -244,8 +268,9 @@ def main():
     arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
-    arg_parser.add_argument("-c", "--num-cpus", default=8, type=int, help="Number of CPUs to request for the job")
-    arg_parser.add_argument("-j", "--job-length", default='microcentury', type=str, choices=htcondor_utils.job_lengths.keys(),
+    arg_parser.add_argument("-c", "--num-cpus", type=int, help="Number of CPUs to request for the job")
+    arg_parser.add_argument("--memory", type=int, help="Amount of memory in MB to request for the job")
+    arg_parser.add_argument("-j", "--job-length", type=str, choices=htcondor_utils.job_lengths.keys(),
                             help="HTCondor job length strategy")
     arg_parser.add_argument("--log-level", default="info", type=str.lower, choices=logging_utils.LOG_LEVELS.keys(), help="Set the logging level")
     arg_parser.add_argument("--dry-run", action="store_true", help="Print submission steps without running condor_submit")
@@ -351,6 +376,7 @@ def main():
                             model=model,
                             num_points=num_points,
                             num_cpus=args.num_cpus,
+                            memory=args.memory,
                             job_length=args.job_length,
                             decay=decay,
                             strategy=strategy,

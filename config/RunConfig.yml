@@ -12,3 +12,8 @@ prescan:
 
 bounds:
   min_chunk_size: 100 # minimum number of dataframe rows in a bounds check
+
+HTCondor:
+  num_cpus: 8 # default number of CPUs to request
+  memory: 8000 # default memory in MB to request
+  job_length: "espresso" # default job runtime (espresso, microcentury, longlunch, etc.) more details at https://batchdocs.web.cern.ch/local/submit.html
