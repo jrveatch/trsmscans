@@ -59,7 +59,7 @@ def run_scan(model: Model,
              prescan_points: int,
              iterations: int,
              precision: Optional[Precision] = None,
-             limit_target: float = -1.0,
+             limit_target: Optional[float] = None,
              dry_run: bool = False) -> None:
     """
     Run a scan (zoom or meanshift) for a single mass point.
@@ -72,7 +72,7 @@ def run_scan(model: Model,
         prescan_points (int): Number of prescan points to use.
         iterations (int): Max number of scan iterations or shifters.
         precision (Optional[Precision]): Precision level for optimization.
-        limit_target (float): The target experimental limit for setting precision.
+        limit_target (Optional[float]): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
 
     Raises:
@@ -266,7 +266,7 @@ def main():
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
-    arg_parser.add_argument("--limit-target", default=-1.0, type=float, help="Target limit to determine precision on the fly")
+    arg_parser.add_argument("--limit-target", default=None, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("-c", "--num-cpus", type=int, help="Number of CPUs to request for the job")
@@ -333,7 +333,7 @@ def main():
             print(f"Skipping {mass_string} because it is not calculable")
             continue
         limit_target = min(limits.values()) if limits else args.limit_target
-        if precision is None and limit_target < 0.0:
+        if precision is None and limit_target is None:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if mode == "scan" and not force_rerun:
             try:
