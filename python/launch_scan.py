@@ -102,8 +102,6 @@ def submit_htcondor(mode: str,
                     job_length: str,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
-                    xmass: float = -1.0,
-                    smass: float = -1.0,
                     precision: Optional[Precision] = None,
                     limit_target: float = -1.0,
                     prescan_points: int = -1,
@@ -121,8 +119,6 @@ def submit_htcondor(mode: str,
         job_length (str): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
-        xmass (float): X scalar mass in GeV.
-        smass (float): S scalar mass in GeV.
         precision (Optional[Precision]): Precision level for optimization.
         limit_target (float): The target experimental limit for setting precision.
         prescan_points (int): Number of prescan points to use for scan.
@@ -136,7 +132,12 @@ def submit_htcondor(mode: str,
         - Creates log and submission directories if needed.
     """
 
-    job_name = f"{mode}_{model.name}_{decay if mode == 'scan' else mode}_X{int(xmass)}_S{int(smass)}"
+    # get scalar masses
+    HMass = model.get_mass('H')
+    SMass = model.get_mass('S')
+    XMass = model.get_mass('X')
+
+    job_name = f"{mode}_{model.name}_{decay if mode == 'scan' else mode}_X{int(XMass)}_S{int(SMass)}"
 
     submissions_dir = htcondor_utils.submissions_dir(model.name, mode, decay)
 
@@ -160,7 +161,7 @@ def submit_htcondor(mode: str,
     sh_lines = [
         "launch_scan.py \\",
         f"    --mode {mode} \\",
-        f"    -X {xmass} -S {smass} -H {model.masses['H']} \\",
+        f"    -X {XMass} -S {SMass} -H {HMass} \\",
         f"    -m {model.name} -n {num_points} \\",
     ]
 
@@ -354,8 +355,6 @@ def main():
                             job_length=args.job_length,
                             decay=decay,
                             strategy=strategy,
-                            xmass=xmass,
-                            smass=smass,
                             precision=precision,
                             limit_target=limit_target,
                             prescan_points=args.prescan_points,
