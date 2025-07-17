@@ -3,7 +3,10 @@ from utils.param_space import ParamSpace
 from utils.model import Model
 from utils.point import Point
 from utils.point_sampler import PointSampler
-from utils.file_utils import scan_dir
+from utils.file_utils import scan_dir 
+from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
+
+import os 
 
 class BayesianOptimizer:
     def __init__(self, 
@@ -47,19 +50,33 @@ class BayesianOptimizer:
         low_dict = {'thetaHS': thetaHS, 'thetaHX': thetaHX, 'thetaSX': thetaSX, 'vs': vs, 'vx': vx}
         point = Point(model=self.model,par_vals=low_dict)
         point_sampler = PointSampler(self.out_dir, self.config_loader)
-        print(low_dict)
+        # debug: print(low_dict)
         try:
             point = point_sampler.sample_single_point(point=point,
                                                       decay=self.decay,
                                                       identifier='x')
         except TimeoutError:
             return 0
-        print(point.xb)
+
+        # write point to summary file
+        write_point_to_summary_file(self.out_file, point)
+
+        # debug: print(point.xb)
         return point.xb
 
     def run(self):
         # set new ranges
         self.set_ranges()
+
+        # get output file name
+        self.out_file = self.out_dir + "/bayesian_optimizer/tsv/TRSMBroken.tsv"
+
+        # create an empty output file
+        with open(self.out_file, 'w') as file:
+            print("Creating output file...")
+
+        # initialize summary file
+        initialize_summary_file(self.out_file, self.model)
 
         # create an optimizer
         optimizer = BayesianOptimization(
@@ -79,18 +96,9 @@ class BayesianOptimizer:
         # optimizer.res # gets all points that were tested and saves their data
 
         # gets the max value
+        print("Max point: ", end='')
         print(optimizer.max)
 
         # TODO: decide if using optimizer.res to find data (quick and easy)
         # or manually keep data in self.point_getter() to keep all data in a csv,
         # which would include more in depth data
-
-
-
-# notes for manuel:
-# clean up output files (1k points will have 1k ini and output files)
-# save output of optimizer (likely one file with points and store the max value)
-# make plots
-# 1d plot by using the max of each parameter except for the parameter being plotted
-# 2d plot the same, and without the workaround, and/or with a plot like zoom plots using only optimizer.res points
-
