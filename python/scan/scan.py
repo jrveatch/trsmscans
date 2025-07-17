@@ -24,6 +24,7 @@ from utils.metadata_utils import save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
+from optimizers.bayesian_optimizer import BayesianOptimizer
 
 # get logger
 import logging
@@ -645,7 +646,37 @@ class Scan:
             
         # Return to call
         return tuple(points_per_optimizer_array.tolist())
-       
+    
+    def run_bayesian_optimizer(self, num_points: int) -> None:
+        # get scan start time
+        scan_start = time.time()
+
+        self.initialize_output("bayesian_optimizer")
+
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
+
+        # run prescan
+        self.run_prescan()
+
+        # move into the working directory for scans
+        os.chdir(self.out_dir)
+
+        # create optimizer
+        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader, self.global_param_space)
+
+        # run scan
+        bayesian_optimizer.run()
+
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(strategy="bayes",
+                      scan_time=scan_time,
+                      num_points=num_points)
+
     def finalize(self,
                  strategy: str,
                  scan_time: float,
