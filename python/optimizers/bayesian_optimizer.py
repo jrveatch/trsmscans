@@ -49,7 +49,7 @@ class BayesianOptimizer:
         # return xb_max from parse object
         low_dict = {'thetaHS': thetaHS, 'thetaHX': thetaHX, 'thetaSX': thetaSX, 'vs': vs, 'vx': vx}
         point = Point(model=self.model,par_vals=low_dict)
-        point_sampler = PointSampler(self.out_dir, self.config_loader)
+        point_sampler = PointSampler(self.model, self.out_dir)
         # debug: print(low_dict)
         try:
             point = point_sampler.sample_single_point(point=point,

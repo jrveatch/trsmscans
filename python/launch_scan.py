@@ -93,6 +93,8 @@ def run_scan(model: Model,
         scan.run_zoom_optimization(num_points=num_points, niter=iterations)
     elif strategy == "meanshift":
         scan.run_ms_optimization(num_optimizers=iterations)
+    elif strategy == "bayes":
+        scan.run_bayesian_optimizer(num_points=num_points)
     else:
         raise ValueError(f"Invalid strategy: {strategy}")
 
@@ -258,7 +260,7 @@ def main():
     arg_parser.add_argument("-i", "--identifier", type=str, help="Mass set identifier")
     arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
-    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
+    arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift', 'bayes'], help="Optimization strategy")
     arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
     arg_parser.add_argument("--limit-target", default=None, type=float, help="Target limit to determine precision on the fly")
     arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")

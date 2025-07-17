@@ -289,7 +289,7 @@ class PointSampler:
         self.n_pass = results["pass"]
 
         # Print final number of events that pass
-        self.print_n_pass()
+        # self.print_n_pass()
 
         # Create parser from output .tsv
         self.parser = Parse(model = point.model,

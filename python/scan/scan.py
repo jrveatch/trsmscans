@@ -24,6 +24,7 @@ from utils.metadata_utils import save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
+from optimizers.bayesian_optimizer import BayesianOptimizer
 
 # get logger
 import logging
