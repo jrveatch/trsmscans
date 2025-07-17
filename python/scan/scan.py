@@ -673,7 +673,7 @@ class Scan:
         scan_time = (scan_end - scan_start)
 
         # finalize the run
-        self.finalize(optimization="zoom",
+        self.finalize(strategy="bayes",
                       scan_time=scan_time,
                       num_points=num_points)
 
