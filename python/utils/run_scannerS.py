@@ -2,60 +2,71 @@
 
 # standard libraries
 import argparse
-import logging
 import math
 import multiprocessing as mp
+from multiprocessing.managers import ValueProxy
 import os
 import shutil
 import subprocess
 import time
-from typing import List
+from typing import List, Optional
 
 # third-party libraries
 from blessings import Terminal
+import pandas as pd
 
 # local modules
 from utils.config_loader import ConfigLoader
+from utils.cpu_utils import get_n_cpus
+from utils.df_utils import load_scanner_output
 from utils.env_utils import data_dir
-from utils.tsv_utils import save_tsv_output
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
+import logging
 logger = logging.getLogger(__name__)
 
 # get configurations
-config_loader = ConfigLoader(config_file_name="RunConfig.yml")
+config_loader = ConfigLoader("RunConfig.yml")
 try:
-    # fraction of cpus to use when parallel processing
-    frac_cpu: float = config_loader.get('MultiProcessing', 'frac_cpu')
     # minimum number of points per job
     min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
     timeout: float = config_loader.get('ScannerS', 'timeout')
-except KeyError as e:
-    logger.error(e)
-    raise
+    # random seed for ScannerS - should generally be None, unless needed for development
+    initial_seed: Optional[int] = config_loader.get('ScannerS', 'seed', default=None)
 except Exception as e:
-    logger.error(e)
+    logger.exception(e)
     raise
 
-# get logger
-logger = logging.getLogger(__name__)
+# initialize seed as an evolving counter
+if mp.current_process().name == "MainProcess":
+    if initial_seed is not None:
+        logger.info(f"Using {initial_seed} as initial ScannerS seed\n")
+seed = initial_seed
 
 # method to run ScannerS
 def run_scannerS(ini_name: str,
                  num_points: int,
                  model_name: str,
-                 use_multiprocessing: bool = True) -> int:
+                 use_multiprocessing: bool = True,
+                 run_test_job: bool = True) -> pd.DataFrame:
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
         raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+    
+    # list of output.tsv files
+    tsv_files: List[str] = []
+
+    # list of temporary directories
+    directories: List[str] = []
 
     # initialize number of processes to 1
     num_processes = 1
 
     # get number of available CPUs
-    num_cpu = mp.cpu_count()
+    num_cpu = get_n_cpus()
 
     # use num_points unless modified for parallel processes
     points_per_process = num_points
@@ -77,33 +88,30 @@ def run_scannerS(ini_name: str,
     # if using multiprocessing, run a test job and then calculate number of jobs and points per job
     if use_multiprocessing:
 
-        # print out some information
-        logger.debug(f"Running a test job with {min_points_per_job} points")
+        # set points_to_run
+        points_to_run = num_points
 
-        # define test process with 10 points
-        test_process_args = [model_name, "--config", ini_name, "scan", "-n", str(min_points_per_job)]
-
-        # run test process
-        try:
+        # run test process if requested
+        if run_test_job:
+            logger.debug(f"Running a test job with {min_points_per_job} points")
+            test_process_args = get_process_args(model_name=model_name,
+                                                 ini_name=ini_name,
+                                                 num_points=min_points_per_job)
+            logger.debug("Running test job to check if ScannerS works with the given configuration")
             run_timed_process(process_args=test_process_args,
                               model_name=model_name)
-        except TimeoutError:
-            raise
+            tsv_files.append(f"{model_name}.tsv")
+            points_to_run -= min_points_per_job
+            logger.debug("Test job was successful")
 
-        # print out some information
-        logger.debug("Test job was successful")
-
-        # number of points left to run after test job
-        points_to_run = num_points - min_points_per_job
-
-        # set number of processes to 80% of the available cores rounded down
-        num_processes = int(num_cpu * frac_cpu)
+        # set number of processes to the number of allowed CPUs
+        num_processes = num_cpu
 
         # get number of points per job, rounded up
         points_per_process = math.ceil(points_to_run/num_processes)
 
         # if points_per_process is less than min_points_per_job, reduce the number of jobs
-        if points_per_process < min_points_per_job:
+        if points_per_process <= min_points_per_job:
             num_processes = math.ceil(points_to_run/min_points_per_job)
             points_per_process = min_points_per_job
 
@@ -114,16 +122,19 @@ def run_scannerS(ini_name: str,
         logger.info(f"Running {num_processes} processes")
         logger.debug(f"Running {points_to_run} points as {num_processes} processes with {points_per_process} points each")
 
-        num_points = points_to_run + min_points_per_job
-
         # create list of directories
         directories = [f"dir_{i}" for i in range(num_processes)]
 
-        # define process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(points_per_process)]
+        # define process args for each job (seed increments here)
+        process_args_list = [
+            get_process_args(model_name=model_name,
+                             ini_name=ini_name,
+                             num_points=points_per_process)
+            for _ in directories
+        ]
 
         # create a shared counter and a lock
-        counter = mp.Manager().Value("i",0)
+        counter: ValueProxy = mp.Manager().Value("i",0)
         lock = mp.Manager().Lock()
 
         # print empty job completion counter
@@ -133,7 +144,10 @@ def run_scannerS(ini_name: str,
         with mp.Pool(processes=num_processes) as pool:
 
             # map the run_process function to each directory
-            pool.starmap(run_process, [(process_args, directory, num_processes, counter, lock) for directory in directories])
+            pool.starmap(run_process, [
+                (args, directory, num_processes, counter, lock)
+                for args, directory in zip(process_args_list, directories)
+                ])
 
             # wait for all processes to finish
             pool.close()
@@ -142,42 +156,57 @@ def run_scannerS(ini_name: str,
         # success message
         logger.info("All processes finished. Merging outputs...")
 
-        # combine the outputs into a single file
-        concatenate_files(directories=directories,
-                          file_name=model_name+".tsv")
+        tsv_files += list_outputs(directories=directories,
+                                  file_name=model_name+".tsv")
 
     else:
         logger.info("Running as a single process")
 
         # define test process
-        process_args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+        process_args = get_process_args(model_name=model_name,
+                                        ini_name=ini_name,
+                                        num_points=num_points)
 
         # run test process
-        try:
-            run_timed_process(process_args=process_args,
-                              model_name=model_name)
-        except TimeoutError:
-            raise
+        run_timed_process(process_args=process_args,
+                          model_name=model_name)
+        tsv_files.append(f"{model_name}.tsv")
 
-    # return number of points that are actually used, including test job points
-    return num_points
+    # get dataframe from the output files
+    data = load_scanner_output(tsv_files)
+
+    # clean up artifact files
+    remove_artifact_files(model_name)
+
+    # remove temporary directories
+    remove_temp_directories(directories)
+
+    # return dataframe
+    return data
 
 def run_scannerS_single_point(ini_name: str,
-                              model_name: str) -> None:
+                              model_name: str) -> pd.DataFrame:
+    """Runs ScannerS for a single parameter point using the given model configuration.
+
+    Args:
+        ini_name (str): Path to the `.ini` configuration file.
+        model_name (str): Name of the model to be scanned.
+    """
 
     # raise exception if .ini doesn't exist
     if not os.path.exists(ini_name):
-        raise FileNotFoundError(f"The requested .ini file {ini_name} doesn't exist. Exiting.")
+        raise FileNotFoundError(f"The requested .ini file '{ini_name}' doesn't exist. Exiting.")
 
     # define process
-    process_args = [model_name, "--config", ini_name, "scan", "-n", "1"]
+    process_args = get_process_args(model_name=model_name,
+                                    ini_name=ini_name,
+                                    num_points=1)
 
     # run timed process
-    try:
-        run_timed_process(process_args=process_args,
-                          model_name=model_name)
-    except TimeoutError:
-        raise
+    run_timed_process(process_args=process_args,
+                      model_name=model_name)
+
+    return load_scanner_output([f"{model_name}.tsv"])
 
 # run a process for multiprocessing
 def run_process(process_args: List[str],
@@ -189,25 +218,14 @@ def run_process(process_args: List[str],
     # create temporary directory if it doesn't exist
     os.makedirs(directory, exist_ok=True)
 
-    # get original directory
-    original_dir = os.getcwd()
-
-    # change to the temporary directory
-    os.chdir(directory)
-
-    # log file
-    log = open("ScannerS.log", "w")
-
     # run the process with arguments and suppress output
-    subprocess.run(process_args, stdout=log, stderr=log)
-
-    # change back to the original directory
-    os.chdir(original_dir)
+    with open("ScannerS.log", "w") as log:
+        subprocess.run(process_args, stdout=log, stderr=log, cwd=directory)
 
     # increment the counter and print out how many processes are finished
     with lock:
         counter.value += 1
-        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")
+        print(Terminal().move_up() + f"{counter.value}/{num_processes} processes finished")  # type: ignore[attr-defined]
 
 # run a python test process as a single job
 def run_timed_process(process_args: List[str],
@@ -216,62 +234,58 @@ def run_timed_process(process_args: List[str],
     # output file name
     outfile = model_name + ".tsv"
 
-    # log file
-    log = open("ScannerS.log", "w")
+    # launch the process with arguments and redirect output to a log file
+    with open("ScannerS.log", "w") as log:
+        process = subprocess.Popen(process_args, stdout=log, stderr=log)
 
-    # launch process
-    process = subprocess.Popen(process_args, stdout=log, stderr=log)
+        # get start time
+        start_time = time.time()
 
-    # get start time
-    start_time = time.time()
+        # flag to check timeout
+        check_timeout = True
 
-    # flag to check timeout
-    check_timeout = True
+        # check output while the process is still running
+        while process.poll() is None:
 
-    # check output while the process is still running
-    while process.poll() is None:
+            # check timeout once if it hasn't been checked before
+            if check_timeout and time.time() - start_time >= timeout:
 
-        # check timeout once if it hasn't been checked before
-        if check_timeout and time.time() - start_time >= timeout:
+                # if output file is empty, complain, kill process and exit
+                if os.path.exists(outfile) and not os.path.getsize(outfile):
 
-            # if output file is empty, complain, kill process and exit
-            if os.path.exists(outfile) and not os.path.getsize(outfile):
+                    # kill process
+                    process.kill()
 
-                # kill process
-                process.kill()
+                    # make exception message
+                    msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
 
-                # make exception message
-                msg = f"No output after {timeout} seconds. Run directory should be cleaned up."
+                    # raise timeout exception
+                    raise TimeoutError(msg)
 
-                # raise timeout exception
-                raise TimeoutError(msg)
+                # only need to check timeout once
+                check_timeout = False
 
-            # only need to check timeout once
-            check_timeout = False
+            # wait 1 second before checking again
+            time.sleep(1)
 
-        # wait 1 second before checking again
-        time.sleep(1)
+# get a list of the outputs from parallel processes
+def list_outputs(directories: List[str],
+                 file_name: str) -> List[str]:
+    output_list: List[str] = []
+    for directory in directories:
+        input_file = os.path.join(directory, file_name)
+        # Check if the file exists before attempting to concatenate
+        if os.path.exists(input_file):
+            output_list.append(input_file)
+        else:
+            logger.warning(f"Missing expected file: {input_file}")
+    return output_list
 
-# concatenate outputs from parallel processes into a single .tsv file
-def concatenate_files(directories: List[str],
-                      file_name: str) -> None:
+def remove_temp_directories(directories: List[str]) -> None:
 
-    try:
-        # Loop over directories and concatenate their .tsv files
-        for directory in directories:
-            input_file = os.path.join(directory, file_name)
-
-            # Check if the file exists before attempting to concatenate
-            if os.path.exists(input_file):
-                save_tsv_output(input_file=input_file, output_file=file_name)
-            else:
-                logger.warning(f"Missing expected file: {input_file}")
-
-        logger.debug(f"Successfully concatenated all files into {file_name}")
-
-    except Exception as e:
-        logger.error(f"Error during file concatenation: {e}")
-        return  # Do not proceed with deleting directories
+    # Skip if directories is an empty list
+    if not directories:
+        return
 
     # If everything worked, proceed to delete directories
     logger.debug("Removing temp directories")
@@ -285,15 +299,50 @@ def remove_temp_dir(directory, retries=5, delay=1):
     for attempt in range(retries):
         try:
             shutil.rmtree(directory)
-            logger.verbose(f"Successfully removed: {directory}")
-            return
+            if logger.isEnabledFor(VERBOSE_LEVEL):
+                logger.verbose(f"Successfully removed: {directory}")  # type: ignore[attr-defined]
         except OSError as e:
             if 'Directory not empty' in str(e):
-                logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")
+                if logger.isEnabledFor(VERBOSE_LEVEL):
+                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")  # type: ignore[attr-defined]
                 time.sleep(delay)  # Wait before retrying
             else:
                 raise  # Raise if it's another type of error
-    logger.error(f"Failed to remove {directory} after {retries} retries.")
+        else:
+            return
+    logger.exception(f"Failed to remove {directory} after {retries} retries.")
+
+def remove_artifact_files(model_name: str) -> None:
+    """Remove artifact files that are not needed after the scan."""
+    artifact_files = ["HS_analyses.txt",
+                      "HS_correlations.txt",
+                      "Key.dat", "STXS_analyses.txt",
+                      "STXS_correlations.txt",
+                      f"{model_name}.tsv"]
+    for file in artifact_files:
+        if os.path.exists(file):
+            os.remove(file)
+            logger.debug(f"Removed artifact file: {file}")
+        else:
+            logger.debug(f"Artifact file {file} does not exist, skipping removal.")
+
+def get_process_args(model_name: str,
+                     ini_name: str,
+                     num_points: int) -> List[str]:
+    args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
+    s = next_seed()
+    if s is not None:
+        args.extend(["--seed", str(s)])
+    return args
+
+def next_seed() -> Optional[int]:
+    global seed
+    if seed is None:
+        return None
+    current = seed
+    seed += 1
+    logger.debug(f"Assigning seed: {current}")
+    return current
 
 if __name__ == "__main__":
 
@@ -305,7 +354,7 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # get baseline .ini from data directory
-    ini_name = data_dir() + "models/" + args.model + "_baseline.ini"
+    ini_name = os.path.join(data_dir(), "models", f"{args.model}_baseline.ini")
 
     # run ScannerS using baseline .ini
     run_scannerS(ini_name = ini_name,

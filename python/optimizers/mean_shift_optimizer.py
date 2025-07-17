@@ -11,7 +11,6 @@ using a kernel-based mean shift approach.
 import copy
 import datetime
 from functools import cached_property
-import logging
 import os
 import shutil
 import time
@@ -29,6 +28,10 @@ from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
 
+# get logger
+import logging
+logger = logging.getLogger(__name__)
+
 class MeanShiftOptimizer:
     """
     Optimizer that applies mean-shift steps to refine scalar model parameter scans.
@@ -43,6 +46,7 @@ class MeanShiftOptimizer:
             label: str,
             initial_pos: Point,
             global_param_space: ParamSpace,
+            point_sampler: PointSampler,
             config_loader: ConfigLoader):
         """
         Initializes a MeanShiftOptimizer instance.
@@ -51,11 +55,9 @@ class MeanShiftOptimizer:
             label (str): A label to identify the scan.
             initial_pos (Point): Starting point in parameter space.
             global_param_space (ParamSpace): The overall parameter space used in the scan.
+            point_sampler (PointSampler): PointSampler object used to sample points.
             config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
         """
-        
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.global_param_space = global_param_space
 
@@ -65,16 +67,13 @@ class MeanShiftOptimizer:
         self.config_loader = config_loader
         try:
             self.max_small_steps: int = self.config_loader.get('meanshift', 'max_small_steps')
-            self.__stop_mode: int = config_loader.get('meanshift', 'stop_mode')
-            self.__stop_sens_par: float = config_loader.get('meanshift', 'stop_sensitivity_par')
-            self.__stop_sens_xb: float = config_loader.get('meanshift', 'stop_sensitivity_xb')
-            self.__scan_perc: float = config_loader.get('meanshift', 'scan_perc')
-            self.__num_points: int = config_loader.get('meanshift', 'num_points')
-        except KeyError as e:
-            self.logger.error(e)
-            raise
+            self.__stop_mode: int = self.config_loader.get('meanshift', 'stop_mode')
+            self.__stop_sens_par: float = self.config_loader.get('meanshift', 'stop_sensitivity_par')
+            self.__stop_sens_xb: float = self.config_loader.get('meanshift', 'stop_sensitivity_xb')
+            self.__scan_perc: float = self.config_loader.get('meanshift', 'scan_perc')
+            self.__num_points: int = self.config_loader.get('meanshift', 'num_points')
         except Exception as e:
-            self.logger.error(f"Unexpected error: {e}")
+            logger.exception(e)
             raise
 
         # Copy of param space so that multiple instances of ms use global param space
@@ -92,9 +91,7 @@ class MeanShiftOptimizer:
         self.local_param_space.reposition_center(initial_pos)
 
         # Init point sampler
-        self.point_sampler = PointSampler(out_dir = self.out_dir,
-                                          config_loader = config_loader,
-                                          subdir_name = "meanshift")
+        self.point_sampler = point_sampler
 
         # Initialize positions
         init_pos = self.local_param_space.center_point()
@@ -102,7 +99,7 @@ class MeanShiftOptimizer:
         self.new_position = init_pos
         self.__prev_position = init_pos
         self.max_point = init_pos
-        
+
         output_file_postfix = f"{self.model.name}_{self.decay}_{global_param_space.mass_string}"
         self.summary_name = os.path.join(self.out_dir,f"summary_meanshift_{output_file_postfix}.tsv")
         self.tsv_summary_name = os.path.join(self.out_dir,f"summary_meanshift_tsv_{output_file_postfix}.tsv")
@@ -145,7 +142,7 @@ class MeanShiftOptimizer:
     def global_param_space(self) -> ParamSpace:
         """Returns the global (full-range) parameter space."""
         return self.__global_param_space
-    
+
     @global_param_space.setter
     def global_param_space(self,
                            new_global_param_space: ParamSpace) -> None:
@@ -156,7 +153,7 @@ class MeanShiftOptimizer:
     def local_param_space(self) -> ParamSpace:
         """Returns the local parameter space."""
         return self.__local_param_space
-    
+
     @local_param_space.setter
     def local_param_space(self,
                           new_local_param_space: ParamSpace) -> None:
@@ -214,7 +211,7 @@ class MeanShiftOptimizer:
 
             # get iteration identifier
             identifier = self.label + f"-{iter:04d}"
-            self.logger.info(f"Iteration: {identifier}")
+            logger.info(f"Iteration: {identifier}")
 
             # Create scan_parser using the point_sampler class
             try:
@@ -225,7 +222,8 @@ class MeanShiftOptimizer:
                                                           use_multiprocessing = False)
             # if point sampling times out, exit
             except (TimeoutError, NoPointsPassedError):
-                self.logger.info(f"No points found. Exiting {identifier}\n")
+                logger.info("No points found.\n")
+                logger.info(f"Exiting {identifier}\n")
                 return
 
             arrays = {k: v.to_numpy() for k, v in parser.input_parameter_arrays.items()}
@@ -238,9 +236,9 @@ class MeanShiftOptimizer:
                        Z = xb,
                        param_space = self.local_param_space,
                        config_loader=self.config_loader)
-            
+
             # get new position
-            self.logger.info("Calculating a point at the new position")
+            logger.info("Calculating a point at the new position")
             self.new_position = self.point_sampler.sample_single_point(point=self.local_param_space.center_point(),
                                                                        decay=self.decay,
                                                                        identifier=identifier+"-point")
@@ -262,26 +260,26 @@ class MeanShiftOptimizer:
             # get iteration end time
             iter_end = time.time()
             iter_time = iter_end - iter_start
-            
+
             self.iteration_termination_message(f"Iteration took {datetime.timedelta(seconds=int(iter_time))} (hh:mm:ss)\n")
 
             # NOTE: For debugging
-            if self.logger.isEnabledFor(logging.DEBUG):
+            if logger.isEnabledFor(logging.DEBUG):
                 test_diff = tuple([self.__stop_sens_par * w for w in self.local_param_space.widths()])
                 position_diff = tuple(
                     self.new_position.parameter_values[k] - self.__prev_position.parameter_values[k]
                     for k in self.local_param_space.parameter_names
                 )
 
-                self.logger.debug(f"small steps = {self.n_small_steps}")
-                self.logger.debug(f"avg xb      = {round_sig(float(np.average(xb)))}")
-                self.logger.debug(f"max xb      = {round_sig(np.max(xb))}")
-                self.logger.debug(f"volume size = {self.local_param_space.widths()}")
-                self.logger.debug(f"curr pos    = {self.local_param_space.center_point()}")
-                self.logger.debug(f"prev pos    = {self.__prev_position}")
-                self.logger.debug(f"test pos    = {self.__test_position}")
-                self.logger.debug(f"reset diff  = {test_diff}")
-                self.logger.debug(f"posit diff  = {position_diff}\n")
+                logger.debug(f"small steps = {self.n_small_steps}")
+                logger.debug(f"avg xb      = {round_sig(float(np.average(xb)))}")
+                logger.debug(f"max xb      = {round_sig(np.max(xb))}")
+                logger.debug(f"volume size = {self.local_param_space.widths()}")
+                logger.debug(f"curr pos    = {self.local_param_space.center_point()}")
+                logger.debug(f"prev pos    = {self.__prev_position}")
+                logger.debug(f"test pos    = {self.__test_position}")
+                logger.debug(f"reset diff  = {test_diff}")
+                logger.debug(f"posit diff  = {position_diff}\n")
 
             # write step details to walk file
             write_point_to_summary_file(file_name=self.walk_pos_file_name,
@@ -289,17 +287,18 @@ class MeanShiftOptimizer:
             write_point_to_summary_file(file_name=self.walk_max_file_name,
                                         point=self.max_point)
 
+        # write max point information to summary files
         write_point_to_summary_file(file_name=self.summary_name,
                                     point=self.max_point,
                                     identifier=identifier)
-        # TODO: Save full tsv line from point object
+        self.max_point.write_tsv_to_file(tsv_name=self.tsv_summary_name)
 
         # get mean shift end time
         shift_end = time.time()
         shift_time = shift_end - shift_start
 
         # print iteration time to screen
-        self.logger.info(f"{self.label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
+        logger.info(f"{self.label} took {datetime.timedelta(seconds=int(shift_time))} (hh:mm:ss)\n")
 
         return
 
@@ -341,7 +340,7 @@ class MeanShiftOptimizer:
         Args:
             message (str): The message to log and write.
         """
-        self.logger.info(message)
+        logger.info(message)
         with open(self.details_name,"a") as details:
             details.write(message+"\n")
 

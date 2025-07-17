@@ -1,1 +1,2 @@
-../python/prescan.py -X 1001 -S 301 -m "TRSMBroken" -n 100 -o
+
+launch_scan.py --mode "prescan" -X 1001 -S 301 -m "TRSMBroken" -n 100 -f

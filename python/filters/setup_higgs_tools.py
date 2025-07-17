@@ -30,10 +30,10 @@ def get_higgs_predictions(model: Model):
     """
 
     # create the model predictions
-    pred = HP.Predictions()
+    pred = HP.Predictions()  # type: ignore[attr-defined]
 
     # add a SM-like Higgs boson with SM-like couplings
-    H = pred.addParticle(HP.NeutralScalar(model.SMHiggs, "even"))
+    H = pred.addParticle(HP.NeutralScalar(model.SMHiggs, "even"))  # type: ignore[attr-defined]
 
     # SM Higgs mass
     mH = 125.09
@@ -42,23 +42,23 @@ def get_higgs_predictions(model: Model):
     H.setMass(mH)
 
     # TODO: Is this necessary?
-    HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")
+    HP.effectiveCouplingInput(H, HP.scaledSMlikeEffCouplings(1.0),reference="SMHiggsEW")  # type: ignore[attr-defined]
 
     # add BSM CP-even neutral scalars
     for scalar in model.particles['neutralScalarsCPEven']:
-        pred.addParticle(HP.NeutralScalar(scalar, 'even'))
+        pred.addParticle(HP.NeutralScalar(scalar, 'even'))  # type: ignore[attr-defined]
 
     # add BSM CP-odd neutral scalars
     for scalar in model.particles['neutralScalarsCPOdd']:
-        pred.addParticle(HP.NeutralScalar(scalar, 'odd'))
+        pred.addParticle(HP.NeutralScalar(scalar, 'odd'))  # type: ignore[attr-defined]
 
     # add BSM charged scalars
     for scalar in model.particles['chargedScalars']:
-        pred.addParticle(HP.ChargedScalar(scalar))
+        pred.addParticle(HP.ChargedScalar(scalar))  # type: ignore[attr-defined]
 
     # add BSM doubly charged scalars
     for scalar in model.particles['doublyChargedScalars']:
-        pred.addParticle(HP.DoublyChargedScalar(scalar))
+        pred.addParticle(HP.DoublyChargedScalar(scalar))  # type: ignore[attr-defined]
 
     return pred
 
@@ -72,7 +72,7 @@ def get_higgs_signals():
     """
 
     # get HS dataset
-    signals = HS.Signals(hsdataset_dir())
+    signals = HS.Signals(hsdataset_dir())  # type: ignore[attr-defined]
 
     return signals
 
@@ -86,6 +86,6 @@ def get_higgs_bounds():
     """
 
     # get HB dataset
-    bounds = HB.Bounds(hbdataset_dir())
+    bounds = HB.Bounds(hbdataset_dir())  # type: ignore[attr-defined]
 
     return bounds

@@ -1,15 +1,15 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 from typing import Dict, List, Optional, Union
 
 # third-party libraries
 import diptest
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, argrelextrema
 from scipy.stats import gaussian_kde
+from typing import cast
 
 # local modules
 from utils.decay_utils import valid_decays
@@ -17,6 +17,10 @@ from utils.df_utils import get_df, get_header_string
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to parse arrays and provide details about data
 class Parse:
@@ -31,27 +35,27 @@ class Parse:
 
     def __init__(self,
                  model: Model,
+                 data: Optional[pd.DataFrame] = None,
                  file_name: str = ""):
         """
         Initializes the parser with a model and optionally loads scan data from a file.
 
         Args:
             model (Model): The model used to interpret parameter names and scalar definitions.
+            data (Optional[pd.DataFrame]): 
             file_name (str, optional): Path to a .tsv file to load immediately (default is empty).
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize model
         self.__model = model
 
         # initialize class variables
-        self.data: pd.DataFrame = pd.DataFrame()
-        self.max_idx: Optional[int] = None
+        self.__data: pd.DataFrame = pd.DataFrame()
 
         # get arrays from file name if it is provided
-        if file_name:
+        if data is not None:
+            self.data = data
+        elif file_name:
             self.read_file(file_name)
 
     @property
@@ -70,9 +74,20 @@ class Parse:
         return self.model.get_ordered_scalar_name('S')
 
     @property
+    def data(self) -> pd.DataFrame:
+        """Returns the data"""
+        return self.__data
+
+    @data.setter
+    def data(self,
+             new_data: pd.DataFrame) -> None:
+        """Sets the data"""
+        self.__data = new_data
+
+    @property
     def filtered_data(self) -> pd.DataFrame:
         """Returns the subset of the data that passes all filters."""
-        return self.data.loc[self.filters]
+        return cast(pd.DataFrame, self.data.loc[self.filters])
 
     @property
     def tsv_header(self) -> str:
@@ -143,15 +158,16 @@ class Parse:
             return Point(model=self.model)
 
         # get index of maximum xsec times BR
-        self.max_idx = xb.idxmax()
+        max_idx = xb.idxmax()
 
         # make dictionary for parameter values for max_xb
-        max_xb_par_vals: Dict[str, float] = {par: float(array[self.max_idx]) for par, array in self.parameter_arrays.items()}
+        max_xb_par_vals: Dict[str, float] = {par: float(array[max_idx]) for par, array in self.parameter_arrays.items()}
 
         # return a point object holding xb and other parameters
-        return Point(xb = float(xb[self.max_idx]),
+        return Point(xb = float(xb[max_idx]),
                      model = self.model,
-                     par_vals = max_xb_par_vals)
+                     par_vals = max_xb_par_vals,
+                     tsv_data= self.data.loc[[max_idx]])
 
     def is_bimodal(self,
                    param_name: str,
@@ -189,8 +205,7 @@ class Parse:
             percentile_threshold = 1.0 - min_points/num_points
 
         # make sure percentile threshold is >= 0
-        if percentile_threshold < 0:
-            percentile_threshold = 0
+        percentile_threshold = max(percentile_threshold, 0.0)
 
         # get xb value that corresponds to percentile threshold
         threshold_value = xb.quantile(percentile_threshold)
@@ -199,7 +214,8 @@ class Parse:
         param_selected = self.input_parameter_arrays[param_name][mask][xb > threshold_value]
 
         # use Hartigan's dip test for unimodality
-        _, pval = diptest.diptest(param_selected)
+        result = diptest.diptest(param_selected)
+        pval: float = result[1]  # assuming second item is always p-value
 
         # p-value threshold for multimodality
         pval_threshold = 0.05
@@ -210,7 +226,7 @@ class Parse:
     def get_param_space_splits(self,
                                param_name: str,
                                decay: str,
-                               param_space: Optional[ParamSpace] = None,
+                               param_space: ParamSpace,
                                min_prominence=0.1,
                                density_threshold=0.01,
                                bw: Union[str, float] = 'silverman',
@@ -223,7 +239,7 @@ class Parse:
         Args:
             param_name (str): Parameter to split.
             decay (str): Decay channel.
-            param_space (Optional[ParamSpace]): Parameter subspace to restrict analysis.
+            param_space (ParamSpace): Parameter subspace to restrict analysis.
             min_prominence (float): Minimum prominence for peak detection in modality analysis.
             density_threshold (float): Density threshold for identifying gaps.
             bw (str or float): Bandwidth method for KDE.
@@ -302,10 +318,10 @@ class Parse:
         return splits
 
     def get_density_splits(self,
-                        par_vals: np.ndarray,
-                        n_points: int = 200,
-                        density_threshold: float = 0.01,
-                        bw: Union[str, float] = 'silverman') -> np.ndarray:
+                           par_vals: np.ndarray,
+                           n_points: int = 200,
+                           density_threshold: float = 0.01,
+                           bw: Union[str, float] = 'silverman') -> np.ndarray:
         """
         Finds low-density regions in parameter distribution using KDE.
 
@@ -348,11 +364,120 @@ class Parse:
                 mid_x = x_eval[mid_idx]
                 splits.append(mid_x * (par_max - par_min) + par_min)
 
-            return np.array(splits, dtype=float)
+            # Only keep values strictly within range
+            eps = 1e-8
+            valid_splits = [v for v in splits if (par_min + eps) < v < (par_max - eps)]
+
+            return np.array(valid_splits, dtype=float)
 
         except Exception as e:
-            print(f"[density_splits error] {e}")
+            logger.error(f"[density_splits error] {e}")
             return np.array([], dtype=float)
+
+    def get_2d_density_splits(self,
+                            param_x: str,
+                            param_y: str,
+                            decay: str,
+                            param_space: ParamSpace,
+                            n_slices: int = 20,
+                            min_points_per_slice: int = 100,
+                            valley_prominence_threshold: float = 0.2,
+                            min_valley_persistence: int = 5,
+                            min_valley_width_frac: float = 0.4,
+                            n_kde_points: int = 200) -> Dict[str, List[float]]:
+        """
+        Detects valley-based gaps in a 2D projection by slicing along each axis
+        and checking for valleys in the conditional KDE of the other axis.
+
+        Args:
+            param_x (str): First parameter.
+            param_y (str): Second parameter.
+            decay (str): Decay channel to extract xb.
+            param_space (ParamSpace): Parameter subspace for restriction.
+            n_slices (int): Number of slices to scan along the axis.
+            min_points_per_slice (int): Minimum points required to evaluate slice.
+            valley_prominence_threshold (float): Relative depth required to consider a dip a valley.
+            min_valley_persistence (int): Minimum number of consecutive slices a valley must persist to count.
+            n_kde_points (int): Resolution of KDE evaluation.
+
+        Returns:
+            Dict[str, List[float]]: Mapping of axis name to list of split locations.
+        """
+
+        mask = self.param_space_mask(param_space)
+        x = self.input_parameter_arrays[param_x][mask]
+        y = self.input_parameter_arrays[param_y][mask]
+        xb = self.get_xb(decay=decay)[mask]
+
+        data = pd.DataFrame({param_x: x, param_y: y, 'xb': xb}).dropna()
+        if len(data) < 500:
+            return {}
+
+        def find_valley_transitions(param1_vals, param2_vals) -> List[float]:
+            param1_min, param1_max = param1_vals.min(), param1_vals.max()
+            bin_edges = np.linspace(param1_min, param1_max, n_slices + 1)
+            bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+            valley_flags = []
+
+            for i in range(n_slices):
+                p1_lo, p1_hi = bin_edges[i], bin_edges[i + 1]
+                mask = (param1_vals >= p1_lo) & (param1_vals < p1_hi)
+                p2_slice = param2_vals[mask]
+
+                if len(p2_slice) < min_points_per_slice:
+                    valley_flags.append(False)
+                    continue
+
+                kde = gaussian_kde(p2_slice)
+                x_eval = np.linspace(p2_slice.min(), p2_slice.max(), n_kde_points)
+                y_eval = kde(x_eval)
+                valleys = argrelextrema(y_eval, np.less)[0]
+
+                if len(valleys) == 0:
+                    valley_flags.append(False)
+                    continue
+
+                if (y_eval.max() - y_eval[valleys].min()) > valley_prominence_threshold * y_eval.max():
+                    valley_flags.append(True)
+                else:
+                    valley_flags.append(False)
+
+            # Group persistent valley regions with minimum width
+            split_candidates = []
+            i = 0
+            while i < len(valley_flags):
+                if valley_flags[i]:
+                    start = i
+                    while i < len(valley_flags) and valley_flags[i]:
+                        i += 1
+                    end = i
+                    n_bins = end - start
+                    region_width = bin_edges[end] - bin_edges[start]
+                    total_width = param1_max - param1_min
+                    if n_bins >= min_valley_persistence and region_width >= min_valley_width_frac * total_width:
+                        split_center = 0.5 * (bin_centers[start] + bin_centers[end - 1])
+                        split_candidates.append(split_center)
+                else:
+                    i += 1
+
+            return sorted(set(split_candidates))
+
+        x_splits = find_valley_transitions(data[param_x].to_numpy(), data[param_y].to_numpy())
+        y_splits = find_valley_transitions(data[param_y].to_numpy(), data[param_x].to_numpy())
+
+        # Prefer the axis with fewer splits (but not 0 vs 1), or first non-empty
+        split_dict = {}
+        if x_splits and not y_splits:
+            split_dict[param_x] = x_splits
+        elif y_splits and not x_splits:
+            split_dict[param_y] = y_splits
+        elif x_splits and y_splits:
+            if len(x_splits) <= len(y_splits):
+                split_dict[param_x] = x_splits
+            else:
+                split_dict[param_y] = y_splits
+
+        return split_dict
 
     def get_xb(self,
                decay: str,
@@ -446,25 +571,20 @@ class Parse:
 
         return mask.astype(bool)
 
-    def write_max_xb_line(self,
-                          file_name: str
-                         ) -> None:
+    def estimate_effective_volume_by_count(self,
+                                           param_space: ParamSpace) -> float:
         """
-        Appends the row with maximum xb to the given .tsv file.
+        Estimates the effective volume of a param_space based on point count,
+        assuming uniform random sampling.
 
         Args:
-            file_name (str): Path to the output .tsv file.
+            param_space (ParamSpace): Region to evaluate.
+
+        Returns:
+            float: Proportional effective volume (not normalized unless full volume is known).
         """
-
-        # get max xb row from dataframe
-        row = self.data.loc[[self.max_idx]]
-
-        # write it to the summary .tsv
-        row.to_csv(file_name,
-                   sep='\t',
-                   index=True,
-                   mode='a',
-                   header=False)
+        mask = self.param_space_mask(param_space)
+        return float(mask.sum())
 
     def __get_xsec_prod(self) -> pd.Series:
         """
@@ -472,7 +592,7 @@ class Parse:
 
         Specifically retrieves the production cross-section for H3 via gluon-gluon fusion,
         identified by the column 'x_H3_gg'.
-        
+
         Returns:
             pd.Series: Production cross-section values for each filtered point.
         """

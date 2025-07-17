@@ -1,11 +1,14 @@
 
 # standard libraries
-import logging
 import random
 from typing import Any, Dict, Optional, Tuple
 
 # local modules
 from utils.math_utils import round_sig
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class to hold and update ranges for a single model parameter
 class ParamRange:
@@ -32,9 +35,6 @@ class ParamRange:
             name (str): Short name of the parameter.
             param_info (Dict[str, Any]): Dictionary containing 'fullname', 'min', and 'max'.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # initialize parameter name
         self.name = name
@@ -105,8 +105,7 @@ class ParamRange:
         self.__min_value = new_min_value
         """Sets the minimum allowed value for the parameter and clamps the current low value if needed."""
         if hasattr(self, '_ParamRange__low'):
-            if self.low < self.min_value:
-                self.low = self.min_value
+            self.low = max(self.low, self.min_value)
         else:
             self.__low = self.__min_value
 
@@ -121,8 +120,7 @@ class ParamRange:
         self.__max_value = new_max_value
         """Sets the maximum allowed value for the parameter and clamps the current high value if needed."""
         if hasattr(self, '_ParamRange__high'):
-            if self.high > self.max_value:
-                self.high = self.max_value
+            self.high = min(self.high, self.max_value)
         else:
             self.__high = self.__max_value
 
@@ -156,7 +154,7 @@ class ParamRange:
 
         # complain and exit if there is nothing to do
         if new_val is None and range_scale == 1.0:
-            self.logger.warning("Attempting to update parameter with no new information... returning...")
+            logger.warning("Attempting to update parameter with no new information... returning...")
             return
 
         width = self.width
@@ -179,8 +177,7 @@ class ParamRange:
             self.high += overage
 
             # if new high is above upper bound, set it to max
-            if self.high > self.max_value:
-                self.high = self.max_value
+            self.high = min(self.high, self.max_value)
 
             # set low to lower bound
             self.low = self.min_value
@@ -195,8 +192,7 @@ class ParamRange:
             self.low -= overage
 
             # if new low is below lower bound, set it to lower bound
-            if self.low < self.min_value:
-                self.low = self.min_value
+            self.low = max(self.low, self.min_value)
 
             # set high to upper bound
             self.high = self.max_value

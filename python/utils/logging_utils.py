@@ -1,8 +1,16 @@
 
 # standard libraries
-import logging
 import os
+import sys
 from typing import Any, List
+
+import logging
+# Minimal fallback logging config
+if not logging.getLogger().hasHandlers():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s: %(message)s'
+    )
 
 # Define the numeric value for VERBOSE
 VERBOSE_LEVEL = 5  # Below DEBUG (10)
@@ -16,14 +24,14 @@ def verbose(self, message, *args, **kwargs):
         self._log(VERBOSE_LEVEL, message, args, **kwargs)
 
 # Add the method to the Logger class
-logging.Logger.verbose = verbose
+logging.Logger.verbose = verbose  # type: ignore[attr-defined]
 
 # Add VERBOSE as an attribute to the logging module
-logging.VERBOSE = VERBOSE_LEVEL
+logging.VERBOSE = VERBOSE_LEVEL  # type: ignore[attr-defined]
 
 # Define a mapping of string levels to logging levels
 LOG_LEVELS = {
-    "verbose": logging.VERBOSE,
+    "verbose": logging.VERBOSE,  # type: ignore[attr-defined]
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warning": logging.WARNING,
@@ -35,7 +43,7 @@ LOG_LEVELS = {
 class CustomFormatter(logging.Formatter):
     def format(self, record):
         # Use a simple format for specific messages
-        if hasattr(record, "skip_level") and record.skip_level:
+        if getattr(record, "skip_level", False):
             return record.getMessage()
         return super().format(record)
 
@@ -68,7 +76,7 @@ def setup_logging(log_file: str,
 
     # Create handlers
     file_handler = logging.FileHandler(log_file, mode='w') # File handler
-    console_handler = logging.StreamHandler() # Console handler
+    console_handler = logging.StreamHandler(sys.stdout) # Console handler
 
     # Use the custom formatter
     formatter = CustomFormatter(log_format)
@@ -102,7 +110,7 @@ def format_table(headers: List[str],
     header_row = " | ".join(f"{header:<{width}}" for header, width in zip(headers, column_widths))
 
     # Format the data rows
-    data_rows = [" | ".join(f"{str(item):<{width}}" for item, width in zip(row, column_widths)) for row in rows]
+    data_rows = [" | ".join(f"{item!s:<{width}}" for item, width in zip(row, column_widths)) for row in rows]
 
     # Combine everything into a table string
     table = f"{header_row}\n{separator}\n" + "\n".join(data_rows) + "\n"
@@ -121,7 +129,7 @@ def log_table(logger: logging.Logger,
         rows (List[List[Any]]): List of rows, where each row is a list of column values.
         level (int): Logging level (default: logging.INFO).
     """
-    
+
     table_str = format_table(headers, rows)
     extra = {"skip_level": True}
     if logger.isEnabledFor(level):

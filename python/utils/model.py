@@ -1,7 +1,6 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 import os
 from typing import Any, Dict, Tuple
 
@@ -10,6 +9,15 @@ import yaml
 
 # local modules
 from utils.env_utils import data_dir
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
+
+# list of supported models
+supported_models = [
+    "TRSMBroken"
+]
 
 # class that holds information about the model being used
 class Model:
@@ -36,9 +44,6 @@ class Model:
             name (str): The name of the model.
             masses (Dict[str, float]): A dictionary mapping particle names to their masses.
         """
-
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
 
         # name of the model
         self.name = name
@@ -81,6 +86,14 @@ class Model:
         """Sets the particle masses and rebuilds the internal scalar mass maps."""
         self.__masses = new_masses
         self.__build_mass_maps()
+
+    @property
+    def is_calculable(self) -> bool:
+        """
+        Returns True if the model is calculable, meaning cross-sections have been calculated for the masses.
+        """
+        # TODO: Make this more generalized and read from a config file
+        return self.masses["X"] < 3000.0
 
     @property
     # TODO: Make this more generalized
@@ -202,12 +215,12 @@ class Model:
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
-            if self.particles[key] == None:
+            if self.particles[key] is None:
                 self.particles[key] = {}
 
         # make sure exactly 1 SM-like Higgs is provided
-        if not len(self.particles['SMHiggs']) == 1:
-            self.logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
+        if len(self.particles['SMHiggs']) != 1:
+            logger.warning(f'1 SM Higgs expected, found {len(self.particles["SMHiggs"])}')
             return
 
         # store SM-like Higgs

@@ -1,12 +1,18 @@
 
 # standard libraries
 from functools import cached_property
-import logging
 from typing import Dict, Optional
+
+# third-party libraries
+import pandas as pd
 
 # local modules
 from utils.math_utils import round_sig
 from utils.model import Model
+
+# get logger
+import logging
+logger = logging.getLogger(__name__)
 
 # class that holds parameter and xb values for a single point
 class Point:
@@ -21,7 +27,8 @@ class Point:
     def __init__(self,
                  model: Model,
                  par_vals: Optional[Dict[str,float]] = None,
-                 xb: float = 0.0):
+                 xb: float = 0.0,
+                 tsv_data: Optional[pd.DataFrame] = None):
         """
         Initializes a Point with a model and optionally specific parameter values and xb.
 
@@ -31,25 +38,28 @@ class Point:
             xb (float): The xb value associated with this point (default is 0.0).
         """
 
-        # get logger
-        self.logger = logging.getLogger(self.__class__.__name__)
-
         # store model name
         self.__model = model
 
         # initialize parameter values to 0.0 if a model is provided
-        self.__input_parameter_values = {par: 0.0 for par in model.input_parameter_names}
-        self.__output_parameter_values = {par: 0.0 for par in model.output_parameter_names}
-        self.__width_parameter_values = {par: 0.0 for par in model.width_parameter_names}
+        self.__input_parameter_values = dict.fromkeys(model.input_parameter_names, 0.0)
+        self.__output_parameter_values = dict.fromkeys(model.output_parameter_names, 0.0)
+        self.__width_parameter_values = dict.fromkeys(model.width_parameter_names, 0.0)
 
         # if par_vals is provided, update the parameter values
         if par_vals is not None:
             self.update_parameter_values(par_vals)
         else:
-            self.logger.debug("No parameter values provided, using default values.")
+            logger.debug("No parameter values provided, using default values.")
 
         # store xb value
         self.xb = xb
+
+        # store tsv data if provided
+        if tsv_data is not None:
+            self.__tsv_data = tsv_data
+        else:
+            self.__tsv_data = pd.DataFrame()
 
     @property
     def model(self) -> Model:
@@ -100,13 +110,32 @@ class Point:
             **self.width_parameter_values,
         }
 
+    @property
+    def tsv_data(self) -> pd.DataFrame:
+        """
+        Returns a DataFrame with the point's information from the .tsv file.
+        """
+        return self.__tsv_data
+
+    @tsv_data.setter
+    def tsv_data(self, __new_tsv_data: pd.DataFrame) -> None:
+        """
+        Sets the .tsv data for this point.
+
+        Args:
+            __new_tsv_data (pd.DataFrame): DataFrame containing the point's information.
+        """
+        if not isinstance(__new_tsv_data, pd.DataFrame):
+            raise TypeError("tsv_data must be a pandas DataFrame.")
+        self.__tsv_data = __new_tsv_data
+
     def update_parameter_values(self,
                                 updates: Dict[str,float]) -> None:
         """
         Updates existing parameter values from a dictionary.
 
         Only keys already present in the input/output/width parameter dicts will be updated.
-        
+
         Args:
             updates (Dict[str,float]): Dictionary of parameter names and new values.
         """
@@ -266,6 +295,23 @@ class Point:
             str: Formatted fractional difference.
         """
         return f"{self.diff_frac(other,par_name):1.2f}"
+
+    def write_tsv_to_file(self,
+                          tsv_name: str) -> None:
+        """
+        Writes the point's .tsv data to a file.
+
+        Args:
+            tsv_name (str): Output file path.
+        """
+        if self.tsv_data.empty:
+            logger.warning("No .tsv data available to write.")
+            return
+        self.tsv_data.to_csv(tsv_name,
+                             sep="\t",
+                             index=True,
+                             mode='a',
+                             header=False)
 
     def __gt__(self,other: 'Point') -> bool:
         """Returns True if this point's xb is greater (>) than the other's."""

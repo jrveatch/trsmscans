@@ -1,1 +1,2 @@
-../python/scan.py -X 1001 -S 301 -m "TRSMBroken" -d "SbbHtautau" -i 5 -s "meanshift"
+
+launch_scan.py --mode "scan" -X 1001 -S 301 -m "TRSMBroken" -d "SbbHtautau" -t 5 -s "meanshift" -f

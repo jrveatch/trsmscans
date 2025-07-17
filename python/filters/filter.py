@@ -11,81 +11,89 @@ filtering statistics.
 
 # standard libraries
 import argparse
-import logging
 from typing import Dict
 
+import pandas as pd
+
 # local modules
-from filters import bounds, width
+from filters.bounds import BoundsFilter
+from filters.width import WidthFilter
 from utils.config_loader import ConfigLoader
-from utils.df_utils import get_df, write_to_tsv
+from utils.df_utils import get_df
 from utils.model import Model
 
 # get logger
+import logging
 logger = logging.getLogger(__name__)
 
-header_width = "filt_width"
-header_bounds = "filt_bounds"
-header_signals = "filt_signals"
-
-def apply_filters(file_name: str,
-                  model: Model,
-                  config_loader: ConfigLoader,
-                  use_multiprocessing: bool = True
-                 ) -> Dict[str,int]:
+class FilterPipeline:
     """
-    Applies a set of filters to a scan result TSV file.
+    Coordinates application of width, bounds, and signal filters to scalar model scan data.
 
-    This function loads scan results from a TSV file, applies width, bounds,
-    and signal filters based on the given model and configuration, writes the
-    updated results back to the file, and returns counts of how many entries
-    pass each filter.
-
-    Args:
-        file_name (str): Path to the `.tsv` file containing scan results.
-        model (Model): The scalar model defining relevant particle masses.
-        config_loader (ConfigLoader): Object for loading filter configuration parameters.
-
-    Returns:
-        Dict[str, int]: A dictionary with counts for each filter and the
-        combined pass count. Keys include 'width', 'bounds', 'signals', and 'pass'.
+    This pipeline loads scan results from a TSV file, applies a width-based filter
+    using a configuration-defined threshold, and evaluates HiggsBounds and HiggsSignals
+    criteria using external tools. Results are written back to the file, and basic
+    filtering statistics are returned.
     """
 
-    # load in dataframe from .tsv file
-    dataframe = get_df(file_name)
+    header_width = "filt_width"
+    header_bounds = "filt_bounds"
+    header_signals = "filt_signals"
 
-    # apply width filter
-    width.filter_widths(dataframe=dataframe,
-                        header_width=header_width,
-                        model=model,
-                        config_loader=config_loader)
+    def __init__(self,
+                 model: Model):
+        """
+        Initializes the filtering pipeline with the given scalar model.
 
-    # apply bounds and signals filters
-    bounds.filter_bounds(dataframe=dataframe,
-                         header_bounds=header_bounds,
-                         header_signals=header_signals,
-                         model=model,
-                         use_multiprocessing=use_multiprocessing)
+        Args:
+            model (Model): The scalar model providing scalar names and config context.
+        """
+        try:
+            config = ConfigLoader("RunConfig.yml")
+            min_chunk_size: int = config.get("bounds", "min_chunk_size")
+        except Exception:
+            logger.exception("Failed to load bounds filtering configuration.")
+            raise
+        self.width_filter = WidthFilter(model)
+        self.bounds_filter = BoundsFilter(model, min_chunk_size)
 
-    # write updated dataframe to .tsv
-    write_to_tsv(dataframe=dataframe,
-                 file_name=file_name)
+    def apply_filters(self,
+                      data: pd.DataFrame,
+                      use_multiprocessing: bool = True) -> Dict[str, int]:
+        """
+        Applies width, bounds, and signal filters to a scan result file.
 
-    # get results of each filter for counting
-    filt_width = dataframe[header_width]
-    filt_bounds = dataframe[header_bounds]
-    filt_signals = dataframe[header_signals]
+        Reads a TSV file into a DataFrame, applies filters in sequence,
+        writes updated results back to disk, and returns filter pass counts.
 
-    # create dictionary to store results
-    results: dict[str, int] = {}
+        Args:
+            data (pd.DataFrame): Dataframe of the scan output
+            use_multiprocessing (bool): Whether to enable parallel processing for bounds filtering.
 
-    # find how many points pass all filters
-    results["width"] = filt_width.sum()
-    results["bounds"] = filt_bounds.sum()
-    results["signals"] = filt_signals.sum()
-    results["pass"] = (filt_width * filt_bounds * filt_signals).sum()
+        Returns:
+            Dict[str, int]: A dictionary with counts of rows passing each individual filter
+                            and all filters combined. Keys include 'width', 'bounds', 'signals', and 'pass'.
+        """
 
-    # return numbers of events passing each filter
-    return results
+        # Apply filters
+        self.width_filter.apply(data=data,
+                                header=self.header_width)
+        self.bounds_filter.apply(data=data,
+                                 header_bounds=self.header_bounds,
+                                 header_signals=self.header_signals,
+                                 use_multiprocessing=use_multiprocessing)
+
+        # Compute stats
+        f_width = data[self.header_width].astype(bool)
+        f_bounds = data[self.header_bounds].astype(bool)
+        f_signals = data[self.header_signals].astype(bool)
+
+        return {
+            "width": f_width.sum(),
+            "bounds": f_bounds.sum(),
+            "signals": f_signals.sum(),
+            "pass": (f_width & f_bounds & f_signals).sum(),
+        }
 
 # Entry point for the script. Parses command-line arguments, constructs the model,
 # loads configuration, and applies filters to the input TSV file.
@@ -104,6 +112,8 @@ if __name__ == "__main__":
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
 
-    apply_filters(file_name=args.file_name,
-                  model=model,
-                  config_loader=ConfigLoader(config_file_name=f"{model.name}_default.yml"))
+    filter_pipeline = FilterPipeline(model)
+
+    data = get_df(args.file_name)
+
+    filter_pipeline.apply_filters(data=data)

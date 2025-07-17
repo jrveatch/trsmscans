@@ -1,0 +1,8 @@
+executable           = {{ job_script }}
+output               = {{ logs_dir }}/out/{{ job_name }}.out
+error                = {{ logs_dir }}/err/{{ job_name }}.err
+log                  = {{ logs_dir }}/log/{{ job_name }}.log
+transfer_input_files = {{ input_files | join(', ') }}
+request_cpus         = {{ num_cpus }}
++JobFlavour          = "{{ job_length }}"
+queue

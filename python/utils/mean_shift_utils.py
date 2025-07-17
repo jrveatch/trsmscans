@@ -1,5 +1,4 @@
 
-import logging
 import numpy as np
 from typing import Dict
 
@@ -8,6 +7,8 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 
 # get logger
+from utils.logging_utils import VERBOSE_LEVEL
+import logging
 logger = logging.getLogger(__name__)
 
 def mean_shift(arrays: Dict[str,np.ndarray],
@@ -18,7 +19,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     Updates the center value based on weighted sample pairs of X_i and Z.
 
     Args:
-        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names, 
+        arrays (Dict[str, np.ndarray]): Dictionary where keys are parameter names,
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
         param_space (ParamSpace): Object with a `reposition_center` method to update the center.
@@ -43,11 +44,8 @@ def mean_shift(arrays: Dict[str,np.ndarray],
         z_exp: float = config_loader.get('meanshift', 'z_exp')
         use_adaptive_z_exp: bool = config_loader.get('meanshift', 'use_adaptive_z_exp')
         z_exp_alpha: float = config_loader.get('meanshift', 'z_exp_alpha')
-    except KeyError as e:
-        logger.error(e)
-        raise
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.exception(e)
         raise
 
     # Store parameter names
@@ -68,17 +66,18 @@ def mean_shift(arrays: Dict[str,np.ndarray],
     nZ = Z_mod / Z_safe_sum
 
     # Verbose logging
-    logger.verbose("\nPre-shift:\n==========")
-    logger.verbose(f"Parameter names: {list(arrays.keys())}")
-    for i, X in enumerate(XX):
-        logger.verbose(f"X_{i}:{X}")
-    logger.verbose(f"nZ: {nZ}")
+    if logger.isEnabledFor(VERBOSE_LEVEL):
+        logger.verbose("\nPre-shift:\n==========")  # type: ignore[attr-defined]
+        logger.verbose(f"Parameter names: {list(arrays.keys())}")  # type: ignore[attr-defined]
+        for i, X in enumerate(XX):
+            logger.verbose(f"X_{i}:{X}")  # type: ignore[attr-defined]
+        logger.verbose(f"nZ: {nZ}")  # type: ignore[attr-defined]
 
     # Compute weighted mean shift
     means = np.einsum('ij,j->i', XX, nZ)
 
     # Create shifted point
-    shifted_point = Point(model=param_space.model, par_vals={name: value for name, value in zip(param_names, means)})
+    shifted_point = Point(model=param_space.model, par_vals=dict(zip(param_names, means)))
 
     # Update center position
     param_space.reposition_center(shifted_point)

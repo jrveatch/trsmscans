@@ -15,13 +15,14 @@ import glob
 import logging
 import os
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from matplotlib import cm, patches
 import pandas as pd
 import re
+import shutil
 from typing import Dict, Tuple
 
 from utils import file_utils
-from utils.model import Model
+from utils.model import Model, supported_models
 from utils.parse import Parse
 
 logging.basicConfig(
@@ -50,13 +51,13 @@ class SubsetPlotter:
             decay (str): Decay mode being studied.
             model (Model): Scalar model associated with the prescan.
         """
-        
+
         # Save arguments as class members
         self.decay = decay
         self.model = model
         self.scan_dir = file_utils.scan_dir(self.model, self.decay)
         self.ini_dir = os.path.join(self.scan_dir,"zoom","ini")
-        
+
         # Initialize parser
         self.parser = Parse(self.model)
 
@@ -65,6 +66,13 @@ class SubsetPlotter:
 
         # Create plot output directory
         self.output_dir = os.path.join(file_utils.plots_dir(model=self.model,decay=self.decay),"prescan_subsets")
+        if os.path.exists(self.output_dir):
+            for entry in os.listdir(self.output_dir):
+                entry_path = os.path.join(self.output_dir, entry)
+                if os.path.isdir(entry_path):
+                    shutil.rmtree(entry_path)
+                else:
+                    os.remove(entry_path)
         os.makedirs(self.output_dir, exist_ok=True)
 
         # Parse ini files and store ranges
@@ -91,13 +99,25 @@ class SubsetPlotter:
         """
 
         # Dictionary to store ranges for each file
-        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict) 
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict)
 
         # Collect all .ini files in the directory
         ini_files = glob.glob(os.path.join(directory, "*.ini"))
 
         # Sort the files by Zoom Optimizer and Iterations
-        self.sorted_ini_files = sorted(ini_files)
+        def extract_sort_key(filename: str) -> Tuple[int, int]:
+            match = re.search(r"ZoomOptimizer-(\d+)-Iteration-(\d+)", filename)
+            if not match:
+                return (9999, 9999)
+            return int(match.group(1)), int(match.group(2))
+
+        ranges_dict: Dict[str, Dict[str, Dict[str, Tuple[float, float]]]] = defaultdict(dict)
+
+        ini_files = glob.glob(os.path.join(directory, "*.ini"))
+        self.sorted_ini_files = sorted(
+            [os.path.basename(f) for f in ini_files],
+            key=extract_sort_key
+        )
 
         # Store params we need in list
         params_of_interest = ["t1", "t2", "t3", "vs", "vx"]
@@ -107,7 +127,7 @@ class SubsetPlotter:
 
         # Loop through all .ini files in the directory
         for file_name in self.sorted_ini_files:
-                
+
             # Create file path based on .ini file name
             file_path = os.path.join(directory, file_name)
 
@@ -134,8 +154,8 @@ class SubsetPlotter:
                     min_val, max_val = map(float, config["scan"][param].split())
                     ranges[param] = (min_val, max_val)
 
-            # Store the extracted ranges with the filename and Zoom Optimier as keys
-            ranges_dict[zoom_op_key][file_name] = ranges
+            # Store the extracted ranges with the filename and Zoom Optimizer as keys
+            ranges_dict[zoom_op_key][os.path.basename(file_name)] = ranges
 
         # Debugger that prints the ranges from the .ini files
         self.logger.debug(f'Ini Range Data:\n\t{ranges_dict}')
@@ -156,7 +176,7 @@ class SubsetPlotter:
 
         # Initialize the prescan directory that will be used to gather points
         self.prescan_tsv = file_utils.prescan_tsv(self.model)
-        
+
         # Read the data from the prescan file
         self.parser.read_file(file_name=self.prescan_tsv)
 
@@ -214,12 +234,15 @@ class SubsetPlotter:
         # Print info to screen
         self.logger.info(f"Making scan plots for {self.model.name} {self.decay} {self.model.mass_string}")
 
-        for zoom_op in self.ini_ranges.keys():
-            
+        for zoom_op in self.ini_ranges:
+
             # Retrieve files based on the current Zoom Optimizer
-            zoom_op_files: Dict[str, pd.DataFrame] = {file: df for file, df in self.filtered_files.items() if re.search(zoom_op, file)}
-                
-            # Create a new output directory to organize output by Zoom Optimizer    
+            zoom_op_files: Dict[str, pd.DataFrame] = {
+                file: df for file, df in self.filtered_files.items()
+                if f"{zoom_op}-" in os.path.basename(file)
+            }
+
+            # Create a new output directory to organize output by Zoom Optimizer
             group_output_dir = os.path.join(self.output_dir,zoom_op)
             os.makedirs(group_output_dir, exist_ok=True)
 
@@ -236,16 +259,18 @@ class SubsetPlotter:
                     width=1.5
 
                     plt.figure()
-               
+
                     for r, (file, v1, v2) in enumerate(zip(zoom_op_files, param1_values, param2_values)):
 
                         t = r/num_files
-                        color = plt.cm.viridis(t)
+                        cmap = cm.get_cmap("viridis")
+                        color = cmap(t)
 
                         # Plot the variables by file
                         plt.scatter(v1, v2, s=15, color=color, alpha=opacity)
 
-                        file_ranges = self.ini_ranges[zoom_op][file]
+
+                        file_ranges = self.ini_ranges[zoom_op][os.path.basename(file)]
                         self.logger.debug(file_ranges)
 
                         x_ini = self.model.fullname_to_ini_name_map[param1]
@@ -266,7 +291,7 @@ class SubsetPlotter:
                         plt.gca().add_patch(rect)
 
                         # Adjust the opacity
-                        opacity += op 
+                        opacity += op
 
                     # Initialize scatter plot labels
                     plt.title(f"{zoom_op}: {param1} vs {param2}")
@@ -292,10 +317,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("-X", "--XMass", required=True, type=float)
     arg_parser.add_argument("-S", "--SMass", required=True, type=float)
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float)
-    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str)
+    arg_parser.add_argument("-m", "--model", default="TRSMBroken", type=str, choices=supported_models, help="Model name")
     args = arg_parser.parse_args()
 
     model = Model(name=args.model,
                   masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
-    
+
     SubsetPlotter(decay=args.decay, model=model)

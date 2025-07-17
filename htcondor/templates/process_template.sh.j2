@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Set up environment
+source env.sh
+
+# Activate virtual environment
+source $TRSM_VENV_PATH/bin/activate
+
+# Run the scan script
+{{ command | join('\n') }}

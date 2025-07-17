@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+import math
+
+import Higgs.predictions as HP
+
 from utils.math_utils import round_sig
 from utils.model import Model
-from filters.setup_higgs_tools import *
-from utils.test_point_utils import *
+from filters.setup_higgs_tools import get_higgs_bounds, get_higgs_signals, get_higgs_predictions
+from utils.test_point_utils import calculate_heavy_BRs_only, print_heavy_Higgs_info, fix_heavy_BRs
+from utils.test_point_utils import get_BR_interpolators_SM, get_XS_interpolator_SM_13TeV_NNLONNLL
 
 # SETUP STARTS HERE
 
@@ -113,11 +118,7 @@ def check_singlet_point(mX: float,
     ress = signals(pred)
     #print(signals(pred).appliedLimits)
     #print(ress)
-    HS_allowed = False
-    if ress - ress_SM < 4.00:
-        HS_allowed = True
-    else:
-        HS_allowed = False
+    HS_allowed = ress - ress_SM < 4.0
 
     # return HiggsBounds (True/False) for Allowed/Disallowed and the chi-squared from HiggsSignals
     return resb.allowed, HS_allowed

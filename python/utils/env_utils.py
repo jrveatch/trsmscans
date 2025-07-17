@@ -6,25 +6,37 @@ def output_dir() -> str:
     """
     Get path to output directory.
     """
-    return os.environ['OUTPUTDIR']
+    return os.environ['OUTPUT_DIR']
 
 def config_dir() -> str:
     """
     Get path to config directory.
     """
-    return os.environ['CONFIGDIR']
+    return os.environ['CONFIG_DIR']
 
 def data_dir() -> str:
     """
     Get path to data directory.
     """
-    return os.environ['DATADIR']
+    return os.environ['DATA_DIR']
+
+def env_sh() -> str:
+    """
+    Get path to env.sh file.
+    """
+    return os.environ['ENV_SH']
+
+def htcondor_dir() -> str:
+    """
+    Get path to htcondor directory.
+    """
+    return os.environ['HTCONDOR_DIR']
 
 def externals_dir() -> str:
     """
     Get path to externals directory.
     """
-    return os.environ['EXTERNALSDIR']
+    return os.environ['EXTERNALS_DIR']
 
 def hbdataset_dir() -> str:
     """
