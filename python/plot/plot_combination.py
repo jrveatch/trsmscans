@@ -72,7 +72,7 @@ class CombinationPlotter:
                                        "combination",
                                        f"{self.decay}_{self.identifier}_combination.tsv")
 
-        self.X_mass_xb, self.S_mass_xb, self.xb_max, self.precision_levels = load_data(self.input_file)
+        self.X_mass_xb, self.S_mass_xb, self.xb_max, self.precision_values = load_data(self.input_file)
 
     def get_output_dir(self) -> str:
         """
@@ -206,8 +206,8 @@ class CombinationPlotter:
         """
 
         # Replace MISSING precision values with NaN to leave them out of plot
-        precision_values = self.precision_levels.astype(float)  # make it float to support NaN
-        precision_values[self.precision_levels == Precision.MISSING.value] = np.nan
+        precision_values = self.precision_values.astype(float)  # make it float to support NaN
+        precision_values[self.precision_values == Precision.MISSING.value] = np.nan
 
         # Interpolate from scan points to grid
         Xi, Yi, Pi = interpolate_grid(
