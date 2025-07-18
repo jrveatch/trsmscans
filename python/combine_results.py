@@ -130,9 +130,10 @@ def write_combination_row(input_path: str,
             with open(json_file, 'r') as jf:
                 import json
                 config = json.load(jf)
-                precision_str = str(config.get("precision", ""))
+                precision_str = str(config.get("precision", "missing"))
         except Exception as e:
             print(f"Could not read precision from {json_file}: {e}")
+            precision_str = "missing"
 
     with open(output_path, 'a') as output_file:
         if write_header:
