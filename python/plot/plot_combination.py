@@ -205,6 +205,11 @@ class CombinationPlotter:
         Plot a categorized map of the precision levels used in the scan.
         """
 
+        # Print number of missing points
+        num_missing = np.sum(self.precision_values == Precision.MISSING.value)
+        if num_missing > 0:
+            print(f"\nPrecision-level plot: Skipped {num_missing} points that are missing")
+
         # Replace MISSING precision values with NaN to leave them out of plot
         precision_values = self.precision_values.astype(float)  # make it float to support NaN
         precision_values[self.precision_values == Precision.MISSING.value] = np.nan
