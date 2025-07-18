@@ -72,7 +72,7 @@ class CombinationPlotter:
                                        "combination",
                                        f"{self.decay}_{self.identifier}_combination.tsv")
 
-        self.X_mass_xb, self.S_mass_xb, self.xb_max, self.precision_levels = load_data(self.input_file)
+        self.X_mass_xb, self.S_mass_xb, self.xb_max, self.precision_values = load_data(self.input_file)
 
     def get_output_dir(self) -> str:
         """
@@ -205,11 +205,20 @@ class CombinationPlotter:
         Plot a categorized map of the precision levels used in the scan.
         """
 
+        # Print number of missing points
+        num_missing = np.sum(self.precision_values == Precision.MISSING.value)
+        if num_missing > 0:
+            print(f"\nPrecision-level plot: Skipped {num_missing} points that are missing")
+
+        # Replace MISSING precision values with NaN to leave them out of plot
+        precision_values = self.precision_values.astype(float)  # make it float to support NaN
+        precision_values[self.precision_values == Precision.MISSING.value] = np.nan
+
         # Interpolate from scan points to grid
         Xi, Yi, Pi = interpolate_grid(
             self.X_mass_xb,
             self.S_mass_xb,
-            self.precision_levels,  # array of enum values
+            precision_values,  # array of enum values
             resolution=(self.xres, self.sres),
             method='linear'
         )
@@ -219,10 +228,11 @@ class CombinationPlotter:
         Pi = np.round(Pi) + epsilon
 
         # All enum levels
-        precision_levels = list(Precision)
+        precision_levels = [p for p in Precision if p != Precision.MISSING]
 
         # Define boundaries based on enum values
-        levels = [p.value for p in Precision] + [max(p.value for p in Precision) + 1]
+        levels = [p.value for p in precision_levels]
+        levels.append(levels[-1] + 1)  # upper edge for last bin
 
         # Labels using str(p) → already lowercase
         labels = [str(p).capitalize() for p in precision_levels]
@@ -365,8 +375,8 @@ def plot_xb_to_limit_ratio(xb: np.ndarray,
     ratio = np.divide(xb, limit, out=np.full_like(xb, np.nan), where=(limit > 0))
     Xi, Yi, Zi = interpolate_grid(X, S, ratio)
 
-    # Thresholds: all except INSENSITIVE, include SATURATED separately
-    thresholds = [p.threshold() for p in Precision if p not in {Precision.INSENSITIVE, Precision.SATURATED}]
+    # Thresholds: all except INSENSITIVE and MISSING, include SATURATED separately
+    thresholds = [p.threshold() for p in Precision if p not in {Precision.MISSING, Precision.INSENSITIVE, Precision.SATURATED}]
     saturated_threshold = Precision.SATURATED.threshold()
 
     # Build level boundaries
