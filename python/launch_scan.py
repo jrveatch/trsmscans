@@ -350,10 +350,9 @@ def main():
                 print(f"Previous scan for {mass_string} has no precision metadata: re-running")
             elif (
                 rerun_precision is not None
-                and prev_precision >= rerun_precision
-                and prev_precision != Precision.SATURATED
+                and prev_precision <= rerun_precision
             ):
-                print(f"Previous scan for {mass_string} has precision {prev_precision} ≥ {rerun_precision}: re-running")
+                print(f"Previous scan for {mass_string} has precision {prev_precision} ≤ {rerun_precision}: re-running")
             else:
                 print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
                 skip_count += 1
