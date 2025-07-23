@@ -27,8 +27,10 @@ def get_mass_permutations(decay: str,
     try:
         with open(permutations_file, 'r') as perm_file:
             data = json.load(perm_file)
-            units = data["units"]
-            scale = 1000.0 if units == "fb" else 1.0
+            units: str = data["units"]
+            scale = 1.0
+            if units == "pb":
+                scale = 1000.0
             permutations = [
                 (
                  p["mX"], p["mS"], p["resolvable"],
