@@ -144,7 +144,11 @@ def get_mass_point_status(model: Model,
         count = metadata.get("num_points", 0)
         prev_precision = get_precision(metadata)
 
-        if precision is not None and (prev_precision is None or prev_precision < precision):
+        if (
+            precision is not None and
+            (prev_precision is None or prev_precision < precision) and
+            prev_precision != Precision.SATURATED
+           ):
             return "low_precision", count, prev_precision
         return ("ok", count, prev_precision) if count >= threshold else ("below_threshold", count, prev_precision)
 

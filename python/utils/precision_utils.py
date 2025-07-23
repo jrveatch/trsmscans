@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 class Precision(IntEnum):
     MISSING     = -1
     INSENSITIVE = 0
-    COARSE      = 1
-    LOW         = 2
-    MEDIUM      = 3
-    HIGH        = 4
-    SATURATED   = 5
+    SATURATED   = 1
+    COARSE      = 2
+    LOW         = 3
+    MEDIUM      = 4
+    HIGH        = 5
 
     @classmethod
     def from_string(cls, s: str) -> "Precision":

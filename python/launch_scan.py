@@ -273,7 +273,7 @@ def main():
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None,
                             help="Fix optimization precision level. If not set, precision is adapted automatically")
     arg_parser.add_argument("-r", "--rerun-precision", type=Precision.from_string, choices=list(Precision), default=None,
-                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --force-rerun is set")
+                            help="Rerun scan jobs if existing precision is this level or below. Ignored for prescan or if --force-rerun is set")
     arg_parser.add_argument("-f", "--force-rerun", action="store_true", help="Force a rerun, overwriting previous results")
     args = arg_parser.parse_args()
 
@@ -350,10 +350,9 @@ def main():
                 print(f"Previous scan for {mass_string} has no precision metadata: re-running")
             elif (
                 rerun_precision is not None
-                and prev_precision >= rerun_precision
-                and prev_precision != Precision.SATURATED
+                and prev_precision <= rerun_precision
             ):
-                print(f"Previous scan for {mass_string} has precision {prev_precision} ≥ {rerun_precision}: re-running")
+                print(f"Previous scan for {mass_string} has precision {prev_precision} ≤ {rerun_precision}: re-running")
             else:
                 print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
                 skip_count += 1
