@@ -51,6 +51,10 @@ class MassList:
             return 1000.0
         return 1.0
 
+    @cached_property
+    def includes_decay(self) -> bool:
+        return self.data.get("includes_decay")
+
     def get_mass_permutations(self) -> List[Tuple[int, int, bool, Dict[str,float]]]:
         """
         Gets a list of mass permutations for a the mass list.
