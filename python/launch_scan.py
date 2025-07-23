@@ -28,7 +28,7 @@ from scan.scan import Scan
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 import utils.htcondor_utils as htcondor_utils
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 
 def run_prescan(model: Model,
                 num_points: int,
@@ -307,7 +307,9 @@ def main():
             raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
         if not identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
-        permutations = get_mass_permutations(decay=decay, identifier=identifier)
+        mass_list = MassList(decay=decay,
+                             identifier=identifier)
+        permutations = mass_list.get_mass_permutations()
         mass_points = [(x, s, HMass, limits) for x, s, _, limits in permutations]
         print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{decay}'")
     elif XMass is not None and SMass is not None:
