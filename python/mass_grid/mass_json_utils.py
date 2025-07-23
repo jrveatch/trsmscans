@@ -55,7 +55,7 @@ def get_mass_permutations(decay: str,
         scale = 1000.0
     permutations = [
         (
-            p["mX"], p["mS"], p["resolvable"],
+            p.get("mX"), p.get("mS"), p.get("resolvable"),
             {
             "observed": p.get("observed_limit", -1.0) * scale,
             "expected": p.get("expected_limit", -1.0) * scale,
@@ -110,17 +110,22 @@ def load_limit_data(decay: str,
     data = load_mass_list(decay=decay,
                           identifier=identifier)
 
+    units: str = data["units"]
+    scale = 1.0
+    if units == "pb":
+        scale = 1000.0
+
     X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
     exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
     for point in data["mass_points"]:
-        X_mass_vals.append(point["mX"])
-        S_mass_vals.append(point["mS"])
-        obs_limit_vals.append(point["observed_limit"])
-        exp_limit_vals.append(point["expected_limit"])
-        exp_m1_limit_vals.append(point["expected_limit_m1"])
-        exp_p1_limit_vals.append(point["expected_limit_p1"])
-        exp_m2_limit_vals.append(point["expected_limit_m2"])
-        exp_p2_limit_vals.append(point["expected_limit_p2"])
+        X_mass_vals.append(point.get("mX"))
+        S_mass_vals.append(point.get("mS"))
+        obs_limit_vals.append(point.get("observed_limit",-1.0) * scale)
+        exp_limit_vals.append(point.get("expected_limit",-1.0) * scale)
+        exp_m1_limit_vals.append(point.get("expected_limit_m1",-1.0) * scale)
+        exp_p1_limit_vals.append(point.get("expected_limit_p1",-1.0) * scale)
+        exp_m2_limit_vals.append(point.get("expected_limit_m2",-1.0) * scale)
+        exp_p2_limit_vals.append(point.get("expected_limit_p2",-1.0) * scale)
 
     return LimitData(
         X_mass=np.array(X_mass_vals),
