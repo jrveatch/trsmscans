@@ -5,6 +5,8 @@
     "year": 2022,
     "sqrt_s": 13.0,
     "decay_channel": "X->S(bb)H(bb)",
+    "units": "fb",
+    "includes_decay": true,
     "mass_points": [
         {
             "mX": 900,
