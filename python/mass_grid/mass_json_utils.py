@@ -2,10 +2,30 @@
 import json
 import numpy as np
 import os
-from typing import Dict, List, NamedTuple, Tuple
+from typing import Any, Dict, List, NamedTuple, Tuple
 
 # local modules
 from utils.env_utils import data_dir
+
+def load_mass_list(decay: str,
+                   identifier: str) -> Dict[Any]:
+    """
+    Loads a mass list .json file for a given decay mode and identifier.
+
+    Args:
+        decay (str): Decay mode.
+        identifier (str): Identifier to specify which set of mass points to use.
+
+    Returns:
+        Dict[Any]: Dictionary of mass list information from the .json file.
+    """
+    file_name = os.path.join(data_dir(), "mass_points", f"{decay}_{identifier}.json")
+    try:
+        with open(file_name, 'r') as file:
+            data = json.load(file)
+        return data
+    except Exception as e:
+        raise RuntimeError(f"Error reading mass list file {file_name}: {e}")
 
 def get_mass_permutations(decay: str,
                           identifier: str) -> List[Tuple[int, int, bool, Dict[str,float]]]:
@@ -19,36 +39,35 @@ def get_mass_permutations(decay: str,
     Returns:
         List[Tuple[int, int, bool, Dict[str, float]]]:
             A list of tuples containing mass points, resolvable status, and dictionary of limits.
+
+    Raises:
+        RuntimeError: If the JSON file is missing, malformed, or contains unexpected data.
     """
 
-    permutations_file = os.path.join(data_dir(),"mass_points",f"{decay}_{identifier}.json")
+    # Load data
+    data = load_mass_list(decay=decay,
+                          identifier=identifier)
 
     # Read permutations
-    try:
-        with open(permutations_file, 'r') as perm_file:
-            data = json.load(perm_file)
-            units: str = data["units"]
-            scale = 1.0
-            if units == "pb":
-                scale = 1000.0
-            permutations = [
-                (
-                 p["mX"], p["mS"], p["resolvable"],
-                 {
-                  "observed": p.get("observed_limit", -1.0) * scale,
-                  "expected": p.get("expected_limit", -1.0) * scale,
-                  "expected_m1": p.get("expected_limit_m1", -1.0) * scale,
-                  "expected_p1": p.get("expected_limit_p1", -1.0) * scale,
-                  "expected_m2": p.get("expected_limit_m2", -1.0) * scale,
-                  "expected_p2": p.get("expected_limit_p2", -1.0) * scale
-                  }
-                ) 
-                for p in data["mass_points"]
-            ]
-        return permutations
-    except Exception as e:
-        print(f"Error reading permutations file {permutations_file}: {e}")
-        raise
+    units: str = data["units"]
+    scale = 1.0
+    if units == "pb":
+        scale = 1000.0
+    permutations = [
+        (
+            p["mX"], p["mS"], p["resolvable"],
+            {
+            "observed": p.get("observed_limit", -1.0) * scale,
+            "expected": p.get("expected_limit", -1.0) * scale,
+            "expected_m1": p.get("expected_limit_m1", -1.0) * scale,
+            "expected_p1": p.get("expected_limit_p1", -1.0) * scale,
+            "expected_m2": p.get("expected_limit_m2", -1.0) * scale,
+            "expected_p2": p.get("expected_limit_p2", -1.0) * scale
+            }
+        ) 
+        for p in data["mass_points"]
+    ]
+    return permutations
 
 class LimitData(NamedTuple):
     X_mass: np.ndarray
@@ -87,34 +106,29 @@ def load_limit_data(decay: str,
         RuntimeError: If the JSON file is missing, malformed, or contains unexpected data.
     """
 
-    limit_file = os.path.join(data_dir(), "mass_points", f"{decay}_{identifier}.json")
+    # Load data
+    data = load_mass_list(decay=decay,
+                          identifier=identifier)
 
-    try:
-        with open(limit_file, "r") as f:
-            data = json.load(f)
+    X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
+    exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
+    for point in data["mass_points"]:
+        X_mass_vals.append(point["mX"])
+        S_mass_vals.append(point["mS"])
+        obs_limit_vals.append(point["observed_limit"])
+        exp_limit_vals.append(point["expected_limit"])
+        exp_m1_limit_vals.append(point["expected_limit_m1"])
+        exp_p1_limit_vals.append(point["expected_limit_p1"])
+        exp_m2_limit_vals.append(point["expected_limit_m2"])
+        exp_p2_limit_vals.append(point["expected_limit_p2"])
 
-        X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
-        exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
-        for point in data["mass_points"]:
-            X_mass_vals.append(point["mX"])
-            S_mass_vals.append(point["mS"])
-            obs_limit_vals.append(point["observed_limit"])
-            exp_limit_vals.append(point["expected_limit"])
-            exp_m1_limit_vals.append(point["expected_limit_m1"])
-            exp_p1_limit_vals.append(point["expected_limit_p1"])
-            exp_m2_limit_vals.append(point["expected_limit_m2"])
-            exp_p2_limit_vals.append(point["expected_limit_p2"])
-
-        return LimitData(
-            X_mass=np.array(X_mass_vals),
-            S_mass=np.array(S_mass_vals),
-            observed=np.array(obs_limit_vals),
-            expected=np.array(exp_limit_vals),
-            expected_m1=np.array(exp_m1_limit_vals),
-            expected_p1=np.array(exp_p1_limit_vals),
-            expected_m2=np.array(exp_m2_limit_vals),
-            expected_p2=np.array(exp_p2_limit_vals)
-        )
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to load limits from {limit_file}: {e}")
+    return LimitData(
+        X_mass=np.array(X_mass_vals),
+        S_mass=np.array(S_mass_vals),
+        observed=np.array(obs_limit_vals),
+        expected=np.array(exp_limit_vals),
+        expected_m1=np.array(exp_m1_limit_vals),
+        expected_p1=np.array(exp_p1_limit_vals),
+        expected_m2=np.array(exp_m2_limit_vals),
+        expected_p2=np.array(exp_p2_limit_vals)
+    )
