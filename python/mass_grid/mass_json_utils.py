@@ -27,6 +27,28 @@ def load_mass_list(decay: str,
     except Exception as e:
         raise RuntimeError(f"Error reading mass list file {file_name}: {e}")
 
+def xsec_conversion(decay: str,
+                   identifier: str) -> float:
+    """
+    Returns the cross-section unit conversion factor for a mass list.
+
+    Args:
+        decay (str): Decay mode.
+        identifier (str): Identifier to specify which set of mass points to use.
+
+    Returns:
+        float: Unit conversion factor.
+
+    Raises:
+        RuntimeError: If the JSON file is missing, malformed, or contains unexpected data.
+    """
+    data = load_mass_list(decay=decay,
+                          identifier=identifier)
+    units: str = data["units"]
+    if units == "pb":
+        return 1000.0
+    return 1.0
+
 def get_mass_permutations(decay: str,
                           identifier: str) -> List[Tuple[int, int, bool, Dict[str,float]]]:
     """
@@ -49,10 +71,8 @@ def get_mass_permutations(decay: str,
                           identifier=identifier)
 
     # Read permutations
-    units: str = data["units"]
-    scale = 1.0
-    if units == "pb":
-        scale = 1000.0
+    scale = xsec_conversion(decay=decay,
+                            identifier=identifier)
     permutations = [
         (
             p.get("mX"), p.get("mS"), p.get("resolvable"),
@@ -110,10 +130,8 @@ def load_limit_data(decay: str,
     data = load_mass_list(decay=decay,
                           identifier=identifier)
 
-    units: str = data["units"]
-    scale = 1.0
-    if units == "pb":
-        scale = 1000.0
+    scale = xsec_conversion(decay=decay,
+                            identifier=identifier)
 
     X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
     exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
