@@ -273,7 +273,7 @@ def main():
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None,
                             help="Fix optimization precision level. If not set, precision is adapted automatically")
     arg_parser.add_argument("-r", "--rerun-precision", type=Precision.from_string, choices=list(Precision), default=None,
-                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --force-rerun is set")
+                            help="Rerun scan jobs if existing precision is this level or below. Ignored for prescan or if --force-rerun is set")
     arg_parser.add_argument("-f", "--force-rerun", action="store_true", help="Force a rerun, overwriting previous results")
     args = arg_parser.parse_args()
 
