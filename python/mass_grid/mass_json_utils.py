@@ -46,7 +46,7 @@ class MassList:
 
     @cached_property
     def xsec_conversion(self) -> float:
-        units: str = self.data.get("units")
+        units = self.data.get("units")
         if units is None:
             raise KeyError("Missing required key: 'units'")
         if not isinstance(units, str):
