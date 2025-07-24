@@ -62,6 +62,25 @@ class MassList:
             raise TypeError(f"'includes_decay' must be a bool, got {type(val).__name__}")
         return val
 
+    def _gather_mass_point_data(self) -> List[Dict[str, Any]]:
+        scale = self.xsec_conversion
+        return [
+            {
+                "mX": p.get("mX"),
+                "mS": p.get("mS"),
+                "resolvable": p.get("resolvable", True),
+                "limits": {
+                    "observed": p.get("observed_limit", -1.0) * scale,
+                    "expected": p.get("expected_limit", -1.0) * scale,
+                    "expected_m1": p.get("expected_limit_m1", -1.0) * scale,
+                    "expected_p1": p.get("expected_limit_p1", -1.0) * scale,
+                    "expected_m2": p.get("expected_limit_m2", -1.0) * scale,
+                    "expected_p2": p.get("expected_limit_p2", -1.0) * scale,
+                },
+            }
+            for p in self.data.get("mass_points", [])
+        ]
+
     def get_mass_permutations(self) -> List[Tuple[int, int, bool, Dict[str,float]]]:
         """
         Gets a list of mass permutations for a the mass list.
@@ -70,24 +89,10 @@ class MassList:
             List[Tuple[int, int, bool, Dict[str, float]]]:
                 A list of tuples containing mass points, resolvable status, and dictionary of limits.
         """
-
-        scale = self.xsec_conversion
-
-        permutations = [
-            (
-                p.get("mX"), p.get("mS"), p.get("resolvable"),
-                {
-                "observed": p.get("observed_limit", -1.0) * scale,
-                "expected": p.get("expected_limit", -1.0) * scale,
-                "expected_m1": p.get("expected_limit_m1", -1.0) * scale,
-                "expected_p1": p.get("expected_limit_p1", -1.0) * scale,
-                "expected_m2": p.get("expected_limit_m2", -1.0) * scale,
-                "expected_p2": p.get("expected_limit_p2", -1.0) * scale
-                }
-            ) 
-            for p in self.data["mass_points"]
+        return [
+            (d["mX"], d["mS"], d["resolvable"], d["limits"])
+            for d in self._gather_mass_point_data()
         ]
-        return permutations
 
     def load_limit_data(self) -> LimitData:
         """
@@ -107,28 +112,14 @@ class MassList:
                 - expected_m2 (np.ndarray): Expected -2σ limits.
                 - expected_p2 (np.ndarray): Expected +2σ limits.
         """
-
-        scale = self.xsec_conversion
-
-        X_mass_vals, S_mass_vals, obs_limit_vals, exp_limit_vals = [], [], [], []
-        exp_m1_limit_vals, exp_p1_limit_vals, exp_m2_limit_vals, exp_p2_limit_vals = [], [], [], []
-        for point in self.data["mass_points"]:
-            X_mass_vals.append(point.get("mX"))
-            S_mass_vals.append(point.get("mS"))
-            obs_limit_vals.append(point.get("observed_limit",-1.0) * scale)
-            exp_limit_vals.append(point.get("expected_limit",-1.0) * scale)
-            exp_m1_limit_vals.append(point.get("expected_limit_m1",-1.0) * scale)
-            exp_p1_limit_vals.append(point.get("expected_limit_p1",-1.0) * scale)
-            exp_m2_limit_vals.append(point.get("expected_limit_m2",-1.0) * scale)
-            exp_p2_limit_vals.append(point.get("expected_limit_p2",-1.0) * scale)
-
+        data = self._gather_mass_point_data()
         return LimitData(
-            X_mass=np.array(X_mass_vals),
-            S_mass=np.array(S_mass_vals),
-            observed=np.array(obs_limit_vals),
-            expected=np.array(exp_limit_vals),
-            expected_m1=np.array(exp_m1_limit_vals),
-            expected_p1=np.array(exp_p1_limit_vals),
-            expected_m2=np.array(exp_m2_limit_vals),
-            expected_p2=np.array(exp_p2_limit_vals)
+            X_mass=np.array([d["mX"] for d in data]),
+            S_mass=np.array([d["mS"] for d in data]),
+            observed=np.array([d["limits"]["observed"] for d in data]),
+            expected=np.array([d["limits"]["expected"] for d in data]),
+            expected_m1=np.array([d["limits"]["expected_m1"] for d in data]),
+            expected_p1=np.array([d["limits"]["expected_p1"] for d in data]),
+            expected_m2=np.array([d["limits"]["expected_m2"] for d in data]),
+            expected_p2=np.array([d["limits"]["expected_p2"] for d in data]),
         )
