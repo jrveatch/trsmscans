@@ -28,7 +28,7 @@ from scan.scan import Scan
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 import utils.htcondor_utils as htcondor_utils
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 
 def run_prescan(model: Model,
                 num_points: int,
@@ -280,7 +280,8 @@ def main():
     # Copy arguments into local variables
     mode: str = args.mode
     strategy: str = args.strategy
-    decay: Optional[str] = args.decay
+    requested_decay: Optional[str] = args.decay
+    decay = requested_decay
     identifier: Optional[str] = args.identifier
     num_points: int = args.num_points
     iterations: int = args.iterations
@@ -294,7 +295,7 @@ def main():
 
     # Validate arguments
     if mode == "scan":
-        if not decay:
+        if not requested_decay:
             raise ValueError("Scan mode requires -d/--decay")
         if strategy == "zoom" and num_points <= 0:
             raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
@@ -303,13 +304,17 @@ def main():
 
     # Load mass points
     if args.use_mass_list:
-        if not decay:
+        if not requested_decay:
             raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
         if not identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
-        permutations = get_mass_permutations(decay=decay, identifier=identifier)
+        mass_list = MassList(decay=requested_decay,
+                             identifier=identifier)
+        permutations = mass_list.get_mass_permutations()
         mass_points = [(x, s, HMass, limits) for x, s, _, limits in permutations]
-        print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{decay}'")
+        print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{requested_decay}'")
+        if not mass_list.includes_decay:
+            decay = "NoDecay"
     elif XMass is not None and SMass is not None:
         mass_points = [(XMass, SMass, HMass, {})]
     else:

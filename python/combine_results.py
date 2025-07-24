@@ -5,7 +5,7 @@ import os
 
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 from utils.model import Model, supported_models
 from utils.tsv_utils import parse_tsv_file
 
@@ -25,14 +25,19 @@ def combine_results(model_name: str,
         optimization (str): Optimization strategy used in the scan, e.g., 'zoom' or 'meanshift'.
     """
 
-    permutations = get_mass_permutations(decay=decay,
-                                         identifier=identifier)
+    mass_list = MassList(decay=decay,
+                         identifier=identifier)
+    permutations = mass_list.get_mass_permutations()
+    
+    requested_decay = decay
+    if not mass_list.includes_decay:
+        decay = "NoDecay"
 
     scan_dir = os.path.join(output_dir(), model_name, "scan")
     comb_dir = os.path.join(output_dir(), model_name, "combination")
     os.makedirs(comb_dir, exist_ok=True)
-    combination_file_name = os.path.join(comb_dir, f"{decay}_{identifier}_combination.tsv")
-    tsv_combination_file_name = os.path.join(comb_dir, f"{decay}_{identifier}_tsv_combination.tsv")
+    combination_file_name = os.path.join(comb_dir, f"{requested_decay}_{identifier}_combination.tsv")
+    tsv_combination_file_name = os.path.join(comb_dir, f"{requested_decay}_{identifier}_tsv_combination.tsv")
 
     # Clear output files if they already exist
     open(combination_file_name, 'w').close()
@@ -79,7 +84,7 @@ def combine_results(model_name: str,
                     add_precision=True
                 )
 
-    print(f"Done combining {len(permutations) - non_calculable} results for {decay} {identifier} mass list.")
+    print(f"Done combining {len(permutations) - non_calculable} results for {requested_decay} {identifier} mass list.")
     print(f"Skipped {non_calculable} non-calculable mass points.")
 
 def write_combination_row(input_path: str,
