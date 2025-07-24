@@ -1,0 +1,210 @@
+{
+    "collaboration": "ATLAS",
+    "arxiv": "2307.11120",
+    "doi": "10.1007/JHEP10(2023)009",
+    "year": 2023,
+    "sqrt_s": 13.0,
+    "decay_channel": "X->S(WW)H(tautau)",
+    "units": "fb",
+    "includes_decay": true,
+    "mass_points": [
+        {
+            "mX": 500,
+            "mS": 200,
+            "observed_limit": 19.4,
+            "expected_limit": 18.5,
+            "expected_limit_m1": 13.3,
+            "expected_limit_p1": 26.6,
+            "expected_limit_m2": 10.0,
+            "expected_limit_p2": 37.8,
+            "resolvable": true
+        },
+        {
+            "mX": 500,
+            "mS": 300,
+            "observed_limit": 26.2,
+            "expected_limit": 31.0,
+            "expected_limit_m1": 22.4,
+            "expected_limit_p1": 44.3,
+            "expected_limit_m2": 16.6,
+            "expected_limit_p2": 62.1,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 200,
+            "observed_limit": 8.8,
+            "expected_limit": 7.9,
+            "expected_limit_m1": 5.7,
+            "expected_limit_p1": 11.4,
+            "expected_limit_m2": 4.2,
+            "expected_limit_p2": 16.3,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 300,
+            "observed_limit": 5.4,
+            "expected_limit": 8.8,
+            "expected_limit_m1": 6.3,
+            "expected_limit_p1": 12.5,
+            "expected_limit_m2": 4.7,
+            "expected_limit_p2": 17.8,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 400,
+            "observed_limit": 8.4,
+            "expected_limit": 9.5,
+            "expected_limit_m1": 6.9,
+            "expected_limit_p1": 13.7,
+            "expected_limit_m2": 5.1,
+            "expected_limit_p2": 19.5,
+            "resolvable": true
+        },
+        {
+            "mX": 750,
+            "mS": 500,
+            "observed_limit": 15.7,
+            "expected_limit": 11.5,
+            "expected_limit_m1": 8.3,
+            "expected_limit_p1": 16.6,
+            "expected_limit_m2": 6.2,
+            "expected_limit_p2": 23.5,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 200,
+            "observed_limit": 5.3,
+            "expected_limit": 5.2,
+            "expected_limit_m1": 3.7,
+            "expected_limit_p1": 7.5,
+            "expected_limit_m2": 2.8,
+            "expected_limit_p2": 10.8,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 300,
+            "observed_limit": 4.3,
+            "expected_limit": 4.9,
+            "expected_limit_m1": 3.6,
+            "expected_limit_p1": 7.1,
+            "expected_limit_m2": 2.6,
+            "expected_limit_p2": 10.2,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 400,
+            "observed_limit": 4.3,
+            "expected_limit": 5.4,
+            "expected_limit_m1": 3.9,
+            "expected_limit_p1": 7.8,
+            "expected_limit_m2": 2.9,
+            "expected_limit_p2": 11.2,
+            "resolvable": true
+        },
+        {
+            "mX": 1000,
+            "mS": 500,
+            "observed_limit": 5.5,
+            "expected_limit": 5.4,
+            "expected_limit_m1": 3.9,
+            "expected_limit_p1": 7.8,
+            "expected_limit_m2": 2.9,
+            "expected_limit_p2": 11.2,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 200,
+            "observed_limit": 5.3,
+            "expected_limit": 4.7,
+            "expected_limit_m1": 3.4,
+            "expected_limit_p1": 6.9,
+            "expected_limit_m2": 2.5,
+            "expected_limit_p2": 10.1,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 300,
+            "observed_limit": 3.6,
+            "expected_limit": 3.8,
+            "expected_limit_m1": 2.8,
+            "expected_limit_p1": 5.6,
+            "expected_limit_m2": 2.1,
+            "expected_limit_p2": 8.1,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 400,
+            "observed_limit": 2.8,
+            "expected_limit": 4.0,
+            "expected_limit_m1": 2.9,
+            "expected_limit_p1": 5.8,
+            "expected_limit_m2": 2.2,
+            "expected_limit_p2": 8.5,
+            "resolvable": true
+        },
+        {
+            "mX": 1250,
+            "mS": 500,
+            "observed_limit": 2.8,
+            "expected_limit": 3.8,
+            "expected_limit_m1": 2.8,
+            "expected_limit_p1": 5.6,
+            "expected_limit_m2": 2.0,
+            "expected_limit_p2": 8.0,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 200,
+            "observed_limit": 6.4,
+            "expected_limit": 6.2,
+            "expected_limit_m1": 4.5,
+            "expected_limit_p1": 9.2,
+            "expected_limit_m2": 3.4,
+            "expected_limit_p2": 13.6,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 300,
+            "observed_limit": 3.7,
+            "expected_limit": 4.9,
+            "expected_limit_m1": 3.5,
+            "expected_limit_p1": 7.1,
+            "expected_limit_m2": 2.6,
+            "expected_limit_p2": 10.3,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 400,
+            "observed_limit": 3.1,
+            "expected_limit": 4.5,
+            "expected_limit_m1": 3.2,
+            "expected_limit_p1": 6.6,
+            "expected_limit_m2": 2.4,
+            "expected_limit_p2": 9.6,
+            "resolvable": true
+        },
+        {
+            "mX": 1500,
+            "mS": 500,
+            "observed_limit": 3.0,
+            "expected_limit": 4.0,
+            "expected_limit_m1": 2.9,
+            "expected_limit_p1": 5.8,
+            "expected_limit_m2": 2.1,
+            "expected_limit_p2": 8.5,
+            "resolvable": true
+        }
+    ]
+}
