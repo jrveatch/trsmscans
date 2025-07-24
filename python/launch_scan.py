@@ -406,7 +406,7 @@ def main():
 
     if job_count > 0:
         if args.use_mass_list:
-            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{decay}' '{identifier}'")
+            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{requested_decay}' '{identifier}'")
             if skip_count > 0:
                 print(f"Skipped {skip_count} calculable job{'s' if skip_count > 1 else ''}. "
                       "Use the -f/--force-rerun option to force them to be rerun.")
