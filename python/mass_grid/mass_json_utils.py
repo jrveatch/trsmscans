@@ -47,13 +47,20 @@ class MassList:
     @cached_property
     def xsec_conversion(self) -> float:
         units: str = self.data.get("units")
-        if units == "pb":
-            return 1000.0
-        return 1.0
+        if units is None:
+            raise KeyError("Missing required key: 'units'")
+        if not isinstance(units, str):
+            raise TypeError(f"'units' must be a string, got {type(units).__name__}")
+        return 1000.0 if units == "pb" else 1.0
 
     @cached_property
     def includes_decay(self) -> bool:
-        return self.data.get("includes_decay")
+        val = self.data.get("includes_decay")
+        if val is None:
+            raise KeyError("Missing required key: 'includes_decay'")
+        if not isinstance(val, bool):
+            raise TypeError(f"'includes_decay' must be a bool, got {type(val).__name__}")
+        return val
 
     def get_mass_permutations(self) -> List[Tuple[int, int, bool, Dict[str,float]]]:
         """
