@@ -5,6 +5,8 @@
     "year": 2023,
     "sqrt_s": 13.0,
     "decay_channel": "X->S(bb)H(gamgam)",
+    "units": "fb",
+    "includes_decay": true,
     "mass_points": [
         {
             "mX": 300,
