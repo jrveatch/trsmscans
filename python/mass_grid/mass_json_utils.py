@@ -8,7 +8,10 @@ from typing import Any, Dict, List, NamedTuple, Tuple
 # local modules
 from utils.env_utils import data_dir
 
-class LimitData(NamedTuple):
+class LimitData(NamedTuple):   
+    """
+    Container for limit data across mass points.
+    """
     X_mass: np.ndarray
     S_mass: np.ndarray
     observed: np.ndarray
@@ -19,7 +22,10 @@ class LimitData(NamedTuple):
     expected_p2: np.ndarray
 
 class MassList:
-
+    """
+    Handles loading and interpreting mass point data from JSON files,
+    including cross-section conversions and limit retrieval.
+    """
     def __init__(self,
                  decay: str,
                  identifier: str):
@@ -41,11 +47,27 @@ class MassList:
             raise RuntimeError(f"Error reading mass list file {file_name}: {e}")
 
     @property
-    def data(self) -> Dict[str,Any]:
+    def data(self) -> Dict[str, Any]:
+        """
+        Returns the raw JSON-decoded data dictionary.
+
+        Returns:
+            Dictionary containing the full content of the mass list JSON.
+        """
         return self.__data
 
     @cached_property
     def xsec_conversion(self) -> float:
+        """
+        Returns the cross-section unit conversion factor.
+
+        Returns:
+            1000.0 if units are "pb", else 1.0 (assumes default units are fb).
+
+        Raises:
+            KeyError: If 'units' key is missing.
+            TypeError: If 'units' is not a string.
+        """
         units = self.data.get("units")
         if units is None:
             raise KeyError("Missing required key: 'units'")
@@ -55,6 +77,16 @@ class MassList:
 
     @cached_property
     def includes_decay(self) -> bool:
+        """
+        Indicates whether decay branching ratios are already included in the limits.
+
+        Returns:
+            True if limits include decay; False otherwise.
+
+        Raises:
+            KeyError: If 'includes_decay' key is missing.
+            TypeError: If 'includes_decay' is not a bool.
+        """
         val = self.data.get("includes_decay")
         if val is None:
             raise KeyError("Missing required key: 'includes_decay'")
@@ -63,6 +95,13 @@ class MassList:
         return val
 
     def _gather_mass_point_data(self) -> List[Dict[str, Any]]:
+        """
+        Internal helper to extract and rescale mass point data.
+
+        Returns:
+            A list of dictionaries, one per mass point, with fields:
+            mX, mS, resolvable, and scaled limit values.
+        """
         scale = self.xsec_conversion
         return [
             {
@@ -81,13 +120,18 @@ class MassList:
             for p in self.data.get("mass_points", [])
         ]
 
-    def get_mass_permutations(self) -> List[Tuple[int, int, bool, Dict[str,float]]]:
+    def get_mass_permutations(self) -> List[Tuple[int, int, bool, Dict[str, float]]]:
         """
-        Gets a list of mass permutations for a the mass list.
+        Retrieves all mass permutations in the dataset.
+
+        Each entry includes (mX, mS, resolvable, limits).
 
         Returns:
-            List[Tuple[int, int, bool, Dict[str, float]]]:
-                A list of tuples containing mass points, resolvable status, and dictionary of limits.
+            A list of tuples:
+                - mX (int): Mass of the X particle.
+                - mS (int): Mass of the S particle.
+                - resolvable (bool): Whether the mass point is resolvable.
+                - limits (Dict[str, float]): Scaled observed and expected limits.
         """
         return [
             (d["mX"], d["mS"], d["resolvable"], d["limits"])
@@ -96,21 +140,10 @@ class MassList:
 
     def load_limit_data(self) -> LimitData:
         """
-        Gets limit data for the mass list.
-
-        This includes the observed limit, expected limit, and ±1σ/±2σ expected variations
-        for each (mX, mS) mass point.
+        Loads and formats the limit data as arrays suitable for plotting or analysis.
 
         Returns:
-            LimitData: A named tuple containing:
-                - X_mass (np.ndarray): X mass values.
-                - S_mass (np.ndarray): S mass values.
-                - observed (np.ndarray): Observed limits.
-                - expected (np.ndarray): Expected median limits.
-                - expected_m1 (np.ndarray): Expected -1σ limits.
-                - expected_p1 (np.ndarray): Expected +1σ limits.
-                - expected_m2 (np.ndarray): Expected -2σ limits.
-                - expected_p2 (np.ndarray): Expected +2σ limits.
+            LimitData: Named tuple containing arrays of mass points and limits.
         """
         data = self._gather_mass_point_data()
         return LimitData(
