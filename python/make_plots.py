@@ -6,7 +6,7 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 
 from utils.cpu_utils import get_n_cpus
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 from utils.model import Model, supported_models
 from plot.plot_combination import CombinationPlotter
 from plot.plot_meanshift import MeanShiftPlotter
@@ -132,7 +132,9 @@ def main() -> None:
         mass_points = []
         if args.use_mass_list:
             print(f"\nMaking mass point plots for identifier '{args.identifier}' and decay '{args.decay}'")
-            permutations = get_mass_permutations(decay=args.decay, identifier=args.identifier)
+            mass_list = MassList(decay=args.decay,
+                                 identifier=args.identifier)
+            permutations = mass_list.get_mass_permutations()
             mass_points = get_calculable_mass_points(model_name=args.model,
                                                      permutations=permutations,
                                                      hmass=args.HMass)
