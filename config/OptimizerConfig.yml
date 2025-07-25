@@ -2,8 +2,9 @@
 precision_thresholds:
   coarse: 0.01
   low: 0.1
-  medium: 0.5
-  high: 0.8
+  medium: 0.4
+  high: 0.6
+  saturated: 20.0
 
 zoom:
   strategy: "percentile" # "percentile" or "rate"
@@ -38,11 +39,11 @@ zoom:
     small_improvement_max: 4
     small_improvement_frac: 0.05
   high:
-    local_xb_fail_count: 4
+    local_xb_fail_count: 5
     parameter_zoom_rate: 0.02
     density_growth_rate: 0.5
-    zoom_percentile: 0.95
-    min_points_per_iteration: 50
+    zoom_percentile: 0.9
+    min_points_per_iteration: 100
     no_improvement_max: 4
     small_improvement_max: 5
     small_improvement_frac: 0.02

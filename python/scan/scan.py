@@ -22,10 +22,11 @@ from utils.param_space import ParamSpace
 from utils.point import Point
 from utils.point_sampler import PointSampler
 from utils.precision_utils import Precision
-from utils.metadata_utils import run_exists, save_run_metadata
+from utils.metadata_utils import save_run_metadata
 from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initialize_summary_file
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
+from optimizers.bayesian_optimizer import BayesianOptimizer
 
 # get logger
 import logging
@@ -38,9 +39,8 @@ class Scan:
                  model: Model,
                  decay: str,
                  precision: Optional[Precision] = None,
-                 limit_target: float = -1.0,
+                 limit_target: Optional[float] = None,
                  prescan_points: int = -1,
-                 overwrite: bool = False,
                  config_file_name: str = ""
                  ):
 
@@ -52,12 +52,9 @@ class Scan:
             decay (str): The decay mode to scan (must be valid per `valid_decays()`).
             precision (Optional[Precision]): The precision level for the scan.
                 Defaults to None.
-            limit_target (float, optional): The target experimental limit for setting precision.
-                Defaults to -1.0.
+            limit_target (Optional[float]): The target experimental limit for setting precision.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
-            overwrite (bool, optional): Whether to overwrite existing scan results.
-                Defaults to False.
             config_file_name (str, optional): Path to a YAML config file. If not specified,
                 a default name based on the model is used.
 
@@ -108,6 +105,10 @@ class Scan:
         self.limit_target = limit_target
         self.use_adaptive_precision = precision is None
 
+        # some information about using adaptive precision
+        if self.use_adaptive_precision:
+            logger.info(f"Adaptive precision enabled. Limit target: {self.limit_target}")
+
         # number of prescan points to run
         self.prescan_points = prescan_points
         if self.prescan_points < 0:
@@ -120,9 +121,6 @@ class Scan:
 
         # make dummy optimal point
         self.global_max = Point(model=self.model)
-
-        # store overwrite flag
-        self.overwrite = overwrite
 
     @cached_property
     def out_dir(self) -> str:
@@ -207,10 +205,17 @@ class Scan:
 
         # check ratio of prescan max xb in fb to limit_target
         if self.use_adaptive_precision:
+            if self.limit_target is None:
+                raise ValueError("Limit target must be specified for adaptive precision.")
             ratio = self.global_max.xb * 1000 / self.limit_target
+            max_xb = self.global_max.xb * 1000
+            formatted_max_xb = f"{max_xb:.2e}" if max_xb < 0.1 or max_xb >= 100 else f"{max_xb:.2f}"
             if ratio < Precision.COARSE.threshold():
-                logger.info(f"Prescan max of {self.global_max.xb * 1000:.2e} fb is insensitive to limit target {self.limit_target} fb.")
+                logger.info(f"Prescan max of {formatted_max_xb} fb is insensitive to limit target {self.limit_target} fb.")
                 self.precision = Precision.INSENSITIVE
+            if ratio > Precision.SATURATED.threshold():
+                logger.info(f"Prescan max of {formatted_max_xb} fb is more than {Precision.SATURATED.threshold()} times the limit target {self.limit_target} fb.")
+                self.precision = Precision.SATURATED
 
         # write scan details to details file
         with open(self.details_name, "a") as details:
@@ -422,15 +427,6 @@ class Scan:
         if num_points < 0:
             num_points = self.default_starting_points
 
-        # exit if run already exists and overwrite is not set
-        if run_exists(out_dir=self.out_dir,
-                      strategy="zoom",
-                      num_points=num_points,
-                      precision=self.precision) and not self.overwrite:
-            logger.info(f"Skipping scan requested with {num_points} points.")
-            logger.info("Use the -o option to overwrite the existing run.\n")
-            return
-
         # initialize output directories and files
         self.initialize_output("zoom")
 
@@ -438,7 +434,7 @@ class Scan:
         self.run_prescan()
 
         # make a list of all zoom optimizers based on bimodal distribution tests
-        if self.precision != Precision.INSENSITIVE:
+        if self.precision != Precision.INSENSITIVE and self.precision != Precision.SATURATED:
             all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
             #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
@@ -567,8 +563,8 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = num_scanner_points,
                 param_space = params_copy,
-                precision= self.precision,
-                limit_target=self.limit_target,
+                precision = self.precision,
+                limit_target = self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -592,7 +588,7 @@ class Scan:
             param_space (ParamSpace): Global parameter space
         """
 
-        self.logger.debug("Splitting global param space...")
+        logger.debug("Splitting global param space...")
 
         # Initialize Lists to hold the current param spaces and the final param spaces
         current_param_space_list = [param_space]
@@ -644,9 +640,9 @@ class Scan:
             if not did_split:
                 final_param_space_list.append(current)
 
-        self.logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
+        logger.debug(f"{len(final_param_space_list)} param spaces created based on global param space.")
 
-        self.logger.debug("Shrinking each param space...")
+        logger.debug("Shrinking each param space...")
 
         # Shrink the param spaces in final_param_space_list
         for space in final_param_space_list:
@@ -689,8 +685,8 @@ class Scan:
             zoom_optimizer = ZoomOptimizer(
                 num_points = points_per_optimizer_list[i],
                 param_space = space,
-                precision= self.precision,
-                limit_target=self.limit_target,
+                precision = self.precision,
+                limit_target = self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
                 config_loader = self.optimizer_config_loader,
@@ -721,7 +717,7 @@ class Scan:
         # Retrieve number of param spaces
         num_param_spaces = len(param_space_list)
 
-        self.logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
+        logger.debug(f'Distributing {num_points} among {num_param_spaces} zoom optimizers.')
 
         # Initialize list of param space volumes
         volumes = np.array([self.prescan_parser.estimate_effective_volume_by_count(space) for space in param_space_list])
@@ -750,7 +746,37 @@ class Scan:
             
         # Return to call
         return tuple(points_per_optimizer_array.tolist())
-       
+    
+    def run_bayesian_optimizer(self, num_points: int) -> None:
+        # get scan start time
+        scan_start = time.time()
+
+        self.initialize_output("bayesian_optimizer")
+
+        # if num_points isn't given, use num_starting_points
+        if num_points < 0:
+            num_points = self.num_starting_points
+
+        # run prescan
+        self.run_prescan()
+
+        # move into the working directory for scans
+        os.chdir(self.out_dir)
+
+        # create optimizer
+        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader, self.global_param_space)
+
+        # run scan
+        bayesian_optimizer.run()
+
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(strategy="bayes",
+                      scan_time=scan_time,
+                      num_points=num_points)
+
     def finalize(self,
                  strategy: str,
                  scan_time: float,

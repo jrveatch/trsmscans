@@ -2,13 +2,12 @@
 
 import os
 import argparse
-import json
-from typing import Tuple, Optional, Union
+from typing import List, Tuple, Optional
 
-from utils.tsv_utils import count_tsv_points
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
+from utils.metadata_utils import get_mass_point_status
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 
@@ -50,9 +49,11 @@ def check_mass_list(model_name: str,
     Raises:
         ValueError: If `strategy` is not provided in scan mode.
     """
-    permutations = get_mass_permutations(decay=decay, identifier=identifier)
+    mass_list = MassList(decay=decay,
+                         identifier=identifier)
+    permutations = mass_list.get_mass_permutations()
 
-    rows = []  # Each row: (subdir, status, count or message)
+    rows: List[Tuple[str, str, Optional[int], Optional[Precision]]] = []  # Each row: (mass, status, count, precision)
     counts = {
         "ok": 0,
         "below_threshold": 0,
@@ -64,15 +65,12 @@ def check_mass_list(model_name: str,
 
     for xmass, smass, resolvable, _ in permutations:
         model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
-        subdir = model.mass_string
         decay_used = decay if resolvable else get_non_resolvable_decay(decay)
 
         try:
-            status, info = get_mass_point_status(
-                model_name=model_name,
+            status, count, prev_precision = get_mass_point_status(
+                model=model,
                 decay=decay_used,
-                xmass=xmass,
-                smass=smass,
                 threshold=threshold,
                 mode=mode,
                 strategy=strategy,
@@ -80,9 +78,10 @@ def check_mass_list(model_name: str,
             )
         except Exception as e:
             status = "error"
-            info = str(e)
+            count = None
+            prev_precision = None
 
-        rows.append((subdir, status, info))
+        rows.append((model.mass_string, status, count, prev_precision))
         counts[status] += 1
 
     total = sum(counts.values())
@@ -117,94 +116,25 @@ def check_mass_list(model_name: str,
         for category in counts:
             group = [r for r in rows if r[1] == category]
             out.write(f"--- {category} ({len(group)}) ---\n")
-            for subdir, _, detail in group:
-                if category in ["ok", "below_threshold"] and isinstance(detail, int):
-                    out.write(f"  {subdir}: {detail}\n")
-                elif category == "low_precision" and isinstance(detail, Precision):
-                    out.write(f"  {subdir}: {detail}\n")
-                elif category == "error":
-                    out.write(f"  {subdir}: ERROR: {detail}\n")
+            for mass_str, _, count, prev_precision in group:
+                if category in ["ok", "below_threshold"] and count is not None:
+                    count_str = f"{count}"
+                    if mode == "scan":
+                        if prev_precision is not None:
+                            count_str += f" {prev_precision}"
+                        else:
+                            count_str += " unknown precision"
+                    out.write(f"  {mass_str}: {count_str}\n")
+                elif category == "low_precision":
+                    if prev_precision is not None:
+                        out.write(f"  {mass_str}: {prev_precision}\n")
+                    else:
+                        out.write(f"  {mass_str}: unknown precision\n")
                 else:
-                    out.write(f"  {subdir}\n")
+                    out.write(f"  {mass_str}\n")
             out.write("\n")
 
     print(f"\nDetailed results written to: {out_filename}")
-
-def get_mass_point_status(model_name: str,
-                          decay: str,
-                          xmass: float,
-                          smass: float,
-                          threshold: int,
-                          mode: str,
-                          strategy: Optional[str] = None,
-                          precision: Optional[Precision] = None
-                          ) -> Tuple[str, Optional[Union[int,Precision]]]:
-    """
-    Check the scan or prescan status of a single (X, S) mass point.
-
-    Args:
-        model_name (str): Name of the scalar model.
-        decay (str): Decay mode to use exactly as provided.
-        xmass (float): X scalar mass (GeV).
-        smass (float): S scalar mass (GeV).
-        threshold (int): Minimum required number of points.
-        mode (str): Either "prescan" or "scan".
-        strategy (Optional[str]): Optimization strategy. Required if mode is "scan".
-        precision (Optional[Precision]): Minimum required precision.
-
-    Returns:
-        Tuple[str, Optional[int]]:
-            - Status: One of {"ok", "below_threshold", "low_precision", "missing", "non_calculable"}
-            - Count of points if applicable (None for "missing" or "non_calculable")
-
-    Raises:
-        ValueError: If required parameters are missing or invalid.
-        OSError / JSONDecodeError: If files are corrupt or unreadable.
-    """
-    model = Model(name=model_name, masses={"X": xmass, "S": smass, "H": 125.09})
-    subdir = model.mass_string
-
-    if not model.is_calculable:
-        return "non_calculable", None
-
-    if mode == "prescan":
-        path = os.path.join(output_dir(), model.name, "prescan", subdir, f"{model.name}_prescan.tsv")
-        if not os.path.isfile(path):
-            return "missing", None
-        count = count_tsv_points(path)
-        return ("ok", count) if count >= threshold else ("below_threshold", count)
-
-    elif mode == "scan":
-        if strategy is None:
-            raise ValueError("Scan mode requires a strategy.")
-        path = os.path.join(output_dir(), model.name, "scan", decay, subdir,
-                            strategy, f"run_metadata_{strategy}.json")
-        if not os.path.isfile(path):
-            return "missing", None
-        with open(path, "r") as f:
-            data = json.load(f)
-
-        existing_precision_str: str = data.get("precision")
-        # Handle missing or invalid precision from file
-        if existing_precision_str is None:
-            if precision is not None:
-                return "low_precision", None  # Precision was requested, but missing in metadata
-            prev_precision = None
-        else:
-            try:
-                prev_precision = Precision.from_string(existing_precision_str)
-            except ValueError:
-                # If string is invalid or malformed, treat as too low to be safe
-                return "low_precision", None
-        # Now compare, if required
-        if precision is not None and (prev_precision is None or prev_precision < precision):
-            return "low_precision", prev_precision
-
-        count = data.get("num_points", 0)
-        return ("ok", count) if count >= threshold else ("below_threshold", count)
-
-    else:
-        raise ValueError(f"Invalid mode '{mode}'")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

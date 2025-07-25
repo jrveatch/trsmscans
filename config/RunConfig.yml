@@ -1,7 +1,7 @@
 
 ScannerS:
   min_points_per_job: 5
-  timeout: 20
+  timeout: 10
   #seed: 123456 # random seed for ScannerS - should be commented out except for development
 
 MultiProcessing:
@@ -12,3 +12,7 @@ prescan:
 
 bounds:
   min_chunk_size: 100 # minimum number of dataframe rows in a bounds check
+
+HTCondor:
+  num_cpus: 8 # default number of CPUs to request
+  job_length: "espresso" # default job runtime (espresso, microcentury, longlunch, etc.) more details at https://batchdocs.web.cern.ch/local/submit.html

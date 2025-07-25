@@ -5,6 +5,8 @@
     "year": 2021,
     "sqrt_s": 13.0,
     "decay_channel": "X->S(bb)H(tautau)",
+    "units": "pb",
+    "includes_decay": true,
     "mass_points": [
         {
             "mX": 240,
