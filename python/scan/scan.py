@@ -345,10 +345,13 @@ class Scan:
         #initial_pos_set = 1
 
         print("initial_pos_set of optimizers: ")
-        #print(initial_pos_set)
+        print(initial_pos_set)
 
         logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
+        directories = [os.path.join(self.out_dir, f"meanshift/optimizer_{i}") for i in range(num_optimizers)]
+        for d in directories:
+            os.makedirs(d, exist_ok=True)
         #num_cpus = multiprocessing.cpu_count()
         #num_workers = min(num_optimizers, num_cpus)
         #logger.info(f"Using {num_workers} worker processes for {num_optimizers} optimizers")
@@ -356,7 +359,8 @@ class Scan:
         result_queue = multiprocessing.Queue()
         processes = []
 
-        for i, initial_pos in enumerate(initial_pos_set):
+        '''for i, initial_pos in enumerate(initial_pos_set):
+            print(f'Initial position: {initial_pos}')
             p = multiprocessing.Process(
                 target=run_ms_process,
                 args=(i, initial_pos, self.model, self.out_dir, self.global_param_space, self.optimizer_config_loader, result_queue)
@@ -367,12 +371,16 @@ class Scan:
         # Collect results
         results = []
         for _ in processes:
-            results.append(result_queue.get())  # blocks until each result is available
+            try:
+                results.append(result_queue.get(timeout=600))
+                print(f"Current results: {results}")
+            except queue.Empty:
+                logger.error("Timeout waiting for optimizer result")  # blocks until each result is available
 
         # Wait for all processes to complete
         for p in processes:
             p.join()
-
+'''
         '''
         for i, initial_pos in enumerate(initial_pos_set):
             label = f"MeanShiftOptimizer-{i}"
@@ -382,7 +390,6 @@ class Scan:
                 out_dir=self.out_dir,
                 subdir_name=f"meanshift-{i}"  # give each optimizer its own subdir
             )
-
 
             p = Process(target=optimizer.run)
             p.start()
@@ -816,35 +823,32 @@ class Scan:
             logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)
 
-def run_ms_process(i, initial_pos, model, out_dir, global_param_space, config_loader, result_queue):
-
-        label = f"MeanShiftOptimizer-{i}"
-
-       # try:
-
-        print("-----TRYING-------")
-        sampler = PointSampler(
-        model=model,
-        out_dir=out_dir,
-        subdir_name=f"meanshift"  # give each optimizer its own subdir
+def run_ms_process(
+    optimizer_id: int,
+    initial_point: Point,
+    model,
+    optimizer_out_dir: str,
+    param_space,
+    config_loader,
+    result_queue):
+    try:
+        # Save outputs to optimizer_out_dir
+        local_sampler = PointSampler(
+            model=model,
+            out_dir=optimizer_out_dir,
+            subdir_name=""
         )
 
-        print(f"Sampler: {sampler}")
-
-        #print(f"Config loader in Scan: {Scan().config_loader}")
-        print(f"Config loader in process: {config_loader}")
         optimizer = MeanShiftOptimizer(
-            label=label,
-            initial_pos=initial_pos,
-            global_param_space=global_param_space,
-            point_sampler=sampler,
+            label=f"MeanShiftOptimizer-{optimizer_id}",
+            initial_pos=initial_point,
+            global_param_space=param_space,
+            point_sampler=local_sampler,
             config_loader=config_loader
         )
 
-        print(optimizer)
+        optimizer.run()
+        result_queue.put((optimizer_id, "success"))
 
-        result = optimizer.run()
-
-        result_queue.put({"label": label, "best_point": result})
-    #except Exception as e:
-        # result_queue.put({"label": label, "error": str(e)})
+    except Exception as e:
+        result_queue.put((optimizer_id, f"error: {str(e)}"))
