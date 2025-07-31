@@ -564,7 +564,7 @@ class Scan:
         # get scan start time
         scan_start = time.time()
 
-        self.initialize_output("bayesian_optimizer")
+        self.initialize_output("bayes")
 
         # if num_points isn't given, use num_starting_points
         if num_points < 0:
