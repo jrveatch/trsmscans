@@ -49,8 +49,8 @@ class FilterPipeline:
             model (Model): The scalar model providing scalar names and config context.
         """
         try:
-            config = ConfigLoader("RunConfig.yml")
-            min_chunk_size: int = config.get("bounds", "min_chunk_size")
+            run_config = ConfigLoader("RunConfig.yml")
+            min_chunk_size: int = run_config.get("bounds", "min_chunk_size")
         except Exception:
             logger.exception("Failed to load bounds filtering configuration.")
             raise

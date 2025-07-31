@@ -92,9 +92,9 @@ def prescan(model: Model,
     logger.debug(f"Running prescan in {out_dir}")
 
     # get configurations from config file
-    config_loader = ConfigLoader("RunConfig.yml")
+    run_config = ConfigLoader("RunConfig.yml")
     try:
-        chunk_size: int = config_loader.get('prescan', 'chunk_size')
+        chunk_size: int = run_config.get('prescan', 'chunk_size')
     except Exception as e:
         logger.exception(e)
         raise

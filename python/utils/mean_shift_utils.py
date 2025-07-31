@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def mean_shift(arrays: Dict[str,np.ndarray],
                Z: np.ndarray,
                param_space: ParamSpace,
-               config_loader: ConfigLoader) -> None:
+               optimizer_config: ConfigLoader) -> None:
     """
     Updates the center value based on weighted sample pairs of X_i and Z.
 
@@ -23,8 +23,7 @@ def mean_shift(arrays: Dict[str,np.ndarray],
                                         and values are NumPy arrays representing dimensions.
         Z (np.ndarray): Function values for the sample space.
         param_space (ParamSpace): Object with a `reposition_center` method to update the center.
-        z_exp (float): Exponent applied to Z before normalization.
-        use_adaptive_z_exp (bool): Flag to enable adaptive modifications to z_exp based on the terrain.
+        optimizer_config (ConfigLoader): Optimizer configuration containing mean-shift settings.
 
     Raises:
         ValueError: If the lengths of parameter arrays do not match the length of Z.
@@ -41,9 +40,9 @@ def mean_shift(arrays: Dict[str,np.ndarray],
 
     # Get mean shift configuration from config file
     try:
-        z_exp: float = config_loader.get('meanshift', 'z_exp')
-        use_adaptive_z_exp: bool = config_loader.get('meanshift', 'use_adaptive_z_exp')
-        z_exp_alpha: float = config_loader.get('meanshift', 'z_exp_alpha')
+        z_exp: float = optimizer_config.get('meanshift', 'z_exp')
+        use_adaptive_z_exp: bool = optimizer_config.get('meanshift', 'use_adaptive_z_exp')
+        z_exp_alpha: float = optimizer_config.get('meanshift', 'z_exp_alpha')
     except Exception as e:
         logger.exception(e)
         raise

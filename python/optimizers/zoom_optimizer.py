@@ -49,7 +49,7 @@ class ZoomOptimizer:
                  num_points: int,
                  starting_max: Point,
                  point_sampler: PointSampler,
-                 config_loader: ConfigLoader,
+                 optimizer_config: ConfigLoader,
                  label: str,
                  precision: Optional[Precision] = None,
                  limit_target: Optional[float] = None) -> None:
@@ -61,7 +61,7 @@ class ZoomOptimizer:
             num_points (int): Initial number of scan points per iteration.
             starting_max (Point): The initial best point found prior to zooming.
             point_sampler (PointSampler): PointSampler object used to sample points.
-            config_loader (ConfigLoader): Configuration loader for reading zoom settings.
+            optimizer_config (ConfigLoader): Optimizer Configuration for reading zoom settings.
             label (str): A string label identifying the scan.
             precision (Optional[Precision]): The precision level for the scan.
             limit_target (Optional[float]): The target experimental limit for setting precision.
@@ -92,19 +92,18 @@ class ZoomOptimizer:
             self.precision = precision
 
         # get zoom configuration from config file
-        self.config_loader = config_loader
         try:
-            self.strategy: str = self.config_loader.get('zoom', 'strategy')
-            self.global_xb_fail_threshold: float = self.config_loader.get('zoom', 'global_xb_fail_threshold')
-            self.global_xb_fail_count: int = self.config_loader.get('zoom', 'global_xb_fail_count')
-            self.local_xb_fail_count: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'local_xb_fail_count')
-            self.zoom_percentile: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'zoom_percentile')
-            self.parameter_zoom_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'parameter_zoom_rate')
-            self.density_growth_rate: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'density_growth_rate')
-            self.min_points_per_iteration: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'min_points_per_iteration')
-            self.no_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'no_improvement_max')
-            self.small_improvement_max: Dict[str,int] = self.config_loader.get_param_levels('zoom', 'small_improvement_max')
-            self.small_improvement_frac: Dict[str,float] = self.config_loader.get_param_levels('zoom', 'small_improvement_frac')
+            self.strategy: str = optimizer_config.get('zoom', 'strategy')
+            self.global_xb_fail_threshold: float = optimizer_config.get('zoom', 'global_xb_fail_threshold')
+            self.global_xb_fail_count: int = optimizer_config.get('zoom', 'global_xb_fail_count')
+            self.local_xb_fail_count: Dict[str,int] = optimizer_config.get_param_levels('zoom', 'local_xb_fail_count')
+            self.zoom_percentile: Dict[str,int] = optimizer_config.get_param_levels('zoom', 'zoom_percentile')
+            self.parameter_zoom_rate: Dict[str,float] = optimizer_config.get_param_levels('zoom', 'parameter_zoom_rate')
+            self.density_growth_rate: Dict[str,float] = optimizer_config.get_param_levels('zoom', 'density_growth_rate')
+            self.min_points_per_iteration: Dict[str,int] = optimizer_config.get_param_levels('zoom', 'min_points_per_iteration')
+            self.no_improvement_max: Dict[str,int] = optimizer_config.get_param_levels('zoom', 'no_improvement_max')
+            self.small_improvement_max: Dict[str,int] = optimizer_config.get_param_levels('zoom', 'small_improvement_max')
+            self.small_improvement_frac: Dict[str,float] = optimizer_config.get_param_levels('zoom', 'small_improvement_frac')
         except Exception as e:
             logger.exception(e)
             raise
