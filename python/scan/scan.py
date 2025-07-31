@@ -336,7 +336,6 @@ class Scan:
         # make a list of all zoom optimizers based on bimodal distribution tests
         if self.precision != Precision.INSENSITIVE and self.precision != Precision.SATURATED:
             all_zoom_optimizers = self.create_zoom_optimizers(self.global_param_space, num_points)
-            #all_zoom_optimizers = self.prev_create_zoom_optimizers(num_points)
 
             # list of which zoom optimizers are running
             running_list = [True]
@@ -392,92 +391,6 @@ class Scan:
                       num_points=num_points,
                       precision=self.precision)
 
-    def prev_create_zoom_optimizers(self, num_points: int) -> List[ZoomOptimizer]:
-        """
-        Create list of zoom optimizers based on the parameter space.
-
-        Args:
-            num_points (int): Number of points to use in the first iteration.
-        """
-
-        logger.info("USING OLD CREATE ZOOM OPTIMIZERS METHOD")
-
-        # Dictionary that will hold the values of the parameters
-        param_dict: Dict[str, List[ Dict[str, float] ]] = {}
-
-        # Populate param_dict with parameter information
-        for parameter_name in self.global_param_space.parameter_names:
-
-            # Check if bimodal and get the current low and high values
-            is_bimodal = self.prescan_parser.is_bimodal(param_name=parameter_name,
-                                                        decay=self.decay)
-            min_val = self.global_param_space[parameter_name].low
-            max_val = self.global_param_space[parameter_name].high
-
-            # Split the zoom optimizer if bimodal and assign proper values
-            if is_bimodal:
-                mid_val = (min_val + max_val) / 2.0
-                param_dict[parameter_name] = [
-                    {'min': min_val, 'max': mid_val},
-                    {'min': mid_val, 'max': max_val}
-                ]
-            else:
-                param_dict[parameter_name] = [{'min': min_val, 'max': max_val}]
-
-        # List that holds parameter value combinations
-        all_param_combinations: List[Tuple[ParamSpace, Dict[str, float]]] = []
-
-        # Generate all parameter combinations
-        for param_values in itertools.product(*param_dict.values()):  # Itertools.product serves as a way to get combinations of values
-            params_copy = deepcopy(self.global_param_space)  # Manipulate data locally
-            param_combination_data = {}  # Dictionary to hold all combinations of values
-
-            # Zip the names and values together, assigning the data to each parameter
-            for name, parameter in zip(param_dict.keys(), param_values):
-                params_copy[name].min_value = parameter['min']
-                params_copy[name].max_value = parameter['max']
-                param_combination_data[name] = parameter
-
-            all_param_combinations.append((params_copy, param_combination_data))
-
-        # List that holds all the zoom optimizers created
-        all_zoom_optimizers: List[ZoomOptimizer] = []
-
-        # Distribute points to be scanned to each zoom optimizer, rounding to the nearest whole number and having at least 1 point per zoom optimizer
-        points_per_scanner = max(num_points // len(all_param_combinations), 1)
-
-        # Create PointSampler object
-        point_sampler = PointSampler(model = self.model,
-                                     out_dir = self.out_dir,
-                                     subdir_name = "zoom")
-
-        # Initialize zoom optimizers for each parameter combination
-        for i, (params_copy, param_combination_data) in enumerate(all_param_combinations):
-
-            # Distribute points among zoom optimizers
-            num_scanner_points = points_per_scanner
-            if i == len(all_param_combinations) - 1:  # Ensure the last zoom optimizer gets any remaining points
-                num_scanner_points = num_points - (points_per_scanner * (len(all_param_combinations) - 1))
-
-            # Create the ZoomOptimizer
-            zoom_optimizer = ZoomOptimizer(
-                num_points = num_scanner_points,
-                param_space = params_copy,
-                precision = self.precision,
-                limit_target = self.limit_target,
-                starting_max = self.global_max,
-                point_sampler = point_sampler,
-                config_loader = self.optimizer_config_loader,
-                label = f'ZoomOptimizer-{i}'
-            )
-            all_zoom_optimizers.append(zoom_optimizer)
-
-        # Print the number of zoom optimizers
-        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
-
-        # Return list of all zoom optimizers
-        return all_zoom_optimizers
-    
     def get_param_spaces(self,
                          param_space: ParamSpace) -> List[ParamSpace]:
 

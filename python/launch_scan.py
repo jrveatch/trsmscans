@@ -28,7 +28,7 @@ from scan.scan import Scan
 from utils.model import Model, supported_models
 from utils.precision_utils import Precision
 import utils.htcondor_utils as htcondor_utils
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 
 def run_prescan(model: Model,
                 num_points: int,
@@ -273,14 +273,15 @@ def main():
     arg_parser.add_argument("-p", "--precision", type=Precision.from_string, choices=list(Precision), default=None,
                             help="Fix optimization precision level. If not set, precision is adapted automatically")
     arg_parser.add_argument("-r", "--rerun-precision", type=Precision.from_string, choices=list(Precision), default=None,
-                            help="Rerun scan jobs if existing precision is below this level. Ignored for prescan or if --force-rerun is set")
+                            help="Rerun scan jobs if existing precision is this level or below. Ignored for prescan or if --force-rerun is set")
     arg_parser.add_argument("-f", "--force-rerun", action="store_true", help="Force a rerun, overwriting previous results")
     args = arg_parser.parse_args()
 
     # Copy arguments into local variables
     mode: str = args.mode
     strategy: str = args.strategy
-    decay: Optional[str] = args.decay
+    requested_decay: Optional[str] = args.decay
+    decay = requested_decay
     identifier: Optional[str] = args.identifier
     num_points: int = args.num_points
     iterations: int = args.iterations
@@ -294,7 +295,7 @@ def main():
 
     # Validate arguments
     if mode == "scan":
-        if not decay:
+        if not requested_decay:
             raise ValueError("Scan mode requires -d/--decay")
         if strategy == "zoom" and num_points <= 0:
             raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
@@ -303,13 +304,17 @@ def main():
 
     # Load mass points
     if args.use_mass_list:
-        if not decay:
+        if not requested_decay:
             raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
         if not identifier:
             raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
-        permutations = get_mass_permutations(decay=decay, identifier=identifier)
+        mass_list = MassList(decay=requested_decay,
+                             identifier=identifier)
+        permutations = mass_list.get_mass_permutations()
         mass_points = [(x, s, HMass, limits) for x, s, _, limits in permutations]
-        print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{decay}'")
+        print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{requested_decay}'")
+        if not mass_list.includes_decay:
+            decay = "NoDecay"
     elif XMass is not None and SMass is not None:
         mass_points = [(XMass, SMass, HMass, {})]
     else:
@@ -350,10 +355,9 @@ def main():
                 print(f"Previous scan for {mass_string} has no precision metadata: re-running")
             elif (
                 rerun_precision is not None
-                and prev_precision >= rerun_precision
-                and prev_precision != Precision.SATURATED
+                and prev_precision <= rerun_precision
             ):
-                print(f"Previous scan for {mass_string} has precision {prev_precision} ≥ {rerun_precision}: re-running")
+                print(f"Previous scan for {mass_string} has precision {prev_precision} ≤ {rerun_precision}: re-running")
             else:
                 print(f"Skipping {mass_string}: status = {status}, count = {count}, precision = {prev_precision}")
                 skip_count += 1
@@ -402,7 +406,7 @@ def main():
 
     if job_count > 0:
         if args.use_mass_list:
-            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{decay}' '{identifier}'")
+            print(f"\nSuccessfully submitted {job_count} job{'s' if job_count > 1 else ''} for '{requested_decay}' '{identifier}'")
             if skip_count > 0:
                 print(f"Skipped {skip_count} calculable job{'s' if skip_count > 1 else ''}. "
                       "Use the -f/--force-rerun option to force them to be rerun.")

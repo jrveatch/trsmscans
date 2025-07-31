@@ -10,19 +10,22 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Precision(IntEnum):
+    MISSING     = -1
     INSENSITIVE = 0
-    COARSE      = 1
-    LOW         = 2
-    MEDIUM      = 3
-    HIGH        = 4
-    SATURATED   = 5
+    SATURATED   = 1
+    COARSE      = 2
+    LOW         = 3
+    MEDIUM      = 4
+    HIGH        = 5
 
     @classmethod
     def from_string(cls, s: str) -> "Precision":
-        try:
-            return cls[s.strip().upper()]
-        except KeyError:
-            raise ValueError(f"Invalid precision level: {s}")
+        s_clean = s.strip().upper()
+        if s_clean in cls.__members__:
+            return cls[s_clean]
+        if s_clean in {"", "NAN", "NONE"}:
+            return cls.MISSING
+        raise ValueError(f"Invalid precision level: {s}")
 
     def __str__(self) -> str:
         return self.name.lower()
@@ -64,7 +67,11 @@ class Precision(IntEnum):
 
         Raises:
             KeyError: If the level is not found in the configuration.
+            ValueError if the precision is MISSING.
         """
+        if self == Precision.MISSING:
+            raise ValueError("Cannot get threshold for MISSING precision level.")
+
         key = str(self)  # e.g., "low"
         thresholds = self._load_thresholds()
 

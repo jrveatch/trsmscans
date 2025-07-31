@@ -4,7 +4,7 @@ import os
 import argparse
 from typing import List, Tuple, Optional
 
-from mass_grid.mass_json_utils import get_mass_permutations
+from mass_grid.mass_json_utils import MassList
 from utils.decay_utils import get_non_resolvable_decay
 from utils.file_utils import output_dir
 from utils.metadata_utils import get_mass_point_status
@@ -49,7 +49,9 @@ def check_mass_list(model_name: str,
     Raises:
         ValueError: If `strategy` is not provided in scan mode.
     """
-    permutations = get_mass_permutations(decay=decay, identifier=identifier)
+    mass_list = MassList(decay=decay,
+                         identifier=identifier)
+    permutations = mass_list.get_mass_permutations()
 
     rows: List[Tuple[str, str, Optional[int], Optional[Precision]]] = []  # Each row: (mass, status, count, precision)
     counts = {
