@@ -54,6 +54,7 @@ class BayesianOptimizer:
                                                       decay=self.decay,
                                                       identifier='x')
         except TimeoutError:
+            write_point_to_summary_file(self.out_file, point)
             return 0
 
         # write point to summary file
@@ -67,7 +68,7 @@ class BayesianOptimizer:
         self.set_ranges()
 
         # get output file name
-        self.out_file = self.out_dir + "/bayesian_optimizer/tsv/TRSMBroken.tsv"
+        self.out_file = self.out_dir + "/bayes/tsv/TRSMBroken.tsv"
 
         # create an empty output file
         with open(self.out_file, 'w') as file:
