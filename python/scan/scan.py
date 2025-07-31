@@ -87,13 +87,13 @@ class Scan:
             config_file_name = f"{self.model.name}_default.yml"
 
         # load config files
-        self.config_loader = ConfigLoader(config_file_name)
-        self.optimizer_config_loader = ConfigLoader("OptimizerConfig.yml")
+        self.model_config = ConfigLoader(config_file_name)
+        self.optimizer_config = ConfigLoader("OptimizerConfig.yml")
 
         # get configurations from config file
         try:
-            self.default_starting_points: int = self.config_loader.get('scan', 'default_starting_points')
-            default_prescan_points: int = self.config_loader.get('scan', 'default_prescan_points')
+            self.default_starting_points: int = self.model_config.get('scan', 'default_starting_points')
+            default_prescan_points: int = self.model_config.get('scan', 'default_prescan_points')
         except Exception as e:
             logger.exception(e)
             raise
@@ -289,7 +289,7 @@ class Scan:
                 initial_pos=initial_pos,
                 global_param_space=self.global_param_space,
                 point_sampler=point_sampler,
-                config_loader=self.optimizer_config_loader
+                optimizer_config=self.optimizer_config
             ).run()
 
         # SCAN LOGIC END HERE
@@ -502,7 +502,7 @@ class Scan:
                 limit_target = self.limit_target,
                 starting_max = self.global_max,
                 point_sampler = point_sampler,
-                config_loader = self.optimizer_config_loader,
+                optimizer_config = self.optimizer_config,
                 label = f'ZoomOptimizer-{i}'
             )
 
@@ -577,7 +577,7 @@ class Scan:
         os.chdir(self.out_dir)
 
         # create optimizer
-        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.config_loader, self.global_param_space)
+        bayesian_optimizer = BayesianOptimizer(self.model, self.decay, num_points, num_points, self.global_param_space)
 
         # run scan
         bayesian_optimizer.run()

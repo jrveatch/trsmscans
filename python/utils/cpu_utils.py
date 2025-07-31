@@ -67,10 +67,10 @@ def _get_local_cpu_reserve(total_cpus: int) -> int:
             return 2
         
     # get configurations
-    config_loader = ConfigLoader("RunConfig.yml")
+    run_config = ConfigLoader("RunConfig.yml")
     try:
         # number of CPUs to reserve when multiprocessing
-        cpu_reserve: int = config_loader.get('MultiProcessing', 'cpu_reserve')
+        cpu_reserve: int = run_config.get('MultiProcessing', 'cpu_reserve')
     except Exception as e:
         logger.exception(e)
         raise

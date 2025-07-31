@@ -27,14 +27,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 # get configurations
-config_loader = ConfigLoader("RunConfig.yml")
+run_config = ConfigLoader("RunConfig.yml")
 try:
     # minimum number of points per job
-    min_points_per_job: int = config_loader.get('ScannerS', 'min_points_per_job')
+    min_points_per_job: int = run_config.get('ScannerS', 'min_points_per_job')
     # time in seconds at which process will be killed if nothing is printed out
-    timeout: float = config_loader.get('ScannerS', 'timeout')
+    timeout: float = run_config.get('ScannerS', 'timeout')
     # random seed for ScannerS - should generally be None, unless needed for development
-    initial_seed: Optional[int] = config_loader.get('ScannerS', 'seed', default=None)
+    initial_seed: Optional[int] = run_config.get('ScannerS', 'seed', default=None)
 except Exception as e:
     logger.exception(e)
     raise

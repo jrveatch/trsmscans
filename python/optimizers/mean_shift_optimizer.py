@@ -47,7 +47,7 @@ class MeanShiftOptimizer:
             initial_pos: Point,
             global_param_space: ParamSpace,
             point_sampler: PointSampler,
-            config_loader: ConfigLoader):
+            optimizer_config: ConfigLoader):
         """
         Initializes a MeanShiftOptimizer instance.
 
@@ -56,7 +56,7 @@ class MeanShiftOptimizer:
             initial_pos (Point): Starting point in parameter space.
             global_param_space (ParamSpace): The overall parameter space used in the scan.
             point_sampler (PointSampler): PointSampler object used to sample points.
-            config_loader (ConfigLoader): Configuration loader containing mean-shift settings.
+            optimizer_config (ConfigLoader): Optimizer configuration containing mean-shift settings.
         """
 
         self.global_param_space = global_param_space
@@ -64,14 +64,14 @@ class MeanShiftOptimizer:
         self.label = label
 
         # get mean shift configuration from config file
-        self.config_loader = config_loader
+        self.optimizer_config = optimizer_config
         try:
-            self.max_small_steps: int = self.config_loader.get('meanshift', 'max_small_steps')
-            self.__stop_mode: int = self.config_loader.get('meanshift', 'stop_mode')
-            self.__stop_sens_par: float = self.config_loader.get('meanshift', 'stop_sensitivity_par')
-            self.__stop_sens_xb: float = self.config_loader.get('meanshift', 'stop_sensitivity_xb')
-            self.__scan_perc: float = self.config_loader.get('meanshift', 'scan_perc')
-            self.__num_points: int = self.config_loader.get('meanshift', 'num_points')
+            self.max_small_steps: int = self.optimizer_config.get('meanshift', 'max_small_steps')
+            self.__stop_mode: int = self.optimizer_config.get('meanshift', 'stop_mode')
+            self.__stop_sens_par: float = self.optimizer_config.get('meanshift', 'stop_sensitivity_par')
+            self.__stop_sens_xb: float = self.optimizer_config.get('meanshift', 'stop_sensitivity_xb')
+            self.__scan_perc: float = self.optimizer_config.get('meanshift', 'scan_perc')
+            self.__num_points: int = self.optimizer_config.get('meanshift', 'num_points')
         except Exception as e:
             logger.exception(e)
             raise
@@ -235,7 +235,7 @@ class MeanShiftOptimizer:
             mean_shift(arrays = arrays,
                        Z = xb,
                        param_space = self.local_param_space,
-                       config_loader=self.config_loader)
+                       optimizer_config=self.optimizer_config)
 
             # get new position
             logger.info("Calculating a point at the new position")

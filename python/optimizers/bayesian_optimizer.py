@@ -14,7 +14,6 @@ class BayesianOptimizer:
                  decay: str,
                  random_point: int,
                  n_points: int,
-                 config_loader,
                  param_space: ParamSpace):
         # TODO: automate finding ranges
         self.model = model
@@ -22,7 +21,6 @@ class BayesianOptimizer:
         self.ranges = {'thetaHS': [-1.570796, 1.570796], 'thetaHX': [-1.570796, 1.570796], 'thetaSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
         self.random_point = random_point
         self.n_points = n_points
-        self.config_loader = config_loader
         self.param_space = param_space
         self.out_dir = scan_dir(model=model,decay=decay)
 
