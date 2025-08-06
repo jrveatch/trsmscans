@@ -186,6 +186,8 @@ class MeanShiftOptimizer:
         or lack of significant parameter movement.
         """
 
+        print('---------Currentlu running in meanshift_optimizer.py---------')
+
         # get time of mean shift start
         shift_start = time.time()
 
@@ -213,18 +215,27 @@ class MeanShiftOptimizer:
             identifier = self.label + f"-{iter:04d}"
             logger.info(f"Iteration: {identifier}")
 
+            print("before try:")
+
             # Create scan_parser using the point_sampler class
             try:
+                print("during try")
+                print(f'param space: self.local_param_space')
+                print(f'identifier: {identifier}')
+                print(f'num points: {self.num_points}')
                 parser = self.point_sampler.sample_points(param_space = self.local_param_space,
                                                           identifier = identifier,
                                                           num_points_requested = self.num_points,
                                                           good_points_only = False,
                                                           use_multiprocessing = False)
             # if point sampling times out, exit
+                print(f'parser: {parser}')
             except (TimeoutError, NoPointsPassedError):
                 logger.info("No points found.\n")
                 logger.info(f"Exiting {identifier}\n")
                 return
+            
+            print("after try")
 
             arrays = {k: v.to_numpy() for k, v in parser.input_parameter_arrays.items()}
             xb = parser.get_xb(self.decay).to_numpy()

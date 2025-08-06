@@ -281,51 +281,6 @@ def list_outputs(directories: List[str],
             logger.warning(f"Missing expected file: {input_file}")
     return output_list
 
-def remove_temp_directories(directories: List[str]) -> None:
-
-    # Skip if directories is an empty list
-    if not directories:
-        return
-
-    # If everything worked, proceed to delete directories
-    logger.debug("Removing temp directories")
-    for directory in directories:
-        remove_temp_dir(directory)
-    logger.debug("Successfully removed temp directories")
-
-# if rmtree fails due to non-empty directory, try a few more times
-# this seems necessary on lxplus and maybe some other systems
-def remove_temp_dir(directory, retries=5, delay=1):
-    for attempt in range(retries):
-        try:
-            shutil.rmtree(directory)
-            if logger.isEnabledFor(VERBOSE_LEVEL):
-                logger.verbose(f"Successfully removed: {directory}")  # type: ignore[attr-defined]
-        except OSError as e:
-            if 'Directory not empty' in str(e):
-                if logger.isEnabledFor(VERBOSE_LEVEL):
-                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")  # type: ignore[attr-defined]
-                time.sleep(delay)  # Wait before retrying
-            else:
-                raise  # Raise if it's another type of error
-        else:
-            return
-    logger.exception(f"Failed to remove {directory} after {retries} retries.")
-
-def remove_artifact_files(model_name: str) -> None:
-    """Remove artifact files that are not needed after the scan."""
-    artifact_files = ["HS_analyses.txt",
-                      "HS_correlations.txt",
-                      "Key.dat", "STXS_analyses.txt",
-                      "STXS_correlations.txt",
-                      f"{model_name}.tsv"]
-    for file in artifact_files:
-        if os.path.exists(file):
-            os.remove(file)
-            logger.debug(f"Removed artifact file: {file}")
-        else:
-            logger.debug(f"Artifact file {file} does not exist, skipping removal.")
-
 def get_process_args(model_name: str,
                      ini_name: str,
                      num_points: int) -> List[str]:

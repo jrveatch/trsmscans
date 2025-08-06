@@ -261,10 +261,13 @@ class ParamSpace:
             ini_name (str): Output file path for the .ini file.
         """
 
+        print(f"Writing ini to {ini_name}")
+
         # read in template .ini file
         with open(self.model.template_ini,"r") as template:
             ini_data = template.read()
 
+        print(f'ini_data: {ini_data}')
         # create ini_data with parameters
         ini_data = ini_data.replace("MH1",str(self.mH1))
         ini_data = ini_data.replace("MH2",str(self.mH2))
@@ -274,6 +277,8 @@ class ParamSpace:
         for param_range in self.parameter_ranges.values():
             ini_data = ini_data.replace(param_range.name+"_LOW",str(param_range.low))
             ini_data = ini_data.replace(param_range.name+"_HIGH",str(param_range.high))
+
+        print(ini_data)
 
         # write to .ini file
         with open(ini_name,"w") as outfile:

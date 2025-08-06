@@ -9,17 +9,16 @@ import shutil
 import time
 from typing import Dict, List, Optional, Tuple
 import numpy as np
-from multiprocessing import Process
-import multiprocessing as mp
 from multiprocessing.managers import ValueProxy
 from multiprocessing import Process, Queue
+import glob
 
 # local modules
 from utils.logging_utils import VERBOSE_LEVEL
 from prescan.prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
-from utils.file_utils import scan_dir, recreate_dir
+from utils.file_utils import scan_dir, recreate_dir, remove_temp_directories, remove_temp_dir, remove_artifact_files
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -348,12 +347,12 @@ class Scan:
         initial_pos_set = initial_positions(num_optimizers)
         #initial_pos_set = 1
 
-        print("initial_pos_set of optimizers: ")
-        print(initial_pos_set)
-
+        #print("initial_pos_set of optimizers: ")
+       # print(initial_pos_set)
+ 
         logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
-        directories = [f"dir_{i}" for i in range(num_optimizers)]
+        directories = [f"{self.out_dir}/dir_{i}" for i in range(num_optimizers)]
 
         # Shared queue to get success/error results
         result_queue = Queue()
@@ -378,7 +377,12 @@ class Scan:
 
         # Wait for all processes to finish
         for p in processes:
-            p.join()
+            p.join(timeout=60)
+
+            if p.is_alive():
+                print("Killing job")
+                p.terminate()
+                p.join()
 
         # Collect results
         results = {}
@@ -388,11 +392,37 @@ class Scan:
 
         logger.info("All processes finished. Merging outputs...")
 
+        for dir_path in directories:
+    # Find all .tsv files in this temp directory
+            tsv_files = glob.glob(os.path.join(dir_path, "*.tsv"))
+            ini_files = glob.glob(os.path.join(dir_path, "*.ini"))
+            
+            for i, file_path in enumerate(tsv_files):
+                filename = os.path.basename(file_path)
+
+                # Prefix with directory name to avoid collisions (e.g., dir_0_summary.tsv)
+                unique_filename = f"meanshift-{i}_{filename}"
+
+                dest_path = os.path.join(self.out_dir, "meanshift", "tsv", unique_filename)
+
+                # Move the file
+                shutil.move(file_path, dest_path)
+
+            for file_path in ini_files:
+                filename = os.path.basename(file_path)
+
+                dest_path = os.path.join(self.out_dir, "meanshift", "ini", filename)
+
+                # Move the file
+                shutil.move(file_path, dest_path)
+
         # Merge outputs
         #tsv_files = list_outputs(directories=directories, file_name=self.model.name + ".tsv")
 
         # get dataframe from the output files
         #data = load_scanner_output(tsv_files)
+
+       # merge_outputs(self.outdir)
 
         # clean up artifact files
         remove_artifact_files(self.model)
@@ -402,45 +432,6 @@ class Scan:
             
         #result_queue = multiprocessing.Queue()
         #processes = []
-
-        '''for i, initial_pos in enumerate(initial_pos_set):
-            print(f'Initial position: {initial_pos}')
-            p = multiprocessing.Process(
-                target=run_ms_process,
-                args=(i, initial_pos, self.model, self.out_dir, self.global_param_space, self.optimizer_config_loader, result_queue)
-            )
-            p.start()
-            processes.append(p)
-
-        # Collect results
-        results = []
-        for _ in processes:
-            try:
-                results.append(result_queue.get(timeout=600))
-                print(f"Current results: {results}")
-            except queue.Empty:
-                logger.error("Timeout waiting for optimizer result")  # blocks until each result is available
-
-        # Wait for all processes to complete
-        for p in processes:
-            p.join()
-'''
-        '''
-        for i, initial_pos in enumerate(initial_pos_set):
-            label = f"MeanShiftOptimizer-{i}"
-
-            local_sampler = PointSampler(
-                model=self.model,
-                out_dir=self.out_dir,
-                subdir_name=f"meanshift-{i}"  # give each optimizer its own subdir
-            )
-
-            p = Process(target=optimizer.run)
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()'''
 
         # SCAN LOGIC END HERE
 
@@ -804,7 +795,7 @@ def run_ms_process(
         # Save outputs to optimizer_out_dir
         local_sampler = PointSampler(
             model=model,
-            out_dir=os.getcwd(),
+            out_dir=optimizer_out_dir,
             subdir_name=""
         )
 
@@ -826,76 +817,3 @@ def run_ms_process(
 
     except Exception as e:
         result_queue.put((optimizer_id, f"error: {str(e)}"))
-
-def get_process_args(model_name: str,
-                     ini_name: str,
-                     num_points: int) -> List[str]:
-    args = [model_name, "--config", ini_name, "scan", "-n", str(num_points)]
-    s = next_seed()
-    if s is not None:
-        args.extend(["--seed", str(s)])
-    return args
-
-def next_seed() -> Optional[int]:
-    global seed
-    if seed is None:
-        return None
-    current = seed
-    seed += 1
-    logger.debug(f"Assigning seed: {current}")
-    return current
-
-def list_outputs(directories: List[str],
-                 file_name: str) -> List[str]:
-    output_list: List[str] = []
-    for directory in directories:
-        input_file = os.path.join(directory, file_name)
-        # Check if the file exists before attempting to concatenate
-        if os.path.exists(input_file):
-            output_list.append(input_file)
-        else:
-            logger.warning(f"Missing expected file: {input_file}")
-    return output_list
-
-def remove_artifact_files(model_name: str) -> None:
-    """Remove artifact files that are not needed after the scan."""
-    artifact_files = ["HS_analyses.txt",
-                      "HS_correlations.txt",
-                      "Key.dat", "STXS_analyses.txt",
-                      "STXS_correlations.txt",
-                      f"{model_name}.tsv"]
-    for file in artifact_files:
-        if os.path.exists(file):
-            os.remove(file)
-            logger.debug(f"Removed artifact file: {file}")
-        else:
-            logger.debug(f"Artifact file {file} does not exist, skipping removal.")
-
-def remove_temp_directories(directories: List[str]) -> None:
-
-    # Skip if directories is an empty list
-    if not directories:
-        return
-
-    # If everything worked, proceed to delete directories
-    logger.debug("Removing temp directories")
-    for directory in directories:
-        remove_temp_dir(directory)
-    logger.debug("Successfully removed temp directories")
-
-def remove_temp_dir(directory, retries=5, delay=1):
-    for attempt in range(retries):
-        try:
-            shutil.rmtree(directory)
-            if logger.isEnabledFor(VERBOSE_LEVEL):
-                logger.verbose(f"Successfully removed: {directory}")  # type: ignore[attr-defined]
-        except OSError as e:
-            if 'Directory not empty' in str(e):
-                if logger.isEnabledFor(VERBOSE_LEVEL):
-                    logger.verbose(f"Attempt {attempt + 1}: Directory not empty, retrying in {delay} seconds...")  # type: ignore[attr-defined]
-                time.sleep(delay)  # Wait before retrying
-            else:
-                raise  # Raise if it's another type of error
-        else:
-            return
-    logger.exception(f"Failed to remove {directory} after {retries} retries.")
