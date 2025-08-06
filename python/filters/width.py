@@ -48,12 +48,12 @@ class WidthFilter:
         self.XName = model.get_ordered_scalar_name('X')
 
         # Load configuration thresholds
-        config_loader = ConfigLoader(f"{model.name}_default.yml")
+        model_config = ConfigLoader(f"{model.name}_default.yml")
         try:
             self.thresholds: np.ndarray = np.array([
-                config_loader.get('width', 'max_width_H'),
-                config_loader.get('width', 'max_width_S'),
-                config_loader.get('width', 'max_width_X'),
+                model_config.get('width', 'max_width_H'),
+                model_config.get('width', 'max_width_S'),
+                model_config.get('width', 'max_width_X'),
             ])
         except Exception:
             logger.exception("Failed to load width thresholds from config.")

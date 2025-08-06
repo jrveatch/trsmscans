@@ -44,10 +44,10 @@ class Precision(IntEnum):
         Raises:
             Exception: If the configuration section is missing or invalid.
         """
-        config_loader = ConfigLoader("OptimizerConfig.yml")
+        optimizer_config = ConfigLoader("OptimizerConfig.yml")
 
         try:
-            thresholds: Dict[str, float] = config_loader.get('precision_thresholds')
+            thresholds: Dict[str, float] = optimizer_config.get('precision_thresholds')
         except Exception as e:
             logger.exception(e)
             raise

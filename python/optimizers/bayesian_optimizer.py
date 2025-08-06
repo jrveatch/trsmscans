@@ -14,7 +14,6 @@ class BayesianOptimizer:
                  decay: str,
                  random_point: int,
                  n_points: int,
-                 config_loader,
                  param_space: ParamSpace):
         # TODO: automate finding ranges
         self.model = model
@@ -22,7 +21,6 @@ class BayesianOptimizer:
         self.ranges = {'thetaHS': [-1.570796, 1.570796], 'thetaHX': [-1.570796, 1.570796], 'thetaSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
         self.random_point = random_point
         self.n_points = n_points
-        self.config_loader = config_loader
         self.param_space = param_space
         self.out_dir = scan_dir(model=model,decay=decay)
 
@@ -56,6 +54,7 @@ class BayesianOptimizer:
                                                       decay=self.decay,
                                                       identifier='x')
         except TimeoutError:
+            write_point_to_summary_file(self.out_file, point)
             return 0
 
         # write point to summary file
@@ -69,7 +68,7 @@ class BayesianOptimizer:
         self.set_ranges()
 
         # get output file name
-        self.out_file = self.out_dir + "/bayesian_optimizer/tsv/TRSMBroken.tsv"
+        self.out_file = self.out_dir + "/bayes/tsv/TRSMBroken.tsv"
 
         # create an empty output file
         with open(self.out_file, 'w') as file:
