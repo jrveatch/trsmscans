@@ -16,3 +16,6 @@ bounds:
 HTCondor:
   num_cpus: 8 # default number of CPUs to request
   job_length: "espresso" # default job runtime (espresso, microcentury, longlunch, etc.) more details at https://batchdocs.web.cern.ch/local/submit.html
+
+params:
+  #seed: 123456 # random seed for ParamRange.random_point() - should be commented out except for development
