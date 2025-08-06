@@ -265,12 +265,12 @@ class Scan:
 
         # Returns a list of initial positions for shifters
         def initial_positions(num_optimizers: int) -> Tuple[Point]:
-            results = []
+            random_positions = []
 
-            for i in range(num_optimizers):
-                results.append(self.global_param_space.random_point())
+            for _ in range(num_optimizers):
+                random_positions.append(self.global_param_space.random_point())
 
-            return tuple(results)
+            return tuple(random_positions)
 
         initial_pos_set = initial_positions(num_optimizers)
 
