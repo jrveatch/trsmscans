@@ -2,9 +2,11 @@
 # standard libraries
 import copy
 from functools import cached_property
+import random
 from typing import Dict, List, Optional, Tuple
 
 # local modules
+from utils.config_loader import ConfigLoader
 from utils.logging_utils import log_table
 from utils.model import Model
 from utils.param_range import ParamRange
@@ -43,6 +45,20 @@ class ParamSpace:
             decay (str): The decay mode used for scan analysis.
             name (str): A label for the parameter space instance.
         """
+
+        # get configurations
+        run_config = ConfigLoader("RunConfig.yml")
+        try:
+            # random seed for random_point - should generally be None, unless needed for development
+            initial_seed: Optional[int] = run_config.get('params', 'seed', default=None)
+            if initial_seed is not None:
+                logger.info(f"Setting params random seed to {initial_seed}")
+        except Exception as e:
+            logger.exception(e)
+            raise
+
+        # create random number generator with initial seed
+        self.rng = random.Random(initial_seed)
 
         # get model using model_name
         self.__model = model
@@ -83,7 +99,9 @@ class ParamSpace:
     @cached_property
     def parameter_ranges(self) -> Dict[str, ParamRange]:
         """Returns a dictionary mapping parameter names to ParamRange objects."""
-        return {name: ParamRange(name, self.model.input_parameter(name))
+        return {name: ParamRange(name=name,
+                                 param_info=self.model.input_parameter(name),
+                                 rng=self.rng)
                 for name in self.parameter_names}
 
     @property
