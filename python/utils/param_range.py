@@ -4,7 +4,6 @@ import random
 from typing import Any, Dict, Optional, Tuple
 
 # local modules
-from utils.config_loader import ConfigLoader
 from utils.math_utils import round_sig
 
 # get logger
@@ -28,28 +27,16 @@ class ParamRange:
 
     def __init__(self,
                  name: str,
-                 param_info: Dict[str, Any]):
+                 param_info: Dict[str, Any],
+                 rng: Optional[random.Random] = None):
         """
         Initializes a ParamRange for a single parameter.
 
         Args:
             name (str): Short name of the parameter.
             param_info (Dict[str, Any]): Dictionary containing 'fullname', 'min', and 'max'.
+            rng (Optional[random.Random]): Random number generator instance for sampling.
         """
-
-        # get configurations
-        run_config = ConfigLoader("RunConfig.yml")
-        try:
-            # random seed for random_point - should generally be None, unless needed for development
-            initial_seed: Optional[int] = run_config.get('params', 'seed', default=None)
-        except Exception as e:
-            logger.exception(e)
-            raise
-
-        # if random seed is provided, set it
-        if initial_seed is not None:
-            print(f"setting seed to {initial_seed}")
-            random.seed(initial_seed)
 
         # initialize parameter name
         self.name = name
@@ -60,6 +47,9 @@ class ParamRange:
         # initialize bounds
         self.min_value = param_info['min']
         self.max_value = param_info['max']
+
+        # save random generator if provided
+        self.rng = rng if rng is not None else random.Random()
 
     @property
     def name(self) -> str:
@@ -251,7 +241,7 @@ class ParamRange:
         Returns:
             float: A random value between low and high.
         """
-        return random.uniform(self.low, self.high)
+        return self.rng.uniform(self.low, self.high)
 
     def format_bounds(self) -> str:
         """
