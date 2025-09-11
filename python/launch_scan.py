@@ -392,6 +392,7 @@ def main():
                             overwrite=force_rerun,
                             dry_run=dry_run)
             else:
+                assert decay is not None
                 run_scan(model=model,
                          decay=decay,
                          strategy=strategy,
