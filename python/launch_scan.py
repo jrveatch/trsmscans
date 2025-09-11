@@ -320,9 +320,6 @@ def main():
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
-    # Already checked that decay is not None
-    assert decay is not None
-
     job_count = 0
     skip_count = 0
 
@@ -333,7 +330,7 @@ def main():
             print(f"Skipping {mass_string} because it is not calculable")
             continue
         limit_target = min(limits.values()) if limits else args.limit_target
-        if precision is None and limit_target is None:
+        if mode == "scan" and precision is None and limit_target is None:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if mode == "scan" and not force_rerun:
             try:
