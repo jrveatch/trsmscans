@@ -37,7 +37,7 @@ HSDATASET_ENV_VAR="HSDATASET_PATH"
 
 # === Helper: Test for SSH access to gitlab.com ===
 function has_ssh_access() {
-    ssh -T git@gitlab.com -o BatchMode=yes -o ConnectTimeout=5 2>&1 | grep -q "Welcome"
+    ssh -T git@gitlab.com -o BatchMode=yes -o ConnectTimeout=5 2>&1 | grep -e "Welcome"
 }
 
 # === Helper: Handle submodule ===
