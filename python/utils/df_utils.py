@@ -73,20 +73,10 @@ def write_to_tsv(dataframe: pd.DataFrame,
     """
 
     try:
-        # Check if the file exists. If it exists, append only. Otherwise, create and add entries.
-        if os.path.exists(file_name):
-            #if len(open(file_name,'r').readlines()) >= 1:
-            dataframe.to_csv(file_name,
-                             sep='\t',
-                             index=True,
-                             index_label=index_label,
-                             header=False,
-                             mode='a')
-        else:
-            dataframe.to_csv(file_name,
-                             sep='\t',
-                             index=True,
-                             index_label=index_label)
+        dataframe.to_csv(file_name,
+                         sep='\t',
+                         index=True,
+                         index_label=index_label)
     except Exception:
         logger.exception(f"Error writing to file {file_name}")
         raise

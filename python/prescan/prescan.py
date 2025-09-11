@@ -114,10 +114,25 @@ def prescan(model: Model,
                                  out_dir = out_dir)
 
     # run prescan in chunks until we reach the requested number of points
+    parser = point_sampler.sample_points(
+        param_space = param_space,
+        num_points_requested = num_points_to_run,
+        identifier = "prescan",
+        good_points_only = False
+    )
+
+    '''
+    # run prescan in chunks until we reach the requested number of points
     parser = None
     while num_points_to_run > 0:
+        # Update the number of points needed to run
         num_current = count_tsv_points(tsv_name)
         remaining = num_points - num_current
+        print('################################## DEBUG ##################################')
+        print(f'num_current = {num_current}')
+        print(f'num_points = {num_points}')
+        print(f'remaining = {remaining}')
+        print('################################## DEBUG ##################################')
 
         if remaining <= 0:
             logger.info(f"Reached {num_current} points, target met.")
@@ -135,6 +150,7 @@ def prescan(model: Model,
             identifier = "prescan",
             good_points_only = False
         )
+    '''
 
     # get total time taken
     scan_end = time.time()
