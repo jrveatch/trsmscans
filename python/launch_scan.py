@@ -320,9 +320,6 @@ def main():
     else:
         raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
-    # Already checked that decay is not None
-    assert decay is not None
-
     job_count = 0
     skip_count = 0
 
@@ -333,9 +330,10 @@ def main():
             print(f"Skipping {mass_string} because it is not calculable")
             continue
         limit_target = min(limits.values()) if limits else args.limit_target
-        if precision is None and limit_target is None:
+        if mode == "scan" and precision is None and limit_target is None:
             raise ValueError("If no precision is set, a limit target must be provided, either from a .json file or using the --limit-target argument.")
         if mode == "scan" and not force_rerun:
+            assert decay is not None
             try:
                 status, count, prev_precision = get_mass_point_status(
                     model=model,
@@ -366,6 +364,7 @@ def main():
         log_level = logging_utils.LOG_LEVELS[args.log_level.lower()]
         log_file = os.path.join(prescan_dir(model), "prescan.log")
         if mode == "scan":
+            assert decay is not None
             log_file = os.path.join(scan_dir(model=model, decay=decay), f"{strategy}.log")
 
         logging_utils.setup_logging(log_file=log_file,
@@ -393,6 +392,7 @@ def main():
                             overwrite=force_rerun,
                             dry_run=dry_run)
             else:
+                assert decay is not None
                 run_scan(model=model,
                          decay=decay,
                          strategy=strategy,
