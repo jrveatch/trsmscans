@@ -1,5 +1,5 @@
 
-## TRSMScans
+# TRSMScans
 
 A complete set of tools to automate scanning the TRSM model using ScannerS to maximize the cross-section times branching for various final states.
 
@@ -22,9 +22,14 @@ Make sure you have the following installed:
 - GSL, can be installed through the package manager on most unix systems.
   The package is called `libgsl-dev` on Ubuntu and `gsl` most everywhere else
   (e.g. on OpenSUSE/CentOS or homebrew).
-- Eigen3 >= 3.3.0, can be installed through the package manager on most unix
-  systems. The package is called `libeigen3-dev` on Ubuntu, `eigen3` on
-  OpenSUSE/CentOS and `eigen` in homebrew.
+- Eigen3 >= 3.3.0 (3.x series only). This project is not yet compatible
+  with Eigen 5.x, so please ensure you have an Eigen 3.x installation.
+  - Ubuntu/Debian: install `libeigen3-dev`.
+  - OpenSUSE/CentOS and similar: install the `eigen3` package.
+  - macOS (Homebrew): install and use `eigen@3` (not the unversioned
+    `eigen` formula, which provides Eigen 5.x). For example:
+    - `brew install eigen@3`
+    - `brew link eigen@3 --force`
 - `clang` >= 5. If you are using macOS, this corresponds to `Apple clang` >= 7.
 
 Note: If you are using a Mac, the installation seems to work better if you use homebrew instead of macports as your package manager.
