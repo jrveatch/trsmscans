@@ -179,10 +179,10 @@ class PointSampler:
 
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
-                                num_points = num_points_requested,
-                                model_name = param_space.model_name,
-                                use_multiprocessing = use_multiprocessing,
-                                run_test_job = run_test_job)
+                                  num_points = num_points_requested,
+                                  model_name = param_space.model_name,
+                                  use_multiprocessing = use_multiprocessing,
+                                  run_test_job = run_test_job)
 
             # Update the total points run
             self.total_points_run += len(points)
