@@ -59,10 +59,9 @@ class WidthFilter:
             logger.exception("Failed to load width thresholds from config.")
             raise
 
-    def get_result(
-        self,
-        data: pd.DataFrame,
-        header: str) -> pd.Series:
+    def get_result(self,
+                   data: pd.DataFrame,
+                   header: str) -> pd.Series:
         """
         Evaluate the width filter for each scan point.
 
@@ -111,10 +110,9 @@ class WidthFilter:
             logger.exception(f"Error occurred while applying width filter: {e}")
             raise
 
-    def apply(
-        self,
-        data: pd.DataFrame,
-        header: str) -> None:
+    def apply(self,
+              data: pd.DataFrame,
+              header: str) -> None:
         """
         Evaluate the width filter and add the results to the DataFrame.
 
