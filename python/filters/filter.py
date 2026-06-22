@@ -77,15 +77,15 @@ class FilterPipeline:
                 The filtered DataFrame and a summary of filter pass counts.
         """
         width_result = self.width_filter.apply(
-            data=data,
-            header=self.header_width,
+            data = data,
+            header = self.header_width
         )
 
         bounds_results = self.bounds_filter.apply(
-            data=data,
-            header_bounds=self.header_bounds,
-            header_signals=self.header_signals,
-            use_multiprocessing=use_multiprocessing,
+            data = data,
+            header_bounds = self.header_bounds,
+            header_signals = self.header_signals,
+            use_multiprocessing = use_multiprocessing
         )
 
         data = pd.concat(
