@@ -140,7 +140,8 @@ class BoundsFilter:
 
     def _run_processing(self,
                         df: pd.DataFrame,
-                        n_workers: int) -> Tuple[List[int], List[int]]:
+                        n_workers: int
+                       ) -> Tuple[List[int], List[int]]:
         """
         Internal method to handle serial or parallel filtering.
 
@@ -231,7 +232,8 @@ class BoundsFilter:
         return filt_bounds, filt_signals
 
     def _extract_SM_BRs(self,
-                        row: Any) -> Dict[str, Dict[str, float]]:
+                        row: Any
+                       ) -> Dict[str, Dict[str, float]]:
         """
         Extracts SM branching ratios for each scalar from a scan row.
 
@@ -256,7 +258,8 @@ class BoundsFilter:
         }
 
     def _extract_BSM_BRs(self,
-                         row: Any) -> Dict[str, Dict[Tuple[str, str], float]]:
+                         row: Any
+                        ) -> Dict[str, Dict[Tuple[str, str], float]]:
         """
         Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
 
@@ -294,7 +297,8 @@ class BoundsFilter:
 def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
                    min_chunk_size: int,
-                   log_level: int) -> Tuple[List[int], List[int]]:
+                   log_level: int
+                  ) -> Tuple[List[int], List[int]]:
     logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
@@ -306,7 +310,8 @@ def configure_particle(particle,
                        rescalings: Dict[str, float],
                        BRs_SM: Dict[str, Dict[str, float]],
                        BRs_BSM: Dict[str, Dict[Tuple[str, str], float]],
-                       adjust_ZZ: bool) -> None:
+                       adjust_ZZ: bool
+                      ) -> None:
     """
     Sets mass, width, rescaling, and branching ratios for a given Higgs scalar.
 
@@ -415,7 +420,8 @@ def set_BRs(particle,
 
 def print_bounds_result(bounds_result,
                         idx: int,
-                        masses: Dict[str, float]) -> None:
+                        masses: Dict[str, float]
+                       ) -> None:
     """
     Prints verbose details for bounds violations, including excluded limits.
 
