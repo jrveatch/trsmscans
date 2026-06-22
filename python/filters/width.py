@@ -59,7 +59,7 @@ class WidthFilter:
             logger.exception("Failed to load width thresholds from config.")
             raise
 
-    def get_result(self,
+    def apply(self,
                    data: pd.DataFrame,
                    header: str) -> pd.Series:
         """
@@ -109,25 +109,3 @@ class WidthFilter:
         except Exception as e:
             logger.exception(f"Error occurred while applying width filter: {e}")
             raise
-
-    def apply(self,
-              data: pd.DataFrame,
-              header: str) -> None:
-        """
-        Evaluate the width filter and add the results to the DataFrame.
-
-        This method modifies ``data`` in place by adding a new column containing
-        the width filter results. It is retained for compatibility with existing
-        code. For workflows that add multiple filter columns, prefer
-        ``get_result(...)`` and append all new columns using a single
-        ``pd.concat(..., axis=1)`` operation.
-
-        Args:
-            data (pd.DataFrame): Scan points to evaluate and modify.
-            header (str): Name of the filter result column to add.
-
-        Returns:
-            None
-        """
-        result = self.get_result(data=data, header=header)
-        data.loc[:, header] = result

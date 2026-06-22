@@ -97,7 +97,7 @@ class BoundsFilter:
             }
         }
 
-    def get_results(self,
+    def apply(self,
                     data: pd.DataFrame,
                     header_bounds: str,
                     header_signals: str,
@@ -129,38 +129,6 @@ class BoundsFilter:
             },
             index=data.index,
         )
-
-    def apply(self,
-              data: pd.DataFrame,
-              header_bounds: str,
-              header_signals: str,
-              use_multiprocessing: bool = True) -> None:
-        """
-        Evaluate HiggsBounds and HiggsSignals and add the results to ``data``.
-        This method modifies ``data`` in place by adding two filter columns. It is
-        kept for compatibility with existing code. For workflows that add several
-        columns, prefer ``get_results(...)`` and add all new columns with a single
-        ``pd.concat(..., axis=1)`` call to avoid DataFrame fragmentation warnings.
-
-        Args:
-            data (pd.DataFrame): Scan points to evaluate and modify.
-            header_bounds (str): Name of the column to add for HiggsBounds results.
-            header_signals (str): Name of the column to add for HiggsSignals results.
-            use_multiprocessing (bool): Whether to split the work across multiple
-                processes when the input is large enough.
-
-        Returns:
-            None
-
-        """
-        results = self.get_results(
-            data=data,
-            header_bounds=header_bounds,
-            header_signals=header_signals,
-            use_multiprocessing=use_multiprocessing,
-        )
-
-        data.loc[:, [header_bounds, header_signals]] = results
 
     def _run_processing(self,
                         df: pd.DataFrame,

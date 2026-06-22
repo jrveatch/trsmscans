@@ -76,12 +76,12 @@ class FilterPipeline:
             Tuple[pd.DataFrame, Dict[str, int]]:
                 The filtered DataFrame and a summary of filter pass counts.
         """
-        width_result = self.width_filter.get_result(
+        width_result = self.width_filter.apply(
             data=data,
             header=self.header_width,
         )
 
-        bounds_results = self.bounds_filter.get_results(
+        bounds_results = self.bounds_filter.apply(
             data=data,
             header_bounds=self.header_bounds,
             header_signals=self.header_signals,
