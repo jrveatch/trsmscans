@@ -187,15 +187,15 @@ class PointSampler:
             # Update the total points run
             self.total_points_run += len(points)
 
-            # Append points to data
-            data = pd.concat([data, points], ignore_index=True)
-
             # Print info about applying filters
             logger.debug("Applying filters...")
 
             # Apply filters
-            results = self.filter_pipeline.apply_filters(data = data,
-                                                         use_multiprocessing = use_multiprocessing)
+            points, results = self.filter_pipeline.apply_filters(data = points,
+                                                                 use_multiprocessing = use_multiprocessing)
+
+            # Append points to data
+            data = pd.concat([data, points], ignore_index=True)
 
             # Update the numbers of events passing filters
             self.n_width += results["width"]

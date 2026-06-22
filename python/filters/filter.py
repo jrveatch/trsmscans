@@ -11,7 +11,7 @@ filtering statistics.
 
 # standard libraries
 import argparse
-from typing import Dict
+from typing import Dict, Tuple
 
 import pandas as pd
 
@@ -59,41 +59,50 @@ class FilterPipeline:
 
     def apply_filters(self,
                       data: pd.DataFrame,
-                      use_multiprocessing: bool = True) -> Dict[str, int]:
+                      use_multiprocessing: bool = True,
+                     ) -> Tuple[pd.DataFrame, Dict[str, int]]:
         """
-        Applies width, bounds, and signal filters to a scan result file.
+        Applies width, bounds, and signal filters.
 
-        Reads a TSV file into a DataFrame, applies filters in sequence,
-        writes updated results back to disk, and returns filter pass counts.
-
-        Args:
-            data (pd.DataFrame): Dataframe of the scan output
-            use_multiprocessing (bool): Whether to enable parallel processing for bounds filtering.
-
-        Returns:
-            Dict[str, int]: A dictionary with counts of rows passing each individual filter
-                            and all filters combined. Keys include 'width', 'bounds', 'signals', and 'pass'.
+        Returns a new DataFrame with all filter columns added at once, plus filter counts.
         """
 
-        # Apply filters
-        self.width_filter.apply(data=data,
-                                header=self.header_width)
-        self.bounds_filter.apply(data=data,
-                                 header_bounds=self.header_bounds,
-                                 header_signals=self.header_signals,
-                                 use_multiprocessing=use_multiprocessing)
+        width_result = self.width_filter.get_result(
+            data=data,
+            header=self.header_width,
+        )
 
-        # Compute stats
+        bounds_results = self.bounds_filter.get_results(
+            data=data,
+            header_bounds=self.header_bounds,
+            header_signals=self.header_signals,
+            use_multiprocessing=use_multiprocessing,
+        )
+
+        data = pd.concat(
+            [
+                data,
+                width_result,
+                bounds_results,
+            ],
+            axis=1,
+        )
+
+        # Optional but useful after previous fragmentation elsewhere.
+        data = data.copy()
+
         f_width = data[self.header_width].astype(bool)
         f_bounds = data[self.header_bounds].astype(bool)
         f_signals = data[self.header_signals].astype(bool)
 
-        return {
-            "width": f_width.sum(),
-            "bounds": f_bounds.sum(),
-            "signals": f_signals.sum(),
-            "pass": (f_width & f_bounds & f_signals).sum(),
+        results = {
+            "width": int(f_width.sum()),
+            "bounds": int(f_bounds.sum()),
+            "signals": int(f_signals.sum()),
+            "pass": int((f_width & f_bounds & f_signals).sum()),
         }
+
+        return data, results
 
 # Entry point for the script. Parses command-line arguments, constructs the model,
 # loads configuration, and applies filters to the input TSV file.
@@ -116,4 +125,4 @@ if __name__ == "__main__":
 
     data = get_df(args.file_name)
 
-    filter_pipeline.apply_filters(data=data)
+    data, results = filter_pipeline.apply_filters(data=data)
