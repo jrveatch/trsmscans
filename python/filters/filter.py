@@ -62,11 +62,20 @@ class FilterPipeline:
                       use_multiprocessing: bool = True,
                      ) -> Tuple[pd.DataFrame, Dict[str, int]]:
         """
-        Applies width, bounds, and signal filters.
+        Evaluate all configured filters for the provided scan points.
 
-        Returns a new DataFrame with all filter columns added at once, plus filter counts.
+        The width, HiggsBounds, and HiggsSignals filters are applied and their
+        results are appended as new columns using a single concatenation operation.
+
+        Args:
+            data (pd.DataFrame): Scan points to evaluate.
+            use_multiprocessing (bool): Whether to use multiprocessing when
+                evaluating HiggsBounds and HiggsSignals.
+
+        Returns:
+            Tuple[pd.DataFrame, Dict[str, int]]:
+                The filtered DataFrame and a summary of filter pass counts.
         """
-
         width_result = self.width_filter.get_result(
             data=data,
             header=self.header_width,

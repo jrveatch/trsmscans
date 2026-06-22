@@ -62,10 +62,27 @@ class WidthFilter:
     def get_result(
         self,
         data: pd.DataFrame,
-        header: str,
-    ) -> pd.Series:
+        header: str) -> pd.Series:
         """
-        Computes the width filter result without modifying data.
+        Evaluate the width filter for each scan point.
+
+        A scan point passes the width filter if the widths of all scalar states
+        are less than the corresponding mass multiplied by the configured width
+        threshold. The input DataFrame is not modified.
+
+        Args:
+            data (pd.DataFrame): Scan points to evaluate. The DataFrame must
+                contain the required mass and width columns for all scalar states.
+            header (str): Name to assign to the returned filter result column.
+
+        Returns:
+            pd.Series: Binary filter results indexed to match ``data``. A value
+                of ``1`` indicates that the scan point passes the width filter,
+                and ``0`` indicates that it fails.
+
+        Raises:
+            KeyError: If one or more required mass or width columns are missing.
+            Exception: If an unexpected error occurs during evaluation.
         """
         try:
             arr_widths: np.ndarray = data[
@@ -94,14 +111,25 @@ class WidthFilter:
             logger.exception(f"Error occurred while applying width filter: {e}")
             raise
 
-    def apply(self,
-              data: pd.DataFrame,
-              header: str
-             ) -> None:
+    def apply(
+        self,
+        data: pd.DataFrame,
+        header: str) -> None:
         """
-        Applies width constraints to the data in-place.
+        Evaluate the width filter and add the results to the DataFrame.
 
-        Prefer get_result(...) plus pd.concat(...) when adding several filter columns.
+        This method modifies ``data`` in place by adding a new column containing
+        the width filter results. It is retained for compatibility with existing
+        code. For workflows that add multiple filter columns, prefer
+        ``get_result(...)`` and append all new columns using a single
+        ``pd.concat(..., axis=1)`` operation.
+
+        Args:
+            data (pd.DataFrame): Scan points to evaluate and modify.
+            header (str): Name of the filter result column to add.
+
+        Returns:
+            None
         """
         result = self.get_result(data=data, header=header)
         data.loc[:, header] = result

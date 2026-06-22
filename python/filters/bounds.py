@@ -103,7 +103,21 @@ class BoundsFilter:
                     header_signals: str,
                     use_multiprocessing: bool = True) -> pd.DataFrame:
         """
-        Computes bounds and signal filter results without modifying data.
+        Evaluate HiggsBounds and HiggsSignals for each scan point.
+        This method does not modify ``data``. It returns a new DataFrame containing
+        the two requested filter columns, indexed to match the input DataFrame.
+
+        Args:
+            data (pd.DataFrame): Scan points to evaluate.
+            header_bounds (str): Name of the output column for HiggsBounds results.
+            header_signals (str): Name of the output column for HiggsSignals results.
+            use_multiprocessing (bool): Whether to split the work across multiple
+                processes when the input is large enough.
+
+        Returns:
+            pd.DataFrame: A two-column DataFrame containing binary pass/fail results.
+                A value of ``1`` means the point passed the corresponding filter, and
+                ``0`` means it failed.
         """
         n_workers = get_n_cpus() if use_multiprocessing else 1
         filt_bounds, filt_signals = self._run_processing(data, n_workers)
@@ -122,9 +136,22 @@ class BoundsFilter:
               header_signals: str,
               use_multiprocessing: bool = True) -> None:
         """
-        Applies bounds and signal filters in-place.
+        Evaluate HiggsBounds and HiggsSignals and add the results to ``data``.
+        This method modifies ``data`` in place by adding two filter columns. It is
+        kept for compatibility with existing code. For workflows that add several
+        columns, prefer ``get_results(...)`` and add all new columns with a single
+        ``pd.concat(..., axis=1)`` call to avoid DataFrame fragmentation warnings.
 
-        Prefer get_results(...) plus pd.concat(...) when adding several filter columns.
+        Args:
+            data (pd.DataFrame): Scan points to evaluate and modify.
+            header_bounds (str): Name of the column to add for HiggsBounds results.
+            header_signals (str): Name of the column to add for HiggsSignals results.
+            use_multiprocessing (bool): Whether to split the work across multiple
+                processes when the input is large enough.
+
+        Returns:
+            None
+
         """
         results = self.get_results(
             data=data,
@@ -293,6 +320,20 @@ def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
                    min_chunk_size: int,
                    log_level: int) -> Tuple[List[int], List[int]]:
+    """
+    Process a chunk of scan data in a worker process.
+
+    Args:
+        model (Model): Scalar model used for the evaluation.
+        chunk (pd.DataFrame): Chunk of scan data to process.
+        min_chunk_size (int): Minimum chunk size used when configuring the
+            temporary BoundsFilter.
+        log_level (int): Logging level inherited from the parent process.
+
+    Returns:
+        Tuple[List[int], List[int]]: Binary HiggsBounds and HiggsSignals
+            pass/fail results for the scan points in the chunk.
+    """
     logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
