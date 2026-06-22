@@ -101,8 +101,7 @@ class BoundsFilter:
                     data: pd.DataFrame,
                     header_bounds: str,
                     header_signals: str,
-                    use_multiprocessing: bool = True
-                   ) -> pd.DataFrame:
+                    use_multiprocessing: bool = True) -> pd.DataFrame:
         """
         Computes bounds and signal filter results without modifying data.
         """
@@ -117,13 +116,11 @@ class BoundsFilter:
             index=data.index,
         )
 
-
     def apply(self,
               data: pd.DataFrame,
               header_bounds: str,
               header_signals: str,
-              use_multiprocessing: bool = True
-             ) -> None:
+              use_multiprocessing: bool = True) -> None:
         """
         Applies bounds and signal filters in-place.
 
@@ -140,8 +137,7 @@ class BoundsFilter:
 
     def _run_processing(self,
                         df: pd.DataFrame,
-                        n_workers: int
-                       ) -> Tuple[List[int], List[int]]:
+                        n_workers: int) -> Tuple[List[int], List[int]]:
         """
         Internal method to handle serial or parallel filtering.
 
@@ -232,8 +228,7 @@ class BoundsFilter:
         return filt_bounds, filt_signals
 
     def _extract_SM_BRs(self,
-                        row: Any
-                       ) -> Dict[str, Dict[str, float]]:
+                        row: Any) -> Dict[str, Dict[str, float]]:
         """
         Extracts SM branching ratios for each scalar from a scan row.
 
@@ -297,8 +292,7 @@ class BoundsFilter:
 def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
                    min_chunk_size: int,
-                   log_level: int
-                  ) -> Tuple[List[int], List[int]]:
+                   log_level: int) -> Tuple[List[int], List[int]]:
     logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
@@ -310,8 +304,7 @@ def configure_particle(particle,
                        rescalings: Dict[str, float],
                        BRs_SM: Dict[str, Dict[str, float]],
                        BRs_BSM: Dict[str, Dict[Tuple[str, str], float]],
-                       adjust_ZZ: bool
-                      ) -> None:
+                       adjust_ZZ: bool) -> None:
     """
     Sets mass, width, rescaling, and branching ratios for a given Higgs scalar.
 
@@ -333,8 +326,7 @@ def configure_particle(particle,
 
 def set_effective_couplings(particle,
                             mass: float,
-                            rescaling: float
-                           ) -> None:
+                            rescaling: float) -> None:
     """
     Sets effective couplings for a scalar particle using a mass-dependent prescription.
 
@@ -352,8 +344,7 @@ def set_effective_couplings(particle,
 def set_BRs(particle,
             BRs_SM: Dict[str,float],
             BRs_BSM: Dict[Tuple[str,str],float],
-            adjust_ZZ: bool
-           ) -> None:
+            adjust_ZZ: bool) -> None:
     """
     Sets the SM and BSM branching ratios for a scalar particle.
 
