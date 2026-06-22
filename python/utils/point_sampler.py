@@ -280,14 +280,13 @@ class PointSampler:
         logger.debug("Applying filters...")
 
         # Apply filters
-        results = self.filter_pipeline.apply_filters(data)
+        data, results = self.filter_pipeline.apply_filters(data)
 
         # Update the filtered variables
         self.n_width = results["width"]
         self.n_bounds = results["bounds"]
         self.n_signals = results["signals"]
         self.n_pass = results["pass"]
-
 
         # Create parser from output .tsv
         self.parser = Parse(model = point.model,
