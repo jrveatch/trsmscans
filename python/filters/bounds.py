@@ -98,10 +98,10 @@ class BoundsFilter:
         }
 
     def apply(self,
-                    data: pd.DataFrame,
-                    header_bounds: str,
-                    header_signals: str,
-                    use_multiprocessing: bool = True) -> pd.DataFrame:
+              data: pd.DataFrame,
+              header_bounds: str,
+              header_signals: str,
+              use_multiprocessing: bool = True) -> pd.DataFrame:
         """
         Evaluate HiggsBounds and HiggsSignals for each scan point.
         This method does not modify ``data``. It returns a new DataFrame containing

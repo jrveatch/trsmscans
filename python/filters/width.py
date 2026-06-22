@@ -60,8 +60,8 @@ class WidthFilter:
             raise
 
     def apply(self,
-                   data: pd.DataFrame,
-                   header: str) -> pd.Series:
+              data: pd.DataFrame,
+              header: str) -> pd.Series:
         """
         Evaluate the width filter for each scan point.
 
