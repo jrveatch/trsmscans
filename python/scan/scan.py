@@ -508,7 +508,7 @@ class Scan:
                 label = f'ZoomOptimizer-{i}'
             )
 
-            logger.info(f"Initializing ZoomOptimizer-{i} with {points_per_optimizer_list[i]} points")
+            logger.info(f"Initializing {zoom_optimizer.label} with {points_per_optimizer_list[i]} points")
 
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
