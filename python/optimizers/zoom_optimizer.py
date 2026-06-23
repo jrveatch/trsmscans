@@ -248,7 +248,7 @@ class ZoomOptimizer:
         if self.check_stopping_conditions(new_max):
             self.is_running = False
             do_zoom = False
-            self.termination_message("Terminating zoom optimizer")
+            self.termination_message(f"Terminating {self.label}")
 
         # store history of local max of xb
         self.local_history.append(new_max)
