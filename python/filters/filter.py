@@ -20,7 +20,7 @@ from filters.bounds import BoundsFilter
 from filters.width import WidthFilter
 from utils.config_loader import ConfigLoader
 from utils.df_utils import get_df
-from utils.model import Model
+from utils.model import Model, supported_models
 
 # get logger
 import logging
@@ -117,7 +117,8 @@ if __name__ == "__main__":
     # parse command line arguments
     arg_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     arg_parser.add_argument("-f", "--file_name", help="Name of file to apply filters to")
-    arg_parser.add_argument("-m", "--model", required=True, type=str, help="Model name")
+    arg_parser.add_argument("-m", "--model", required=True, type=str, choices=supported_models, help="Model name")
+    arg_parser.add_argument("-c", "--config-id", default="default", type=str, help="Configuration ID for model parameters")
     arg_parser.add_argument("-X", "--XMass", required=True, type=float, help="Mass of scalar X in GeV")
     arg_parser.add_argument("-S", "--SMass", required=True, type=float, help="Mass of scalar S in GeV")
     arg_parser.add_argument("-H", "--HMass", default=125.09, type=float, help="Mass of scalar H in GeV")
@@ -125,7 +126,8 @@ if __name__ == "__main__":
 
     # create model object
     model = Model(name=args.model,
-                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass})
+                  masses={'H': args.HMass, 'S': args.SMass, 'X': args.XMass},
+                  config_id=args.config_id)
 
     filter_pipeline = FilterPipeline(model)
 

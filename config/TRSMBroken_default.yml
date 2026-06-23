@@ -9,4 +9,4 @@ width:
 
 scan:
   default_prescan_points: 10000
-  default_starting_points: 10000
+  default_zoom_points: 10000
