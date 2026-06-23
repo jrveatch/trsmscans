@@ -477,10 +477,12 @@ class Scan:
             num_points (int): Number of points to use in the first iteration.
         """
 
-        logger.info("USING NEW CREATE ZOOM OPTIMIZERS METHOD")
-
         # Retrieve the list of param spaces
         list_of_param_spaces = self.get_param_spaces(param_space)
+
+        # Print info about the number of param spaces created
+        logger.info(f"Creating {len(list_of_param_spaces)} zoom optimizers:")
+        logger.info("--------------------------------------")
 
         # List that holds all the zoom optimizers created
         all_zoom_optimizers: List[ZoomOptimizer] = []
@@ -510,10 +512,9 @@ class Scan:
 
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
-
-        # Print the number of zoom optimizers
-        logger.info(f"Using {len(all_zoom_optimizers)} ZoomOptimizer(s)\n")
         
+        logger.info("--------------------------------------\n")
+
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
