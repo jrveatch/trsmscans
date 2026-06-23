@@ -179,23 +179,23 @@ class PointSampler:
 
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
-                                num_points = num_points_requested,
-                                model_name = param_space.model_name,
-                                use_multiprocessing = use_multiprocessing,
-                                run_test_job = run_test_job)
+                                  num_points = num_points_requested,
+                                  model_name = param_space.model_name,
+                                  use_multiprocessing = use_multiprocessing,
+                                  run_test_job = run_test_job)
 
             # Update the total points run
             self.total_points_run += len(points)
-
-            # Append points to data
-            data = pd.concat([data, points], ignore_index=True)
 
             # Print info about applying filters
             logger.debug("Applying filters...")
 
             # Apply filters
-            results = self.filter_pipeline.apply_filters(data = data,
-                                                         use_multiprocessing = use_multiprocessing)
+            points, results = self.filter_pipeline.apply_filters(data = points,
+                                                                 use_multiprocessing = use_multiprocessing)
+
+            # Append points to data
+            data = pd.concat([data, points], ignore_index=True)
 
             # Update the numbers of events passing filters
             self.n_width += results["width"]
@@ -280,14 +280,13 @@ class PointSampler:
         logger.debug("Applying filters...")
 
         # Apply filters
-        results = self.filter_pipeline.apply_filters(data)
+        data, results = self.filter_pipeline.apply_filters(data)
 
         # Update the filtered variables
         self.n_width = results["width"]
         self.n_bounds = results["bounds"]
         self.n_signals = results["signals"]
         self.n_pass = results["pass"]
-
 
         # Create parser from output .tsv
         self.parser = Parse(model = point.model,

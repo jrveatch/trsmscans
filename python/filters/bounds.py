@@ -101,22 +101,34 @@ class BoundsFilter:
               data: pd.DataFrame,
               header_bounds: str,
               header_signals: str,
-              use_multiprocessing: bool = True) -> None:
+              use_multiprocessing: bool = True) -> pd.DataFrame:
         """
-        Applies bounds and signal filters to a scan DataFrame.
-
-        Adds two columns indicating pass/fail status for HiggsBounds and HiggsSignals.
+        Evaluate HiggsBounds and HiggsSignals for each scan point.
+        This method does not modify ``data``. It returns a new DataFrame containing
+        the two requested filter columns, indexed to match the input DataFrame.
 
         Args:
-            data (pd.DataFrame): The scan data.
-            header_bounds (str): Column name for HiggsBounds result.
-            header_signals (str): Column name for HiggsSignals result.
-            use_multiprocessing (bool): If True, enables parallel filtering.
+            data (pd.DataFrame): Scan points to evaluate.
+            header_bounds (str): Name of the output column for HiggsBounds results.
+            header_signals (str): Name of the output column for HiggsSignals results.
+            use_multiprocessing (bool): Whether to split the work across multiple
+                processes when the input is large enough.
+
+        Returns:
+            pd.DataFrame: A two-column DataFrame containing binary pass/fail results.
+                A value of ``1`` means the point passed the corresponding filter, and
+                ``0`` means it failed.
         """
         n_workers = get_n_cpus() if use_multiprocessing else 1
         filt_bounds, filt_signals = self._run_processing(data, n_workers)
-        data[header_bounds] = filt_bounds
-        data[header_signals] = filt_signals
+
+        return pd.DataFrame(
+            {
+                header_bounds: filt_bounds,
+                header_signals: filt_signals,
+            },
+            index=data.index,
+        )
 
     def _run_processing(self,
                         df: pd.DataFrame,
@@ -236,7 +248,8 @@ class BoundsFilter:
         }
 
     def _extract_BSM_BRs(self,
-                         row: Any) -> Dict[str, Dict[Tuple[str, str], float]]:
+                         row: Any
+                        ) -> Dict[str, Dict[Tuple[str, str], float]]:
         """
         Extracts BSM branching ratios (2-body decays) for each scalar from a scan row.
 
@@ -275,6 +288,20 @@ def _process_chunk(model: Model,
                    chunk: pd.DataFrame,
                    min_chunk_size: int,
                    log_level: int) -> Tuple[List[int], List[int]]:
+    """
+    Process a chunk of scan data in a worker process.
+
+    Args:
+        model (Model): Scalar model used for the evaluation.
+        chunk (pd.DataFrame): Chunk of scan data to process.
+        min_chunk_size (int): Minimum chunk size used when configuring the
+            temporary BoundsFilter.
+        log_level (int): Logging level inherited from the parent process.
+
+    Returns:
+        Tuple[List[int], List[int]]: Binary HiggsBounds and HiggsSignals
+            pass/fail results for the scan points in the chunk.
+    """
     logging.getLogger().setLevel(log_level)
     temp_filter = BoundsFilter(model, min_chunk_size)
     return temp_filter.process_data(chunk)
@@ -308,8 +335,7 @@ def configure_particle(particle,
 
 def set_effective_couplings(particle,
                             mass: float,
-                            rescaling: float
-                           ) -> None:
+                            rescaling: float) -> None:
     """
     Sets effective couplings for a scalar particle using a mass-dependent prescription.
 
@@ -327,8 +353,7 @@ def set_effective_couplings(particle,
 def set_BRs(particle,
             BRs_SM: Dict[str,float],
             BRs_BSM: Dict[Tuple[str,str],float],
-            adjust_ZZ: bool
-           ) -> None:
+            adjust_ZZ: bool) -> None:
     """
     Sets the SM and BSM branching ratios for a scalar particle.
 
@@ -395,7 +420,8 @@ def set_BRs(particle,
 
 def print_bounds_result(bounds_result,
                         idx: int,
-                        masses: Dict[str, float]) -> None:
+                        masses: Dict[str, float]
+                       ) -> None:
     """
     Prints verbose details for bounds violations, including excluded limits.
 

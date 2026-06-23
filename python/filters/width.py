@@ -61,30 +61,48 @@ class WidthFilter:
 
     def apply(self,
               data: pd.DataFrame,
-              header: str) -> None:
+              header: str) -> pd.Series:
         """
-        Applies width constraints to the data in-place.
+        Evaluate the width filter for each scan point.
 
-        Adds a binary column indicating if widths are below configured thresholds.
+        A scan point passes the width filter if the widths of all scalar states
+        are less than the corresponding mass multiplied by the configured width
+        threshold. The input DataFrame is not modified.
 
         Args:
-            data (pd.DataFrame): Scan data with mass and width columns.
-            header (str): Column name to add (e.g., 'filt_width').
+            data (pd.DataFrame): Scan points to evaluate. The DataFrame must
+                contain the required mass and width columns for all scalar states.
+            header (str): Name to assign to the returned filter result column.
+
+        Returns:
+            pd.Series: Binary filter results indexed to match ``data``. A value
+                of ``1`` indicates that the scan point passes the width filter,
+                and ``0`` indicates that it fails.
 
         Raises:
-            KeyError: If any required configuration keys are missing.
-            Exception: For any unexpected errors during processing.
+            KeyError: If one or more required mass or width columns are missing.
+            Exception: If an unexpected error occurs during evaluation.
         """
         try:
-            # Extract data arrays
-            arr_widths: np.ndarray = data[[f"w_{self.HName}", f"w_{self.SName}", f"w_{self.XName}"]].to_numpy()
-            arr_masses: np.ndarray = data[[f"m{self.HName}", f"m{self.SName}", f"m{self.XName}"]].to_numpy()
+            arr_widths: np.ndarray = data[
+                [f"w_{self.HName}", f"w_{self.SName}", f"w_{self.XName}"]
+            ].to_numpy()
 
-            # Apply mask: width < mass * threshold
-            filt_width: np.ndarray = np.all(arr_widths < arr_masses * self.thresholds, axis=1)
+            arr_masses: np.ndarray = data[
+                [f"m{self.HName}", f"m{self.SName}", f"m{self.XName}"]
+            ].to_numpy()
 
-            # Update data
-            data[header] = filt_width.astype(int)
+            filt_width: np.ndarray = np.all(
+                arr_widths < arr_masses * self.thresholds,
+                axis=1,
+            )
+
+            return pd.Series(
+                filt_width.astype(int),
+                index=data.index,
+                name=header,
+            )
+
         except KeyError as e:
             logger.error(f"Missing required mass/width columns in DataFrame: {e}")
             raise
