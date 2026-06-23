@@ -2,13 +2,14 @@
 # standard libraries
 from functools import cached_property
 import os
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 # third-party libraries
 import yaml
 
 # local modules
 from utils.env_utils import data_dir
+from utils.config_loader import ConfigLoader
 
 # get logger
 import logging
@@ -36,13 +37,15 @@ class Model:
 
     def __init__(self,
                  name: str,
-                 masses: Dict[str, float]) -> None:
+                 masses: Dict[str, float],
+                 config_id: Optional[str] = "default") -> None:
         """
         Initializes a Model object with the given name and particle masses.
 
         Args:
             name (str): The name of the model.
             masses (Dict[str, float]): A dictionary mapping particle names to their masses.
+            config_id (Optional[str]): The ID of the configuration to use.
         """
 
         # name of the model
@@ -50,7 +53,8 @@ class Model:
 
         # read model yaml file
         self.__read_yaml()
-
+        # store model configuration
+        self.config = ConfigLoader(f"{self.name}_{config_id}.yml")
         # store masses and build mass maps
         self.masses = masses
 
@@ -64,6 +68,17 @@ class Model:
              new_name: str) -> None:
         """Sets the model name."""
         self.__name = new_name
+
+    @property
+    def config(self) -> ConfigLoader:
+        """Returns the model's configuration loader."""
+        return self.__config
+    
+    @config.setter
+    def config(self,
+               new_config: ConfigLoader) -> None:
+        """Sets the model's configuration loader."""
+        self.__config = new_config
 
     @cached_property
     def model_dir(self) -> str:

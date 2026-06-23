@@ -37,8 +37,7 @@ class Scan:
                  decay: str,
                  precision: Optional[Precision] = None,
                  limit_target: Optional[float] = None,
-                 prescan_points: int = -1,
-                 config_file_name: str = ""
+                 prescan_points: int = -1
                  ):
 
         """
@@ -52,8 +51,6 @@ class Scan:
             limit_target (Optional[float]): The target experimental limit for setting precision.
             prescan_points (int, optional): Number of points to sample during the prescan phase.
                 Defaults to -1, in which case the config default is used.
-            config_file_name (str, optional): Path to a YAML config file. If not specified,
-                a default name based on the model is used.
 
         Raises:
             ValueError: If an invalid decay mode is provided.
@@ -81,18 +78,13 @@ class Scan:
                 f"Allowed decays are: {', '.join(valid_decays())}."
             )
 
-        # use default config file name if none is provided
-        if not config_file_name:
-            config_file_name = f"{self.model.name}_default.yml"
-
-        # load config files
-        self.model_config = ConfigLoader(config_file_name)
+        # load optimizer config file
         self.optimizer_config = ConfigLoader("OptimizerConfig.yml")
 
         # get configurations from config file
         try:
-            self.default_zoom_points: int = self.model_config.get('scan', 'default_zoom_points')
-            default_prescan_points: int = self.model_config.get('scan', 'default_prescan_points')
+            self.default_zoom_points: int = self.model.config.get('scan', 'default_zoom_points')
+            default_prescan_points: int = self.model.config.get('scan', 'default_prescan_points')
         except Exception as e:
             logger.exception(e)
             raise
