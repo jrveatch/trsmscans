@@ -482,7 +482,7 @@ class Scan:
 
         # Print info about the number of param spaces created
         logger.info(f"Creating {len(list_of_param_spaces)} zoom optimizers:")
-        logger.info("--------------------------------------")
+        logger.info("---------------------------------------------")
 
         # List that holds all the zoom optimizers created
         all_zoom_optimizers: List[ZoomOptimizer] = []
@@ -508,12 +508,12 @@ class Scan:
                 label = f'ZoomOptimizer-{i}'
             )
 
-            logger.info(f"Number of points for optimizer {i}: {points_per_optimizer_list[i]}")
+            logger.info(f"Initializing ZoomOptimizer-{i} with {points_per_optimizer_list[i]} points")
 
             # Append zoom optimizers to all_zoom_optimizers list
             all_zoom_optimizers.append(zoom_optimizer)
         
-        logger.info("--------------------------------------\n")
+        logger.info("---------------------------------------------\n")
 
         # Return list of all zoom optimizers
         return all_zoom_optimizers
