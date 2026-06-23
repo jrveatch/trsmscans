@@ -97,9 +97,6 @@ class FilterPipeline:
             axis=1,
         )
 
-        # Optional but useful after previous fragmentation elsewhere.
-        data = data.copy()
-
         f_width = data[self.header_width].astype(bool)
         f_bounds = data[self.header_bounds].astype(bool)
         f_signals = data[self.header_signals].astype(bool)
