@@ -99,12 +99,12 @@ class PointSampler:
 
     @property
     def total_points_run(self) -> int:
-        """Returns the total number of points generated so far."""
+        """Returns the total number of points sampled so far."""
         return self.__total_points_run
 
     @total_points_run.setter
     def total_points_run(self, value: int) -> None:
-        """Returns the total number of points generated so far."""
+        """Sets the total number of points sampled so far."""
         self.__total_points_run = value
 
     def sample_points(self,
@@ -175,7 +175,7 @@ class PointSampler:
             logger.debug(f"{self.n_pass} of {self.total_points_requested} requested points done")
 
             # Print number of points requested
-            logger.debug(f'Generating {num_points_requested} points')
+            logger.debug(f'Sampling {num_points_requested} points')
 
             # Run ScannerS
             points = run_scannerS(ini_name = ini_name,
@@ -205,7 +205,7 @@ class PointSampler:
 
             # If no points passed the filters, raise an error
             if self.n_pass == 0:
-                logger.debug(f'{self.total_points_run} generated, {self.n_pass} pass filters')
+                logger.debug(f'{self.total_points_run} sampled, {self.n_pass} pass filters')
                 raise NoPointsPassedError(logger=logger)
 
             # Break if all points are being counted
@@ -270,7 +270,7 @@ class PointSampler:
         point.write_ini(ini_name)
 
         # Print number of points requested
-        logger.debug('Generating 1 point')
+        logger.debug('Sampling 1 point')
 
         # Run ScannerS
         data = run_scannerS_single_point(ini_name = ini_name,
@@ -300,7 +300,7 @@ class PointSampler:
         """
         point_word = "point" + ("s" if self.total_points_run != 1 else "")
         logger.info(
-            f"{self.total_points_run} {point_word} generated, "
+            f"{self.total_points_run} {point_word} sampled, "
             f"{self.n_pass} passed the filters"
         )
 

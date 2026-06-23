@@ -2,7 +2,7 @@
 """
 Performs an initial scan ("prescan") over the scalar model parameter space.
 
-This module generates a specified number of random scan points, evaluates them,
+This module samples a specified number of random scan points, evaluates them,
 and writes the results to a `.tsv` file. Existing scan results can optionally be
 extended or overwritten depending on user input.
 """
@@ -41,7 +41,7 @@ def prescan(model: Model,
 
     Args:
         model (Model): The scalar model to scan.
-        num_points (int): Total number of scan points to generate.
+        num_points (int): Total number of scan points to sample.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -148,7 +148,7 @@ def prescan(model: Model,
 def compute_remaining_prescan_points(num_existing: int,
                                      requested: int) -> int:
     """
-    Computes how many additional prescan points need to be generated,
+    Computes how many additional prescan points need to be sampled,
     given the number of existing points already written.
 
     Args:
@@ -156,11 +156,11 @@ def compute_remaining_prescan_points(num_existing: int,
         requested (int): Number of scan points the user wants.
 
     Returns:
-        int: Number of additional scan points to generate (could be zero).
+        int: Number of additional scan points to sample (could be zero).
     """
 
     if num_existing == 0:
-        logger.info("No existing prescan points found, generating requested points")
+        logger.info("No existing prescan points found, sampling requested points")
         return requested
 
     if num_existing >= requested:
