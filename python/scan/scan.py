@@ -518,7 +518,9 @@ class Scan:
         # Return list of all zoom optimizers
         return all_zoom_optimizers
 
-    def distribute_points(self, param_space_list: List[ParamSpace], num_points: int) -> Tuple[int]:
+    def distribute_points(self,
+                          param_space_list: List[ParamSpace],
+                          num_points: int) -> Tuple[int]:
 
         """
         Distribute the points among the list of param spaces based on their volume.
@@ -561,7 +563,8 @@ class Scan:
         # Return to call
         return tuple(points_per_optimizer_array.tolist())
     
-    def run_bayesian_optimizer(self, num_points: int) -> None:
+    def run_bayesian_optimizer(self,
+                               num_points: int) -> None:
         # get scan start time
         scan_start = time.time()
 
