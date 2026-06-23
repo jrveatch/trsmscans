@@ -3,11 +3,10 @@
 from copy import deepcopy
 import datetime
 from functools import cached_property
-import itertools
 import os
 import shutil
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 import numpy as np
 
 # local modules
