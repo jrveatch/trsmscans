@@ -180,6 +180,7 @@ class Scan:
         self.global_param_space.log_bounds_table()
 
         # get scan density
+        assert prescan_points is not None, "prescan_points should not be None at this point."
         density = prescan_points / self.global_param_space.volume()
 
         # get new points
@@ -312,6 +313,8 @@ class Scan:
             num_points = self.model.default_zoom_points
         elif num_points <= 0:
             raise ValueError("num_points must be greater than 0 for zoom optimization.")
+
+        logger.info(f"Running zoom optimization with {num_points} points\n")
 
         # initialize output directories and files
         self.initialize_output("zoom")
