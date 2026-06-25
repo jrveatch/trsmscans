@@ -11,7 +11,6 @@ import numpy as np
 
 # local modules
 from prescan.prescan import prescan
-from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
 from utils.file_utils import scan_dir, recreate_dir
 from utils.model import Model
@@ -77,17 +76,9 @@ class Scan:
                 f"Unrecognized decay {self.decay}\n"
                 f"Allowed decays are: {', '.join(valid_decays())}."
             )
-
-        # load optimizer config file
-        self.optimizer_config = ConfigLoader("OptimizerConfig.yml")
-
-        # get configurations from config file
-        try:
-            self.default_zoom_points: int = self.model.config.get('scan', 'default_zoom_points')
-            default_prescan_points: int = self.model.config.get('scan', 'default_prescan_points')
-        except Exception as e:
-            logger.exception(e)
-            raise
+        
+        default_prescan_points: int = self.model.default_prescan_points
+        self.default_zoom_points: int = self.model.default_zoom_points
 
         # set precision, limit target and adaptive precision flag
         self.precision = precision

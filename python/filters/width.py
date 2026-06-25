@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 
 # local modules
-from utils.config_loader import ConfigLoader
 from utils.model import Model
 
 # get logger
@@ -47,16 +46,7 @@ class WidthFilter:
         self.SName = model.get_ordered_scalar_name('S')
         self.XName = model.get_ordered_scalar_name('X')
 
-        # Load configuration thresholds
-        try:
-            self.thresholds: np.ndarray = np.array([
-                model.config.get('width', 'max_width_H'),
-                model.config.get('width', 'max_width_S'),
-                model.config.get('width', 'max_width_X'),
-            ])
-        except Exception:
-            logger.exception("Failed to load width thresholds from config.")
-            raise
+        self.thresholds = self.model.width_thresholds
 
     def apply(self,
               data: pd.DataFrame,
