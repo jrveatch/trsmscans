@@ -31,15 +31,15 @@ import utils.htcondor_utils as htcondor_utils
 from mass_grid.mass_json_utils import MassList
 
 def run_prescan(model: Model,
-                num_points: int,
-                overwrite: bool,
+                num_points: Optional[int] = None,
+                overwrite: bool = False,
                 dry_run: bool = False) -> None:
     """
     Run a prescan for a single mass point.
 
     Args:
         model (Model): The scalar model to scan.
-        num_points (int): Number of points to sample.
+        num_points (Optional[int]): Number of points to sample.
         overwrite (bool): Whether to overwrite existing results.
         dry_run (bool): If True, print message but do not run job.
     """
@@ -55,9 +55,9 @@ def run_prescan(model: Model,
 def run_scan(model: Model,
              decay: str,
              strategy: str,
-             num_points: int,
-             prescan_points: int,
              iterations: int,
+             num_points: Optional[int] = None,
+             prescan_points: Optional[int] = None,
              precision: Optional[Precision] = None,
              limit_target: Optional[float] = None,
              dry_run: bool = False) -> None:
@@ -68,9 +68,9 @@ def run_scan(model: Model,
         model (Model): The scalar model to scan.
         decay (str): The decay mode (e.g., 'SAA').
         strategy (str): Optimization strategy ('zoom' or 'meanshift').
-        num_points (int): Number of points to start the scan.
-        prescan_points (int): Number of prescan points to use.
         iterations (int): Max number of scan iterations or shifters.
+        num_points (Optional[int]): Number of points to start the scan.
+        prescan_points (Optional[int]): Number of prescan points to use.
         precision (Optional[Precision]): Precision level for optimization.
         limit_target (Optional[float]): The target experimental limit for setting precision.
         dry_run (bool): If True, print message but do not run job.
@@ -100,14 +100,14 @@ def run_scan(model: Model,
 
 def submit_htcondor(mode: str,
                     model: Model,
-                    num_points: int,
                     limit_target: float,
                     num_cpus: Optional[int] = None,
                     job_length: Optional[str] = None,
                     decay: Optional[str] = None,
                     strategy: Optional[str] = None,
                     precision: Optional[Precision] = None,
-                    prescan_points: int = -1,
+                    prescan_points: Optional[int] = None,
+                    num_points: Optional[int] = None,
                     iterations: int = -1,
                     force_rerun: bool = False,
                     dry_run: bool = False) -> None:
@@ -117,14 +117,14 @@ def submit_htcondor(mode: str,
     Args:
         mode (str): Either 'prescan' or 'scan'.
         model (Model): The scalar model being scanned.
-        num_points (int): Number of starting points for scan or prescan.
         limit_target (float): The target experimental limit for setting precision.
         num_cpus (Optional[int]): Number of CPUs to request.
         job_length (Optional[str]): Job runtime class (e.g., 'microcentury').
         decay (Optional[str]): Decay mode (required for scan).
         strategy (Optional[str]): Optimization strategy (required for scan).
         precision (Optional[Precision]): Precision level for optimization.
-        prescan_points (int): Number of prescan points to use for scan.
+        prescan_points (Optional[int]): Number of prescan points to use for scan.
+        num_points (Optional[int]): Number of points for scan or prescan.
         iterations (int): Iteration count for optimizer.
         force_rerun (bool): Force a new run, overwriting the previous results.
         dry_run (bool): If True, write scripts but do not submit job.
@@ -338,8 +338,9 @@ def main():
                 status, count, prev_precision = get_mass_point_status(
                     model=model,
                     decay=decay,
-                    threshold=num_points,
                     mode=mode,
+                    prescan_points=prescan_points,
+                    num_points=num_points,
                     strategy=strategy
                 )
             except Exception as e:
