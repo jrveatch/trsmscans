@@ -9,6 +9,10 @@ execution and avoids multiprocessing pitfalls by creating unpicklable tool objec
 inside each worker.
 """
 
+# suppress HiggsPredictions logging output
+import os
+os.environ.setdefault("SPDLOG_LEVEL", "HiggsPredictions=error")
+
 # standard libraries
 import multiprocessing as mp
 from typing import Any, Dict, List, Tuple
