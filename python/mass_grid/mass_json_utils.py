@@ -57,23 +57,30 @@ class MassList:
         return self.__data
 
     @cached_property
+    def units(self) -> str:
+        """
+        Returns the cross-section units.
+
+        Raises:
+            KeyError: If 'units' key is missing.
+            TypeError: If 'units' is not a string.
+        """
+        _units = self.data.get("units")
+        if _units is None:
+            raise KeyError("Missing required key: 'units'")
+        if not isinstance(_units, str):
+            raise TypeError(f"'units' must be a string, got {type(_units).__name__}")
+        return _units
+
+    @cached_property
     def xsec_conversion(self) -> float:
         """
         Returns the cross-section unit conversion factor.
 
         Returns:
             1000.0 if units are "pb", else 1.0 (assumes default units are fb).
-
-        Raises:
-            KeyError: If 'units' key is missing.
-            TypeError: If 'units' is not a string.
         """
-        units = self.data.get("units")
-        if units is None:
-            raise KeyError("Missing required key: 'units'")
-        if not isinstance(units, str):
-            raise TypeError(f"'units' must be a string, got {type(units).__name__}")
-        return 1000.0 if units == "pb" else 1.0
+        return 1000.0 if self.units == "pb" else 1.0
 
     @cached_property
     def includes_decay(self) -> bool:
