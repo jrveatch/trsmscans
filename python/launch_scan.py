@@ -285,6 +285,7 @@ def main():
     decay = requested_decay
     identifier: Optional[str] = args.identifier
     num_points: int = args.num_points
+    prescan_points: int = args.prescan_points
     iterations: int = args.iterations
     HMass: float = args.HMass
     SMass: Optional[float] = args.SMass
@@ -381,7 +382,7 @@ def main():
                             decay=decay,
                             strategy=strategy,
                             precision=precision,
-                            prescan_points=args.prescan_points,
+                            prescan_points=prescan_points,
                             iterations=iterations,
                             force_rerun=force_rerun,
                             dry_run=dry_run)
@@ -400,7 +401,7 @@ def main():
                          num_points=num_points,
                          precision=precision,
                          limit_target=limit_target,
-                         prescan_points=args.prescan_points,
+                         prescan_points=prescan_points,
                          iterations=iterations,
                          dry_run=dry_run)
             job_count += 1
