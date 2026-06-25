@@ -1,6 +1,5 @@
 
 # standard libraries
-from copy import deepcopy
 import datetime
 from functools import cached_property
 import os
