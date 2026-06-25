@@ -6,8 +6,6 @@ from utils.point_sampler import PointSampler
 from utils.file_utils import scan_dir 
 from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
 
-import os 
-
 class BayesianOptimizer:
     def __init__(self, 
                  model: 'Model',
@@ -18,11 +16,12 @@ class BayesianOptimizer:
         # TODO: automate finding ranges
         self.model = model
         self.decay = decay
-        self.ranges = {'thetaHS': [-1.570796, 1.570796], 'thetaHX': [-1.570796, 1.570796], 'thetaSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
+        self.ranges = {k: [v['min'], v['max']] for k, v in self.model.input_parameters.items()}
         self.random_point = random_point
         self.n_points = n_points
         self.param_space = param_space
-        self.out_dir = scan_dir(model=model,decay=decay)
+        self.out_dir = scan_dir(model=model,
+                                decay=decay)
 
     def set_ranges(self): # or get prescan ranges
         # TODO: automate ranges depending on config files
