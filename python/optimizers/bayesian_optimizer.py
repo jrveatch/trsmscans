@@ -18,7 +18,7 @@ class BayesianOptimizer:
         # TODO: automate finding ranges
         self.model = model
         self.decay = decay
-        self.ranges = {'thetaHS': [-1.570796, 1.570796], 'thetaHX': [-1.570796, 1.570796], 'thetaSX': [-1.570796, 1.570796], 'vs': [0, 1000], 'vx': [0, 1000]} 
+        self.ranges = {k: [v['min'], v['max']] for k, v in self.model.input_parameters.items()}
         self.random_point = random_point
         self.n_points = n_points
         self.param_space = param_space
