@@ -51,10 +51,12 @@ class Model:
         # name of the model
         self.name = name
 
-        # read model yaml file
+        # read model yaml configurations
         self.__read_yaml()
+
         # store model configuration
         self.config = ConfigLoader(f"{self.name}_{config_id}.yml")
+
         # store masses and build mass maps
         self.masses = masses
 
@@ -217,16 +219,28 @@ class Model:
         derives scalar classification (SMHiggs, BSMScalars, AllScalars).
         """
 
-        # read in model yaml file
-        with open(self.yaml_name,'r') as file:
-            # read yaml data for model
-            yaml_data = yaml.safe_load(file)[self.name]
+        # read in model YAML file
+        try:
+            with open(self.yaml_name,'r') as file:
+                # read yaml data for model
+                yaml_data = yaml.safe_load(file)
+        except FileNotFoundError:
+            logger.error(f"YAML file '{self.yaml_name}' not found for model '{self.name}'.")
+            raise
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML file '{self.yaml_name}': {e}")
+            raise
+
+        try:
             # read particles
             self.particles = yaml_data['particles']
             # read input parameters
             self.input_parameters = yaml_data['input_parameters']
             # read output parameters
             self.output_parameters = yaml_data['output_parameters']
+        except KeyError as e:
+            logger.error(f"Missing expected key in YAML file '{self.yaml_name}': {e}")
+            raise
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
