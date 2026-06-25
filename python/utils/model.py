@@ -2,13 +2,14 @@
 # standard libraries
 from functools import cached_property
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Tuple
+import numpy as np
 
 # third-party libraries
 import yaml
 
 # local modules
-from utils.env_utils import data_dir
+from utils.env_utils import config_dir, data_dir
 from utils.config_loader import ConfigLoader
 
 # get logger
@@ -38,23 +39,25 @@ class Model:
     def __init__(self,
                  name: str,
                  masses: Dict[str, float],
-                 config_id: Optional[str] = "default") -> None:
+                 config_id: str = "default") -> None:
         """
         Initializes a Model object with the given name and particle masses.
 
         Args:
             name (str): The name of the model.
             masses (Dict[str, float]): A dictionary mapping particle names to their masses.
-            config_id (Optional[str]): The ID of the configuration to use.
+            config_id (str): The ID of the configuration to use.
         """
 
         # name of the model
         self.name = name
 
-        # read model yaml file
-        self.__read_yaml()
+        # read model yaml configurations
+        self.__read_yaml(config_id)
+
         # store model configuration
         self.config = ConfigLoader(f"{self.name}_{config_id}.yml")
+
         # store masses and build mass maps
         self.masses = masses
 
@@ -209,7 +212,8 @@ class Model:
         """Sets the dictionary of particles used in the model."""
         self.__particles = new_particles
 
-    def __read_yaml(self) -> None:
+    def __read_yaml(self,
+                    config_id: str = "default") -> None:
         """
         Loads model configuration from the associated YAML file.
 
@@ -217,16 +221,27 @@ class Model:
         derives scalar classification (SMHiggs, BSMScalars, AllScalars).
         """
 
-        # read in model yaml file
-        with open(self.yaml_name,'r') as file:
-            # read yaml data for model
-            yaml_data = yaml.safe_load(file)[self.name]
+        # read in model definition YAML file
+        try:
+            with open(self.yaml_name,'r') as file:
+                yaml_data = yaml.safe_load(file)
+        except FileNotFoundError:
+            logger.error(f"YAML file '{self.yaml_name}' not found for model '{self.name}'.")
+            raise
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML file '{self.yaml_name}': {e}")
+            raise
+
+        try:
             # read particles
             self.particles = yaml_data['particles']
             # read input parameters
             self.input_parameters = yaml_data['input_parameters']
             # read output parameters
             self.output_parameters = yaml_data['output_parameters']
+        except KeyError as e:
+            logger.error(f"Missing expected key in YAML file '{self.yaml_name}': {e}")
+            raise
 
         # convert NoneType entries to empty dictionaries
         for key in self.particles:
@@ -251,6 +266,32 @@ class Model:
 
         # store list of all scalars
         self.AllScalars = self.particles['SMHiggs'] + self.BSMScalars
+
+        # read model configuration YAML file
+        try:
+            config_path = os.path.join(config_dir(), f"{self.name}_{config_id}.yml")
+            with open(config_path, 'r') as file:
+                config_data = yaml.safe_load(file)
+        except FileNotFoundError:
+            logger.error(f"Configuration file '{config_path}' not found.")
+            raise
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing configuration file '{config_path}': {e}")
+            raise
+
+        try:
+            # read default prescan points and zoom points from configuration
+            self.default_prescan_points: int = config_data['scan']['default_prescan_points']
+            self.default_zoom_points: int = config_data['scan']['default_zoom_points']
+            # read particle width thresholds from configuration
+            self.width_thresholds: np.ndarray = np.array([
+                config_data['width']['max_width_H'],
+                config_data['width']['max_width_S'],
+                config_data['width']['max_width_X'],
+            ])
+        except KeyError as e:
+            logger.error(f"Missing expected key in configuration file '{config_path}': {e}")
+            raise
 
     def __build_mass_maps(self) -> None:
         """

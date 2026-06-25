@@ -1,6 +1,5 @@
 
 # standard libraries
-from copy import deepcopy
 import datetime
 from functools import cached_property
 import os
@@ -80,14 +79,9 @@ class Scan:
 
         # load optimizer config file
         self.optimizer_config = ConfigLoader("OptimizerConfig.yml")
-
-        # get configurations from config file
-        try:
-            self.default_zoom_points: int = self.model.config.get('scan', 'default_zoom_points')
-            default_prescan_points: int = self.model.config.get('scan', 'default_prescan_points')
-        except Exception as e:
-            logger.exception(e)
-            raise
+        
+        default_prescan_points: int = self.model.default_prescan_points
+        self.default_zoom_points: int = self.model.default_zoom_points
 
         # set precision, limit target and adaptive precision flag
         self.precision = precision

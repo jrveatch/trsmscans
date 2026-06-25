@@ -1,62 +1,61 @@
 ---
-TRSMBroken:
+# TRSMBroken model parameters
+particles:
 
-  particles:
+  SMHiggs:
 
-    SMHiggs:
+    - H
 
-      - H
+  neutralScalarsCPEven:
 
-    neutralScalarsCPEven:
+    - S
+    - X
 
-      - S
-      - X
+  neutralScalarsCPOdd:
 
-    neutralScalarsCPOdd:
+  chargedScalars:
 
-    chargedScalars:
+  doublyChargedScalars:
 
-    doublyChargedScalars:
+input_parameters:
 
-  input_parameters:
+  thetaHS:
+    fullname: thetahS
+    ini_name: t1
+    min: -1.570796
+    max: 1.570796
 
-    thetaHS:
-      fullname: thetahS
-      ini_name: t1
-      min: -1.570796
-      max: 1.570796
+  thetaHX:
+    fullname: thetahX
+    ini_name: t2
+    min: -1.570796
+    max: 1.570796
 
-    thetaHX:
-      fullname: thetahX
-      ini_name: t2
-      min: -1.570796
-      max: 1.570796
+  thetaSX:
+    fullname: thetaSX
+    ini_name: t3
+    min: -1.570796
+    max: 1.570796
 
-    thetaSX:
-      fullname: thetaSX
-      ini_name: t3
-      min: -1.570796
-      max: 1.570796
+  vs:
+    fullname: vs
+    ini_name: vs
+    min: 0.0
+    max: 1000.0
 
-    vs:
-      fullname: vs
-      ini_name: vs
-      min: 0.0
-      max: 1000.0
+  vx:
+    fullname: vx
+    ini_name: vx
+    min: 0.0
+    max: 1000.0
 
-    vx:
-      fullname: vx
-      ini_name: vx
-      min: 0.0
-      max: 1000.0
+output_parameters:
 
-  output_parameters:
+  R11:
+    fullname: R11
 
-    R11:
-      fullname: R11
+  R21:
+    fullname: R21
 
-    R21:
-      fullname: R21
-
-    R31:
-      fullname: R31
+  R31:
+    fullname: R31
