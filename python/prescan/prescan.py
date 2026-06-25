@@ -14,6 +14,7 @@ import datetime
 import logging
 import os
 import time
+from typing import Optional
 
 # local modules
 from utils.config_loader import ConfigLoader
@@ -28,7 +29,7 @@ from utils.tsv_utils import count_tsv_points
 logger = logging.getLogger(__name__)
 
 def prescan(model: Model,
-            num_points: int,
+            num_points: Optional[int] = None,
             overwrite: bool = False) -> Parse:
     """
     Executes a prescan of the parameter space for a given scalar model.
@@ -41,7 +42,7 @@ def prescan(model: Model,
 
     Args:
         model (Model): The scalar model to scan.
-        num_points (int): Total number of scan points to sample.
+        num_points (Optional[int]): Total number of scan points to sample.
         overwrite (bool): If True, removes existing scan results before scanning.
 
     Returns:
@@ -56,6 +57,12 @@ def prescan(model: Model,
 
     # names of .ini and .tsv files
     tsv_name = os.path.join(out_dir,f"{model.name}_prescan.tsv")
+
+    # get number of points to sample from config if not provided
+    if num_points is None:
+        num_points = model.default_prescan_points
+    elif num_points <= 0:
+        raise ValueError("num_points must be positive.")
 
     # print starting message
     logger.info(f"Running a prescan with {num_points} points for {model.mass_string}")

@@ -262,9 +262,9 @@ def main():
     arg_parser.add_argument("-c", "--config-id", default="default", type=str, help="Configuration ID for model parameters")
     arg_parser.add_argument("-d", "--decay", type=str, help="Decay mode")
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift', 'bayes'], help="Optimization strategy")
-    arg_parser.add_argument("-n", "--num-points", default=-1, type=int, help="Initial number of scan points")
+    arg_parser.add_argument("-n", "--num-points", default=None, type=int, help="Initial number of scan points")
     arg_parser.add_argument("--limit-target", default=None, type=float, help="Target limit to determine precision on the fly")
-    arg_parser.add_argument("--prescan-points", default=-1, type=int, help="Number of prescan points when using scan mode")
+    arg_parser.add_argument("--prescan-points", default=None, type=int, help="Number of prescan points when using scan mode")
     arg_parser.add_argument("-t", "--iterations", default=-1, type=int, help="Maximum number of iterations/optimizers")
     arg_parser.add_argument("--num-cpus", type=int, help="Number of CPUs to request for the job")
     arg_parser.add_argument("-j", "--job-length", type=str, choices=htcondor_utils.job_lengths.keys(),
@@ -284,8 +284,8 @@ def main():
     requested_decay: Optional[str] = args.decay
     decay = requested_decay
     identifier: Optional[str] = args.identifier
-    num_points: int = args.num_points
-    prescan_points: int = args.prescan_points
+    num_points: Optional[int] = args.num_points
+    prescan_points: Optional[int] = args.prescan_points
     iterations: int = args.iterations
     HMass: float = args.HMass
     SMass: Optional[float] = args.SMass
@@ -299,8 +299,6 @@ def main():
     if mode == "scan":
         if not requested_decay:
             raise ValueError("Scan mode requires -d/--decay")
-        if strategy == "zoom" and num_points <= 0:
-            raise ValueError("Zoom strategy requires -n/--num_points to be greater than 0")
         if strategy == "meanshift" and iterations <= 0:
             raise ValueError("Mean shift strategy requires -t/--iterations to be greater than 0")
 
