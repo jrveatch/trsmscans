@@ -303,8 +303,6 @@ class Scan:
             niter (int): Number of iterations to run. Leave as -1 to run until natural ending criteria are met.
         """
 
-        logger.info(f"Running zoom optimization with {num_points} points\n")
-
         # get scan start time
         scan_start = time.time()
 
