@@ -10,3 +10,5 @@ width:
 scan:
   default_prescan_points: 10000
   default_zoom_points: 10000
+  default_bayes_starting_points: 100
+  default_bayes_sampling_points: 100

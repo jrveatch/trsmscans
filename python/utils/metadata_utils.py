@@ -94,8 +94,9 @@ def get_precision(data: Dict[str, Any]) -> Optional[Precision]:
 
 def get_mass_point_status(model: Model,
                           decay: str,
-                          threshold: int,
                           mode: str,
+                          prescan_points: Optional[int] = None,
+                          num_points: Optional[int] = None,
                           strategy: Optional[str] = None,
                           precision: Optional[Precision] = None
                           ) -> Tuple[str, Optional[int], Optional[Precision]]:
@@ -105,8 +106,9 @@ def get_mass_point_status(model: Model,
     Args:
         model (Model): Model to use.
         decay (str): Decay mode to use exactly as provided.
-        threshold (int): Minimum required number of points.
         mode (str): Either "prescan" or "scan".
+        prescan_points (Optional[int]): Minimum required number of prescan points.
+        num_points (Optional[int]): Minimum required number of scan points.
         strategy (Optional[str]): Optimization strategy. Required if mode is "scan".
         precision (Optional[Precision]): Minimum required precision.
 
@@ -130,7 +132,11 @@ def get_mass_point_status(model: Model,
         if not os.path.isfile(path):
             return "missing", None, None
         count = count_tsv_points(path)
-        return ("ok", count, None) if count >= threshold else ("below_threshold", count, None)
+        if prescan_points is None:
+            prescan_points = model.default_prescan_points
+        elif prescan_points <= 0:
+            raise ValueError("prescan_points must be positive.")
+        return ("ok", count, None) if count >= prescan_points else ("below_threshold", count, None)
 
     elif mode == "scan":
         if strategy is None:
@@ -150,7 +156,11 @@ def get_mass_point_status(model: Model,
             prev_precision != Precision.SATURATED
            ):
             return "low_precision", count, prev_precision
-        return ("ok", count, prev_precision) if count >= threshold else ("below_threshold", count, prev_precision)
+        if num_points is None:
+            num_points = model.default_zoom_points
+        elif num_points <= 0:
+            raise ValueError("num_points must be positive.")
+        return ("ok", count, prev_precision) if count >= num_points else ("below_threshold", count, prev_precision)
 
     else:
         raise ValueError(f"Invalid mode '{mode}'")

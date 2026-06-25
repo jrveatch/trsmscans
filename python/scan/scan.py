@@ -36,7 +36,7 @@ class Scan:
                  decay: str,
                  precision: Optional[Precision] = None,
                  limit_target: Optional[float] = None,
-                 prescan_points: int = -1
+                 prescan_points: Optional[int] = None
                  ):
 
         """
@@ -48,8 +48,7 @@ class Scan:
             precision (Optional[Precision]): The precision level for the scan.
                 Defaults to None.
             limit_target (Optional[float]): The target experimental limit for setting precision.
-            prescan_points (int, optional): Number of points to sample during the prescan phase.
-                Defaults to -1, in which case the config default is used.
+            prescan_points (Optional[int]): Number of points to sample during the prescan phase.
 
         Raises:
             ValueError: If an invalid decay mode is provided.
@@ -62,9 +61,9 @@ class Scan:
         logger.info(f"Masses: {model.masses}")
         logger.info(f"Decay: {decay}")
         if precision is not None:
-            logger.info(f"Precision: {precision}\n")
+            logger.info(f"Precision: {precision}")
         else:
-            logger.info("Precision: adaptive\n")
+            logger.info("Precision: adaptive")
 
         # store model and decay information
         self.model = model
@@ -79,9 +78,6 @@ class Scan:
 
         # load optimizer config file
         self.optimizer_config = ConfigLoader("OptimizerConfig.yml")
-        
-        default_prescan_points: int = self.model.default_prescan_points
-        self.default_zoom_points: int = self.model.default_zoom_points
 
         # set precision, limit target and adaptive precision flag
         self.precision = precision
@@ -94,8 +90,11 @@ class Scan:
 
         # number of prescan points to run
         self.prescan_points = prescan_points
-        if self.prescan_points < 0:
-            self.prescan_points = default_prescan_points
+        if self.prescan_points is None:
+            self.prescan_points = self.model.default_prescan_points
+        elif self.prescan_points <= 0:
+            raise ValueError("prescan_points must be positive.")
+        logger.info(f"Prescan points: {self.prescan_points}\n")
 
         # make instance of param space
         # this automatically initializes the parameters
@@ -181,6 +180,7 @@ class Scan:
         self.global_param_space.log_bounds_table()
 
         # get scan density
+        assert prescan_points is not None, "prescan_points should not be None at this point."
         density = prescan_points / self.global_param_space.volume()
 
         # get new points
@@ -293,24 +293,26 @@ class Scan:
                       num_points=num_optimizers)
 
     def run_zoom_optimization(self,
-                              num_points: int,
-                              niter: int) -> None:
+                              niter: int,
+                              num_points: Optional[int] = None) -> None:
         """
         Run a zoom optimization.
 
         Args:
-            num_points (int): Number of points to use in the first iteration.
+            num_points (Optional[int]): Number of points to use in the first iteration.
             niter (int): Number of iterations to run. Leave as -1 to run until natural ending criteria are met.
         """
-
-        logger.info("Running zoom optimization...\n")
 
         # get scan start time
         scan_start = time.time()
 
         # if num_points isn't given, use default_zoom_points
-        if num_points < 0:
-            num_points = self.default_zoom_points
+        if num_points is None:
+            num_points = self.model.default_zoom_points
+        elif num_points <= 0:
+            raise ValueError("num_points must be greater than 0 for zoom optimization.")
+
+        logger.info(f"Running zoom optimization with {num_points} points\n")
 
         # initialize output directories and files
         self.initialize_output("zoom")
@@ -549,15 +551,11 @@ class Scan:
         return tuple(points_per_optimizer_array.tolist())
     
     def run_bayesian_optimizer(self,
-                               num_points: int) -> None:
+                               num_points: Optional[int] = None) -> None:
         # get scan start time
         scan_start = time.time()
 
         self.initialize_output("bayes")
-
-        # if num_points isn't given, use num_starting_points
-        if num_points < 0:
-            num_points = self.num_starting_points
 
         # run prescan
         self.run_prescan()
@@ -568,8 +566,8 @@ class Scan:
         # create optimizer
         bayesian_optimizer = BayesianOptimizer(model=self.model,
                                                decay=self.decay,
-                                               random_point=num_points,
-                                               n_points=num_points,
+                                               num_samples=num_points,
+                                               num_points=num_points,
                                                param_space=self.global_param_space)
 
         # run scan

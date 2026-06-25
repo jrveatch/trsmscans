@@ -1,3 +1,5 @@
+
+from typing import Optional
 from bayes_opt import BayesianOptimization
 from utils.param_space import ParamSpace
 from utils.model import Model
@@ -8,20 +10,25 @@ from utils.tsv_utils import write_point_to_summary_file, initialize_summary_file
 
 class BayesianOptimizer:
     def __init__(self, 
-                 model: 'Model',
+                 model: Model,
                  decay: str,
-                 random_point: int,
-                 n_points: int,
-                 param_space: ParamSpace):
+                 param_space: ParamSpace,
+                 num_points: Optional[int] = None,
+                 num_samples: Optional[int] = None):
         # TODO: automate finding ranges
         self.model = model
         self.decay = decay
         self.ranges = {k: [v['min'], v['max']] for k, v in self.model.input_parameters.items()}
-        self.random_point = random_point
-        self.n_points = n_points
+        self.num_points = num_points
+        self.num_samples = num_samples
         self.param_space = param_space
         self.out_dir = scan_dir(model=model,
                                 decay=decay)
+        
+        if self.num_samples is None:
+            self.num_samples = model.default_bayes_starting_points
+        if self.num_points is None:
+            self.num_points = model.default_bayes_sampling_points
 
     def set_ranges(self): # or get prescan ranges
         # TODO: automate ranges depending on config files
@@ -83,12 +90,12 @@ class BayesianOptimizer:
             verbose=2 # verbose=1 gives message when new max found, verbose=2 gives messages at each point
         )
 
-        print("random_point: " + str(self.random_point))
-        print("n_iter: " + str(self.n_points))
+        print("num_points: " + str(self.num_points))
+        print("num_samples: " + str(self.num_samples))
 
         optimizer.maximize(
-            init_points=self.random_point,
-            n_iter=self.n_points # amount of points to search and optimize
+            init_points=self.num_points,
+            n_iter=self.num_samples # amount of points to search and optimize
         )
 
         # optimizer.res # gets all points that were tested and saves their data

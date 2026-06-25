@@ -14,8 +14,9 @@ from utils.precision_utils import Precision
 def check_mass_list(model_name: str,
                     decay: str,
                     identifier: str,
-                    threshold: int,
                     mode: str,
+                    num_points: Optional[int] = None,
+                    prescan_points: Optional[int] = None,
                     strategy: Optional[str] = None,
                     precision: Optional[Precision] = None) -> None:
     """
@@ -41,7 +42,8 @@ def check_mass_list(model_name: str,
         model_name (str): The name of the scalar model (e.g., "TRSMBroken").
         decay (str): The decay mode to check (used as-is, no substitutions).
         identifier (str): Grid identifier (used to load the mass grid).
-        threshold (int): Minimum number of points required to be considered "ok".
+        num_points (Optional[int]): Minimum number of points required to be considered "ok".
+        prescan_points (Optional[int]): Minimum number of prescan points required.
         mode (str): Either "prescan" or "scan", determining file type and location.
         strategy (Optional[str]): Required for scan mode (e.g., "zoom", "meanshift").
         precision (Optional[Precision]): Minimum required precision to be considered "ok".
@@ -71,8 +73,9 @@ def check_mass_list(model_name: str,
             status, count, prev_precision = get_mass_point_status(
                 model=model,
                 decay=decay_used,
-                threshold=threshold,
                 mode=mode,
+                num_points=num_points,
+                prescan_points=prescan_points,
                 strategy=strategy,
                 precision=precision
             )
@@ -151,8 +154,9 @@ if __name__ == "__main__":
         model_name=args.model,
         decay=args.decay,
         identifier=args.identifier,
-        threshold=args.threshold,
         mode=args.mode,
+        num_points=args.threshold,
+        prescan_points=args.threshold,
         strategy=args.strategy,
         precision=args.precision
     )
