@@ -550,15 +550,11 @@ class Scan:
         return tuple(points_per_optimizer_array.tolist())
     
     def run_bayesian_optimizer(self,
-                               num_points: int) -> None:
+                               num_points: Optional[int] = None) -> None:
         # get scan start time
         scan_start = time.time()
 
         self.initialize_output("bayes")
-
-        # if num_points isn't given, use num_starting_points
-        if num_points < 0:
-            num_points = self.num_starting_points
 
         # run prescan
         self.run_prescan()
@@ -569,8 +565,8 @@ class Scan:
         # create optimizer
         bayesian_optimizer = BayesianOptimizer(model=self.model,
                                                decay=self.decay,
-                                               random_point=num_points,
-                                               n_points=num_points,
+                                               num_samples=num_points,
+                                               num_points=num_points,
                                                param_space=self.global_param_space)
 
         # run scan

@@ -90,7 +90,7 @@ def run_scan(model: Model,
                 limit_target=limit_target)
 
     if strategy == "zoom":
-        scan.run_zoom_optimization(num_points=num_points, niter=iterations)
+        scan.run_zoom_optimization(num_points=num_points, iter=iterations)
     elif strategy == "meanshift":
         scan.run_ms_optimization(num_optimizers=iterations)
     elif strategy == "bayes":
