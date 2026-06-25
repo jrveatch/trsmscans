@@ -283,6 +283,8 @@ class Model:
             # read default prescan points and zoom points from configuration
             self.default_prescan_points: int = config_data['scan']['default_prescan_points']
             self.default_zoom_points: int = config_data['scan']['default_zoom_points']
+            self.default_bayes_starting_points: int = config_data['scan']['default_bayes_starting_points']
+            self.default_bayes_sampling_points: int = config_data['scan']['default_bayes_sampling_points']
             # read particle width thresholds from configuration
             self.width_thresholds: np.ndarray = np.array([
                 config_data['width']['max_width_H'],
