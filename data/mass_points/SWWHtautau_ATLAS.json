@@ -16,8 +16,7 @@
             "expected_limit_m1": 13.3,
             "expected_limit_p1": 26.6,
             "expected_limit_m2": 10.0,
-            "expected_limit_p2": 37.8,
-            "resolvable": true
+            "expected_limit_p2": 37.8
         },
         {
             "mX": 500,
@@ -27,8 +26,7 @@
             "expected_limit_m1": 22.4,
             "expected_limit_p1": 44.3,
             "expected_limit_m2": 16.6,
-            "expected_limit_p2": 62.1,
-            "resolvable": true
+            "expected_limit_p2": 62.1
         },
         {
             "mX": 750,
@@ -38,8 +36,7 @@
             "expected_limit_m1": 5.7,
             "expected_limit_p1": 11.4,
             "expected_limit_m2": 4.2,
-            "expected_limit_p2": 16.3,
-            "resolvable": true
+            "expected_limit_p2": 16.3
         },
         {
             "mX": 750,
@@ -49,8 +46,7 @@
             "expected_limit_m1": 6.3,
             "expected_limit_p1": 12.5,
             "expected_limit_m2": 4.7,
-            "expected_limit_p2": 17.8,
-            "resolvable": true
+            "expected_limit_p2": 17.8
         },
         {
             "mX": 750,
@@ -60,8 +56,7 @@
             "expected_limit_m1": 6.9,
             "expected_limit_p1": 13.7,
             "expected_limit_m2": 5.1,
-            "expected_limit_p2": 19.5,
-            "resolvable": true
+            "expected_limit_p2": 19.5
         },
         {
             "mX": 750,
@@ -71,8 +66,7 @@
             "expected_limit_m1": 8.3,
             "expected_limit_p1": 16.6,
             "expected_limit_m2": 6.2,
-            "expected_limit_p2": 23.5,
-            "resolvable": true
+            "expected_limit_p2": 23.5
         },
         {
             "mX": 1000,
@@ -82,8 +76,7 @@
             "expected_limit_m1": 3.7,
             "expected_limit_p1": 7.5,
             "expected_limit_m2": 2.8,
-            "expected_limit_p2": 10.8,
-            "resolvable": true
+            "expected_limit_p2": 10.8
         },
         {
             "mX": 1000,
@@ -93,8 +86,7 @@
             "expected_limit_m1": 3.6,
             "expected_limit_p1": 7.1,
             "expected_limit_m2": 2.6,
-            "expected_limit_p2": 10.2,
-            "resolvable": true
+            "expected_limit_p2": 10.2
         },
         {
             "mX": 1000,
@@ -104,8 +96,7 @@
             "expected_limit_m1": 3.9,
             "expected_limit_p1": 7.8,
             "expected_limit_m2": 2.9,
-            "expected_limit_p2": 11.2,
-            "resolvable": true
+            "expected_limit_p2": 11.2
         },
         {
             "mX": 1000,
@@ -115,8 +106,7 @@
             "expected_limit_m1": 3.9,
             "expected_limit_p1": 7.8,
             "expected_limit_m2": 2.9,
-            "expected_limit_p2": 11.2,
-            "resolvable": true
+            "expected_limit_p2": 11.2
         },
         {
             "mX": 1250,
@@ -126,8 +116,7 @@
             "expected_limit_m1": 3.4,
             "expected_limit_p1": 6.9,
             "expected_limit_m2": 2.5,
-            "expected_limit_p2": 10.1,
-            "resolvable": true
+            "expected_limit_p2": 10.1
         },
         {
             "mX": 1250,
@@ -137,8 +126,7 @@
             "expected_limit_m1": 2.8,
             "expected_limit_p1": 5.6,
             "expected_limit_m2": 2.1,
-            "expected_limit_p2": 8.1,
-            "resolvable": true
+            "expected_limit_p2": 8.1
         },
         {
             "mX": 1250,
@@ -148,8 +136,7 @@
             "expected_limit_m1": 2.9,
             "expected_limit_p1": 5.8,
             "expected_limit_m2": 2.2,
-            "expected_limit_p2": 8.5,
-            "resolvable": true
+            "expected_limit_p2": 8.5
         },
         {
             "mX": 1250,
@@ -159,8 +146,7 @@
             "expected_limit_m1": 2.8,
             "expected_limit_p1": 5.6,
             "expected_limit_m2": 2.0,
-            "expected_limit_p2": 8.0,
-            "resolvable": true
+            "expected_limit_p2": 8.0
         },
         {
             "mX": 1500,
@@ -170,8 +156,7 @@
             "expected_limit_m1": 4.5,
             "expected_limit_p1": 9.2,
             "expected_limit_m2": 3.4,
-            "expected_limit_p2": 13.6,
-            "resolvable": true
+            "expected_limit_p2": 13.6
         },
         {
             "mX": 1500,
@@ -181,8 +166,7 @@
             "expected_limit_m1": 3.5,
             "expected_limit_p1": 7.1,
             "expected_limit_m2": 2.6,
-            "expected_limit_p2": 10.3,
-            "resolvable": true
+            "expected_limit_p2": 10.3
         },
         {
             "mX": 1500,
@@ -192,8 +176,7 @@
             "expected_limit_m1": 3.2,
             "expected_limit_p1": 6.6,
             "expected_limit_m2": 2.4,
-            "expected_limit_p2": 9.6,
-            "resolvable": true
+            "expected_limit_p2": 9.6
         },
         {
             "mX": 1500,
@@ -203,8 +186,7 @@
             "expected_limit_m1": 2.9,
             "expected_limit_p1": 5.8,
             "expected_limit_m2": 2.1,
-            "expected_limit_p2": 8.5,
-            "resolvable": true
+            "expected_limit_p2": 8.5
         }
     ]
 }

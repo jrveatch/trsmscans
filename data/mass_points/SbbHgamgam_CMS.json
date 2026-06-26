@@ -16,8 +16,7 @@
             "expected_limit_m1": 0.52633,
             "expected_limit_p1": 1.1892,
             "expected_limit_m2": 0.37842,
-            "expected_limit_p2": 1.7454,
-            "resolvable": true
+            "expected_limit_p2": 1.7454
         },
         {
             "mX": 300,
@@ -27,8 +26,7 @@
             "expected_limit_m1": 0.48686,
             "expected_limit_p1": 1.1,
             "expected_limit_m2": 0.35004,
-            "expected_limit_p2": 1.6102,
-            "resolvable": true
+            "expected_limit_p2": 1.6102
         },
         {
             "mX": 300,
@@ -38,8 +36,7 @@
             "expected_limit_m1": 0.42711,
             "expected_limit_p1": 0.98068,
             "expected_limit_m2": 0.30623,
-            "expected_limit_p2": 1.4331,
-            "resolvable": true
+            "expected_limit_p2": 1.4331
         },
         {
             "mX": 350,
@@ -49,8 +46,7 @@
             "expected_limit_m1": 0.38452,
             "expected_limit_p1": 0.84725,
             "expected_limit_m2": 0.28125,
-            "expected_limit_p2": 1.2418,
-            "resolvable": true
+            "expected_limit_p2": 1.2418
         },
         {
             "mX": 350,
@@ -60,8 +56,7 @@
             "expected_limit_m1": 0.35051,
             "expected_limit_p1": 0.80691,
             "expected_limit_m2": 0.25131,
-            "expected_limit_p2": 1.1803,
-            "resolvable": true
+            "expected_limit_p2": 1.1803
         },
         {
             "mX": 350,
@@ -71,8 +66,7 @@
             "expected_limit_m1": 0.33137,
             "expected_limit_p1": 0.73546,
             "expected_limit_m2": 0.24032,
-            "expected_limit_p2": 1.0662,
-            "resolvable": true
+            "expected_limit_p2": 1.0662
         },
         {
             "mX": 400,
@@ -82,8 +76,7 @@
             "expected_limit_m1": 0.29128,
             "expected_limit_p1": 0.66472,
             "expected_limit_m2": 0.20757,
-            "expected_limit_p2": 0.98169,
-            "resolvable": true
+            "expected_limit_p2": 0.98169
         },
         {
             "mX": 400,
@@ -93,8 +86,7 @@
             "expected_limit_m1": 0.28394,
             "expected_limit_p1": 0.63919,
             "expected_limit_m2": 0.20504,
-            "expected_limit_p2": 0.93564,
-            "resolvable": true
+            "expected_limit_p2": 0.93564
         },
         {
             "mX": 400,
@@ -104,8 +96,7 @@
             "expected_limit_m1": 0.25731,
             "expected_limit_p1": 0.57378,
             "expected_limit_m2": 0.18553,
-            "expected_limit_p2": 0.83542,
-            "resolvable": true
+            "expected_limit_p2": 0.83542
         },
         {
             "mX": 400,
@@ -115,8 +106,7 @@
             "expected_limit_m1": 0.28026,
             "expected_limit_p1": 0.60834,
             "expected_limit_m2": 0.20091,
-            "expected_limit_p2": 0.87289,
-            "resolvable": true
+            "expected_limit_p2": 0.87289
         },
         {
             "mX": 400,
@@ -126,8 +116,7 @@
             "expected_limit_m1": 0.40119,
             "expected_limit_p1": 0.87903,
             "expected_limit_m2": 0.28801,
-            "expected_limit_p2": 1.2542,
-            "resolvable": true
+            "expected_limit_p2": 1.2542
         },
         {
             "mX": 450,
@@ -137,8 +126,7 @@
             "expected_limit_m1": 0.17973,
             "expected_limit_p1": 0.46156,
             "expected_limit_m2": 0.12169,
-            "expected_limit_p2": 0.71444,
-            "resolvable": true
+            "expected_limit_p2": 0.71444
         },
         {
             "mX": 450,
@@ -148,8 +136,7 @@
             "expected_limit_m1": 0.16734,
             "expected_limit_p1": 0.42553,
             "expected_limit_m2": 0.11329,
-            "expected_limit_p2": 0.66069,
-            "resolvable": true
+            "expected_limit_p2": 0.66069
         },
         {
             "mX": 450,
@@ -159,8 +146,7 @@
             "expected_limit_m1": 0.1662,
             "expected_limit_p1": 0.41196,
             "expected_limit_m2": 0.1148,
-            "expected_limit_p2": 0.62993,
-            "resolvable": true
+            "expected_limit_p2": 0.62993
         },
         {
             "mX": 450,
@@ -170,8 +156,7 @@
             "expected_limit_m1": 0.20264,
             "expected_limit_p1": 0.45544,
             "expected_limit_m2": 0.14569,
-            "expected_limit_p2": 0.66531,
-            "resolvable": true
+            "expected_limit_p2": 0.66531
         },
         {
             "mX": 450,
@@ -181,8 +166,7 @@
             "expected_limit_m1": 0.17762,
             "expected_limit_p1": 0.41157,
             "expected_limit_m2": 0.12543,
-            "expected_limit_p2": 0.60476,
-            "resolvable": true
+            "expected_limit_p2": 0.60476
         },
         {
             "mX": 500,
@@ -192,8 +176,7 @@
             "expected_limit_m1": 0.18454,
             "expected_limit_p1": 0.45566,
             "expected_limit_m2": 0.1281,
-            "expected_limit_p2": 0.69675,
-            "resolvable": true
+            "expected_limit_p2": 0.69675
         },
         {
             "mX": 500,
@@ -203,8 +186,7 @@
             "expected_limit_m1": 0.17701,
             "expected_limit_p1": 0.43211,
             "expected_limit_m2": 0.12346,
-            "expected_limit_p2": 0.65818,
-            "resolvable": true
+            "expected_limit_p2": 0.65818
         },
         {
             "mX": 500,
@@ -214,8 +196,7 @@
             "expected_limit_m1": 0.15189,
             "expected_limit_p1": 0.35513,
             "expected_limit_m2": 0.10891,
-            "expected_limit_p2": 0.53297,
-            "resolvable": true
+            "expected_limit_p2": 0.53297
         },
         {
             "mX": 500,
@@ -225,8 +206,7 @@
             "expected_limit_m1": 0.13733,
             "expected_limit_p1": 0.32477,
             "expected_limit_m2": 0.09714,
-            "expected_limit_p2": 0.48741,
-            "resolvable": true
+            "expected_limit_p2": 0.48741
         },
         {
             "mX": 500,
@@ -236,8 +216,7 @@
             "expected_limit_m1": 0.16021,
             "expected_limit_p1": 0.37789,
             "expected_limit_m2": 0.11208,
-            "expected_limit_p2": 0.56713,
-            "resolvable": true
+            "expected_limit_p2": 0.56713
         },
         {
             "mX": 500,
@@ -247,8 +226,7 @@
             "expected_limit_m1": 0.17884,
             "expected_limit_p1": 0.42668,
             "expected_limit_m2": 0.12452,
-            "expected_limit_p2": 0.63701,
-            "resolvable": true
+            "expected_limit_p2": 0.63701
         },
         {
             "mX": 550,
@@ -258,8 +236,7 @@
             "expected_limit_m1": 0.16748,
             "expected_limit_p1": 0.41146,
             "expected_limit_m2": 0.11625,
-            "expected_limit_p2": 0.63147,
-            "resolvable": true
+            "expected_limit_p2": 0.63147
         },
         {
             "mX": 550,
@@ -269,8 +246,7 @@
             "expected_limit_m1": 0.15357,
             "expected_limit_p1": 0.37919,
             "expected_limit_m2": 0.1066,
-            "expected_limit_p2": 0.57982,
-            "resolvable": true
+            "expected_limit_p2": 0.57982
         },
         {
             "mX": 550,
@@ -280,8 +256,7 @@
             "expected_limit_m1": 0.15105,
             "expected_limit_p1": 0.3518,
             "expected_limit_m2": 0.10666,
-            "expected_limit_p2": 0.52451,
-            "resolvable": true
+            "expected_limit_p2": 0.52451
         },
         {
             "mX": 550,
@@ -291,8 +266,7 @@
             "expected_limit_m1": 0.1168,
             "expected_limit_p1": 0.27833,
             "expected_limit_m2": 0.082614,
-            "expected_limit_p2": 0.41554,
-            "resolvable": true
+            "expected_limit_p2": 0.41554
         },
         {
             "mX": 550,
@@ -302,8 +276,7 @@
             "expected_limit_m1": 0.12222,
             "expected_limit_p1": 0.28389,
             "expected_limit_m2": 0.087238,
-            "expected_limit_p2": 0.42149,
-            "resolvable": true
+            "expected_limit_p2": 0.42149
         },
         {
             "mX": 550,
@@ -313,8 +286,7 @@
             "expected_limit_m1": 0.12643,
             "expected_limit_p1": 0.29974,
             "expected_limit_m2": 0.08845,
-            "expected_limit_p2": 0.44828,
-            "resolvable": true
+            "expected_limit_p2": 0.44828
         },
         {
             "mX": 600,
@@ -324,8 +296,7 @@
             "expected_limit_m1": 0.11142,
             "expected_limit_p1": 0.29859,
             "expected_limit_m2": 0.0744,
-            "expected_limit_p2": 0.47477,
-            "resolvable": true
+            "expected_limit_p2": 0.47477
         },
         {
             "mX": 600,
@@ -335,8 +306,7 @@
             "expected_limit_m1": 0.10988,
             "expected_limit_p1": 0.28929,
             "expected_limit_m2": 0.07416,
-            "expected_limit_p2": 0.45597,
-            "resolvable": true
+            "expected_limit_p2": 0.45597
         },
         {
             "mX": 600,
@@ -346,8 +316,7 @@
             "expected_limit_m1": 0.086685,
             "expected_limit_p1": 0.22711,
             "expected_limit_m2": 0.0585,
-            "expected_limit_p2": 0.35632,
-            "resolvable": true
+            "expected_limit_p2": 0.35632
         },
         {
             "mX": 600,
@@ -357,8 +326,7 @@
             "expected_limit_m1": 0.081236,
             "expected_limit_p1": 0.20567,
             "expected_limit_m2": 0.055754,
-            "expected_limit_p2": 0.31791,
-            "resolvable": true
+            "expected_limit_p2": 0.31791
         },
         {
             "mX": 600,
@@ -368,8 +336,7 @@
             "expected_limit_m1": 0.082466,
             "expected_limit_p1": 0.2052,
             "expected_limit_m2": 0.056687,
-            "expected_limit_p2": 0.31378,
-            "resolvable": true
+            "expected_limit_p2": 0.31378
         },
         {
             "mX": 600,
@@ -379,8 +346,7 @@
             "expected_limit_m1": 0.094533,
             "expected_limit_p1": 0.23019,
             "expected_limit_m2": 0.065935,
-            "expected_limit_p2": 0.34794,
-            "resolvable": true
+            "expected_limit_p2": 0.34794
         },
         {
             "mX": 600,
@@ -390,8 +356,7 @@
             "expected_limit_m1": 0.15088,
             "expected_limit_p1": 0.36092,
             "expected_limit_m2": 0.10623,
-            "expected_limit_p2": 0.53884,
-            "resolvable": true
+            "expected_limit_p2": 0.53884
         },
         {
             "mX": 650,
@@ -401,8 +366,7 @@
             "expected_limit_m1": 0.12032,
             "expected_limit_p1": 0.31116,
             "expected_limit_m2": 0.08204,
-            "expected_limit_p2": 0.49006,
-            "resolvable": true
+            "expected_limit_p2": 0.49006
         },
         {
             "mX": 650,
@@ -412,8 +376,7 @@
             "expected_limit_m1": 0.11415,
             "expected_limit_p1": 0.28999,
             "expected_limit_m2": 0.07862,
-            "expected_limit_p2": 0.45225,
-            "resolvable": true
+            "expected_limit_p2": 0.45225
         },
         {
             "mX": 650,
@@ -423,8 +386,7 @@
             "expected_limit_m1": 0.10087,
             "expected_limit_p1": 0.23978,
             "expected_limit_m2": 0.072002,
-            "expected_limit_p2": 0.36374,
-            "resolvable": true
+            "expected_limit_p2": 0.36374
         },
         {
             "mX": 650,
@@ -434,8 +396,7 @@
             "expected_limit_m1": 0.064407,
             "expected_limit_p1": 0.16956,
             "expected_limit_m2": 0.043467,
-            "expected_limit_p2": 0.26725,
-            "resolvable": true
+            "expected_limit_p2": 0.26725
         },
         {
             "mX": 650,
@@ -445,8 +406,7 @@
             "expected_limit_m1": 0.082792,
             "expected_limit_p1": 0.20262,
             "expected_limit_m2": 0.057745,
-            "expected_limit_p2": 0.30808,
-            "resolvable": true
+            "expected_limit_p2": 0.30808
         },
         {
             "mX": 650,
@@ -456,8 +416,7 @@
             "expected_limit_m1": 0.070973,
             "expected_limit_p1": 0.17711,
             "expected_limit_m2": 0.049359,
-            "expected_limit_p2": 0.27207,
-            "resolvable": true
+            "expected_limit_p2": 0.27207
         },
         {
             "mX": 650,
@@ -467,8 +426,7 @@
             "expected_limit_m1": 0.096382,
             "expected_limit_p1": 0.2356,
             "expected_limit_m2": 0.066904,
-            "expected_limit_p2": 0.35611,
-            "resolvable": true
+            "expected_limit_p2": 0.35611
         },
         {
             "mX": 700,
@@ -478,8 +436,7 @@
             "expected_limit_m1": 0.09729,
             "expected_limit_p1": 0.2654,
             "expected_limit_m2": 0.064267,
-            "expected_limit_p2": 0.42547,
-            "resolvable": true
+            "expected_limit_p2": 0.42547
         },
         {
             "mX": 700,
@@ -489,8 +446,7 @@
             "expected_limit_m1": 0.095365,
             "expected_limit_p1": 0.2564,
             "expected_limit_m2": 0.064494,
-            "expected_limit_p2": 0.40768,
-            "resolvable": true
+            "expected_limit_p2": 0.40768
         },
         {
             "mX": 700,
@@ -500,8 +456,7 @@
             "expected_limit_m1": 0.083419,
             "expected_limit_p1": 0.21382,
             "expected_limit_m2": 0.057167,
-            "expected_limit_p2": 0.3322,
-            "resolvable": true
+            "expected_limit_p2": 0.3322
         },
         {
             "mX": 700,
@@ -511,8 +466,7 @@
             "expected_limit_m1": 0.061963,
             "expected_limit_p1": 0.16392,
             "expected_limit_m2": 0.041817,
-            "expected_limit_p2": 0.25737,
-            "resolvable": true
+            "expected_limit_p2": 0.25737
         },
         {
             "mX": 700,
@@ -522,8 +476,7 @@
             "expected_limit_m1": 0.067615,
             "expected_limit_p1": 0.18431,
             "expected_limit_m2": 0.045487,
-            "expected_limit_p2": 0.29312,
-            "resolvable": true
+            "expected_limit_p2": 0.29312
         },
         {
             "mX": 700,
@@ -533,8 +486,7 @@
             "expected_limit_m1": 0.050148,
             "expected_limit_p1": 0.1368,
             "expected_limit_m2": 0.033127,
-            "expected_limit_p2": 0.21756,
-            "resolvable": true
+            "expected_limit_p2": 0.21756
         },
         {
             "mX": 700,
@@ -544,8 +496,7 @@
             "expected_limit_m1": 0.069763,
             "expected_limit_p1": 0.17565,
             "expected_limit_m2": 0.048284,
-            "expected_limit_p2": 0.27006,
-            "resolvable": true
+            "expected_limit_p2": 0.27006
         },
         {
             "mX": 700,
@@ -555,8 +506,7 @@
             "expected_limit_m1": 0.16092,
             "expected_limit_p1": 0.38636,
             "expected_limit_m2": 0.11151,
-            "expected_limit_p2": 0.58149,
-            "resolvable": true
+            "expected_limit_p2": 0.58149
         },
         {
             "mX": 750,
@@ -566,8 +516,7 @@
             "expected_limit_m1": 0.087616,
             "expected_limit_p1": 0.24959,
             "expected_limit_m2": 0.057034,
-            "expected_limit_p2": 0.40599,
-            "resolvable": true
+            "expected_limit_p2": 0.40599
         },
         {
             "mX": 750,
@@ -577,8 +526,7 @@
             "expected_limit_m1": 0.078529,
             "expected_limit_p1": 0.22579,
             "expected_limit_m2": 0.051118,
-            "expected_limit_p2": 0.36834,
-            "resolvable": true
+            "expected_limit_p2": 0.36834
         },
         {
             "mX": 750,
@@ -588,8 +536,7 @@
             "expected_limit_m1": 0.06065,
             "expected_limit_p1": 0.17359,
             "expected_limit_m2": 0.039478,
-            "expected_limit_p2": 0.28331,
-            "resolvable": true
+            "expected_limit_p2": 0.28331
         },
         {
             "mX": 750,
@@ -599,8 +546,7 @@
             "expected_limit_m1": 0.057955,
             "expected_limit_p1": 0.1581,
             "expected_limit_m2": 0.038284,
-            "expected_limit_p2": 0.25345,
-            "resolvable": true
+            "expected_limit_p2": 0.25345
         },
         {
             "mX": 750,
@@ -610,8 +556,7 @@
             "expected_limit_m1": 0.072191,
             "expected_limit_p1": 0.17945,
             "expected_limit_m2": 0.050445,
-            "expected_limit_p2": 0.2744,
-            "resolvable": true
+            "expected_limit_p2": 0.2744
         },
         {
             "mX": 750,
@@ -621,8 +566,7 @@
             "expected_limit_m1": 0.047922,
             "expected_limit_p1": 0.12616,
             "expected_limit_m2": 0.032341,
-            "expected_limit_p2": 0.19885,
-            "resolvable": true
+            "expected_limit_p2": 0.19885
         },
         {
             "mX": 750,
@@ -632,8 +576,7 @@
             "expected_limit_m1": 0.049541,
             "expected_limit_p1": 0.12812,
             "expected_limit_m2": 0.033779,
-            "expected_limit_p2": 0.20005,
-            "resolvable": true
+            "expected_limit_p2": 0.20005
         },
         {
             "mX": 750,
@@ -643,8 +586,7 @@
             "expected_limit_m1": 0.069008,
             "expected_limit_p1": 0.1833,
             "expected_limit_m2": 0.046328,
-            "expected_limit_p2": 0.289,
-            "resolvable": true
+            "expected_limit_p2": 0.289
         },
         {
             "mX": 800,
@@ -654,8 +596,7 @@
             "expected_limit_m1": 0.090016,
             "expected_limit_p1": 0.26203,
             "expected_limit_m2": 0.05873,
-            "expected_limit_p2": 0.429,
-            "resolvable": true
+            "expected_limit_p2": 0.429
         },
         {
             "mX": 800,
@@ -665,8 +606,7 @@
             "expected_limit_m1": 0.082635,
             "expected_limit_p1": 0.2354,
             "expected_limit_m2": 0.053792,
-            "expected_limit_p2": 0.38291,
-            "resolvable": true
+            "expected_limit_p2": 0.38291
         },
         {
             "mX": 800,
@@ -676,8 +616,7 @@
             "expected_limit_m1": 0.056767,
             "expected_limit_p1": 0.16674,
             "expected_limit_m2": 0.036823,
-            "expected_limit_p2": 0.27383,
-            "resolvable": true
+            "expected_limit_p2": 0.27383
         },
         {
             "mX": 800,
@@ -687,8 +626,7 @@
             "expected_limit_m1": 0.057355,
             "expected_limit_p1": 0.1572,
             "expected_limit_m2": 0.037888,
-            "expected_limit_p2": 0.25101,
-            "resolvable": true
+            "expected_limit_p2": 0.25101
         },
         {
             "mX": 800,
@@ -698,8 +636,7 @@
             "expected_limit_m1": 0.048077,
             "expected_limit_p1": 0.13397,
             "expected_limit_m2": 0.031826,
-            "expected_limit_p2": 0.21639,
-            "resolvable": true
+            "expected_limit_p2": 0.21639
         },
         {
             "mX": 800,
@@ -709,8 +646,7 @@
             "expected_limit_m1": 0.047196,
             "expected_limit_p1": 0.12375,
             "expected_limit_m2": 0.032016,
-            "expected_limit_p2": 0.19505,
-            "resolvable": true
+            "expected_limit_p2": 0.19505
         },
         {
             "mX": 800,
@@ -720,8 +656,7 @@
             "expected_limit_m1": 0.04303,
             "expected_limit_p1": 0.11466,
             "expected_limit_m2": 0.029251,
-            "expected_limit_p2": 0.18154,
-            "resolvable": true
+            "expected_limit_p2": 0.18154
         },
         {
             "mX": 800,
@@ -731,8 +666,7 @@
             "expected_limit_m1": 0.065904,
             "expected_limit_p1": 0.16627,
             "expected_limit_m2": 0.045077,
-            "expected_limit_p2": 0.25701,
-            "resolvable": true
+            "expected_limit_p2": 0.25701
         },
         {
             "mX": 800,
@@ -742,8 +676,7 @@
             "expected_limit_m1": 0.14172,
             "expected_limit_p1": 0.32594,
             "expected_limit_m2": 0.10099,
-            "expected_limit_p2": 0.48393,
-            "resolvable": true
+            "expected_limit_p2": 0.48393
         },
         {
             "mX": 850,
@@ -753,8 +686,7 @@
             "expected_limit_m1": 0.091221,
             "expected_limit_p1": 0.26455,
             "expected_limit_m2": 0.058693,
-            "expected_limit_p2": 0.43314,
-            "resolvable": true
+            "expected_limit_p2": 0.43314
         },
         {
             "mX": 850,
@@ -764,8 +696,7 @@
             "expected_limit_m1": 0.077607,
             "expected_limit_p1": 0.22411,
             "expected_limit_m2": 0.050225,
-            "expected_limit_p2": 0.36692,
-            "resolvable": true
+            "expected_limit_p2": 0.36692
         },
         {
             "mX": 850,
@@ -775,8 +706,7 @@
             "expected_limit_m1": 0.062093,
             "expected_limit_p1": 0.17613,
             "expected_limit_m2": 0.04065,
-            "expected_limit_p2": 0.28436,
-            "resolvable": true
+            "expected_limit_p2": 0.28436
         },
         {
             "mX": 850,
@@ -786,8 +716,7 @@
             "expected_limit_m1": 0.044448,
             "expected_limit_p1": 0.133,
             "expected_limit_m2": 0.028086,
-            "expected_limit_p2": 0.22027,
-            "resolvable": true
+            "expected_limit_p2": 0.22027
         },
         {
             "mX": 850,
@@ -797,8 +726,7 @@
             "expected_limit_m1": 0.060486,
             "expected_limit_p1": 0.15366,
             "expected_limit_m2": 0.041657,
-            "expected_limit_p2": 0.23965,
-            "resolvable": true
+            "expected_limit_p2": 0.23965
         },
         {
             "mX": 850,
@@ -808,8 +736,7 @@
             "expected_limit_m1": 0.039174,
             "expected_limit_p1": 0.10916,
             "expected_limit_m2": 0.025932,
-            "expected_limit_p2": 0.17632,
-            "resolvable": true
+            "expected_limit_p2": 0.17632
         },
         {
             "mX": 850,
@@ -819,8 +746,7 @@
             "expected_limit_m1": 0.040596,
             "expected_limit_p1": 0.10791,
             "expected_limit_m2": 0.027397,
-            "expected_limit_p2": 0.17019,
-            "resolvable": true
+            "expected_limit_p2": 0.17019
         },
         {
             "mX": 850,
@@ -830,8 +756,7 @@
             "expected_limit_m1": 0.054033,
             "expected_limit_p1": 0.13633,
             "expected_limit_m2": 0.036957,
-            "expected_limit_p2": 0.2126,
-            "resolvable": true
+            "expected_limit_p2": 0.2126
         },
         {
             "mX": 850,
@@ -841,8 +766,7 @@
             "expected_limit_m1": 0.090114,
             "expected_limit_p1": 0.21695,
             "expected_limit_m2": 0.063151,
-            "expected_limit_p2": 0.32968,
-            "resolvable": true
+            "expected_limit_p2": 0.32968
         },
         {
             "mX": 900,
@@ -852,8 +776,7 @@
             "expected_limit_m1": 0.099414,
             "expected_limit_p1": 0.28547,
             "expected_limit_m2": 0.06523,
-            "expected_limit_p2": 0.46785,
-            "resolvable": true
+            "expected_limit_p2": 0.46785
         },
         {
             "mX": 900,
@@ -863,8 +786,7 @@
             "expected_limit_m1": 0.082635,
             "expected_limit_p1": 0.23649,
             "expected_limit_m2": 0.053792,
-            "expected_limit_p2": 0.38597,
-            "resolvable": true
+            "expected_limit_p2": 0.38597
         },
         {
             "mX": 900,
@@ -874,8 +796,7 @@
             "expected_limit_m1": 0.060327,
             "expected_limit_p1": 0.17112,
             "expected_limit_m2": 0.039494,
-            "expected_limit_p2": 0.27836,
-            "resolvable": true
+            "expected_limit_p2": 0.27836
         },
         {
             "mX": 900,
@@ -885,8 +806,7 @@
             "expected_limit_m1": 0.052529,
             "expected_limit_p1": 0.14637,
             "expected_limit_m2": 0.034773,
-            "expected_limit_p2": 0.23643,
-            "resolvable": true
+            "expected_limit_p2": 0.23643
         },
         {
             "mX": 900,
@@ -896,8 +816,7 @@
             "expected_limit_m1": 0.038712,
             "expected_limit_p1": 0.11584,
             "expected_limit_m2": 0.024462,
-            "expected_limit_p2": 0.19053,
-            "resolvable": true
+            "expected_limit_p2": 0.19053
         },
         {
             "mX": 900,
@@ -907,8 +826,7 @@
             "expected_limit_m1": 0.035152,
             "expected_limit_p1": 0.101,
             "expected_limit_m2": 0.022617,
-            "expected_limit_p2": 0.16552,
-            "resolvable": true
+            "expected_limit_p2": 0.16552
         },
         {
             "mX": 900,
@@ -918,8 +836,7 @@
             "expected_limit_m1": 0.041374,
             "expected_limit_p1": 0.10743,
             "expected_limit_m2": 0.028067,
-            "expected_limit_p2": 0.1692,
-            "resolvable": true
+            "expected_limit_p2": 0.1692
         },
         {
             "mX": 900,
@@ -929,8 +846,7 @@
             "expected_limit_m1": 0.039359,
             "expected_limit_p1": 0.10548,
             "expected_limit_m2": 0.026284,
-            "expected_limit_p2": 0.16772,
-            "resolvable": true
+            "expected_limit_p2": 0.16772
         },
         {
             "mX": 900,
@@ -940,8 +856,7 @@
             "expected_limit_m1": 0.062465,
             "expected_limit_p1": 0.15682,
             "expected_limit_m2": 0.042724,
-            "expected_limit_p2": 0.24222,
-            "resolvable": true
+            "expected_limit_p2": 0.24222
         },
         {
             "mX": 900,
@@ -951,8 +866,7 @@
             "expected_limit_m1": 0.11881,
             "expected_limit_p1": 0.29117,
             "expected_limit_m2": 0.08247,
-            "expected_limit_p2": 0.4435,
-            "resolvable": true
+            "expected_limit_p2": 0.4435
         },
         {
             "mX": 950,
@@ -962,8 +876,7 @@
             "expected_limit_m1": 0.11053,
             "expected_limit_p1": 0.31219,
             "expected_limit_m2": 0.07276,
-            "expected_limit_p2": 0.50783,
-            "resolvable": true
+            "expected_limit_p2": 0.50783
         },
         {
             "mX": 950,
@@ -973,8 +886,7 @@
             "expected_limit_m1": 0.086806,
             "expected_limit_p1": 0.24624,
             "expected_limit_m2": 0.056826,
-            "expected_limit_p2": 0.40056,
-            "resolvable": true
+            "expected_limit_p2": 0.40056
         },
         {
             "mX": 950,
@@ -984,8 +896,7 @@
             "expected_limit_m1": 0.061763,
             "expected_limit_p1": 0.17446,
             "expected_limit_m2": 0.04066,
-            "expected_limit_p2": 0.28166,
-            "resolvable": true
+            "expected_limit_p2": 0.28166
         },
         {
             "mX": 950,
@@ -995,8 +906,7 @@
             "expected_limit_m1": 0.049437,
             "expected_limit_p1": 0.14023,
             "expected_limit_m2": 0.032364,
-            "expected_limit_p2": 0.22726,
-            "resolvable": true
+            "expected_limit_p2": 0.22726
         },
         {
             "mX": 950,
@@ -1006,8 +916,7 @@
             "expected_limit_m1": 0.052407,
             "expected_limit_p1": 0.13741,
             "expected_limit_m2": 0.035551,
-            "expected_limit_p2": 0.21659,
-            "resolvable": true
+            "expected_limit_p2": 0.21659
         },
         {
             "mX": 950,
@@ -1017,8 +926,7 @@
             "expected_limit_m1": 0.034571,
             "expected_limit_p1": 0.099332,
             "expected_limit_m2": 0.022243,
-            "expected_limit_p2": 0.16339,
-            "resolvable": true
+            "expected_limit_p2": 0.16339
         },
         {
             "mX": 950,
@@ -1028,8 +936,7 @@
             "expected_limit_m1": 0.036332,
             "expected_limit_p1": 0.097832,
             "expected_limit_m2": 0.024262,
-            "expected_limit_p2": 0.15621,
-            "resolvable": true
+            "expected_limit_p2": 0.15621
         },
         {
             "mX": 950,
@@ -1039,8 +946,7 @@
             "expected_limit_m1": 0.03965,
             "expected_limit_p1": 0.10447,
             "expected_limit_m2": 0.026284,
-            "expected_limit_p2": 0.16466,
-            "resolvable": true
+            "expected_limit_p2": 0.16466
         },
         {
             "mX": 950,
@@ -1050,8 +956,7 @@
             "expected_limit_m1": 0.044506,
             "expected_limit_p1": 0.11927,
             "expected_limit_m2": 0.02972,
-            "expected_limit_p2": 0.18965,
-            "resolvable": true
+            "expected_limit_p2": 0.18965
         },
         {
             "mX": 950,
@@ -1061,8 +966,7 @@
             "expected_limit_m1": 0.11687,
             "expected_limit_p1": 0.28206,
             "expected_limit_m2": 0.0819,
-            "expected_limit_p2": 0.42581,
-            "resolvable": true
+            "expected_limit_p2": 0.42581
         },
         {
             "mX": 1000,
@@ -1072,8 +976,7 @@
             "expected_limit_m1": 0.12175,
             "expected_limit_p1": 0.3423,
             "expected_limit_m2": 0.08015,
-            "expected_limit_p2": 0.5549,
-            "resolvable": true
+            "expected_limit_p2": 0.5549
         },
         {
             "mX": 1000,
@@ -1083,8 +986,7 @@
             "expected_limit_m1": 0.094668,
             "expected_limit_p1": 0.26379,
             "expected_limit_m2": 0.062668,
-            "expected_limit_p2": 0.42774,
-            "resolvable": true
+            "expected_limit_p2": 0.42774
         },
         {
             "mX": 1000,
@@ -1094,8 +996,7 @@
             "expected_limit_m1": 0.062886,
             "expected_limit_p1": 0.17449,
             "expected_limit_m2": 0.041858,
-            "expected_limit_p2": 0.28076,
-            "resolvable": true
+            "expected_limit_p2": 0.28076
         },
         {
             "mX": 1000,
@@ -1105,8 +1006,7 @@
             "expected_limit_m1": 0.045818,
             "expected_limit_p1": 0.13396,
             "expected_limit_m2": 0.029721,
-            "expected_limit_p2": 0.21933,
-            "resolvable": true
+            "expected_limit_p2": 0.21933
         },
         {
             "mX": 1000,
@@ -1116,8 +1016,7 @@
             "expected_limit_m1": 0.045001,
             "expected_limit_p1": 0.12428,
             "expected_limit_m2": 0.029953,
-            "expected_limit_p2": 0.2,
-            "resolvable": true
+            "expected_limit_p2": 0.2
         },
         {
             "mX": 1000,
@@ -1127,8 +1026,7 @@
             "expected_limit_m1": 0.034868,
             "expected_limit_p1": 0.10026,
             "expected_limit_m2": 0.022697,
-            "expected_limit_p2": 0.16416,
-            "resolvable": true
+            "expected_limit_p2": 0.16416
         },
         {
             "mX": 1000,
@@ -1138,8 +1036,7 @@
             "expected_limit_m1": 0.028471,
             "expected_limit_p1": 0.082948,
             "expected_limit_m2": 0.018319,
-            "expected_limit_p2": 0.13622,
-            "resolvable": true
+            "expected_limit_p2": 0.13622
         },
         {
             "mX": 1000,
@@ -1149,8 +1046,7 @@
             "expected_limit_m1": 0.036933,
             "expected_limit_p1": 0.097234,
             "expected_limit_m2": 0.024925,
-            "expected_limit_p2": 0.1539,
-            "resolvable": true
+            "expected_limit_p2": 0.1539
         },
         {
             "mX": 1000,
@@ -1160,8 +1056,7 @@
             "expected_limit_m1": 0.038167,
             "expected_limit_p1": 0.10403,
             "expected_limit_m2": 0.025677,
-            "expected_limit_p2": 0.16677,
-            "resolvable": true
+            "expected_limit_p2": 0.16677
         },
         {
             "mX": 1000,
@@ -1171,8 +1066,7 @@
             "expected_limit_m1": 0.059245,
             "expected_limit_p1": 0.15051,
             "expected_limit_m2": 0.040802,
-            "expected_limit_p2": 0.23265,
-            "resolvable": true
+            "expected_limit_p2": 0.23265
         },
         {
             "mX": 1000,
@@ -1182,8 +1076,7 @@
             "expected_limit_m1": 0.099123,
             "expected_limit_p1": 0.25863,
             "expected_limit_m2": 0.065707,
-            "expected_limit_p2": 0.40208,
-            "resolvable": true
+            "expected_limit_p2": 0.40208
         }
     ]
 }
