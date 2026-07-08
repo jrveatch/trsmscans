@@ -84,16 +84,16 @@ def main() -> None:
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
     arg_parser.add_argument("--no-plot-limits", action="store_true", help="Do not produce exclusion limits plots")
-    arg_parser.add_argument("--log-x", action="store_true", help="Use logarithmic scale for the X mass axis")
-    arg_parser.add_argument("--log-y", action="store_true", help="Use logarithmic scale for the S mass axis")
-    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both axes (equivalent to --log_x --log_y)")
+    arg_parser.add_argument("--log-mX", action="store_true", help="Use logarithmic scale for the X mass axis")
+    arg_parser.add_argument("--log-mS", action="store_true", help="Use logarithmic scale for the S mass axis")
+    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both masses (equivalent to --log-mX --log-mS)")
     arg_parser.add_argument("--only", choices=["masspoints", "combination"],
         help="Restrict to only plotting individual mass points or the interpolated combination plot (default: both)"
     )
     args = arg_parser.parse_args()
 
-    log_x = args.log_x or args.log_axes
-    log_y = args.log_y or args.log_axes
+    args.log_mX = args.log_mX or args.log_axes
+    args.log_mS = args.log_mS or args.log_axes
 
     do_plot_masspoints = False
     do_plot_combination = False
@@ -122,8 +122,8 @@ def main() -> None:
             identifier=args.identifier,
             plot_limits=not args.no_plot_limits,
             include_sigma_bands=not args.no_sigma_bands,
-            log_x=log_x,
-            log_y=log_y
+            log_x=args.log_mX,
+            log_y=args.log_mS
         )
         combo_plotter.make_combination_plots()
 
