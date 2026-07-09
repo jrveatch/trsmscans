@@ -101,17 +101,17 @@ def main() -> None:
     # Check arguments
     if args.XMass and args.SMass:
         if args.only == "combination":
-            raise ValueError("Combination plotting requires a mass list (-l/--use-mass-list).")
+            arg_parser.error("Combination plotting requires a mass list (-l/--use-mass-list).")
         do_plot_masspoints = True
 
     elif args.use_mass_list:
         if not args.identifier:
-            raise ValueError("Identifier (-i/--identifier) is required with -l/--use-mass-list.")
+            arg_parser.error("Identifier (-i/--identifier) is required with -l/--use-mass-list.")
         do_plot_combination = args.only in (None, "combination")
         do_plot_masspoints = args.only in (None, "masspoints")
 
     else:
-        raise ValueError("Please specify either a mass point (-X/--XMass and -S/--SMass) or -l/--use-mass-list.")
+        arg_parser.error("Please specify either a mass point (-X/--XMass and -S/--SMass) or -l/--use-mass-list.")
 
     # Plot combination if requested
     if do_plot_combination:
