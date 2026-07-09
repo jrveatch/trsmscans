@@ -98,13 +98,18 @@ def main() -> None:
     do_plot_masspoints = False
     do_plot_combination = False
 
-    mass_point_provided = (
-        args.XMass is not None and
-        args.SMass is not None
-    )
+    mX_provided = args.XMass is not None
+    mS_provided = args.SMass is not None
+    
+    if mX_provided != mS_provided:
+        arg_parser.error("Both -X/--XMass and -S/--SMass must be specified together.")
+
+    mass_point_provided = mX_provided and mS_provided
 
     # Check arguments
     if mass_point_provided:
+        if args.use_mass_list or args.identifier:
+            arg_parser.error("Cannot specify both a mass point (-X/--XMass and -S/--SMass) and a mass list (-l/--use-mass-list and -i/--identifier)")
         if args.only == "combination":
             arg_parser.error("Combination plotting requires a mass list (-l/--use-mass-list).")
         do_plot_masspoints = True
