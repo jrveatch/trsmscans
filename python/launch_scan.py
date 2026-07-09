@@ -298,16 +298,16 @@ def main():
     # Validate arguments
     if mode == "scan":
         if not requested_decay:
-            raise ValueError("Scan mode requires -d/--decay")
+            arg_parser.error("Scan mode requires -d/--decay")
         if strategy == "meanshift" and iterations <= 0:
-            raise ValueError("Mean shift strategy requires -t/--iterations to be greater than 0")
+            arg_parser.error("Mean shift strategy requires -t/--iterations to be greater than 0")
 
     # Load mass points
     if args.use_mass_list:
         if not requested_decay:
-            raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
+            arg_parser.error("Decay mode (-d/--decay) is required to run over a mass list")
         if not identifier:
-            raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
+            arg_parser.error("Identifier (-i/--identifier) is required to run over a mass list")
         mass_list = MassList(decay=requested_decay,
                              identifier=identifier)
         permutations = mass_list.get_mass_permutations()
@@ -318,7 +318,7 @@ def main():
     elif XMass is not None and SMass is not None:
         mass_points = [(XMass, SMass, HMass, {})]
     else:
-        raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
+        arg_parser.error("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     job_count = 0
     skip_count = 0
