@@ -109,7 +109,8 @@ def main() -> None:
     # Check arguments
     if mass_point_provided:
         if args.use_mass_list or args.identifier:
-            arg_parser.error("Cannot specify both a mass point (-X/--XMass and -S/--SMass) and a mass list (-l/--use-mass-list and -i/--identifier)")
+            arg_parser.error("Cannot specify mass-list options (-l/--use-mass-list and -i/--identifier) together " \
+                             "with a single mass point (-X/--XMass and -S/--SMass)")
         if args.only == "combination":
             arg_parser.error("Combination plotting requires a mass list (-l/--use-mass-list).")
         do_plot_masspoints = True
