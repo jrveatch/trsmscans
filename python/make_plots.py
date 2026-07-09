@@ -98,8 +98,13 @@ def main() -> None:
     do_plot_masspoints = False
     do_plot_combination = False
 
+    mass_point_provided = (
+        args.XMass is not None and
+        args.SMass is not None
+    )
+
     # Check arguments
-    if args.XMass and args.SMass:
+    if mass_point_provided:
         if args.only == "combination":
             arg_parser.error("Combination plotting requires a mass list (-l/--use-mass-list).")
         do_plot_masspoints = True
@@ -146,7 +151,7 @@ def main() -> None:
                 return
             print(f"Loaded {len(mass_points)} mass points")
 
-        elif args.XMass and args.SMass:
+        elif mass_point_provided:
             print(f"\nMaking mass point plots for mX = {args.XMass}, mS = {args.SMass} and decay '{args.decay}'")
             model = Model(name=args.model, masses={"H": args.HMass, "S": args.SMass, "X": args.XMass})
             if not model.is_calculable:
