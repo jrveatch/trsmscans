@@ -84,34 +84,45 @@ def main() -> None:
     arg_parser.add_argument("-s", "--strategy", default="zoom", type=str, choices=['zoom','meanshift'], help="Optimization strategy")
     arg_parser.add_argument("--no-sigma-bands", action="store_true", help="Do not plot ±1σ and ±2σ expected contours")
     arg_parser.add_argument("--no-plot-limits", action="store_true", help="Do not produce exclusion limits plots")
-    arg_parser.add_argument("--log-x", action="store_true", help="Use logarithmic scale for the X mass axis")
-    arg_parser.add_argument("--log-y", action="store_true", help="Use logarithmic scale for the S mass axis")
-    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both axes (equivalent to --log_x --log_y)")
+    arg_parser.add_argument("--log-mX", action="store_true", help="Use logarithmic scale for the X mass axis")
+    arg_parser.add_argument("--log-mS", action="store_true", help="Use logarithmic scale for the S mass axis")
+    arg_parser.add_argument("--log-axes", action="store_true", help="Use logarithmic scale for both masses (equivalent to --log-mX --log-mS)")
     arg_parser.add_argument("--only", choices=["masspoints", "combination"],
         help="Restrict to only plotting individual mass points or the interpolated combination plot (default: both)"
     )
     args = arg_parser.parse_args()
 
-    log_x = args.log_x or args.log_axes
-    log_y = args.log_y or args.log_axes
+    args.log_mX = args.log_mX or args.log_axes
+    args.log_mS = args.log_mS or args.log_axes
 
     do_plot_masspoints = False
     do_plot_combination = False
 
+    mX_provided = args.XMass is not None
+    mS_provided = args.SMass is not None
+    
+    if mX_provided != mS_provided:
+        arg_parser.error("Both -X/--XMass and -S/--SMass must be specified together.")
+
+    mass_point_provided = mX_provided and mS_provided
+
     # Check arguments
-    if args.XMass and args.SMass:
+    if mass_point_provided:
+        if args.use_mass_list or args.identifier:
+            arg_parser.error("Cannot specify mass-list options (-l/--use-mass-list and -i/--identifier) together " \
+                             "with a single mass point (-X/--XMass and -S/--SMass)")
         if args.only == "combination":
-            raise ValueError("Combination plotting requires a mass list (-l/--use-mass-list).")
+            arg_parser.error("Combination plotting requires a mass list (-l/--use-mass-list).")
         do_plot_masspoints = True
 
     elif args.use_mass_list:
         if not args.identifier:
-            raise ValueError("Identifier (-i/--identifier) is required with -l/--use-mass-list.")
+            arg_parser.error("Identifier (-i/--identifier) is required with -l/--use-mass-list.")
         do_plot_combination = args.only in (None, "combination")
         do_plot_masspoints = args.only in (None, "masspoints")
 
     else:
-        raise ValueError("Please specify either a mass point (-X/--XMass and -S/--SMass) or -l/--use-mass-list.")
+        arg_parser.error("Please specify either a mass point (-X/--XMass and -S/--SMass) or -l/--use-mass-list.")
 
     # Plot combination if requested
     if do_plot_combination:
@@ -122,8 +133,8 @@ def main() -> None:
             identifier=args.identifier,
             plot_limits=not args.no_plot_limits,
             include_sigma_bands=not args.no_sigma_bands,
-            log_x=log_x,
-            log_y=log_y
+            log_x=args.log_mX,
+            log_y=args.log_mS
         )
         combo_plotter.make_combination_plots()
 
@@ -146,7 +157,7 @@ def main() -> None:
                 return
             print(f"Loaded {len(mass_points)} mass points")
 
-        elif args.XMass and args.SMass:
+        elif mass_point_provided:
             print(f"\nMaking mass point plots for mX = {args.XMass}, mS = {args.SMass} and decay '{args.decay}'")
             model = Model(name=args.model, masses={"H": args.HMass, "S": args.SMass, "X": args.XMass})
             if not model.is_calculable:

@@ -295,19 +295,30 @@ def main():
     force_rerun: bool = args.force_rerun
     dry_run: bool = args.dry_run
 
-    # Validate arguments
+    # Validate mass points/list arguments
+    mX_provided = XMass is not None
+    mS_provided = SMass is not None
+    if mX_provided != mS_provided:
+        arg_parser.error("Both -X/--XMass and -S/--SMass must be specified together.")
+    mass_point_provided = mX_provided and mS_provided
+    if mass_point_provided:
+        if args.use_mass_list or args.identifier:
+            arg_parser.error("Cannot specify mass-list options (-l/--use-mass-list and -i/--identifier) together " \
+                             "with a single mass point (-X/--XMass and -S/--SMass)")
+
+    # Validate scan arguments
     if mode == "scan":
         if not requested_decay:
-            raise ValueError("Scan mode requires -d/--decay")
+            arg_parser.error("Scan mode requires -d/--decay")
         if strategy == "meanshift" and iterations <= 0:
-            raise ValueError("Mean shift strategy requires -t/--iterations to be greater than 0")
+            arg_parser.error("Mean shift strategy requires -t/--iterations to be greater than 0")
 
     # Load mass points
     if args.use_mass_list:
         if not requested_decay:
-            raise ValueError("Decay mode (-d/--decay) is required to run over a mass list")
+            arg_parser.error("Decay mode (-d/--decay) is required to run over a mass list")
         if not identifier:
-            raise ValueError("Identifier (-i/--identifier) is required to run over a mass list")
+            arg_parser.error("Identifier (-i/--identifier) is required to run over a mass list")
         mass_list = MassList(decay=requested_decay,
                              identifier=identifier)
         permutations = mass_list.get_mass_permutations()
@@ -315,10 +326,11 @@ def main():
         print(f"Loaded {len(mass_points)} mass points from identifier '{identifier}' with decay '{requested_decay}'")
         if not mass_list.includes_decay:
             decay = "NoDecay"
-    elif XMass is not None and SMass is not None:
+    elif mass_point_provided:
+        assert XMass is not None and SMass is not None
         mass_points = [(XMass, SMass, HMass, {})]
     else:
-        raise ValueError("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
+        arg_parser.error("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
 
     job_count = 0
     skip_count = 0
