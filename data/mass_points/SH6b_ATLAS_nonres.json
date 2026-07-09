@@ -9,297 +9,356 @@
         {
             "mX": 200,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 300,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 300,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 300,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 400,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 400,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 400,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 400,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 400,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 300,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 400,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 750,
             "mS": 500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 300,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 400,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1000,
             "mS": 750,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 300,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 400,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 750,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 1500,
             "mS": 1000,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 300,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 400,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 750,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 1000,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2000,
             "mS": 1500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 70,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 100,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 170,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 200,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 250,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 300,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 400,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 750,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 1000,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 1500,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         },
         {
             "mX": 2500,
             "mS": 2000,
-            "exclusion_limit": -1.0
+            "expected_limit": -1.0,
+            "observed_limit": -1.0
         }
     ]
 }
