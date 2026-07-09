@@ -327,6 +327,7 @@ def main():
         if not mass_list.includes_decay:
             decay = "NoDecay"
     elif mass_point_provided:
+        assert XMass is not None and SMass is not None
         mass_points = [(XMass, SMass, HMass, {})]
     else:
         arg_parser.error("Please specify either -l/--use-mass-list or provide -X/--XMass and -S/--SMass")
