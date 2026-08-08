@@ -133,6 +133,8 @@ class PointSampler:
             NoPointsPassedError: If no points pass the filters in the first batch.
         """
 
+        print("Sampling Points***")
+
         # Set names of input .ini and output .tsv files
         out_name = param_space.model_name
         # Check if identifier is defined
@@ -141,11 +143,15 @@ class PointSampler:
         ini_name = os.path.join(self.ini_dir,f"{out_name}.ini")
         tsv_name = os.path.join(self.tsv_dir,f"{out_name}.tsv")
 
+        print(f'ini_name: {ini_name}')
+
         # Global variable for number of points
         self.total_points_requested = num_points_requested
 
         # Write new .ini file from template and parameters
         param_space.write_ini(ini_name)
+
+        print("test after write_ini")
 
         data = pd.DataFrame()
 

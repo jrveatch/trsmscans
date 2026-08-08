@@ -7,12 +7,16 @@ import shutil
 import time
 from typing import List, Optional, Tuple
 import numpy as np
+from multiprocessing.managers import ValueProxy
+from multiprocessing import Process, Queue
+import glob
 
 # local modules
+from utils.logging_utils import VERBOSE_LEVEL
 from prescan.prescan import prescan
 from utils.config_loader import ConfigLoader
 from utils.decay_utils import is_valid_decay, valid_decays
-from utils.file_utils import scan_dir, recreate_dir
+from utils.file_utils import scan_dir, recreate_dir, remove_temp_directories, remove_temp_dir, remove_artifact_files
 from utils.model import Model
 from utils.param_space import ParamSpace
 from utils.point import Point
@@ -23,6 +27,7 @@ from utils.tsv_utils import sort_tsv_file, write_point_to_summary_file, initiali
 from optimizers.mean_shift_optimizer import MeanShiftOptimizer
 from optimizers.zoom_optimizer import ZoomOptimizer
 from optimizers.bayesian_optimizer import BayesianOptimizer
+from utils.df_utils import load_scanner_output
 
 # get logger
 import logging
@@ -226,8 +231,8 @@ class Scan:
 
         self.global_max.write_tsv_to_file(self.tsv_summary_name)
 
-    def run_ms_optimization(self,
-                            num_optimizers: int) -> None:
+    def run__ms_optimization(self,
+                        num_optimizers: int) -> None:
         """
         Run a mean shift optimization.
 
@@ -261,8 +266,8 @@ class Scan:
 
         # Create PointSampler object
         point_sampler = PointSampler(model = self.model,
-                                     out_dir = self.out_dir,
-                                     subdir_name = "meanshift")
+                                    out_dir = self.out_dir,
+                                    subdir_name = "meanshift")
 
         logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
 
@@ -289,8 +294,145 @@ class Scan:
 
         # finalize the run
         self.finalize(strategy="meanshift",
+                    scan_time=scan_time,
+                    num_points=num_optimizers)
+        
+    def run_ms_optimization(self,
+                            num_optimizers: int) -> None:
+        """
+        Run a mean shift optimization.
+
+        Args:
+            num_optimizers (int): Number of optimizers to run.
+        """
+
+        logger.info("Running NEW mean shift optimization...\n")
+
+        # get scan start time
+        scan_start = time.time()
+
+        # initialize output directories and files
+        self.initialize_output("meanshift")
+
+        # run prescan
+        self.run_prescan()
+
+        # Define helper functions (as inner functions because only for meanshift implementation)
+
+        # Returns a list of initial positions for shifters
+        def initial_positions(num_optimizers: int) -> Tuple[Point]:
+            results = []
+
+            #num_optimizers = 1
+            for i in range(num_optimizers):
+                results.append(self.global_param_space.random_point())
+
+            return tuple(results)
+
+        initial_pos_set = initial_positions(num_optimizers)
+        #initial_pos_set = 1
+
+        #print("initial_pos_set of optimizers: ")
+       # print(initial_pos_set)
+ 
+        logger.debug("Initial points:\n" + "\n".join(f"\t{p}" for p in initial_pos_set) + "\n")
+
+        directories = [f"{self.out_dir}/dir_{i}" for i in range(num_optimizers)]
+
+        # Shared queue to get success/error results
+        result_queue = Queue()
+        processes = []
+
+        # Launch one process per optimizer
+        for i in range(num_optimizers):
+            p = Process(
+                target=run_ms_process,
+                args=(
+                    i,                         # optimizer_id
+                    initial_pos_set[i],       # unique initial point
+                    self.model,               # model
+                    directories[i],           # output dir
+                    self.global_param_space,  # parameter space
+                    self.optimizer_config_loader,       # config loader
+                    result_queue              # result queue
+                )
+            )
+            processes.append(p)
+            p.start()
+
+        # Wait for all processes to finish
+        for p in processes:
+            p.join(timeout=60)
+
+            if p.is_alive():
+                print("Killing job")
+                p.terminate()
+                p.join()
+
+        # Collect results
+        results = {}
+        while not result_queue.empty():
+            optimizer_id, status = result_queue.get()
+            results[optimizer_id] = status
+
+        logger.info("All processes finished. Merging outputs...")
+
+        for dir_path in directories:
+    # Find all .tsv files in this temp directory
+            tsv_files = glob.glob(os.path.join(dir_path, "*.tsv"))
+            ini_files = glob.glob(os.path.join(dir_path, "*.ini"))
+            
+            for i, file_path in enumerate(tsv_files):
+                filename = os.path.basename(file_path)
+
+                # Prefix with directory name to avoid collisions (e.g., dir_0_summary.tsv)
+                unique_filename = f"meanshift-{i}_{filename}"
+
+                dest_path = os.path.join(self.out_dir, "meanshift", "tsv", unique_filename)
+
+                # Move the file
+                shutil.move(file_path, dest_path)
+
+            for file_path in ini_files:
+                filename = os.path.basename(file_path)
+
+                dest_path = os.path.join(self.out_dir, "meanshift", "ini", filename)
+
+                # Move the file
+                shutil.move(file_path, dest_path)
+
+        # Merge outputs
+        #tsv_files = list_outputs(directories=directories, file_name=self.model.name + ".tsv")
+
+        # get dataframe from the output files
+        #data = load_scanner_output(tsv_files)
+
+       # merge_outputs(self.outdir)
+
+        # clean up artifact files
+        remove_artifact_files(self.model)
+
+        # remove temporary directories
+        remove_temp_directories(directories)
+            
+        #result_queue = multiprocessing.Queue()
+        #processes = []
+
+        # SCAN LOGIC END HERE
+
+        # sort summary file
+        # TODO: make sure to sort the tsv summary file as well
+        sort_tsv_file(self.summary_name)
+
+        # get total scan time
+        scan_end = time.time()
+        scan_time = (scan_end - scan_start)
+
+        # finalize the run
+        self.finalize(strategy="meanshift",
                       scan_time=scan_time,
                       num_points=num_optimizers)
+        
 
     def run_zoom_optimization(self,
                               niter: int,
@@ -619,3 +761,50 @@ class Scan:
         if os.path.exists(self.out_dir):
             logger.debug(f"Removing existing directory {self.out_dir}")
             shutil.rmtree(self.out_dir)
+
+def run_ms_process(
+    optimizer_id: int,
+    initial_point: Point,
+    model,
+    optimizer_out_dir: str,
+    param_space,
+    config_loader,
+    result_queue):
+
+    try:
+        
+        print(f"Making subdirectory {optimizer_out_dir}")
+        os.makedirs(optimizer_out_dir, exist_ok=True)
+
+        print(f"Going into subdirectory {optimizer_out_dir}")
+        os.chdir(optimizer_out_dir)
+
+        print(f"Current directory: {os.getcwd()}")
+
+       #with open("", "w") as log:
+
+        # Save outputs to optimizer_out_dir
+        local_sampler = PointSampler(
+            model=model,
+            out_dir=optimizer_out_dir,
+            subdir_name=""
+        )
+
+        print(f"Local sample: {local_sampler}")
+
+        optimizer = MeanShiftOptimizer(
+            label=f"MeanShiftOptimizer-{optimizer_id}",
+            initial_pos=initial_point,
+            global_param_space=param_space,
+            point_sampler=local_sampler,
+            config_loader=config_loader
+        )
+
+        print(f"Optimizer: {optimizer}")
+
+        print("Running....")
+        optimizer.run()
+        result_queue.put((optimizer_id, "success"))
+
+    except Exception as e:
+        result_queue.put((optimizer_id, f"error: {str(e)}"))
